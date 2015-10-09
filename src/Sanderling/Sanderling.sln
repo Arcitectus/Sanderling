@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling", "Sanderling\Sanderling.csproj", "{36F1710C-532F-47FD-88E2-5FAFB381121C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.Test.Exe", "Sanderling.Test.Exe\Sanderling.Test.Exe.csproj", "{C397962F-B65B-4B73-AACC-456148B96ADF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36F1710C-532F-47FD-88E2-5FAFB381121C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36F1710C-532F-47FD-88E2-5FAFB381121C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36F1710C-532F-47FD-88E2-5FAFB381121C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36F1710C-532F-47FD-88E2-5FAFB381121C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C397962F-B65B-4B73-AACC-456148B96ADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C397962F-B65B-4B73-AACC-456148B96ADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C397962F-B65B-4B73-AACC-456148B96ADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C397962F-B65B-4B73-AACC-456148B96ADF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
