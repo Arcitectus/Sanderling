@@ -67,6 +67,9 @@
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
     <Compile Include="Parse\SpaceObject.cs" />
+    <Compile Include="Parse\Test\Drone.cs" />
+    <Compile Include="Parse\Test\Inventory.cs" />
+    <Compile Include="Parse\Test\Number.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleSensorServerDispatcher.cs" />
     <Compile Include="UIStatic.cs" />

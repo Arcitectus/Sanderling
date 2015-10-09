@@ -19,10 +19,10 @@ namespace Sanderling.Parse
 
 		static public DroneLabel AsDroneLabel(this string DroneLabel)
 		{
-			var Name = DroneLabel;
+			var Name = DroneLabel?.Trim();
 			string Status = null;
 
-            var Match = DroneEntryLabelRegex.Match(DroneLabel ?? "");
+			var Match = DroneEntryLabelRegex.Match(DroneLabel ?? "");
 
 			if (Match.Success)
 			{

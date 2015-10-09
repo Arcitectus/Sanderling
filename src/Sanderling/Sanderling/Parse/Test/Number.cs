@@ -4,15 +4,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace BotEngine.EveOnline.Parse.Test
+namespace Sanderling.Parse.Test
 {
-	public class ParseNumberTestCase
+	public class ParseNumberTestCase : Bib3.Test.TestCaseMapCompareByRefNezDif<string, Int64?>
 	{
-		public string NumberString;
-
-		public Int64 NumberValueMilli;
-
 		public CultureInfo Culture;
+
+		public override string ToString() =>
+			"\"" + (In ?? "null") + "\" (Culture = " + (Culture?.ToString() ?? "");
 	}
 
 	static public class Number
@@ -47,9 +46,9 @@ namespace BotEngine.EveOnline.Parse.Test
 				.Concat(SetNumberValueMilli.Select(Value => -Value))
 				.Select(NumberValueMilli => new ParseNumberTestCase()
 				{
-					NumberValueMilli = NumberValueMilli,
+					In = (NumberValueMilli * 1e-3).ToString("N2", Culture),
+					Out = NumberValueMilli,
 					Culture = Culture,
-					NumberString = (NumberValueMilli * 1e-3).ToString("N2", Culture),
 				});
 
 		static public IEnumerable<ParseNumberTestCase> NumberTestCaseCombine(CultureInfo Culture) =>
