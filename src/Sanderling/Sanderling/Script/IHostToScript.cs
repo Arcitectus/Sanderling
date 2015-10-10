@@ -3,7 +3,7 @@ using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Script
 {
-	public interface IHostToScript : BotScript.IHostToScript
+	public interface IHostToScript
 	{
 		MemoryStruct.MemoryMeasurement LastMemoryMeasurement
 		{
@@ -16,27 +16,18 @@ namespace Sanderling.Script
 
 	public class HostToScript : IHostToScript
 	{
-		MemoryStruct.MemoryMeasurement IHostToScript.LastMemoryMeasurement
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public Func<MemoryStruct.MemoryMeasurement> LastMemoryMeasurementFunc;
+
+		MemoryStruct.MemoryMeasurement IHostToScript.LastMemoryMeasurement => LastMemoryMeasurementFunc?.Invoke();
 
 		public void ClickUIElement(MemoryStruct.UIElement Target, bool RightButton)
 		{
 			throw new NotImplementedException();
 		}
+	}
 
-		public void Delay(int Duration)
-		{
-			throw new NotImplementedException();
-		}
-
-		public void Log(object o)
-		{
-			throw new NotImplementedException();
-		}
+	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals
+	{
+		public IHostToScript HostSanderling;
 	}
 }

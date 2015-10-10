@@ -1,12 +1,7 @@
-﻿using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows;
 using System.Windows.Threading;
+using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Exe
 {
@@ -19,11 +14,19 @@ namespace Sanderling.Exe
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => MainWindow?.Main?.ToggleButtonMotionEnable;
 
+		Type[] ScriptAssemblyAndNamespaceTypeAddition => new[]
+		{
+			typeof(Script.IHostToScript),
+			typeof(MemoryStruct.MemoryMeasurement),
+		};
+
 		BotScript.ScriptRun ScriptRun;
 
 		bool WasActivated = false;
 
 		DispatcherTimer Timer;
+
+		MemoryStruct.MemoryMeasurement MemoryMeasurement => null;
 
 		void TimerConstruct()
 		{
@@ -81,13 +84,22 @@ namespace Sanderling.Exe
 			{
 				ScriptRun = new BotScript.ScriptRun();
 
-				ScriptRun.Start(Script);
+				ScriptRun.Start(
+					Script,
+					ScriptAssemblyAndNamespaceTypeAddition,
+					new Script.ToScriptGlobals()
+					{
+						HostSanderling = new Script.HostToScript()
+						{
+							LastMemoryMeasurementFunc = new Func<MemoryStruct.MemoryMeasurement>(() => this.MemoryMeasurement),
+						}
+					});
 			}
 
 			ScriptRun?.Continue();
 
 			ScriptExchange();
-        }
+		}
 
 		void ScriptExchange()
 		{
