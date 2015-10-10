@@ -1,0 +1,22 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+                    xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
+
+        <ResourceDictionary>
+            <BotEngine.UI.ViewModel:AppProperty
+                x:Key="AppProperty">
+                <BotEngine.UI.ViewModel:AppProperty.CompileTime>
+                    <BotEngine.UI.ViewModel:AppPropertyCompileTime
+                        SourceRepoUri="https://github.com/Arcitectus/Sanderling"></BotEngine.UI.ViewModel:AppPropertyCompileTime>
+                </BotEngine.UI.ViewModel:AppProperty.CompileTime>
+
+                <BotEngine.UI.ViewModel:AppProperty.RunTime>
+                    <BotEngine.UI.ViewModel:AppPropertyRunTimeConstructFromCurrentProcess></BotEngine.UI.ViewModel:AppPropertyRunTimeConstructFromCurrentProcess>
+                </BotEngine.UI.ViewModel:AppProperty.RunTime>
+            </BotEngine.UI.ViewModel:AppProperty>
+        </ResourceDictionary>
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

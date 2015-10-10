@@ -1,0 +1,74 @@
+﻿<UserControl x:Class="Sanderling.UI.Main"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Sanderling.UI"
+             xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <TabControl>
+            <TabItem
+                x:Name="TabSensor"
+                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
+                Header="Sensor">
+                <!--
+                <Optimat.EveOnline.UI:ExeSensor></Optimat.EveOnline.UI:ExeSensor>
+                -->
+            </TabItem>
+
+            <TabItem
+                x:Name="TabBot"
+                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}">
+                <TabItem.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="4"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid
+                            VerticalAlignment="Center"
+                            Name="PanelMeasureDesiredHeight">
+                            <TextBlock Text="Bot"></TextBlock>
+                        </Grid>
+
+                        <Grid Grid.Column="2" Height="{Binding ElementName=PanelMeasureDesiredHeight, Path=ActualHeight}">
+                            <Viewbox
+                                Stretch="Uniform" StretchDirection="Both"
+                                Margin="-1">
+                                <Bib3.FCL.GBS:ToggleButtonHorizBinär
+                                    x:Name="ToggleButtonMotionEnable"
+                                    x:FieldModifier="public">
+                                    <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
+                                        <TextBlock
+                                            Text="pause"
+                                            ToolTip="pause generation of input by clicking here or by pressing Ctrl + Alt."></TextBlock>
+                                    </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
+                                    <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
+                                        <TextBlock
+                                            Text="play"
+                                            ToolTip="resume generation of input."></TextBlock>
+                                    </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
+                                </Bib3.FCL.GBS:ToggleButtonHorizBinär>
+                            </Viewbox>
+                        </Grid>
+                    </Grid>
+                </TabItem.Header>
+
+                <TabItem.Content>
+                    <local:Bot
+                        x:Name="Bot"
+                        x:FieldModifier="public"></local:Bot>
+                </TabItem.Content>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>
