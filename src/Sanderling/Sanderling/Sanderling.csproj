@@ -99,7 +99,6 @@
     <Compile Include="Parse\Test\Inventory.cs" />
     <Compile Include="Parse\Test\Number.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="Script\Session.cs" />
     <Compile Include="SimpleSensorServerDispatcher.cs" />
     <Compile Include="Script\IHostToScript.cs" />
     <Compile Include="UIStatic.cs" />
