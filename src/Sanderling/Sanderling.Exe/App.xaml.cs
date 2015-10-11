@@ -12,11 +12,11 @@ namespace Sanderling.Exe
 	{
 		public const string ConfigApiVersionDefaultAddress = @"http://sanderling.api.botengine.de:4034/api";
 
-		BotEngine.LicenseClientConfig LicenseClientConfig = new BotEngine.LicenseClientConfig() { ApiVersionAddress = ConfigApiVersionDefaultAddress };
+		BotEngine.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
 
-        new public MainWindow MainWindow => base.MainWindow as MainWindow;
+        new public MainWindow Window => base.MainWindow as MainWindow;
 
-		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => MainWindow?.Main?.ToggleButtonMotionEnable;
+		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
 
 		Type[] ScriptAssemblyAndNamespaceTypeAddition => new[]
 		{
@@ -52,17 +52,21 @@ namespace Sanderling.Exe
 
 		void ActivatedFirstTime()
 		{
-			MainWindow?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
+			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
 
-			LicenseClientConfigControl.DataContext =
-				new BotEngine.UI.AutoDependencyPropertyComp<BotEngine.LicenseClientConfig>(LicenseClientConfig);
+			Window?.Main?.ConfigFromModelToView(ConfigDefaultConstruct());
+
+			ConfigFileControl.DefaultFilePath = ConfigFilePath;
+			ConfigFileControl.CallbackGetValueToWrite = ConfigReadFromUISerialized;
+			ConfigFileControl.CallbackValueRead = ConfigWriteToUIDeSerialized;
+			ConfigFileControl.ReadFromFile();
 
 			TimerConstruct();
 		}
 
 		void Timer_Tick(object sender, object e)
 		{
-			MainWindow?.ProcessInput();
+			Window?.ProcessInput();
 
 			ScriptExchange();
 
@@ -86,7 +90,7 @@ namespace Sanderling.Exe
 
 		void ScriptRunPlay()
 		{
-			var Editor = MainWindow?.Main?.Bot?.IDE?.Editor;
+			var Editor = Window?.Main?.Bot?.IDE?.Editor;
 
 			var Script = Editor?.Text;
 
@@ -115,7 +119,7 @@ namespace Sanderling.Exe
 		{
 			ToggleButtonMotionEnable.ButtonReczIsChecked = null != ScriptRun && !(ScriptRun?.Completed ?? false);
 
-			MainWindow?.Main?.Bot?.IDE?.Run?.Present(ScriptRun);
+			Window?.Main?.Bot?.IDE?.Run?.Present(ScriptRun);
 		}
 
 	}

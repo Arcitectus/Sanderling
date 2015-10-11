@@ -21,7 +21,7 @@ namespace Sanderling.Exe
 
 		InterfaceAppManager SensorAppManager = new InterfaceAppManager();
 
-		public UI.InterfaceToEve InterfaceToEveControl => MainWindow?.Main?.Interface;
+		public UI.InterfaceToEve InterfaceToEveControl => Window?.Main?.Interface;
 
 		BotEngine.UI.LicenseClientConfig LicenseClientConfigControl => InterfaceToEveControl?.LicenseClientConfig;
 

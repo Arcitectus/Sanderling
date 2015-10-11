@@ -85,6 +85,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExeConfig.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="GameWorldStatic.cs" />
     <Compile Include="Parse\Distance.cs" />

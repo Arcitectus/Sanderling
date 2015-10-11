@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+             xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
              mc:Ignorable="d" 
              d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
@@ -70,6 +71,14 @@
                         x:Name="Bot"
                         x:FieldModifier="public"></local:Bot>
                 </TabItem.Content>
+            </TabItem>
+
+            <TabItem
+                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
+                Header="Config">
+                <BotEngine.UI:WriteToOrLoadFromFile
+                    x:Name="ConfigFileControl"
+                    x:FieldModifier="public"></BotEngine.UI:WriteToOrLoadFromFile>
             </TabItem>
 
         </TabControl>
