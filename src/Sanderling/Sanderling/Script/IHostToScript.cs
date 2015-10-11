@@ -1,29 +1,30 @@
-﻿using System;
+﻿using BotEngine.Interface;
+using BotEngine.Motor;
+using Sanderling.Motor;
+using System;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Script
 {
 	public interface IHostToScript
 	{
-		MemoryStruct.MemoryMeasurement LastMemoryMeasurement
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> LastMemoryMeasurement
 		{
 			get;
 		}
 
-		void ClickUIElement(MemoryStruct.UIElement Target, bool RightButton);
-
-    }
+		MotionResult MotionExecute(MotionParam MotionParam);
+	}
 
 	public class HostToScript : IHostToScript
 	{
-		public Func<MemoryStruct.MemoryMeasurement> LastMemoryMeasurementFunc;
+		public Func<FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> LastMemoryMeasurementFunc;
 
-		MemoryStruct.MemoryMeasurement IHostToScript.LastMemoryMeasurement => LastMemoryMeasurementFunc?.Invoke();
+		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
-		public void ClickUIElement(MemoryStruct.UIElement Target, bool RightButton)
-		{
-			throw new NotImplementedException();
-		}
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> IHostToScript.LastMemoryMeasurement => LastMemoryMeasurementFunc?.Invoke();
+
+		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 	}
 
 	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals

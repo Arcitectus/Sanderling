@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BotEngine.Motor;
+using Sanderling.Motor;
+using System;
 using System.Windows;
 using System.Windows.Threading;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
@@ -10,11 +12,13 @@ namespace Sanderling.Exe
 	/// </summary>
 	public partial class App : Application
 	{
+		static public Int64 GetTimeStopwatch() => Bib3.Glob.StopwatchZaitMiliSictInt();
+
 		public const string ConfigApiVersionDefaultAddress = @"http://sanderling.api.botengine.de:4034/api";
 
 		BotEngine.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
 
-        new public MainWindow Window => base.MainWindow as MainWindow;
+		public MainWindow Window => base.MainWindow as MainWindow;
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
 
@@ -73,7 +77,9 @@ namespace Sanderling.Exe
 			LicenseClientExchange();
 
 			LicenseClientInspect?.Present(LicenseClient?.Wert);
-        }
+
+			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast);
+		}
 
 		void ToggleButtonClick(object sender, RoutedEventArgs e)
 		{
@@ -105,7 +111,8 @@ namespace Sanderling.Exe
 					{
 						HostSanderling = new Script.HostToScript()
 						{
-							LastMemoryMeasurementFunc = new Func<MemoryStruct.MemoryMeasurement>(() => this.MemoryMeasurementLast?.Wert),
+							LastMemoryMeasurementFunc = FromScriptRequestMeasurementLast,
+							MotionExecuteFunc = FromScriptMotionExecute,
 						}
 					});
 			}

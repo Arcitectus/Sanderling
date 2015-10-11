@@ -12,13 +12,19 @@ namespace Sanderling.UI
 		public MemoryMeasurement()
 		{
 			InitializeComponent();
+
+			Detail.TreeViewView = BotEngine.UI.InspectTreeView.ViewRefNezDifConstruct(
+				Interface.FromSensorToConsumerMessage.SerialisPolicyCache,
+				Bib3.FCL.GBS.Inspektor.AstHeaderBackgroundBrushParam.SctandardParam,
+				null,
+				null);
 		}
 
 		public void Present(FromProcessMeasurement<MemoryStruct.MemoryMeasurement> Measurement)
 		{
 			Summary?.Present(Measurement);
 
-			Detail?.TreeView?.Präsentiire(Measurement.Wert);
+			Detail?.TreeView?.Präsentiire(new[] { Measurement?.Wert });
 		}
 	}
 }

@@ -67,6 +67,8 @@
                     </GroupBox>
 
                     <local:MemoryMeasurement
+                        x:Name="Measurement"
+                        x:FieldModifier="public"
                         Grid.Row="2"></local:MemoryMeasurement>
                 </Grid>
             </TabItem>

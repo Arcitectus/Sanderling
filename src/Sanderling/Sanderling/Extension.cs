@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using Bib3.RefNezDiferenz;
 using Sanderling.Interface.MemoryStruct;
 using System;
 using System.Collections.Generic;
@@ -151,6 +152,128 @@ namespace Sanderling
 		static public IEnumerable<KeyValuePair<ListEntry, ListEntry[]>> ListViewEntryGrouped(
 			this IEnumerable<ListEntry> List) =>
 			SequenceGroupByPredicate(List, entry => entry?.IsGroup ?? false);
+
+		static public OrtogoonInt Expanded(
+			this OrtogoonInt BeforeExpansion,
+			Vektor2DInt Expansion) =>
+			BeforeExpansion.GrööseGeseztAngelpunktZentrum(BeforeExpansion.Grööse + Expansion);
+
+		static public OrtogoonInt Expanded(
+			this OrtogoonInt BeforeExpansion,
+			int Expansion) =>
+			BeforeExpansion.Expanded(new Vektor2DInt(Expansion, Expansion));
+
+		static public IEnumerable<OrtogoonInt> SubstractionRemainder(
+			this OrtogoonInt Minuend,
+			OrtogoonInt Subtrahend) => Minuend.Diferenz(Subtrahend);
+
+		static public Vektor2DInt RandomPointInRectangle(
+			this OrtogoonInt Rectangle,
+			Random Random) =>
+			new Vektor2DInt(
+				Rectangle.Min0 + (Random.Next() % Math.Max(1, Rectangle.Max0 - Rectangle.Min0)),
+				Rectangle.Min1 + (Random.Next() % Math.Max(1, Rectangle.Max1 - Rectangle.Min1)));
+
+		static public IEnumerable<OrtogoonInt> SubstractionRemainder(
+			this OrtogoonInt Minuend,
+			IEnumerable<OrtogoonInt> SetSubtrahend)
+		{
+			var Diference = new[] { Minuend };
+
+			foreach (var Subtrahend in SetSubtrahend.EmptyIfNull())
+			{
+				Diference =
+					Diference?.Select(DiferencePortion => DiferencePortion.SubstractionRemainder(Subtrahend))?.ConcatNullable()?.ToArray();
+			}
+
+			return Diference;
+		}
+
+		/// <summary>
+		/// only evaluates the InTreeIndex of the UIElements, not their 2D regions.
+		/// </summary>
+		/// <param name="ElementBehind"></param>
+		/// <param name="UITree"></param>
+		/// <returns>the upmost nodes of all subtrees which are in front of <paramref name="ElementBehind"/></returns>
+		static public IEnumerable<UIElement> GetUpmostUIElementOfSubtreeInFront(
+			this UIElement ElementBehind,
+			object UITree)
+		{
+			if (null == ElementBehind || null == UITree)
+			{
+				yield break;
+			}
+
+			var Queue = new Queue<object>();
+
+			Queue.Enqueue(UITree);
+
+			var NodeVisited = new Dictionary<object, bool>();
+
+			while (0 < Queue.Count)
+			{
+				var Node = Queue.Dequeue();
+
+				if (NodeVisited.ContainsKey(Node))
+				{
+					continue;
+				}
+
+				NodeVisited[Node] = true;
+
+				var NodeAsUIElement = Node as UIElement;
+
+				if (null == NodeAsUIElement)
+				{
+					Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache));
+				}
+				else
+				{
+					if (NodeAsUIElement.InTreeIndex == ElementBehind.InTreeIndex)
+					{
+						continue;
+					}
+
+					if ((NodeAsUIElement.InTreeIndex ?? int.MinValue) < (ElementBehind.InTreeIndex ?? int.MinValue))
+					{
+						Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache));
+					}
+					else
+					{
+						yield return NodeAsUIElement;
+					}
+				}
+			}
+		}
+
+		static public bool IsOccludingModal(
+			this UIElement UIElement) =>
+			((UIElement as Window)?.isModal ?? false) || UIElement is SystemMenu;
+
+		static public IEnumerable<UIElement> GetOccludingUIElementModal(
+			this UIElement OccludedElement,
+			object UITree) =>
+			UITree?.EnumerateReferencedUIElementTransitive()
+			?.Where(IsOccludingModal)
+			?.TakeWhile(OccludingUIElement => OccludedElement.InTreeIndex < OccludingUIElement?.InTreeIndex);
+
+		static public IEnumerable<KeyValuePair<UIElement, OrtogoonInt[]>> GetOccludingUIElementAndRemainingRegion(
+			this UIElement OccludedElement,
+			object UITree)
+			=>
+			OccludedElement.GetUpmostUIElementOfSubtreeInFront(UITree)
+			?.Select(OccludingElement => new KeyValuePair<UIElement, OrtogoonInt[]>(
+				OccludingElement, OccludedElement.Region.SubstractionRemainder(OccludingElement.Region).ToArray()))
+			//	only take elements where the remaining region is smaller than the region of the OccludedElement.
+			?.Where(OccludingElementAndRemainingRegion =>
+				(OccludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Betraag)?.Sum() ?? 0) < OccludedElement.Region.Betraag);
+
+		static public IEnumerable<OrtogoonInt> GetOccludedUIElementRemainingRegion(
+			this UIElement OccludedElement,
+			object UITree) =>
+			OccludedElement.Region.SubstractionRemainder(
+			GetOccludingUIElementAndRemainingRegion(OccludedElement, UITree)
+			?.Select(OccludingElementAndRemainingRegion => OccludingElementAndRemainingRegion.Key.Region));
 
 	}
 }

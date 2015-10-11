@@ -32,6 +32,14 @@ namespace Sanderling.Exe
 
 		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurementLast;
 
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> FromScriptRequestMeasurementLast()
+		{
+			lock (MotorLock)
+			{
+				return MemoryMeasurementLast;
+			}
+		}
+
 		void LicenseClientExchange()
 		{
 			lock (LicenseClientLock)
@@ -60,11 +68,11 @@ namespace Sanderling.Exe
 
 				LicenseClient.Wert.ServerAddress = LicenseClientConfigControl?.ApiVersionAddress();
 
-                var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
+				var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
 
 				LicenseClientExchangeStartedLastTime = Time;
 
-                Task.Run(() =>
+				Task.Run(() =>
 				{
 					var LicenseClient = this.LicenseClient;
 
