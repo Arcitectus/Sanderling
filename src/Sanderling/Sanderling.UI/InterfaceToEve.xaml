@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="Sanderling.UI.InterfaceToEve"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Sanderling.UI"
+             xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+             xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
+             mc:Ignorable="d" 
+             d:DesignHeight="333" d:DesignWidth="444">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <TabControl>
+            <TabControl.Resources>
+                <Style TargetType="TabItem" BasedOn="{StaticResource ContentControlHeaderWithSetIcon}"></Style>
+            </TabControl.Resources>
+
+            <TabItem
+                Header="process">
+                <ScrollViewer>
+                    <BotEngine.UI:SictAuswaalWindowsProcess
+                        x:Name="ProcessChoice"
+                        x:FieldModifier="public"
+                        DataGridMengeProcessHeight="188"></BotEngine.UI:SictAuswaalWindowsProcess>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem
+                Header="license">
+                <ScrollViewer>
+                    <StackPanel>
+                        <BotEngine.UI:LicenseClientConfig
+                            x:Name="LicenseClientConfig"
+                            x:FieldModifier="public"></BotEngine.UI:LicenseClientConfig>
+                        <BotEngine.UI:LicenseClientInspect
+                            x:Name="LicenseClientInspect"
+                            x:FieldModifier="public"></BotEngine.UI:LicenseClientInspect>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="last measurement">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                        <RowDefinition Height="1"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+
+                    <GroupBox>
+                        <GroupBox.LayoutTransform>
+                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"></ScaleTransform>
+                        </GroupBox.LayoutTransform>
+                        <GroupBox.Header>
+                            <Grid>
+                                <TextBlock Visibility="Hidden" Text="set height"></TextBlock>
+                                <Bib3.FCL.GBS:SictSymboolAkzeptanzFeelerWarnung
+                                    SymboolTyp="Warnung"
+                                    Style="{StaticResource WidthAssignFromActualHeight}"></Bib3.FCL.GBS:SictSymboolAkzeptanzFeelerWarnung>
+                            </Grid>
+                        </GroupBox.Header>
+                        <TextBlock
+                            Text="taking the first measurement from the choosen process takes longer than subsequent measurements. on a average cpu about 15s." TextWrapping="Wrap"></TextBlock>
+                    </GroupBox>
+
+                    <local:MemoryMeasurement
+                        Grid.Row="2"></local:MemoryMeasurement>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

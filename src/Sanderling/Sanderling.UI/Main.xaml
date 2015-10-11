@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
         <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
     </UserControl.Resources>
@@ -16,10 +16,13 @@
             <TabItem
                 x:Name="TabSensor"
                 Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
-                Header="Sensor">
+                Header="Interface">
                 <!--
                 <Optimat.EveOnline.UI:ExeSensor></Optimat.EveOnline.UI:ExeSensor>
                 -->
+                <local:InterfaceToEve
+                    x:Name="Interface"
+                    x:FieldModifier="public"></local:InterfaceToEve>
             </TabItem>
 
             <TabItem

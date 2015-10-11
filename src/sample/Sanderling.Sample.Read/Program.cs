@@ -65,7 +65,6 @@ namespace Sanderling.Sample.Read
 					//	not specifying a subset to read, the sensor will simply read all available (types in MemoryStruct namespace) structures from memory.
 					SensorServerHub.Exchange(
 						Config.EveOnlineClientProcessId,
-						LicenseServerSessionId,
 						RequestedMeasurementTime,
 						Measurement =>
 						{

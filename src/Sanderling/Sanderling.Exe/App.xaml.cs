@@ -10,7 +10,11 @@ namespace Sanderling.Exe
 	/// </summary>
 	public partial class App : Application
 	{
-		new public MainWindow MainWindow => base.MainWindow as MainWindow;
+		public const string ConfigApiVersionDefaultAddress = @"http://sanderling.api.botengine.de:4034/api";
+
+		BotEngine.LicenseClientConfig LicenseClientConfig = new BotEngine.LicenseClientConfig() { ApiVersionAddress = ConfigApiVersionDefaultAddress };
+
+        new public MainWindow MainWindow => base.MainWindow as MainWindow;
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => MainWindow?.Main?.ToggleButtonMotionEnable;
 
@@ -25,8 +29,6 @@ namespace Sanderling.Exe
 		bool WasActivated = false;
 
 		DispatcherTimer Timer;
-
-		MemoryStruct.MemoryMeasurement MemoryMeasurement => null;
 
 		void TimerConstruct()
 		{
@@ -47,9 +49,13 @@ namespace Sanderling.Exe
 			ActivatedFirstTime();
 		}
 
+
 		void ActivatedFirstTime()
 		{
 			MainWindow?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
+
+			LicenseClientConfigControl.DataContext =
+				new BotEngine.UI.AutoDependencyPropertyComp<BotEngine.LicenseClientConfig>(LicenseClientConfig);
 
 			TimerConstruct();
 		}
@@ -59,7 +65,11 @@ namespace Sanderling.Exe
 			MainWindow?.ProcessInput();
 
 			ScriptExchange();
-		}
+
+			LicenseClientExchange();
+
+			LicenseClientInspect?.Present(LicenseClient?.Wert);
+        }
 
 		void ToggleButtonClick(object sender, RoutedEventArgs e)
 		{
@@ -91,7 +101,7 @@ namespace Sanderling.Exe
 					{
 						HostSanderling = new Script.HostToScript()
 						{
-							LastMemoryMeasurementFunc = new Func<MemoryStruct.MemoryMeasurement>(() => this.MemoryMeasurement),
+							LastMemoryMeasurementFunc = new Func<MemoryStruct.MemoryMeasurement>(() => this.MemoryMeasurementLast?.Wert),
 						}
 					});
 			}
@@ -107,5 +117,6 @@ namespace Sanderling.Exe
 
 			MainWindow?.Main?.Bot?.IDE?.Run?.Present(ScriptRun);
 		}
+
 	}
 }

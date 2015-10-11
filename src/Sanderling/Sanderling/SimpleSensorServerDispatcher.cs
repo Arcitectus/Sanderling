@@ -25,7 +25,6 @@ namespace Sanderling
 
 		public void Exchange(
 			int? EveOnlineClientProcessId,
-			string LicenseServerSessionId,
 			Int64 RequestedMeasurementTime,
 			Action<BotEngine.Interface.FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> CallbackMeasurementMemoryNew)
 		{
@@ -39,20 +38,29 @@ namespace Sanderling
 
 				if (ServerExchangeTimeDistanceMin <= ServerExchangeLastAge)
 				{
-					ServerExchangeLastTime = Time;
-
-					var ToServerMessage = new BotEngine.Interface.FromClientToServerMessage()
+					if (LicenseClient?.AuthCompleted ?? false)
 					{
-						SessionId = LicenseServerSessionId,
-						Interface = SensorAppManager?.ToServer(),
-						Time = Bib3.Glob.StopwatchZaitMiliSictInt(),
-					};
+						ServerExchangeLastTime = Time;
 
-					var FromServerMessage = LicenseClient?.ExchangePayload(ToServerMessage);
+						var LicenseServerSessionId = LicenseClient?.ExchangeAuthLast?.Wert?.Response?.SessionId;
 
-					if (null != FromServerMessage)
+						var ToServerMessage = new BotEngine.Interface.FromClientToServerMessage()
+						{
+							SessionId = LicenseServerSessionId,
+							Interface = SensorAppManager?.ToServer(),
+							Time = Bib3.Glob.StopwatchZaitMiliSictInt(),
+						};
+
+						var FromServerMessage = LicenseClient?.ExchangePayload(ToServerMessage);
+
+						if (null != FromServerMessage)
+						{
+							SensorAppManager.FromServer(FromServerMessage.Interface);
+						}
+					}
+					else
 					{
-						SensorAppManager.FromServer(FromServerMessage.Interface);
+						LicenseClient?.ExchangeAuth();
 					}
 				}
 
