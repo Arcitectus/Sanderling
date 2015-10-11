@@ -2,6 +2,8 @@
 using BotEngine.Interface;
 using BotEngine.UI;
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
@@ -32,11 +34,77 @@ namespace Sanderling.Exe
 
 		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurementLast;
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> FromScriptRequestMeasurementLast()
+		Int64? FromMotionExecutionMemoryMeasurementTimeMin
+		{
+			get
+			{
+				var MotionExecutionLast = MotionExecution?.LastOrDefault();
+
+				if (null == MotionExecutionLast)
+				{
+					return null;
+				}
+
+				return (MotionExecutionLast?.EndeZait + 300) ?? Int64.MaxValue;
+			}
+		}
+
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurementIfRecentEnough
+		{
+			get
+			{
+				lock (MotorLock)
+				{
+					var FromMotionExecutionMemoryMeasurementTimeMin = this.FromMotionExecutionMemoryMeasurementTimeMin;
+					var MemoryMeasurementLast = this.MemoryMeasurementLast;
+
+					if (!FromMotionExecutionMemoryMeasurementTimeMin.HasValue)
+					{
+						return MemoryMeasurementLast;
+					}
+
+					if ((FromMotionExecutionMemoryMeasurementTimeMin <= MemoryMeasurementLast?.Begin))
+					{
+						return MemoryMeasurementLast;
+					}
+
+					return null;
+				}
+			}
+		}
+
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> FromScriptRequestMemoryMeasurement()
 		{
 			lock (MotorLock)
 			{
-				return MemoryMeasurementLast;
+				while (true)
+				{
+					var MemoryMeasurementIfRecentEnough = this.MemoryMeasurementIfRecentEnough;
+
+					if (null != MemoryMeasurementIfRecentEnough)
+					{
+						return MemoryMeasurementIfRecentEnough;
+					}
+
+					Thread.Sleep(44);
+				}
+			}
+		}
+
+		Int64? RequestedMeasurementTime
+		{
+			get
+			{
+				var MemoryMeasurementLast = this.MemoryMeasurementLast;
+
+				if (null == MemoryMeasurementLast)
+				{
+					return GetTimeStopwatch();
+				}
+
+				return
+					FromMotionExecutionMemoryMeasurementTimeMin ??
+					(MemoryMeasurementLast?.EndeZait + 4000);
 			}
 		}
 
@@ -83,11 +151,9 @@ namespace Sanderling.Exe
 
 					LicenseClient.Wert.Timeout = 1000;
 
-					var RequestedMeasurementTime = Bib3.Glob.StopwatchZaitMiliSictInt();
-
 					SensorServerDispatcher.Exchange(
 						EveOnlineClientProcessId,
-						RequestedMeasurementTime,
+						RequestedMeasurementTime ?? Int64.MaxValue,
 						CallbackMeasurementMemoryNew);
 				});
 			}

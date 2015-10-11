@@ -111,7 +111,7 @@ namespace Sanderling.Exe
 					{
 						HostSanderling = new Script.HostToScript()
 						{
-							LastMemoryMeasurementFunc = FromScriptRequestMeasurementLast,
+							MemoryMeasurementFunc = FromScriptRequestMemoryMeasurement,
 							MotionExecuteFunc = FromScriptMotionExecute,
 						}
 					});

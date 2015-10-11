@@ -8,7 +8,7 @@ namespace Sanderling.Script
 {
 	public interface IHostToScript
 	{
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> LastMemoryMeasurement
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurement
 		{
 			get;
 		}
@@ -18,11 +18,11 @@ namespace Sanderling.Script
 
 	public class HostToScript : IHostToScript
 	{
-		public Func<FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> LastMemoryMeasurementFunc;
+		public Func<FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> MemoryMeasurementFunc;
 
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> IHostToScript.LastMemoryMeasurement => LastMemoryMeasurementFunc?.Invoke();
+		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> IHostToScript.MemoryMeasurement => MemoryMeasurementFunc?.Invoke();
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 	}
