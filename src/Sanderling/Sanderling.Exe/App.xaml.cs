@@ -1,9 +1,7 @@
-﻿using BotEngine.Motor;
-using Sanderling.Motor;
-using System;
+﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
-using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Exe
 {
@@ -22,13 +20,9 @@ namespace Sanderling.Exe
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
 
-		Type[] ScriptAssemblyAndNamespaceTypeAddition => new[]
-		{
-			typeof(Script.IHostToScript),
-			typeof(MemoryStruct.MemoryMeasurement),
-		};
+		BotScript.UI.Wpf.IDE ScriptIDE => Window?.Main?.Bot?.IDE;
 
-		BotScript.ScriptRun ScriptRun;
+		BotScript.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
 
 		bool WasActivated = false;
 
@@ -53,9 +47,35 @@ namespace Sanderling.Exe
 			ActivatedFirstTime();
 		}
 
+		Script.ToScriptGlobals ToScriptGlobalsConstruct(Action ScriptExecutionCheck) =>
+			new Script.ToScriptGlobals()
+			{
+				HostSanderling = new Script.HostToScript()
+				{
+					MemoryMeasurementFunc = () =>
+					{
+						ScriptExecutionCheck?.Invoke();
+						return FromScriptRequestMemoryMeasurement();
+					},
+
+					MotionExecuteFunc = MotionParam =>
+					{
+						ScriptExecutionCheck?.Invoke();
+						return FromScriptMotionExecute(MotionParam);
+					},
+				}
+			};
 
 		void ActivatedFirstTime()
 		{
+			ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
+
+			ScriptIDE.ScriptParamBase = new BotScript.ScriptParam()
+			{
+				AssemblyAddition = Script.Script.AssemblyAddition?.ToArray(),
+				NamespaceAddition = Script.Script.NamespaceAddition?.ToArray(),
+			};
+
 			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
 
 			Window?.Main?.ConfigFromModelToView(ConfigDefaultConstruct());
@@ -96,37 +116,16 @@ namespace Sanderling.Exe
 
 		void ScriptRunPlay()
 		{
-			var Editor = Window?.Main?.Bot?.IDE?.Editor;
-
-			var Script = Editor?.Text;
-
-			if (null == ScriptRun || (ScriptRun?.Completed ?? false))
-			{
-				ScriptRun = new BotScript.ScriptRun();
-
-				ScriptRun.Start(
-					Script,
-					ScriptAssemblyAndNamespaceTypeAddition,
-					new Script.ToScriptGlobals()
-					{
-						HostSanderling = new Script.HostToScript()
-						{
-							MemoryMeasurementFunc = FromScriptRequestMemoryMeasurement,
-							MotionExecuteFunc = FromScriptMotionExecute,
-						}
-					});
-			}
-
-			ScriptRun?.Continue();
+			ScriptIDE.ScriptRunContinueOrStart();
 
 			ScriptExchange();
 		}
 
 		void ScriptExchange()
 		{
-			ToggleButtonMotionEnable.ButtonReczIsChecked = null != ScriptRun && !(ScriptRun?.Completed ?? false);
+			ToggleButtonMotionEnable.ButtonReczIsChecked = null != ScriptRun && !(ScriptRun?.HasCompleted ?? false);
 
-			Window?.Main?.Bot?.IDE?.Run?.Present(ScriptRun);
+			ScriptIDE?.Present();
 		}
 
 	}
