@@ -20,6 +20,7 @@ namespace Sanderling.Script
 			typeof(MotionParam),
 			typeof(MouseButtonIdEnum),
 			typeof(BotEngine.Common.Extension),
+			typeof(Sanderling.Extension),
 			typeof(Extension),
 		};
 
