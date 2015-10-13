@@ -13,7 +13,7 @@ namespace Sanderling.Exe
 		static public string ConfigFilePath =>
 			Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(System.IO.Path.DirectorySeparatorChar.ToString()) + "config";
 
-		BotEngine.UI.WriteToOrLoadFromFile ConfigFileControl =>
+		BotEngine.UI.WriteToOrReadFromFile ConfigFileControl =>
 			Window?.Main?.ConfigFileControl;
 
 		public ExeConfig ConfigReadFromUI()

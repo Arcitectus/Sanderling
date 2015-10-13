@@ -76,9 +76,9 @@
             <TabItem
                 Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
                 Header="Config">
-                <BotEngine.UI:WriteToOrLoadFromFile
+                <BotEngine.UI:WriteToOrReadFromFile
                     x:Name="ConfigFileControl"
-                    x:FieldModifier="public"></BotEngine.UI:WriteToOrLoadFromFile>
+                    x:FieldModifier="public"></BotEngine.UI:WriteToOrReadFromFile>
             </TabItem>
 
         </TabControl>

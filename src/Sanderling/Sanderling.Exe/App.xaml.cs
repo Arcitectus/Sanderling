@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bib3;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
@@ -27,6 +28,12 @@ namespace Sanderling.Exe
 		bool WasActivated = false;
 
 		DispatcherTimer Timer;
+
+		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(@"\");
+
+		string ScriptDirectoryPath => AssemblyDirectoryPath + @"script\";
+
+		string DefaultScriptPath => ScriptDirectoryPath + "default.cs";
 
 		void TimerConstruct()
 		{
@@ -75,6 +82,9 @@ namespace Sanderling.Exe
 				AssemblyAddition = Script.Script.AssemblyAddition?.ToArray(),
 				NamespaceAddition = Script.Script.NamespaceAddition?.ToArray(),
 			};
+
+			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
+			ScriptIDE.ScriptWriteToOrReadFromFile.ReadFromFile();
 
 			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
 
