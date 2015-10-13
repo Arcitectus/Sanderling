@@ -17,6 +17,11 @@ namespace Sanderling.Motor
 
 		public int MouseEventDelay;
 
+		/// <summary>
+		/// For some reason, the mouse positions seem to be offset when moving the mouse in the window client area.
+		/// </summary>
+		static public Vektor2DInt MouseOffsetStatic = new Vektor2DInt(2, 2);
+
 		public WindowMotor(IntPtr WindowHandle)
 		{
 			this.WindowHandle = WindowHandle;
@@ -121,7 +126,7 @@ namespace Sanderling.Motor
 
 						EnsureWindowIsForeground(WindowHandle);
 
-						MouseMoveToPointInClientRect(WindowHandle, MotionMousePosition.Value, out PositionOnScreen);
+						MouseMoveToPointInClientRect(WindowHandle, MotionMousePosition.Value + MouseOffsetStatic, out PositionOnScreen);
 
 						MousePosition = PositionOnScreen.AsVektor2DInt();
 
