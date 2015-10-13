@@ -1,6 +1,7 @@
 ﻿using Bib3;
 using BotEngine.Interface;
 using BotEngine.UI;
+using Sanderling.Script;
 using System;
 using System.Linq;
 using System.Threading;
@@ -77,6 +78,8 @@ namespace Sanderling.Exe
 		{
 			lock (MotorLock)
 			{
+				var BeginTime = GetTimeStopwatch();
+
 				while (true)
 				{
 					var MemoryMeasurementIfRecentEnough = this.MemoryMeasurementIfRecentEnough;
@@ -84,6 +87,14 @@ namespace Sanderling.Exe
 					if (null != MemoryMeasurementIfRecentEnough)
 					{
 						return MemoryMeasurementIfRecentEnough;
+					}
+
+					var RequestAge = GetTimeStopwatch() - BeginTime;
+
+					if (HostToScript.FromScriptRequestMemoryMeasurementDelayMax < RequestAge)
+					{
+						//	Timeout
+						return null;
 					}
 
 					Thread.Sleep(44);
