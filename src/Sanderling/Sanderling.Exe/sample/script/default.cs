@@ -20,6 +20,9 @@ while(true)
 	if(null != MenuEntry)
 	{
 		HostSanderling.MouseClickLeft(MenuEntry);
+
+		//	wait for four seconds before repeating.
+		Host.Delay(4000);
 		continue;
 	}
 	
