@@ -19,6 +19,7 @@ namespace Sanderling.Script
 			typeof(MemoryStruct.MemoryMeasurement),
 			typeof(MotionParam),
 			typeof(MouseButtonIdEnum),
+			typeof(BotEngine.Common.Extension),
 			typeof(Extension),
 		};
 

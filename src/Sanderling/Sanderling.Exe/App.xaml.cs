@@ -82,7 +82,7 @@ namespace Sanderling.Exe
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
 			ScriptIDE.Editor.Document.Text = DefaultScript;
 
-			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
+			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonChecked));
 
 			Window?.Main?.ConfigFromModelToView(ConfigDefaultConstruct());
 
@@ -109,12 +109,17 @@ namespace Sanderling.Exe
 			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast);
 		}
 
-		void ToggleButtonClick(object sender, RoutedEventArgs e)
+		void ToggleButtonChecked(object sender, RoutedEventArgs e)
 		{
 			var OriginalSource = e?.OriginalSource;
 
 			if (null != OriginalSource)
 			{
+				if (OriginalSource == ToggleButtonMotionEnable?.ButtonLinx)
+				{
+					ScriptRunPause();
+				}
+
 				if (OriginalSource == ToggleButtonMotionEnable?.ButtonRecz)
 				{
 					ScriptRunPlay();
@@ -129,9 +134,16 @@ namespace Sanderling.Exe
 			ScriptExchange();
 		}
 
+		void ScriptRunPause()
+		{
+			ScriptIDE.ScriptPause();
+
+			ScriptExchange();
+		}
+
 		void ScriptExchange()
 		{
-			ToggleButtonMotionEnable.ButtonReczIsChecked = null != ScriptRun && !(ScriptRun?.HasCompleted ?? false);
+			ToggleButtonMotionEnable.ButtonReczIsChecked = ScriptRun?.IsRunning ?? false;
 
 			ScriptIDE?.Present();
 		}
