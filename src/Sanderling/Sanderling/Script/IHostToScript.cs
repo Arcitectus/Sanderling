@@ -17,6 +17,9 @@ namespace Sanderling.Script
 			typeof(ObjectIdInt64),
 			typeof(FromProcessMeasurement<>),
 			typeof(MemoryStruct.MemoryMeasurement),
+			typeof(MotionParam),
+			typeof(MouseButtonIdEnum),
+			typeof(Extension),
 		};
 
 		static public IEnumerable<System.Reflection.Assembly> AssemblyAddition =>

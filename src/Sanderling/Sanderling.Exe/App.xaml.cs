@@ -102,6 +102,8 @@ namespace Sanderling.Exe
 		{
 			Window?.ProcessInput();
 
+			Motor = GetMotor();
+
 			ScriptExchange();
 
 			LicenseClientExchange();

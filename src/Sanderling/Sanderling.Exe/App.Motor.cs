@@ -30,6 +30,8 @@ namespace Sanderling.Exe
 
 		readonly Queue<MotionExecution> MotionExecution = new Queue<MotionExecution>();
 
+		IMotor Motor;
+
 		IMotor GetMotor()
 		{
 			var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
@@ -57,48 +59,50 @@ namespace Sanderling.Exe
 			}
 		}
 
-		Task<MotionResult> ActMotionTask(MotionParam Motion) =>
-			Task.Run(() =>
-		   {
-			   lock (MotorLock)
-			   {
-				   if (null == Motion)
-				   {
-					   return null;
-				   }
+		Task<MotionResult> ActMotionAsync(MotionParam Motion)
+		{
+			return Task.Run(() =>
+		  {
+			  lock (MotorLock)
+			  {
+				  if (null == Motion)
+				  {
+					  return null;
+				  }
 
-				   var Motor = GetMotor();
+				  var Motor = this.Motor;
 
-				   if (null == Motor)
-				   {
-					   return null;
-				   }
+				  if (null == Motor)
+				  {
+					  return null;
+				  }
 
-				   var MotorAsWindowMotor = Motor as Motor.WindowMotor;
+				  var MotorAsWindowMotor = Motor as Motor.WindowMotor;
 
-				   if (null != MotorAsWindowMotor)
-				   {
-					   MotorAsWindowMotor.MouseMoveDelay = 140;
-					   MotorAsWindowMotor.MouseEventDelay = 140;
-				   }
+				  if (null != MotorAsWindowMotor)
+				  {
+					  MotorAsWindowMotor.MouseMoveDelay = 140;
+					  MotorAsWindowMotor.MouseEventDelay = 140;
+				  }
 
-				   var BeginTime = GetTimeStopwatch();
+				  var BeginTime = GetTimeStopwatch();
 
-				   var Result = Motor.ActSequenceMotion(Motion.AsSequenceMotion(MemoryMeasurementLast));
+				  var Result = Motor.ActSequenceMotion(Motion.AsSequenceMotion(MemoryMeasurementLast));
 
-				   var EndTime = GetTimeStopwatch();
+				  var EndTime = GetTimeStopwatch();
 
-				   MotionExecution.Enqueue(new MotionExecution(Motion, BeginTime, EndTime)
-				   {
-					   Result = Result,
-				   });
+				  MotionExecution.Enqueue(new MotionExecution(Motion, BeginTime, EndTime)
+				  {
+					  Result = Result,
+				  });
 
-				   MotionExecution.TrimHeadToKeep(100);
+				  MotionExecution.TrimHeadToKeep(100);
 
-				   return Result;
-			   }
-		   });
+				  return Result;
+			  }
+		  });
+		}
 
-		MotionResult FromScriptMotionExecute(MotionParam MotionParam) => ActMotionTask(MotionParam).Result;
+		MotionResult FromScriptMotionExecute(MotionParam MotionParam) => ActMotionAsync(MotionParam).Result;
 	}
 }

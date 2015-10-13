@@ -8,30 +8,22 @@ namespace Sanderling.Motor
 {
 	public class MotionParamMouseRegion
 	{
-		readonly public UIElement UIElement;
+		public UIElement UIElement;
 
-		readonly public OrtogoonInt? RegionReplacement;
+		public OrtogoonInt? RegionReplacement;
 
 		public MotionParamMouseRegion()
 		{
-		}
-
-		public MotionParamMouseRegion(
-			UIElement UIElement,
-			OrtogoonInt? RegionReplacement = null)
-		{
-			this.UIElement = UIElement;
-			this.RegionReplacement = RegionReplacement;
 		}
 	}
 
 	public class MotionParam
 	{
-		readonly public MotionParamMouseRegion[] MouseListWaypoint;
+		public MotionParamMouseRegion[] MouseListWaypoint;
 
-		readonly public MouseButtonIdEnum[] MouseButton;
+		public MouseButtonIdEnum[] MouseButton;
 
-		readonly public WindowsInput.Native.VirtualKeyCode[] Key;
+		public WindowsInput.Native.VirtualKeyCode[] Key;
 
 		public MotionParam()
 		{
@@ -39,12 +31,10 @@ namespace Sanderling.Motor
 
 		public MotionParam(
 			MotionParamMouseRegion[] MouseListWaypoint,
-			MouseButtonIdEnum[] MouseButton = null,
-			WindowsInput.Native.VirtualKeyCode[] Key = null)
+			MouseButtonIdEnum[] MouseButton = null)
 		{
 			this.MouseListWaypoint = MouseListWaypoint;
 			this.MouseButton = MouseButton;
-			this.Key = Key;
 		}
 
 		public MotionParam(
