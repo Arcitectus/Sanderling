@@ -1,20 +1,40 @@
 ﻿using Bib3;
 using BotEngine;
-using System;
-using System.Collections.Generic;
+using BotEngine.Common;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sanderling.Exe
 {
-	partial	class App
+	partial class App
 	{
 		static public string ConfigFilePath =>
 			Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(System.IO.Path.DirectorySeparatorChar.ToString()) + "config";
 
 		BotEngine.UI.WriteToOrReadFromFile ConfigFileControl =>
 			Window?.Main?.ConfigFileControl;
+
+		string ScriptDirectoryPath => AssemblyDirectoryPath + @"script\";
+
+		string DefaultScriptPath => ScriptDirectoryPath + "default.cs";
+
+		string DefaultScript
+		{
+			get
+			{
+				try
+				{
+					return
+						Encoding.UTF8.GetString(
+							System.Reflection.Assembly.GetCallingAssembly()?.GetManifestResourceStream(
+							System.Reflection.Assembly.GetCallingAssembly()?.GetManifestResourceNames()?.FirstOrDefault(k => k.RegexMatchSuccessIgnoreCase(@"default\.cs"))).LeeseGesamt());
+				}
+				catch
+				{
+					return null;
+				}
+			}
+		}
 
 		public ExeConfig ConfigReadFromUI()
 		{

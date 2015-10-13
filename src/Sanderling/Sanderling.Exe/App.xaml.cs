@@ -31,10 +31,6 @@ namespace Sanderling.Exe
 
 		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(@"\");
 
-		string ScriptDirectoryPath => AssemblyDirectoryPath + @"script\";
-
-		string DefaultScriptPath => ScriptDirectoryPath + "default.cs";
-
 		void TimerConstruct()
 		{
 			Timer = new DispatcherTimer(TimeSpan.FromSeconds(1.0 / 4), DispatcherPriority.Normal, Timer_Tick, Dispatcher);
@@ -84,7 +80,7 @@ namespace Sanderling.Exe
 			};
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
-			ScriptIDE.ScriptWriteToOrReadFromFile.ReadFromFile();
+			ScriptIDE.Editor.Document.Text = DefaultScript;
 
 			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonClick));
 
