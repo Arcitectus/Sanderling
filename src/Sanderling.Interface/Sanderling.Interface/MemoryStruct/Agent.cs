@@ -1,14 +1,29 @@
 ﻿namespace Sanderling.Interface.MemoryStruct
 {
-
-	public class WindowAgentDialogue : WindowAgent
+	public interface IWindowAgentPane : IUIElement
 	{
-		public WindowAgentPane LeftPane;
+		string Html { get; }
+	}
+
+	public interface IWindowAgent : IWindow
+	{
+	}
+
+	public interface IWindowAgentDialogue
+	{
+		WindowAgentPane LeftPane { get; }
 
 		/// <summary>
 		/// The Mission objectives (locations, items) and rewards are described in here in the "Html" member.
 		/// </summary>
-		public WindowAgentPane RightPane;
+		WindowAgentPane RightPane { get; }
+	}
+
+	public class WindowAgentDialogue : WindowAgent, IWindowAgentDialogue
+	{
+		public WindowAgentPane LeftPane { set; get; }
+
+		public WindowAgentPane RightPane { set; get; }
 
 		public WindowAgentDialogue()
 		{
@@ -34,27 +49,27 @@
 		}
 	}
 
-	public class WindowAgentPane : UIElement
+	public class WindowAgentPane : UIElement, IWindowAgentPane
 	{
-		public string Html;
+		public string Html { set; get; }
 
 		public WindowAgentPane()
 		{
 		}
 
-		public WindowAgentPane(UIElement Base)
+		public WindowAgentPane(IUIElement Base)
 			: base(Base)
 		{
 		}
 	}
 
-	public class WindowAgent : Window
+	public class WindowAgent : Window, IWindowAgent
 	{
 		public WindowAgent()
 		{
 		}
 
-		public WindowAgent(Window Base)
+		public WindowAgent(IWindow Base)
 			:
 			base(Base)
 		{

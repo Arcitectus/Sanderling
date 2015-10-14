@@ -1,99 +1,141 @@
 ﻿using BotEngine.Interface;
 using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class ColumnHeader : UIElementText
-	{
-		public int? ColumnIndex;
-
-		/// <summary>
-		/// positive means ascending, negative descending.
-		/// </summary>
-		public int? SortDirection;
-
-		public ColumnHeader()
-			:
-			this((ColumnHeader)null)
-		{
-		}
-
-		public ColumnHeader(UIElementText Base)
-			:
-			base(Base)
-		{
-			ColumnIndex = (Base as ColumnHeader)?.ColumnIndex;
-			SortDirection = (Base as ColumnHeader)?.SortDirection;
-		}
-	}
-
 	/// <summary>
 	/// can represent Item or Group.
 	/// </summary>
-	public class ListEntry : Container
+	public interface IListEntry : IContainer, ISelectable
 	{
-		public int? ContentBoundLeft;
+		int? ContentBoundLeft { get; }
 
 		/// <summary>
 		/// for each column, a reference of its header and the content for the cell.
 		/// </summary>
-		public KeyValuePair<ColumnHeader, string>[] ListColumnCellLabel;
+		KeyValuePair<IColumnHeader, string>[] ListColumnCellLabel { get; }
 
-		public UIElement GroupExpander;
+		IUIElement GroupExpander { get; }
 
-		public bool? IsGroup;
+		bool? IsGroup { get; }
 
-		public bool? IsExpanded;
+		bool? IsExpanded { get; }
 
-		public bool? IsSelected;
+		ColorORGB[] ListBackgroundColor { get; }
 
-		public ColorORGB[] ListBackgroundColor;
+		ISprite[] SetSprite { get; }
+	}
 
-		public Sprite[] SetSprite;
+	public interface IColumnHeader : IUIElementText
+	{
+		int? ColumnIndex { get; }
 
-		public ListEntry()
+		/// <summary>
+		/// positive means ascending, negative descending.
+		/// </summary>
+		int? SortDirection { get; }
+	}
+
+	public interface IListViewAndControl
+	{
+		IColumnHeader[] ColumnHeader { get; }
+
+		IListEntry[] Entry { get; }
+
+		IScroll Scroll { get; }
+	}
+
+	/// <summary>
+	/// A list view + the elements to control the view.
+	/// </summary>
+	public interface IListViewAndControl<out EntryT> : IUIElement, IListViewAndControl
+		where EntryT : IListEntry
+	{
+		new EntryT[] Entry { get; }
+	}
+
+	public class ColumnHeader : UIElementText, IColumnHeader
+	{
+		public int? ColumnIndex { set; get; }
+
+		public int? SortDirection { set; get; }
+
+		public ColumnHeader()
 			:
-			this((ListEntry)null)
+			this((IColumnHeader)null)
 		{
 		}
 
-		public ListEntry(UIElement Base)
+		public ColumnHeader(IUIElementText Base)
 			:
 			base(Base)
 		{
-		}
-
-		public ListEntry(ListEntry Base)
-			:
-			this((UIElement)Base)
-		{
-			ContentBoundLeft = Base?.ContentBoundLeft;
-
-			ListColumnCellLabel = Base?.ListColumnCellLabel;
-
-			GroupExpander = Base?.GroupExpander;
-			IsGroup = Base?.IsGroup;
-			IsExpanded = Base?.IsExpanded;
-			IsSelected = Base?.IsSelected;
-			ListBackgroundColor = Base?.ListBackgroundColor;
-			SetSprite = Base?.SetSprite;
+			ColumnIndex = (Base as IColumnHeader)?.ColumnIndex;
+			SortDirection = (Base as IColumnHeader)?.SortDirection;
 		}
 	}
 
-
-	public class ListViewAndControl : UIElement
+	public class ListEntry : Container, IListEntry
 	{
-		public ColumnHeader[] ColumnHeader;
+		public int? ContentBoundLeft { set; get; }
 
-		public ListEntry[] Entry;
+		public KeyValuePair<IColumnHeader, string>[] ListColumnCellLabel { set; get; }
 
-		public Scroll Scroll;
+		public IUIElement GroupExpander { set; get; }
+
+		public bool? IsGroup { set; get; }
+
+		public bool? IsExpanded { set; get; }
+
+		public bool? IsSelected { set; get; }
+
+		public ColorORGB[] ListBackgroundColor { set; get; }
+
+		public ISprite[] SetSprite { set; get; }
+
+		public ListEntry()
+			:
+			this(null)
+		{
+		}
+
+		public ListEntry(IUIElement Base)
+			:
+			base(Base)
+		{
+			var BaseAsListEntry = Base as IListEntry;
+
+			ContentBoundLeft = BaseAsListEntry?.ContentBoundLeft;
+
+			ListColumnCellLabel = BaseAsListEntry?.ListColumnCellLabel;
+
+			GroupExpander = BaseAsListEntry?.GroupExpander;
+			IsGroup = BaseAsListEntry?.IsGroup;
+			IsExpanded = BaseAsListEntry?.IsExpanded;
+			IsSelected = BaseAsListEntry?.IsSelected;
+			ListBackgroundColor = BaseAsListEntry?.ListBackgroundColor;
+			SetSprite = BaseAsListEntry?.SetSprite;
+		}
+	}
+
+	public class ListViewAndControl<EntryT> : UIElement, IListViewAndControl<EntryT>
+		where EntryT : class, IListEntry
+	{
+		public IColumnHeader[] ColumnHeader { set; get; }
+
+		public EntryT[] Entry { set; get; }
+
+		public IScroll Scroll { set; get; }
+
+		IListEntry[] IListViewAndControl.Entry => Entry;
 
 		public ListViewAndControl()
 		{
 		}
 
-		public ListViewAndControl(UIElement Base)
+		public ListViewAndControl(IUIElement Base)
 			:
 			base(Base)
 		{

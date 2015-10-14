@@ -5,9 +5,9 @@ namespace Sanderling.Interface.MemoryStruct
 {
 	public class WindowSurveyScanView : Window
 	{
-		public ListViewAndControl ListView;
+		public IListViewAndControl ListView;
 
-		public WindowSurveyScanView(Window Base)
+		public WindowSurveyScanView(IWindow Base)
 			:
 			base(Base)
 		{

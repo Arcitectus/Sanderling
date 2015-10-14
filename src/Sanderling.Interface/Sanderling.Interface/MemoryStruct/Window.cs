@@ -1,51 +1,42 @@
 ﻿namespace Sanderling.Interface.MemoryStruct
 {
-	public class Container : UIElement
+	public interface IWindow : IContainer
 	{
-		public UIElementText[] ButtonText;
+		bool? isModal { get; }
 
-		public UIElementInputText[] InputText;
+		string Caption { get; }
 
-		public UIElementText[] LabelText;
-
-		public Container()
-		{
-		}
-
-		public Container(UIElement Base)
-			:
-			base(Base)
-		{
-			var BaseAsContainer = Base as Container;
-
-			ButtonText = BaseAsContainer?.ButtonText;
-			LabelText = BaseAsContainer?.LabelText;
-			InputText = BaseAsContainer?.InputText;
-		}
-	}
-
-	public class Window : Container
-	{
-		public bool? isModal;
-
-		public string Caption;
-
-		public bool? HeaderButtonsVisible;
+		bool? HeaderButtonsVisible { get; }
 
 		/// <summary>
 		/// e.g. pin, minimize, close
 		/// </summary>
-		public Sprite[] HeaderButton;
+		ISprite[] HeaderButton { get; }
+
+	}
+
+	public class Window : Container, IWindow
+	{
+		public bool? isModal { set; get; }
+
+		public string Caption { set; get; }
+
+		public bool? HeaderButtonsVisible { set; get; }
+
+		/// <summary>
+		/// e.g. pin, minimize, close
+		/// </summary>
+		public ISprite[] HeaderButton { set; get; }
 
 		public Window()
 		{
 		}
 
-		public Window(UIElement Base)
+		public Window(IUIElement Base)
 			:
 			base(Base)
 		{
-			var BaseAsWindow = Base as Window;
+			var BaseAsWindow = Base as IWindow;
 
 			isModal = BaseAsWindow?.isModal;
 			Caption = BaseAsWindow?.Caption;
@@ -67,13 +58,13 @@
 		/// <summary>
 		/// Window whose tab is currently selected (and therefore the only window in the stack which is currently visible).
 		/// </summary>
-		public Window TabSelectedWindow;
+		public IWindow TabSelectedWindow;
 
 		public WindowStack()
 		{
 		}
 
-		public WindowStack(Window Base)
+		public WindowStack(IWindow Base)
 			:
 			base(Base)
 		{

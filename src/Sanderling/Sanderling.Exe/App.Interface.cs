@@ -33,7 +33,7 @@ namespace Sanderling.Exe
 		public int? EveOnlineClientProcessId =>
 			InterfaceToEveControl?.ProcessChoice?.ChoosenProcessId;
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurementLast;
+		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurementLast;
 
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
@@ -50,7 +50,7 @@ namespace Sanderling.Exe
 			}
 		}
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurementIfRecentEnough
+		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurementIfRecentEnough
 		{
 			get
 			{
@@ -74,7 +74,7 @@ namespace Sanderling.Exe
 			}
 		}
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> FromScriptRequestMemoryMeasurement()
+		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> FromScriptRequestMemoryMeasurement()
 		{
 			lock (MotorLock)
 			{
@@ -170,7 +170,7 @@ namespace Sanderling.Exe
 			}
 		}
 
-		void CallbackMeasurementMemoryNew(FromProcessMeasurement<MemoryStruct.MemoryMeasurement> Measurement)
+		void CallbackMeasurementMemoryNew(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> Measurement)
 		{
 			MemoryMeasurementLast = Measurement;
 		}

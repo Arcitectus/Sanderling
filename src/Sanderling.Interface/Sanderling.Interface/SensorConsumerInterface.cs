@@ -11,7 +11,7 @@ namespace Sanderling.Interface
 	{
 		public Int64 Time;
 
-		public FromProcessMeasurement<MemoryMeasurement> MemoryMeasurement;
+		public FromProcessMeasurement<IMemoryMeasurement> MemoryMeasurement;
 
 		/// <summary>
 		/// Area is Window Client Area.

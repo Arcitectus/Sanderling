@@ -10,18 +10,18 @@ namespace Sanderling
 	static public class Extension
 	{
 		static public Vektor2DInt? RegionCenter(
-			this UIElement UIElement) =>
+			this IUIElement UIElement) =>
 			(UIElement?.Region)?.ZentrumLaage;
 
 		static public Vektor2DInt? RegionSize(
-			this UIElement UIElement) =>
+			this IUIElement UIElement) =>
 			(UIElement?.Region)?.Grööse;
 
 		static public Vektor2DInt? RegionCornerLeftTop(
-			this UIElement UIElement) => UIElement?.Region.PunktMin;
+			this IUIElement UIElement) => UIElement?.Region.PunktMin;
 
 		static public Vektor2DInt? RegionCornerRightBottom(
-			this UIElement UIElement) => UIElement?.Region.PunktMax;
+			this IUIElement UIElement) => UIElement?.Region.PunktMax;
 
 		static public Int64 Length(this Vektor2DInt Vector) => Vector.Betraag;
 
@@ -30,50 +30,45 @@ namespace Sanderling
 		static public IEnumerable<T> OrderByCenterDistanceToPoint<T>(
 			this IEnumerable<T> Sequence,
 			Vektor2DInt Point)
-			where T : UIElement =>
+			where T : IUIElement =>
 			Sequence?.OrderBy(element => (Point - element?.RegionCenter())?.LengthSquared() ?? Int64.MaxValue);
 
 		static public IEnumerable<T> OrderByCenterVerticalDown<T>(
 			this IEnumerable<T> Source)
-			where T : UIElement =>
+			where T : IUIElement =>
 			Source?.OrderBy(element => element?.RegionCenter()?.B ?? int.MaxValue);
 
-		static public IEnumerable<TreeViewEntry> EnumerateChildNodeTransitive(
-			this TreeViewEntry TreeViewEntry) =>
+		static public IEnumerable<ITreeViewEntry> EnumerateChildNodeTransitive(
+			this ITreeViewEntry TreeViewEntry) =>
 			TreeViewEntry?.BaumEnumFlacListeKnoote(Node => Node.Child);
 
-		static public T Largest<T>(this IEnumerable<T> source)
-			where T : UIElement =>
-			source.OrderByDescending(item => item?.Region.Betraag ?? -1)
-			?.FirstOrDefault();
-
-		static public UIElement CopyWithRegionSubstituted(
-			this UIElement UIElement,
+		static public IUIElement CopyWithRegionSubstituted(
+			this IUIElement Base,
 			OrtogoonInt RegionSubstitute)
 		{
-			if (null == UIElement)
+			if (null == Base)
 			{
 				return null;
 			}
 
-			return new UIElement(UIElement, RegionSubstitute, UIElement.InTreeIndex);
+			return new UIElement(Base, RegionSubstitute, Base.InTreeIndex);
 		}
 
-		static public UIElement CopyWithRegionSizeSubstituted(
-			this UIElement UIElement,
+		static public IUIElement CopyWithRegionSizeSubstituted(
+			this IUIElement Base,
 			Vektor2DInt SizeSubstitute)
 		{
-			if (null == UIElement)
+			if (null == Base)
 			{
 				return null;
 			}
 
-			return UIElement.CopyWithRegionSubstituted(UIElement.Region.GrööseGeseztAngelpunktZentrum(SizeSubstitute));
+			return Base.CopyWithRegionSubstituted(Base.Region.GrööseGeseztAngelpunktZentrum(SizeSubstitute));
 		}
 
 		static public bool EachComponentLessThenOrEqual(
-			this ShipHitpointsAndEnergy O0,
-			ShipHitpointsAndEnergy O1)
+			this IShipHitpointsAndEnergy O0,
+			IShipHitpointsAndEnergy O1)
 		{
 			if (O0 == O1)
 			{
@@ -92,7 +87,7 @@ namespace Sanderling
 				O0.Capacitor <= O1.Capacitor;
 		}
 
-		static public bool EveryComponentHasValue(this ShipHitpointsAndEnergy O) =>
+		static public bool EveryComponentHasValue(this IShipHitpointsAndEnergy O) =>
 			null == O ? false :
 			(O.Struct.HasValue &&
 			O.Armor.HasValue &&
@@ -142,15 +137,15 @@ namespace Sanderling
 			SequenceGroupByPredicate(SequenceEntryGroupOrItem, entry => entry is GroupT)
 			?.Select(Group => new KeyValuePair<GroupT, EntryT[]>(Group.Key as GroupT, Group.Value));
 
-		static public IEnumerable<KeyValuePair<DroneViewEntryGroup, DroneViewEntryItem[]>> ListDroneViewEntryGrouped(
-			this IEnumerable<ListEntry> List) =>
+		static public IEnumerable<KeyValuePair<DroneViewEntryGroup, IDroneViewEntryItem[]>> ListDroneViewEntryGrouped(
+			this IEnumerable<IListEntry> List) =>
 			List
 			?.OfType<DroneViewEntry>()
 			?.SequenceGroupByType<DroneViewEntry, DroneViewEntryGroup>()
-			?.Select(Group => new KeyValuePair<DroneViewEntryGroup, DroneViewEntryItem[]>(Group.Key, Group.Value?.OfType<DroneViewEntryItem>()?.ToArray()));
+			?.Select(Group => new KeyValuePair<DroneViewEntryGroup, IDroneViewEntryItem[]>(Group.Key, Group.Value?.OfType<DroneViewEntryItem>()?.ToArray()));
 
-		static public IEnumerable<KeyValuePair<ListEntry, ListEntry[]>> ListViewEntryGrouped(
-			this IEnumerable<ListEntry> List) =>
+		static public IEnumerable<KeyValuePair<IListEntry, IListEntry[]>> ListViewEntryGrouped(
+			this IEnumerable<IListEntry> List) =>
 			SequenceGroupByPredicate(List, entry => entry?.IsGroup ?? false);
 
 		static public OrtogoonInt Expanded(
@@ -195,8 +190,8 @@ namespace Sanderling
 		/// <param name="ElementBehind"></param>
 		/// <param name="UITree"></param>
 		/// <returns>the upmost nodes of all subtrees which are in front of <paramref name="ElementBehind"/></returns>
-		static public IEnumerable<UIElement> GetUpmostUIElementOfSubtreeInFront(
-			this UIElement ElementBehind,
+		static public IEnumerable<IUIElement> GetUpmostUIElementOfSubtreeInFront(
+			this IUIElement ElementBehind,
 			object UITree)
 		{
 			if (null == ElementBehind || null == UITree)
@@ -221,7 +216,7 @@ namespace Sanderling
 
 				NodeVisited[Node] = true;
 
-				var NodeAsUIElement = Node as UIElement;
+				var NodeAsUIElement = Node as IUIElement;
 
 				if (null == NodeAsUIElement)
 				{
@@ -246,30 +241,29 @@ namespace Sanderling
 			}
 		}
 
-		static public bool IsOccludingModal(
-			this UIElement UIElement) =>
-			((UIElement as Window)?.isModal ?? false) || UIElement is SystemMenu;
+		static public bool IsOccludingModal(this IUIElement UIElement) =>
+			(UIElement as IWindow)?.isModal ?? false;
 
-		static public IEnumerable<UIElement> GetOccludingUIElementModal(
-			this UIElement OccludedElement,
+		static public IEnumerable<IUIElement> GetOccludingUIElementModal(
+			this IUIElement OccludedElement,
 			object UITree) =>
 			UITree?.EnumerateReferencedUIElementTransitive()
 			?.Where(IsOccludingModal)
 			?.TakeWhile(OccludingUIElement => OccludedElement.InTreeIndex < OccludingUIElement?.InTreeIndex);
 
-		static public IEnumerable<KeyValuePair<UIElement, OrtogoonInt[]>> GetOccludingUIElementAndRemainingRegion(
-			this UIElement OccludedElement,
+		static public IEnumerable<KeyValuePair<IUIElement, OrtogoonInt[]>> GetOccludingUIElementAndRemainingRegion(
+			this IUIElement OccludedElement,
 			object UITree)
 			=>
 			OccludedElement.GetUpmostUIElementOfSubtreeInFront(UITree)
-			?.Select(OccludingElement => new KeyValuePair<UIElement, OrtogoonInt[]>(
+			?.Select(OccludingElement => new KeyValuePair<IUIElement, OrtogoonInt[]>(
 				OccludingElement, OccludedElement.Region.SubstractionRemainder(OccludingElement.Region).ToArray()))
 			//	only take elements where the remaining region is smaller than the region of the OccludedElement.
 			?.Where(OccludingElementAndRemainingRegion =>
 				(OccludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Betraag)?.Sum() ?? 0) < OccludedElement.Region.Betraag);
 
 		static public IEnumerable<OrtogoonInt> GetOccludedUIElementRemainingRegion(
-			this UIElement OccludedElement,
+			this IUIElement OccludedElement,
 			object UITree) =>
 			OccludedElement.Region.SubstractionRemainder(
 			GetOccludingUIElementAndRemainingRegion(OccludedElement, UITree)

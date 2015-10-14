@@ -8,7 +8,7 @@ namespace Sanderling.Motor
 {
 	public class MotionParamMouseRegion
 	{
-		public UIElement UIElement;
+		public IUIElement UIElement;
 
 		public OrtogoonInt? RegionReplacement;
 

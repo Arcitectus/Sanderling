@@ -9,11 +9,21 @@ namespace Sanderling.Interface.MemoryStruct
 	/// <summary>
 	/// A menu can be opened for some UIElements by rightclicking on them.
 	/// </summary>
-	public class Menu : UIElement
+	public interface IMenu : IUIElement
 	{
-		public MenuEntry[] Entry;
+		IMenuEntry[] Entry { get; }
+	}
 
-		public Menu(UIElement Base)
+	public interface IMenuEntry : IUIElementText
+	{
+		bool? HighlightVisible { get; }
+    }
+
+	public class Menu : UIElement, IMenu
+	{
+		public IMenuEntry[] Entry { set; get; }
+
+		public Menu(IUIElement Base)
 			:
 			base(Base)
 		{
@@ -24,9 +34,9 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class MenuEntry : UIElementText
+	public class MenuEntry : Container, IMenuEntry
 	{
-		public bool? HighlightVisible;
+		public bool? HighlightVisible { set; get; }
 
 		public MenuEntry()
 			:
@@ -34,11 +44,14 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public MenuEntry(UIElementText Base)
+		public MenuEntry(IUIElement Base)
 			:
 			base(Base)
 		{
 		}
+
+		public string Text =>
+			LabelText?.Select(Label => Label?.Text)?.OrderByDescending(Text => Text?.Length ?? -1)?.FirstOrDefault();
 	}
 
 }

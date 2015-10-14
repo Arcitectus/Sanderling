@@ -5,91 +5,164 @@ namespace Sanderling.Interface.MemoryStruct
 	/// <summary>
 	/// Root of the graph of objects read from memory that is delivered from the sensor to the consuming application.
 	/// </summary>
-	public class MemoryMeasurement : ICloneable
+	public interface IMemoryMeasurement
 	{
-		public string VersionString;
+		string VersionString { get; }
 
-		public Menu[] Menu;
+		IMenu[] Menu { get; }
 
-		public ShipUi ShipUi;
+		IShipUi ShipUi { get; }
 
-		public ShipUiTarget[] Target;
+		ShipUiTarget[] Target { get; }
 
 		/// <summary>
 		/// shown when hovering mouse cursor over module.
 		/// </summary>
-		public ModuleButtonTooltip ModuleButtonTooltip;
+		IContainer ModuleButtonTooltip { get; }
 
 		/// <summary>
 		/// Occludes all other UIElements and can usually be opened and closed by pressing ESC.
 		/// </summary>
-		public SystemMenu SystemMenu;
+		IWindow SystemMenu { get; }
 
-		public Neocom Neocom;
+		Neocom Neocom { get; }
 
-		public UIElement InfoPanelButtonLocationInfo;
+		IUIElement InfoPanelButtonLocationInfo { get; }
 
-		public UIElement InfoPanelButtonRoute;
+		IUIElement InfoPanelButtonRoute { get; }
 
-		public UIElement InfoPanelButtonMissions;
+		IUIElement InfoPanelButtonMissions { get; }
 
-		public UIElement InfoPanelButtonIncursions;
+		IUIElement InfoPanelButtonIncursions { get; }
 
-		public InfoPanelLocationInfo InfoPanelLocationInfo;
+		InfoPanelCurrentSystem InfoPanelLocationInfo { get; }
 
-		public InfoPanelRoute InfoPanelRoute;
+		InfoPanelRoute InfoPanelRoute { get; }
 
-		public InfoPanelMissions InfoPanelMissions;
+		InfoPanelMissions InfoPanelMissions { get; }
 
-		public Utilmenu[] Utilmenu;
+		IContainer[] Utilmenu { get; }
 
-		public UIElementText[] AbovemainMessage;
+		IUIElementText[] AbovemainMessage { get; }
 
-		public PanelGroup[] AbovemainPanelGroup;
+		PanelGroup[] AbovemainPanelGroup { get; }
 
-		public PanelGroup[] AbovemainPanelEveMenu;
+		PanelGroup[] AbovemainPanelEveMenu { get; }
 
-		public Window[] WindowOther;
+		IWindow[] WindowOther { get; }
 
-		public WindowStack[] WindowStack;
+		WindowStack[] WindowStack { get; }
 
-		public WindowOverView[] WindowOverview;
+		IWindowOverview[] WindowOverview { get; }
 
-		public WindowChatChannel[] WindowChatChannel;
+		WindowChatChannel[] WindowChatChannel { get; }
 
-		public WindowSelectedItemView[] WindowSelectedItemView;
+		IWindowSelectedItemView[] WindowSelectedItemView { get; }
 
-		public WindowDroneView[] WindowDroneView;
+		IWindowDroneView[] WindowDroneView { get; }
 
-		public WindowPeopleAndPlaces[] WindowPeopleAndPlaces;
+		WindowPeopleAndPlaces[] WindowPeopleAndPlaces { get; }
 
-		public WindowStationLobby[] WindowStationLobby;
+		WindowStationLobby[] WindowStationLobby { get; }
 
-		public WindowFittingWindow[] WindowFittingWindow;
+		WindowFittingWindow[] WindowFittingWindow { get; }
 
-		public WindowFittingMgmt[] WindowFittingMgmt;
+		WindowFittingMgmt[] WindowFittingMgmt { get; }
 
-		public WindowSurveyScanView[] WindowSurveyScanView;
+		WindowSurveyScanView[] WindowSurveyScanView { get; }
 
-		public WindowInventory[] WindowInventory;
+		IWindowInventory[] WindowInventory { get; }
 
-		public WindowAgentDialogue[] WindowAgentDialogue;
+		IWindowAgentDialogue[] WindowAgentDialogue { get; }
 
-		public WindowAgentBrowser[] WindowAgentBrowser;
+		WindowAgentBrowser[] WindowAgentBrowser { get; }
 
-		public WindowTelecom[] WindowTelecom;
+		WindowTelecom[] WindowTelecom { get; }
 
-		public WindowRegionalMarket[] WindowRegionalMarket;
+		WindowRegionalMarket[] WindowRegionalMarket { get; }
 
-		public WindowMarketAction[] WindowMarketAction;
+		WindowMarketAction[] WindowMarketAction { get; }
 
-		public WindowItemSell[] WindowItemSell;
+		WindowItemSell[] WindowItemSell { get; }
+
+	}
+
+	public class MemoryMeasurement : IMemoryMeasurement, ICloneable
+	{
+		public string VersionString { set; get; }
+
+		public IMenu[] Menu { set; get; }
+
+		public IShipUi ShipUi { set; get; }
+
+		public ShipUiTarget[] Target { set; get; }
+
+		public IContainer ModuleButtonTooltip { set; get; }
+
+		public IWindow SystemMenu { set; get; }
+
+		public Neocom Neocom { set; get; }
+
+		public IUIElement InfoPanelButtonLocationInfo { set; get; }
+
+		public IUIElement InfoPanelButtonRoute { set; get; }
+
+		public IUIElement InfoPanelButtonMissions { set; get; }
+
+		public IUIElement InfoPanelButtonIncursions { set; get; }
+
+		public InfoPanelCurrentSystem InfoPanelLocationInfo { set; get; }
+
+		public InfoPanelRoute InfoPanelRoute { set; get; }
+
+		public InfoPanelMissions InfoPanelMissions { set; get; }
+
+		public IContainer[] Utilmenu { set; get; }
+
+		public IUIElementText[] AbovemainMessage { set; get; }
+
+		public PanelGroup[] AbovemainPanelGroup { set; get; }
+
+		public PanelGroup[] AbovemainPanelEveMenu { set; get; }
+
+		public IWindow[] WindowOther { set; get; }
+
+		public WindowStack[] WindowStack { set; get; }
+
+		public IWindowOverview[] WindowOverview { set; get; }
+
+		public WindowChatChannel[] WindowChatChannel { set; get; }
+
+		public IWindowSelectedItemView[] WindowSelectedItemView { set; get; }
+
+		public IWindowDroneView[] WindowDroneView { set; get; }
+
+		public WindowPeopleAndPlaces[] WindowPeopleAndPlaces { set; get; }
+
+		public WindowStationLobby[] WindowStationLobby { set; get; }
+
+		public WindowFittingWindow[] WindowFittingWindow { set; get; }
+
+		public WindowFittingMgmt[] WindowFittingMgmt { set; get; }
+
+		public WindowSurveyScanView[] WindowSurveyScanView { set; get; }
+
+		public IWindowInventory[] WindowInventory { set; get; }
+
+		public IWindowAgentDialogue[] WindowAgentDialogue { set; get; }
+
+		public WindowAgentBrowser[] WindowAgentBrowser { set; get; }
+
+		public WindowTelecom[] WindowTelecom { set; get; }
+
+		public WindowRegionalMarket[] WindowRegionalMarket { set; get; }
+
+		public WindowMarketAction[] WindowMarketAction { set; get; }
+
+		public WindowItemSell[] WindowItemSell { set; get; }
 
 		public MemoryMeasurement Copy() => this.CopyByPolicyMemoryMeasurement();
 
-		public object Clone()
-		{
-			return Copy();
-		}
+		public object Clone() => Copy();
 	}
 }

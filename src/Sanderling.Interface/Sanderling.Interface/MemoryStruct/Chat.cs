@@ -5,11 +5,11 @@ namespace Sanderling.Interface.MemoryStruct
 {
 	public class ChatParticipant : ListEntry
 	{
-		public UIElementText NameLabel;
+		public IUIElementText NameLabel;
 
-		public Sprite StatusIcon;
+		public ISprite StatusIcon;
 
-		public ChatParticipant(ListEntry Base)
+		public ChatParticipant(IListEntry Base)
 			:
 			base(Base)
 		{
@@ -36,20 +36,15 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class WindowChatChannel : Window
 	{
-		public ListViewAndControl ParticipantView;
+		public IListViewAndControl ParticipantView;
 
-		public ListViewAndControl MessageView;
+		public IListViewAndControl MessageView;
 
 		public IEnumerable<ChatParticipant> Participant => ParticipantView?.Entry?.OfType<ChatParticipant>();
 
 		public IEnumerable<ChatMessage> Message => MessageView?.Entry?.OfType<ChatMessage>();
 
-		/// <summary>
-		/// Label not contained in Message or Participant.
-		/// </summary>
-		public UIElementText[] LabelOther;
-
-		public WindowChatChannel(Window Window)
+		public WindowChatChannel(IWindow Window)
 			:
 			base(Window)
 		{

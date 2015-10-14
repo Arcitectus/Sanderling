@@ -17,7 +17,7 @@ namespace Sanderling
 
 		public BotEngine.Interface.LicenseClient LicenseClient;
 
-		BotEngine.Interface.FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MeasurementMemoryReceivedLast = null;
+		BotEngine.Interface.FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementMemoryReceivedLast = null;
 
 		const int ServerExchangeTimeDistanceMin = 1000;
 
@@ -26,9 +26,9 @@ namespace Sanderling
 		public void Exchange(
 			int? EveOnlineClientProcessId,
 			Int64 RequestedMeasurementTime,
-			Action<BotEngine.Interface.FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> CallbackMeasurementMemoryNew)
+			Action<BotEngine.Interface.FromProcessMeasurement<MemoryStruct.IMemoryMeasurement>> CallbackMeasurementMemoryNew)
 		{
-			BotEngine.Interface.FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MeasurementMemoryNew = null;
+			BotEngine.Interface.FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementMemoryNew = null;
 
 			lock (Lock)
 			{

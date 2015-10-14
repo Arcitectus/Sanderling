@@ -3,11 +3,25 @@ using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class WindowDroneView : Window
+	/// <summary>
+	/// Name of the drone and status/quantity can be found in the label, e.g.:
+	/// "Hobgoblin I ( <color=0xFF00FF00>Idle</color> )"
+	/// </summary>
+	public interface IDroneViewEntryItem : IListEntry
 	{
-		public ListViewAndControl ListView;
+		IShipHitpointsAndEnergy Hitpoints { get; }
+	}
 
-		public WindowDroneView(Window Base)
+	public interface IWindowDroneView
+	{
+		IListViewAndControl ListView { get; }
+	}
+
+	public class WindowDroneView : Window, IWindowDroneView
+	{
+		public IListViewAndControl ListView { set; get; }
+
+		public WindowDroneView(IWindow Base)
 			:
 			base(Base)
 		{
@@ -18,15 +32,11 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	/// <summary>
-	/// Name of the drone and status/quantity can be found in the label, e.g.:
-	/// "Hobgoblin I ( <color=0xFF00FF00>Idle</color> )"
-	/// </summary>
-	public class DroneViewEntryItem : DroneViewEntry
+	public class DroneViewEntryItem : DroneViewEntry, IDroneViewEntryItem
 	{
-		public ShipHitpointsAndEnergy Hitpoints;
+		public IShipHitpointsAndEnergy Hitpoints { set; get; }
 
-		public DroneViewEntryItem(ListEntry Base)
+		public DroneViewEntryItem(IListEntry Base)
 			:
 			base(Base)
 		{
@@ -40,9 +50,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class DroneViewEntryGroup : DroneViewEntry
 	{
-		public UIElementText Caption;
+		public IUIElementText Caption;
 
-		public DroneViewEntryGroup(ListEntry Base)
+		public DroneViewEntryGroup(IListEntry Base)
 			:
 			base(Base)
 		{
@@ -55,7 +65,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class DroneViewEntry : ListEntry
 	{
-		public DroneViewEntry(ListEntry Base)
+		public DroneViewEntry(IListEntry Base)
 			:
 			base(Base)
 		{

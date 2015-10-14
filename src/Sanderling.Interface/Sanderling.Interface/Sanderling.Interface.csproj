@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="MemoryStruct\Agent.cs" />
     <Compile Include="MemoryStruct\Chat.cs" />
+    <Compile Include="MemoryStruct\Container.cs" />
     <Compile Include="MemoryStruct\Drones.cs" />
     <Compile Include="MemoryStruct\Extension.cs" />
     <Compile Include="MemoryStruct\Fitting.cs" />
@@ -67,22 +68,24 @@
     <Compile Include="MemoryStruct\Market.cs" />
     <Compile Include="MemoryStruct\MemoryMeasurement.cs" />
     <Compile Include="MemoryStruct\Menu.cs" />
-    <Compile Include="MemoryStruct\ModuleButtonTooltip.cs" />
+    <Compile Include="MemoryStruct\MessageBox.cs" />
     <Compile Include="MemoryStruct\Other.cs" />
     <Compile Include="MemoryStruct\Overview.cs" />
     <Compile Include="MemoryStruct\PeopleAndPlaces.cs" />
+    <Compile Include="MemoryStruct\Scroll.cs" />
+    <Compile Include="MemoryStruct\SelectedItem.cs" />
     <Compile Include="MemoryStruct\ShipHitpointsAndEnergy.cs" />
     <Compile Include="MemoryStruct\ShipUi.cs" />
     <Compile Include="MemoryStruct\Station.cs" />
     <Compile Include="MemoryStruct\SurveyScan.cs" />
-    <Compile Include="MemoryStruct\SystemMenu.cs" />
+    <Compile Include="MemoryStruct\TreeView.cs" />
     <Compile Include="MemoryStruct\UIElement.cs" />
-    <Compile Include="MemoryStruct\Utilmenu.cs" />
     <Compile Include="MemoryStruct\Window.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SensorConsumerInterface.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MemoryStruct\Sprite.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

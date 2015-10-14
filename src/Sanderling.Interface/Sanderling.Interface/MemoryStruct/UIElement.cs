@@ -4,13 +4,53 @@ using System;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class ObjectIdInMemory : ObjectIdInt64
+	public interface IObjectIdInMemory : IObjectIdInt64
+	{
+	}
+
+	public interface IUIElement : IObjectIdInMemory
+	{
+		OrtogoonInt Region { get; }
+
+		/// <summary>
+		/// Element occludes other Elements with lower Value.
+		/// </summary>
+		int? InTreeIndex { get; }
+
+		/// <summary>
+		/// Region used to select or open contextmenu.
+		/// </summary>
+		OrtogoonInt? RegionInteraction { get; }
+	}
+
+	public interface IUIElementText : IUIElement
+	{
+		string Text { get; }
+	}
+
+	public interface IUIElementInputText : IUIElementText
+	{
+	}
+
+	public interface ISelectable
+	{
+		bool? IsSelected { get; }
+	}
+
+	public interface IExpandable
+	{
+		IUIElement ExpandToggleButton { get; }
+
+		bool? IsExpanded { get; }
+	}
+
+	public class ObjectIdInMemory : ObjectIdInt64, IObjectIdInMemory
 	{
 		ObjectIdInMemory()
 		{
 		}
 
-		public ObjectIdInMemory(ObjectIdInt64 Base)
+		public ObjectIdInMemory(IObjectIdInt64 Base)
 			: base(Base)
 		{
 		}
@@ -21,42 +61,32 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class UIElement : ObjectIdInMemory
+	public class UIElement : ObjectIdInMemory, IUIElement
 	{
-		public OrtogoonInt Region;
+		public OrtogoonInt Region { set; get; }
 
-		/// <summary>
-		/// Element occludes other Elements with lower Value.
-		/// </summary>
-		public int? InTreeIndex;
+		public int? InTreeIndex { set; get; }
 
-		/// <summary>
-		/// subregion which should be used to open a contextmenu.
-		/// </summary>
-		/// <returns></returns>
-		virtual public UIElement MenuRootRegionCompute()
-		{
-			return this;
-		}
+		virtual public OrtogoonInt? RegionInteraction => Region;
 
 		public UIElement()
 			:
-			this((UIElement)null)
+			this((IUIElement)null)
 		{
 		}
 
-		public UIElement(UIElement Base)
+		public UIElement(IUIElement Base)
 			:
 			this(Base, Base?.Region ?? OrtogoonInt.Leer, Base?.InTreeIndex)
 		{
 		}
 
 		public UIElement(
-			ObjectIdInt64 Base,
+			IObjectIdInt64 Base,
 			OrtogoonInt Region = default(OrtogoonInt),
 			int? InTreeIndex = null)
 			:
-			base(Base)
+			base(Base?.Id ?? 0)
 		{
 			this.Region = Region;
 
@@ -67,12 +97,12 @@ namespace Sanderling.Interface.MemoryStruct
 			this.SensorObjectToString();
 	}
 
-	public class UIElementText : UIElement
+	public class UIElementText : UIElement, IUIElementText
 	{
-		public string Text;
+		public string Text { set; get; }
 
 		public UIElementText(
-			UIElement Base,
+			IUIElement Base,
 			string Text = null)
 			:
 			base(Base)
@@ -80,7 +110,7 @@ namespace Sanderling.Interface.MemoryStruct
 			this.Text = Text;
 		}
 
-		public UIElementText(UIElementText Base)
+		public UIElementText(IUIElementText Base)
 			:
 			this(Base, Base?.Text)
 		{
@@ -91,15 +121,15 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class UIElementInputText : UIElementText
+	public class UIElementInputText : UIElementText, IUIElementInputText
 	{
-		public UIElementInputText(UIElement Base, string Label = null)
+		public UIElementInputText(IUIElement Base, string Label = null)
 			:
 			base(Base, Label)
 		{
 		}
 
-		public UIElementInputText(UIElementText Base)
+		public UIElementInputText(IUIElementText Base)
 			:
 			this(Base, Base?.Text)
 		{

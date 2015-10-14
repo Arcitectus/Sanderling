@@ -6,7 +6,7 @@ namespace Sanderling.Script
 	{
 		static public BotEngine.Motor.MotionResult MouseClick(
 			this IHostToScript Host,
-			UIElement Destination,
+			IUIElement Destination,
 			BotEngine.Motor.MouseButtonIdEnum MouseButton) =>
 			Host?.MotionExecute(new Motor.MotionParam()
 			{
@@ -16,12 +16,12 @@ namespace Sanderling.Script
 
 		static public BotEngine.Motor.MotionResult MouseClickLeft(
 			this IHostToScript Host,
-			UIElement Destination) =>
+			IUIElement Destination) =>
 			MouseClick(Host, Destination, BotEngine.Motor.MouseButtonIdEnum.Left);
 
 		static public BotEngine.Motor.MotionResult MouseClickRight(
 			this IHostToScript Host,
-			UIElement Destination) =>
+			IUIElement Destination) =>
 			MouseClick(Host, Destination, BotEngine.Motor.MouseButtonIdEnum.Right);
 
 	}

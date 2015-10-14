@@ -105,25 +105,25 @@ namespace Sanderling.Parse
 			CargoSpaceTypeAndSetLabel.Value?.Any(Label => Label.EqualsIgnoreCase(ShipCargoSpaceTypeLabel)) ?? false)
 			?.CastToNullable()?.FirstOrDefault()?.Key;
 
-		static public IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, TreeViewEntry>> FromShipExtractSetCargoSpaceTypeAndTreeEntry(
-			this TreeViewEntry ShipTreeEntry) =>
-			new[] { new KeyValuePair<ShipCargoSpaceTypeEnum, TreeViewEntry>(ShipCargoSpaceTypeEnum.General, ShipTreeEntry) }
+		static public IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>> FromShipExtractSetCargoSpaceTypeAndTreeEntry(
+			this ITreeViewEntry ShipTreeEntry) =>
+			new[] { new KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>(ShipCargoSpaceTypeEnum.General, ShipTreeEntry) }
 			.ConcatNullable(InventoryCargoTypeAndSetLabel?.Select(CargoTypeAndSetLabel =>
-			new KeyValuePair<ShipCargoSpaceTypeEnum, TreeViewEntry>(
+			new KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>(
 				CargoTypeAndSetLabel.Key,
 				ShipTreeEntry?.EnumerateChildNodeTransitive()
-				?.FirstOrDefault(Node => Node?.LabelText?.FromIventoryLabelParseShipCargoSpaceType() == CargoTypeAndSetLabel.Key))))
+				?.FirstOrDefault(Node => Node?.Text?.FromIventoryLabelParseShipCargoSpaceType() == CargoTypeAndSetLabel.Key))))
 			?.Where(TreeEntryForCargoSpaceType => null != TreeEntryForCargoSpaceType.Value);
 
-		static public TreeViewEntry TreeEntryForCargoSpaceType(
-			this TreeViewEntry ShipTreeEntry,
+		static public ITreeViewEntry TreeEntryFromCargoSpaceType(
+			this ITreeViewEntry ShipTreeEntry,
 			ShipCargoSpaceTypeEnum CargoSpaceType) =>
 			FromShipExtractSetCargoSpaceTypeAndTreeEntry(ShipTreeEntry)
 			?.FirstOrDefault(TreeEntryForCargoShipType => TreeEntryForCargoShipType.Key == CargoSpaceType).Value;
 
-		static public ShipCargoSpaceTypeEnum? CargoSpaceTypeOfTreeEntry(
-			this TreeViewEntry EntryShip,
-			TreeViewEntry EntryCargoSpace) =>
+		static public ShipCargoSpaceTypeEnum? CargoSpaceTypeFromTreeEntry(
+			this ITreeViewEntry EntryShip,
+			ITreeViewEntry EntryCargoSpace) =>
 			FromShipExtractSetCargoSpaceTypeAndTreeEntry(EntryShip)
 			?.Where(CargoShipTypeAndTreeEntry => CargoShipTypeAndTreeEntry.Value == EntryCargoSpace)
 			?.Select(CargoShipTypeAndTreeEntry => CargoShipTypeAndTreeEntry.Key)
@@ -145,14 +145,14 @@ namespace Sanderling.Parse
 				Match.Groups[TreeEntryShipGroupTypeId].Value?.Trim());
 		}
 
-		static public TreeViewEntry TreeEntryActiveShip(
-			this WindowInventory Inventory) =>
+		static public ITreeViewEntry TreeEntryActiveShip(
+			this IWindowInventory Inventory) =>
 			//	Topmost entry which is a root and has a conforming Label.
 			Inventory?.LeftTreeListEntry?.OrderByCenterVerticalDown()
-			?.FirstOrDefault(TreeEntry => 0 < TreeEntry?.LabelText?.ParseTreeEntryLabelShipNameAndType()?.Value?.Length);
+			?.FirstOrDefault(TreeEntry => 0 < TreeEntry?.Text?.ParseTreeEntryLabelShipNameAndType()?.Value?.Length);
 
-		static public IEnumerable<TreeViewEntry> SetTreeEntrySuitingSelectedPath(
-			this IEnumerable<TreeViewEntry> SetTreeEntryRoot,
+		static public IEnumerable<ITreeViewEntry> SetTreeEntrySuitingSelectedPath(
+			this IEnumerable<ITreeViewEntry> SetTreeEntryRoot,
 			IEnumerable<string> SelectedPathListNodeLabel)
 		{
 			if (null == SetTreeEntryRoot || null == SelectedPathListNodeLabel)
@@ -173,7 +173,7 @@ namespace Sanderling.Parse
 
 			var SetTreeEntryRootSuitingPathNodeNext =
 				SetTreeEntryRoot
-				?.Where(TreeEntry => (TreeEntry?.LabelText?.RemoveXmlTag()?.Trim()).EqualsIgnoreCase(PathListNodeLabelNext))
+				?.Where(TreeEntry => (TreeEntry?.Text?.RemoveXmlTag()?.Trim()).EqualsIgnoreCase(PathListNodeLabelNext))
 				.ToArrayNullable();
 
 			if (null == SetTreeEntryRootSuitingPathNodeNext)
@@ -196,13 +196,13 @@ namespace Sanderling.Parse
 				?.ConcatNullable();
 		}
 
-		static public IEnumerable<TreeViewEntry> SetLeftTreeEntrySelected(
-			this WindowInventory WindowInventory) =>
+		static public IEnumerable<ITreeViewEntry> SetLeftTreeEntrySelected(
+			this IWindowInventory WindowInventory) =>
 			WindowInventory?.LeftTreeListEntry?.Select(RootTreeEntry => RootTreeEntry?.EnumerateChildNodeTransitive()).ConcatNullable()
 			?.Where(TreeEntry => TreeEntry?.IsSelected ?? false);
 
 		static public ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceType(
-			this WindowInventory WindowInventory) =>
+			this IWindowInventory WindowInventory) =>
 			WindowInventory?.TreeEntryActiveShip()?.FromShipExtractSetCargoSpaceTypeAndTreeEntry()
 			?.Where(CargoTypeAndTreeEntry => WindowInventory?.SetLeftTreeEntrySelected()?.Contains(CargoTypeAndTreeEntry.Value) ?? false)
 			?.Select(CargoTypeAndTreeEntry => CargoTypeAndTreeEntry.Key)

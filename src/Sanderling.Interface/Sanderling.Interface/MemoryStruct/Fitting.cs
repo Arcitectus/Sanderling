@@ -2,9 +2,9 @@
 {
 	public class WindowFittingMgmt : Window
 	{
-		public ListViewAndControl FittingView;
+		public IListViewAndControl FittingView;
 
-		public WindowFittingMgmt(Window Base)
+		public WindowFittingMgmt(IWindow Base)
 			:
 			base(Base)
 		{
@@ -17,7 +17,7 @@
 
 	public class WindowFittingWindow : Window
 	{
-		public WindowFittingWindow(Window Base)
+		public WindowFittingWindow(IWindow Base)
 			:
 			base(Base)
 		{

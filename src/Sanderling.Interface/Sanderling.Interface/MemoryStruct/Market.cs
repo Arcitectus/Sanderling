@@ -8,7 +8,7 @@
 		{
 		}
 
-		public MarketItemTypeDetails(UIElement Base)
+		public MarketItemTypeDetails(IUIElement Base)
 			: base(Base)
 		{
 		}
@@ -16,15 +16,15 @@
 
 	public class MarketItemTypeDetailsMarketData : UIElement
 	{
-		public ListViewAndControl SellerView;
+		public IListViewAndControl SellerView;
 
-		public ListViewAndControl BuyerView;
+		public IListViewAndControl BuyerView;
 
 		public MarketItemTypeDetailsMarketData()
 		{
 		}
 
-		public MarketItemTypeDetailsMarketData(UIElement Base)
+		public MarketItemTypeDetailsMarketData(IUIElement Base)
 			: base(Base)
 		{
 		}
@@ -34,13 +34,13 @@
 	{
 		public TabGroup LeftTabGroup;
 
-		public ListViewAndControl QuickbarView;
+		public IListViewAndControl QuickbarView;
 
 		public TabGroup RightTabGroup;
 
 		public MarketItemTypeDetails SelectedItemTypeDetails;
 
-		public WindowRegionalMarket(Window Base)
+		public WindowRegionalMarket(IWindow Base)
 			:
 			base(Base)
 		{
@@ -53,7 +53,7 @@
 
 	public class MarketOrderEntry : ListEntry
 	{
-		public MarketOrderEntry(ListEntry Base)
+		public MarketOrderEntry(IListEntry Base)
 			:
 			base(Base)
 		{
@@ -66,7 +66,7 @@
 
 	public class WindowMarketAction : Window
 	{
-		public WindowMarketAction(Window Base)
+		public WindowMarketAction(IWindow Base)
 			:
 			base(Base)
 		{
@@ -79,7 +79,7 @@
 
 	public class WindowItemSell : Window
 	{
-		public WindowItemSell(Window Base)
+		public WindowItemSell(IWindow Base)
 			:
 			base(Base)
 		{

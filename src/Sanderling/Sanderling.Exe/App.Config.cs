@@ -9,14 +9,14 @@ namespace Sanderling.Exe
 	partial class App
 	{
 		static public string ConfigFilePath =>
-			Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(System.IO.Path.DirectorySeparatorChar.ToString()) + "config";
+			Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild("config");
 
 		BotEngine.UI.WriteToOrReadFromFile ConfigFileControl =>
 			Window?.Main?.ConfigFileControl;
 
-		string ScriptDirectoryPath => AssemblyDirectoryPath + @"script\";
+		string ScriptDirectoryPath => AssemblyDirectoryPath.PathToFilesysChild(@"script\");
 
-		string DefaultScriptPath => ScriptDirectoryPath + "default.cs";
+		string DefaultScriptPath => ScriptDirectoryPath.PathToFilesysChild("default.cs");
 
 		string DefaultScript
 		{

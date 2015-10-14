@@ -32,14 +32,14 @@ while(true)
 
 	//	from the set of Waypoint markers in the Info Panel pick the one that represents the next Waypoint/System.
 	//	We assume this is the one which is nearest to the topleft corner of the Screen which is at (0,0)
-	var WaypointMarkerNext =
-		InfoPanelRoute?.WaypointMarker
+	var RouteElementMarkerNext =
+		InfoPanelRoute?.RouteElementMarker
 		?.OrderByCenterDistanceToPoint(new Vektor2DInt(0, 0))?.FirstOrDefault();
 
-	if(null != WaypointMarkerNext)
+	if(null != RouteElementMarkerNext)
 	{
 		//	righclick the marker to open the contextmenu.
-		HostSanderling.MouseClickRight(WaypointMarkerNext);
+		HostSanderling.MouseClickRight(RouteElementMarkerNext);
 		continue;
 	}
 

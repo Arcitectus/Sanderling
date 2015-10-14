@@ -1,4 +1,5 @@
-﻿using BotEngine;
+﻿using Bib3;
+using BotEngine;
 using BotEngine.Interface;
 using BotEngine.Motor;
 using Sanderling.Motor;
@@ -11,12 +12,12 @@ namespace Sanderling.Script
 {
 	static public class Script
 	{
-		static readonly Type[] AssemblyAndNamespaceAddition = new[]
+		static readonly Type[] AssemblyAndNamespaceAdditionType = new[]
 		{
-			typeof(Bib3.Extension),
+			typeof(Vektor2DInt),
 			typeof(ObjectIdInt64),
 			typeof(FromProcessMeasurement<>),
-			typeof(MemoryStruct.MemoryMeasurement),
+			typeof(MemoryStruct.IMemoryMeasurement),
 			typeof(MotionParam),
 			typeof(MouseButtonIdEnum),
 			typeof(BotEngine.Common.Extension),
@@ -24,16 +25,31 @@ namespace Sanderling.Script
 			typeof(Extension),
 		};
 
+		static readonly Type[] NamespaceStaticAdditionType = new[]
+		{
+			typeof(Bib3.Extension),
+		};
+
+		static	IEnumerable<Type> AssemblyAdditionType => new[]
+		{
+			AssemblyAndNamespaceAdditionType,
+			NamespaceStaticAdditionType,
+		}.ConcatNullable();
+
 		static public IEnumerable<System.Reflection.Assembly> AssemblyAddition =>
-			AssemblyAndNamespaceAddition?.Select(t => t.Assembly);
+			AssemblyAdditionType?.Select(t => t.Assembly);
 
 		static public IEnumerable<string> NamespaceAddition =>
-			AssemblyAndNamespaceAddition?.Select(t => t.Namespace);
+			new[]
+			{
+				AssemblyAndNamespaceAdditionType?.Select(t => t.Namespace),
+				NamespaceStaticAdditionType?.Select(t => t.FullName),
+			}.ConcatNullable();
 
 	}
 	public interface IHostToScript
 	{
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> MemoryMeasurement
+		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement
 		{
 			get;
 		}
@@ -45,11 +61,11 @@ namespace Sanderling.Script
 	{
 		public const int FromScriptRequestMemoryMeasurementDelayMax = 3000;
 
-		public Func<FromProcessMeasurement<MemoryStruct.MemoryMeasurement>> MemoryMeasurementFunc;
+		public Func<FromProcessMeasurement<MemoryStruct.IMemoryMeasurement>> MemoryMeasurementFunc;
 
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
-		FromProcessMeasurement<MemoryStruct.MemoryMeasurement> IHostToScript.MemoryMeasurement => MemoryMeasurementFunc?.Invoke();
+		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> IHostToScript.MemoryMeasurement => MemoryMeasurementFunc?.Invoke();
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 	}

@@ -40,14 +40,19 @@ namespace Sanderling.Motor
 					throw new ApplicationException("mouse waypoint not anymore contained in UITree");
 				}
 
-				var WaypointUIElementRegion = WaypointUIElementCurrent.Region;
+				var WaypointUIElementRegion = WaypointUIElementCurrent.RegionInteraction;
+
+				if (!WaypointUIElementRegion.HasValue)
+				{
+					throw new ArgumentException("Waypoint UIElement has no Region to interact with");
+				}
 
 				if (WaypointRegionReplacement.HasValue)
 				{
-					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.ZentrumLaage;
+					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.ZentrumLaage;
 				}
 
-				WaypointUIElementCurrent = WaypointUIElementCurrent.CopyWithRegionSubstituted(WaypointUIElementRegion);
+				WaypointUIElementCurrent = WaypointUIElementCurrent.CopyWithRegionSubstituted(WaypointUIElementRegion.Value);
 
 				var WaypointRegionPortionVisible =
 					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(MemoryMeasurement)

@@ -29,7 +29,7 @@ namespace Sanderling.Exe
 
 		DispatcherTimer Timer;
 
-		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().ScteleSicerEndung(@"\");
+		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild(@"\");
 
 		void TimerConstruct()
 		{

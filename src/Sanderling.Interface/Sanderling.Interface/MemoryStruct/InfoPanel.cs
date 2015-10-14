@@ -1,48 +1,59 @@
-﻿namespace Sanderling.Interface.MemoryStruct
+﻿using System;
+
+namespace Sanderling.Interface.MemoryStruct
 {
-	public class InfoPanel : UIElement
+	public interface IInfoPanel : IUIElement, IExpandable
 	{
-		public bool? IsExpanded;
-
-		public UIElement HeaderButtonExpand;
-
-		public UIElementText HeaderLabel;
+		IContainer HeaderContent { get; }
 
 		/// <summary>
 		/// content which is only visible when expanded.
 		/// </summary>
-		public UIElementText[] ExpandedContentLabel;
+		IContainer ExpandedContent { get; }
+	}
+
+	public class InfoPanel : UIElement, IInfoPanel, IUIElementText
+	{
+		public bool? IsExpanded { set; get; }
+
+		public IUIElement ExpandToggleButton { set; get; }
+
+		public IContainer HeaderContent { set; get; }
+
+		public IContainer ExpandedContent { set; get; }
+
+		public string Text => HeaderContent?.LabelText?.Largest()?.Text;
 
 		public InfoPanel()
 		{
 		}
 
-		public InfoPanel(UIElement Base)
+		public InfoPanel(IUIElement Base)
 			:
 			base(Base)
 		{
 		}
 
-		public InfoPanel(InfoPanel Base)
+		public InfoPanel(IInfoPanel Base)
 			:
-			this((UIElement)Base)
+			this((IUIElement)Base)
 		{
 			IsExpanded = Base?.IsExpanded;
-			HeaderButtonExpand = Base?.HeaderButtonExpand;
-			HeaderLabel = Base?.HeaderLabel;
-			ExpandedContentLabel = Base?.ExpandedContentLabel;
+			ExpandToggleButton = Base?.ExpandToggleButton;
+			HeaderContent = Base?.HeaderContent;
+			ExpandedContent = Base?.ExpandedContent;
 		}
 	}
 
-	public class InfoPanelLocationInfo : InfoPanel
+	public class InfoPanelCurrentSystem : InfoPanel
 	{
-		public UIElement ButtonListSurroundings;
+		public IUIElement ListSurroundingsButton;
 
-		public InfoPanelLocationInfo()
+		public InfoPanelCurrentSystem()
 		{
 		}
 
-		public InfoPanelLocationInfo(InfoPanel Base)
+		public InfoPanelCurrentSystem(IInfoPanel Base)
 			:
 			base(Base)
 		{
@@ -52,17 +63,17 @@
 
 	public class InfoPanelRoute : InfoPanel
 	{
-		public UIElementText NextLabel;
+		public IUIElementText NextLabel;
 
-		public UIElementText DestinationLabel;
+		public IUIElementText DestinationLabel;
 
-		public UIElement[] WaypointMarker;
+		public IUIElement[] RouteElementMarker;
 
 		public InfoPanelRoute()
 		{
 		}
 
-		public InfoPanelRoute(InfoPanel Base)
+		public InfoPanelRoute(IInfoPanel Base)
 			:
 			base(Base)
 		{
@@ -71,13 +82,13 @@
 
 	public class InfoPanelMissions : InfoPanel
 	{
-		public UIElementText[] ListMissionButton;
+		public IUIElementText[] ListMissionButton;
 
 		public InfoPanelMissions()
 		{
 		}
 
-		public InfoPanelMissions(InfoPanel Base)
+		public InfoPanelMissions(IInfoPanel Base)
 			:
 			base(Base)
 		{

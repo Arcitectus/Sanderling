@@ -29,22 +29,22 @@ namespace Sanderling.Parse
 		/// </summary>
 		const string TargetLabelAsteroidRegexPattern = "Asteroid.*[^\\d\\w\\s]+([\\d\\w\\s]+)";
 
-		static public MenuEntry EntryLock(this Menu Menu) =>
+		static public IMenuEntry EntryLock(this IMenu Menu) =>
 			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryLockRegexPattern) ?? false);
 
-		static public MenuEntry EntryUnlock(this Menu Menu) =>
+		static public IMenuEntry EntryUnlock(this IMenu Menu) =>
 			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryUnlockRegexPattern) ?? false);
 
-		static public MenuEntry EntryRemoveFromOverview(this Menu Menu) =>
+		static public IMenuEntry EntryRemoveFromOverview(this IMenu Menu) =>
 			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryRemoveFromOverviewRegexPattern) ?? false);
 
-		static public KeyValuePair<OverviewEntry, IEnumerable<Menu>>? OverviewEntryMenu(this MemoryMeasurement MemoryMeasurement)
+		static public KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>? OverviewEntryMenu(this IMemoryMeasurement MemoryMeasurement)
 		{
 			var OverviewEntry =
 				MemoryMeasurement?.WindowOverview
 				?.Select(WindowOverview => WindowOverview?.ListView?.Entry)
 				?.ConcatNullable()
-				?.OfType<OverviewEntry>()
+				?.OfType<IOverviewEntry>()
 				?.FirstOrDefault(Entry => Entry?.IsSelected ?? false);
 
 			if (null == OverviewEntry)
@@ -57,14 +57,14 @@ namespace Sanderling.Parse
 				return null;
 			}
 
-			return new KeyValuePair<OverviewEntry, IEnumerable<Menu>>(OverviewEntry, MemoryMeasurement?.Menu);
+			return new KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>(OverviewEntry, MemoryMeasurement?.Menu);
 		}
 
-		static public string OreTypeString(this OverviewEntry OverviewEntry) =>
+		static public string OreTypeString(this IOverviewEntry OverviewEntry) =>
 			(OverviewEntry?.ColumnNameValue().RegexMatchSuccessIgnoreCase("Asteroid.*") ?? false) ?
 			OverviewEntry?.ColumnTypeValue() : null;
 
-		static public OreTypeEnum? OreTypeEnum(this OverviewEntry OverviewEntry) =>
+		static public OreTypeEnum? OreTypeEnum(this IOverviewEntry OverviewEntry) =>
 			Bib3.Extension.EnumGetValues<OreTypeEnum>()
 			?.CastToNullable()
 			?.FirstOrDefault(OreType => OverviewEntry.OreTypeString().RegexMatchSuccessIgnoreCase(OreType?.RegexPattern()));

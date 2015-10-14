@@ -7,19 +7,24 @@ namespace Sanderling.Interface.MemoryStruct
 {
 	static public class Extension
 	{
-		static public ObjectIdInMemory AsObjectIdInMemory(this Int64 Id)
+		static public IObjectIdInMemory AsObjectIdInMemory(this Int64 Id)
 		{
 			return new ObjectIdInMemory(new ObjectIdInt64(Id));
 		}
+
+		static public T Largest<T>(this IEnumerable<T> source)
+			where T : class, IUIElement =>
+			source.OrderByDescending(item => item?.Region.Betraag ?? -1)
+			?.FirstOrDefault();
 
 		static public IEnumerable<object> EnumerateReferencedTransitive(
 			this object Parent) =>
 			Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(Parent, FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache);
 
-		static public IEnumerable<UIElement> EnumerateReferencedUIElementTransitive(
+		static public IEnumerable<IUIElement> EnumerateReferencedUIElementTransitive(
 			this object Parent) =>
 			EnumerateReferencedTransitive(Parent)
-			?.OfType<UIElement>();
+			?.OfType<IUIElement>();
 
 		static public T CopyByPolicyMemoryMeasurement<T>(this T ToBeCopied)
 			where T : class =>

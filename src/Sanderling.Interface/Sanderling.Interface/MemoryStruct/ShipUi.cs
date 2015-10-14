@@ -1,37 +1,91 @@
-﻿using System;
+﻿using Bib3;
+using System;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-
-	public class ShipUi : UIElement, ICloneable
+	public interface IShipUiModule : IUIElement
 	{
-		public UIElement Center;
+		bool? ModuleButtonVisible { get; }
 
-		public ShipUiIndication Indication;
+		IObjectIdInMemory ModuleButtonIconTexture { get; }
 
-		public ShipHitpointsAndEnergy Hitpoints;
+		string ModuleButtonQuantity { get; }
 
-		public UIElementText SpeedLabel;
+		bool RampActive { get; }
 
-		public ShipUiEWarElement[] EWarElement;
+		int? RampRotationMilli { get; }
 
-		public UIElement ButtonSpeed0;
+		bool? HiliteVisible { get; }
 
-		public UIElement ButtonSpeedMax;
+		bool? GlowVisible { get; }
 
-		public ShipUiModule[] Module;
+		bool? BusyVisible { get; }
 
-		public UIElementText[] Readout;
+	}
 
-		public Int64? SpeedMilli;
+	public interface IShipUiTimer : IContainer
+	{
+		string Name { get; }
+	}
 
-		public ShipUiTimer[] Timer;
+	public interface IShipUi
+	{
+		IUIElement Center { get; }
+
+		/// <summary>
+		/// Displays information about current maneuver ("Orbiting", "Warping",....)
+		/// The lower Label contains the target and distance or target distance if applicable.
+		/// </summary>
+		IUIElementText[] Indication { get; }
+
+		IShipHitpointsAndEnergy HitpointsAndEnergy { get; }
+
+		IUIElementText SpeedLabel { get; }
+
+		ShipUiEWarElement[] EWarElement { get; }
+
+		IUIElement ButtonSpeed0 { get; }
+
+		IUIElement ButtonSpeedMax { get; }
+
+		IShipUiModule[] Module { get; }
+
+		IUIElementText[] Readout { get; }
+
+		Int64? SpeedMilli { get; }
+
+		IShipUiTimer[] Timer { get; }
+	}
+
+	public class ShipUi : UIElement, IShipUi, ICloneable
+	{
+		public IUIElement Center { set; get; }
+
+		public IUIElementText[] Indication { set; get; }
+
+		public IShipHitpointsAndEnergy HitpointsAndEnergy { set; get; }
+
+		public IUIElementText SpeedLabel { set; get; }
+
+		public ShipUiEWarElement[] EWarElement { set; get; }
+
+		public IUIElement ButtonSpeed0 { set; get; }
+
+		public IUIElement ButtonSpeedMax { set; get; }
+
+		public IShipUiModule[] Module { set; get; }
+
+		public IUIElementText[] Readout { set; get; }
+
+		public Int64? SpeedMilli { set; get; }
+
+		public IShipUiTimer[] Timer { set; get; }
 
 		public ShipUi()
 		{
 		}
 
-		public ShipUi(UIElement Base)
+		public ShipUi(IUIElement Base)
 			:
 			base(Base)
 		{
@@ -39,41 +93,23 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public ShipUi Copy() => this.CopyByPolicyMemoryMeasurement();
 
-		public object Clone()
-		{
-			return Copy();
-		}
+		public object Clone() => Copy();
 	}
 
-	public class ShipUiTimer : UIElement
+	public class ShipUiTarget : UIElement, IUIElement
 	{
-		public string Name;
-
-		public UIElementText[] Label;
-
-		public ShipUiTimer()
-		{
-		}
-
-		public ShipUiTimer(UIElement Base)
-			:
-			base(Base)
-		{
-		}
-	}
-
-	public class ShipUiTarget : UIElement
-	{
-		public UIElementText[] LabelText;
+		public IUIElementText[] LabelText;
 
 		public bool? Active;
 
-		public ShipHitpointsAndEnergy Hitpoints;
+		public IShipHitpointsAndEnergy Hitpoints;
 
 		/// <summary>
 		/// click here to activate (input focus) or open a menu.
 		/// </summary>
-		public UIElement RegionInteraction;
+		public IUIElement RegionInteractionElement;
+
+		override public OrtogoonInt? RegionInteraction => RegionInteractionElement?.RegionInteraction;
 
 		/// <summary>
 		/// e.g. groups of modules or drones assigned to this target.
@@ -87,7 +123,7 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 
 		public ShipUiTarget(
-			UIElement Base)
+			IUIElement Base)
 			:
 			base(Base)
 		{
@@ -99,52 +135,42 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public string EWarType;
 
-		public ObjectIdInMemory IconTexture;
+		public IObjectIdInMemory IconTexture;
 
 		public ShipUiEWarElement()
 		{
 		}
-	}
 
-
-	public class ShipUiIndication : UIElement
-	{
-		public UIElementText[] ListLabelString;
-
-		public ShipUiIndication()
-		{
-		}
-
-		public ShipUiIndication(UIElement Base)
+		public ShipUiEWarElement(IUIElement Base)
 			:
 			base(Base)
 		{
 		}
 	}
 
-	public class ShipUiModule : UIElement
+	public class ShipUiModule : UIElement, IShipUiModule
 	{
-		public bool? ModuleButtonVisible;
+		public bool? ModuleButtonVisible { set; get; }
 
-		public ObjectIdInMemory ModuleButtonIconTexture;
+		public IObjectIdInMemory ModuleButtonIconTexture { set; get; }
 
-		public string ModuleButtonQuantity;
+		public string ModuleButtonQuantity { set; get; }
 
-		public bool RampActive;
+		public bool RampActive { set; get; }
 
-		public int? RampRotationMilli;
+		public int? RampRotationMilli { set; get; }
 
-		public bool? HiliteVisible;
+		public bool? HiliteVisible { set; get; }
 
-		public bool? GlowVisible;
+		public bool? GlowVisible { set; get; }
 
-		public bool? BusyVisible;
+		public bool? BusyVisible { set; get; }
 
 		public ShipUiModule()
 		{
 		}
 
-		public ShipUiModule(UIElement Base)
+		public ShipUiModule(IUIElement Base)
 			:
 			base(Base)
 		{
@@ -153,13 +179,28 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class ShipUiTargetAssignedGroup : UIElement
 	{
-		public ObjectIdInMemory IconTexture;
+		public IObjectIdInMemory IconTexture;
 
 		public ShipUiTargetAssignedGroup()
 		{
 		}
 
-		public ShipUiTargetAssignedGroup(UIElement Base)
+		public ShipUiTargetAssignedGroup(IUIElement Base)
+			:
+			base(Base)
+		{
+		}
+	}
+
+	public class ShipUiTimer : Container, IShipUiTimer
+	{
+		public string Name { set; get; }
+
+		public ShipUiTimer()
+		{
+		}
+
+		public ShipUiTimer(IUIElement Base)
 			:
 			base(Base)
 		{

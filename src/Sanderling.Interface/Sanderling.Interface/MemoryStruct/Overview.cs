@@ -2,21 +2,44 @@
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class WindowOverView : Window, ICloneable
+	public interface IOverviewEntry : IListEntry
 	{
-		public Tab[] PresetTab;
+		/// <summary>
+		/// contains EWar icons such as jamming or scrambling.
+		/// </summary>
+		ISprite[] RightIcon { get; }
+	}
+
+	public interface IWindowOverview : IWindow
+	{
+		Tab[] PresetTab { get; }
 
 		/// <summary>
 		/// contains the Overview entries for the in space objects.
 		/// </summary>
-		public ListViewAndControl ListView;
+		IListViewAndControl<IOverviewEntry> ListView { get; }
 
 		/// <summary>
 		/// A Label in place of the Viewport which would contain overview entries ("Nothing Found").
 		/// </summary>
-		public string ViewportOverallLabelString;
+		string ViewportOverallLabelString { get; }
+	}
 
-		public WindowOverView(Window Base)
+	public class WindowOverView : Window, IWindowOverview, ICloneable
+	{
+		public Tab[] PresetTab { set; get; }
+
+		/// <summary>
+		/// contains the Overview entries for the in space objects.
+		/// </summary>
+		public IListViewAndControl<IOverviewEntry> ListView { set; get; }
+
+		/// <summary>
+		/// A Label in place of the Viewport which would contain overview entries ("Nothing Found").
+		/// </summary>
+		public string ViewportOverallLabelString { set; get; }
+
+		public WindowOverView(IWindow Base)
 			:
 			base(Base)
 		{
@@ -28,20 +51,14 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public WindowOverView Copy() => this.CopyByPolicyMemoryMeasurement();
 
-		public object Clone()
-		{
-			return Copy();
-		}
+		public object Clone() => Copy();
 	}
 
-	public class OverviewEntry : ListEntry
+	public class OverviewEntry : ListEntry, IOverviewEntry
 	{
-		/// <summary>
-		/// contains EWar icons such as jamming or scrambling.
-		/// </summary>
-		public Sprite[] RightIcon;
+		public ISprite[] RightIcon { set; get; }
 
-		public OverviewEntry(ListEntry Base)
+		public OverviewEntry(IListEntry Base)
 			:
 			base(Base)
 		{

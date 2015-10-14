@@ -2,9 +2,9 @@
 {
 	public class WindowStationLobby : Window
 	{
-		public UIElementText[] AboveServicesLabel;
+		public IUIElementText[] AboveServicesLabel;
 
-		public UIElement ButtonUndock;
+		public IUIElement ButtonUndock;
 
 		/// <summary>
 		/// Station services.
@@ -13,16 +13,16 @@
 		/// "res:/ui/Texture/WindowIcons/fitting.png"
 		/// "res:/UI/Texture/WindowIcons/Industry.png"
 		/// </summary>
-		public Sprite[] ServiceButton;
+		public ISprite[] ServiceButton;
 
 		public LobbyAgentEntry[] AgentEntry;
 
 		/// <summary>
 		/// Label which are displayed between Agent Entries ("available to you", "Agents of interest").
 		/// </summary>
-		public UIElementText[] AgentEntryHeader;
+		public IUIElementText[] AgentEntryHeader;
 
-		public WindowStationLobby(Window Base)
+		public WindowStationLobby(IWindow Base)
 			:
 			base(Base)
 		{
@@ -36,19 +36,14 @@
 
 	public class LobbyAgentEntry : UIElement
 	{
-		public UIElementText[] ListLabelString;
+		public IUIElementText[] LabelText;
 
-		public UIElement ButtonStartConversation;
+		public IUIElement StartConversationButton;
 
-		public LobbyAgentEntry(
-			UIElement Base,
-			UIElementText[] ListLabelString,
-			UIElement ButtonStartConversation)
+		public LobbyAgentEntry(IUIElement Base)
 			:
 			base(Base)
 		{
-			this.ListLabelString = ListLabelString;
-			this.ButtonStartConversation = ButtonStartConversation;
 		}
 
 		public LobbyAgentEntry()

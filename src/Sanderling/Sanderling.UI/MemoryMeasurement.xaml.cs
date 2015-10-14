@@ -20,7 +20,7 @@ namespace Sanderling.UI
 				null);
 		}
 
-		public void Present(FromProcessMeasurement<MemoryStruct.MemoryMeasurement> Measurement)
+		public void Present(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> Measurement)
 		{
 			Summary?.Present(Measurement);
 

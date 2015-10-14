@@ -10,9 +10,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public Tab[] Tab;
 
-		public ListViewAndControl ListView;
+		public IListViewAndControl ListView;
 
-		public WindowPeopleAndPlaces(Window Base)
+		public WindowPeopleAndPlaces(IWindow Base)
 			:
 			base(Base)
 		{
