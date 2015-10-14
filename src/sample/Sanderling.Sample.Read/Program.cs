@@ -7,7 +7,7 @@ namespace Sanderling.Sample.Read
 {
 	/// <summary>
 	/// This is just a minimal example of how to read from the eve online client process' memory.
-	/// For more information, visit the project page at https://github.com/Arcitectus/BotEngine.EveOnline
+	/// For more information, visit the project page at https://github.com/Arcitectus/Sanderling
 	/// </summary>
 	class Program
 	{
@@ -51,7 +51,7 @@ namespace Sanderling.Sample.Read
 
 			var SensorServerHub = new SimpleSensorServerDispatcher() { SensorAppManager = SensorAppManager, LicenseClient = LicenseClient };
 
-			BotEngine.Interface.FromProcessMeasurement<MemoryMeasurement> MeasurementMemoryReceivedLast = null;
+			BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> MeasurementMemoryReceivedLast = null;
 
 			while (true)
 			{
@@ -82,7 +82,7 @@ namespace Sanderling.Sample.Read
 		/// <summary>
 		/// </summary>
 		/// <param name="Measurement">contains the structures read from the eve online client process memory.</param>
-		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<MemoryMeasurement> Measurement)
+		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> Measurement)
 		{
 			Console.WriteLine("\nMeasurement received");
 			Console.WriteLine("measurement time: " + ((Measurement?.EndeZait)?.ToString("### ### ### ### ###")?.Trim() ?? "null"));
