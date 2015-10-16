@@ -2,7 +2,10 @@
 
 namespace Sanderling.Script
 {
-	static public class Extension
+	/// <summary>
+	/// Extension methods for consumption by scripts.
+	/// </summary>
+	static public class ToScriptExtension
 	{
 		static public BotEngine.Motor.MotionResult MouseClick(
 			this IHostToScript Host,

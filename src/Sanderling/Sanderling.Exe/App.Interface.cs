@@ -10,6 +10,17 @@ using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Exe
 {
+	/// <summary>
+	/// This Type must reside in an Assembly that can be resolved by the default assembly resolver.
+	/// </summary>
+	public class InterfaceAppDomainSetup
+	{
+		static InterfaceAppDomainSetup()
+		{
+			BotEngine.Interface.InterfaceAppDomainSetup.Setup();
+		}
+	}
+
 	partial class App
 	{
 		SimpleSensorServerDispatcher SensorServerDispatcher;
@@ -22,7 +33,9 @@ namespace Sanderling.Exe
 
 		int LicenseClientExchangeDistanceMin = 1000;
 
-		InterfaceAppManager SensorAppManager = new InterfaceAppManager();
+		InterfaceAppDomainSetup TriggerSetup = new InterfaceAppDomainSetup();
+
+		InterfaceAppManager SensorAppManager = new InterfaceAppManager(typeof(InterfaceAppDomainSetup), true);
 
 		public UI.InterfaceToEve InterfaceToEveControl => Window?.Main?.Interface;
 
@@ -123,8 +136,6 @@ namespace Sanderling.Exe
 		{
 			lock (LicenseClientLock)
 			{
-				InterfaceAppDomainSetup.Setup();
-
 				var Time = Bib3.Glob.StopwatchZaitMiliSictInt();
 
 				var LicenseClientExchangeStartedLastAge = Time - LicenseClientExchangeStartedLastTime;

@@ -31,6 +31,29 @@ namespace Sanderling.Exe
 
 		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild(@"\");
 
+		public App()
+		{
+			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+		}
+
+		private System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+		{
+			var MatchFullName =
+				AppDomain.CurrentDomain.GetAssemblies()
+				?.FirstOrDefault(candidate => string.Equals(candidate.GetName().FullName, args?.Name));
+
+			if (null != MatchFullName)
+			{
+				return MatchFullName;
+			}
+
+			var MatchName =
+				AppDomain.CurrentDomain.GetAssemblies()
+				?.FirstOrDefault(candidate => string.Equals(candidate.GetName().Name, args?.Name));
+
+			return MatchName;
+		}
+
 		void TimerConstruct()
 		{
 			Timer = new DispatcherTimer(TimeSpan.FromSeconds(1.0 / 4), DispatcherPriority.Normal, Timer_Tick, Dispatcher);
@@ -53,7 +76,7 @@ namespace Sanderling.Exe
 		Script.ToScriptGlobals ToScriptGlobalsConstruct(Action ScriptExecutionCheck) =>
 			new Script.ToScriptGlobals()
 			{
-				HostSanderling = new Script.HostToScript()
+				HostSanderling = new Sanderling.Script.HostToScript()
 				{
 					MemoryMeasurementFunc = () =>
 					{
@@ -71,12 +94,12 @@ namespace Sanderling.Exe
 
 		void ActivatedFirstTime()
 		{
-			ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
+            ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
 
 			ScriptIDE.ScriptParamBase = new BotScript.ScriptParam()
 			{
-				AssemblyAddition = Script.Script.AssemblyAddition?.ToArray(),
-				NamespaceAddition = Script.Script.NamespaceAddition?.ToArray(),
+				ImportAssembly = Sanderling.Script.ToScriptImport.ImportAssembly?.ToArray(),
+				ImportNamespace = Sanderling.Script.ToScriptImport.ImportNamespace?.ToArray(),
 			};
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
