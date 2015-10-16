@@ -25,7 +25,7 @@ while(true)
 	//	righclick the marker to open the contextmenu.
 	HostSanderling.MouseClickRight(RouteElementMarkerNext);
 
-	//	retrieve a new measurement because we issued an  
+	//	retrieve a new measurement.
 	Measurement = HostSanderling?.MemoryMeasurement?.Wert;
 
 	//	from the first menu, pick the first matching entry.
