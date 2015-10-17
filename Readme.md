@@ -1,20 +1,17 @@
 # Sanderling
 Sanderling is a botting framework for [eve online](https://www.eveonline.com).
-It reads information about the game state from the memory of the eve online client process and delivers it to the consuming application packaged in a graph of appropriately linked CLR objects.
+It allows you to create and run eve online bots.
 
 ### Features
-* **safe**: Windows won't tell on you for reading another process' memory. That is why using this tool with the eve online client is not detectable.
-* **accurate & robust**: In contrast to extracting information from the game window via  image processing, this solution won't be thrown off by a noisy background or non-default UI settings.
-* **comprehensive**: provides all information that is needed to build an autopilot, mining, trading or mission bot.
+* **safe**: does not inject into or write to the eve online process. That is why using this tool with eve online is not detectable.
+* **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to image processing on screenshots, this method won't be thrown off by a noisy background or non-default UI settings.
+* **comprehensive**: provides all functionality that is needed to build mining, trading and mission bots.
 
-### Sample
-to get a complete sample that sets up the reading and gets all available memory contents:
+### Requirements
+* the Application requires Microsoft .NET Framework 4.5 which can be dowloaded from [http://www.microsoft.com/en-us/download/details.aspx?id=30653](http://www.microsoft.com/en-us/download/details.aspx?id=30653).
 
- * get the sources from `https://github.com/Arcitectus/Sanderling.git`
- * open the solution `src\sample\sample.sln` in [Visual Studio 2015](https://www.visualstudio.com/).
+### Feedback
+Spotted a bug or have feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
+### Need Help?
+Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/cat/eve-online](http://forum.botengine.de/cat/eve-online).
 
-### Contact
-Spotted a bug or have a question or feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or post on the forum at [http://forum.botengine.de/cat/eve-online](http://forum.botengine.de/cat/eve-online).
-
-### Applications
-a complete bot built on this solution can be found at [https://github.com/Arcitectus/Optimat.EveOnline/releases](https://github.com/Arcitectus/Optimat.EveOnline/releases) 
