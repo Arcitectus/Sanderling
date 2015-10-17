@@ -4,7 +4,7 @@ It helps you create and run eve online bots.
 
 ### Features
 * **safe**: does not inject into or write to the eve online client. That is why using it with eve online is not detectable.
-* **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to image processing on screenshots, this method won't be thrown off by a noisy background or non-default UI settings.
+* **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
 * **comprehensive**: provides all tools needed to build mining, trading and mission bots.
 
 ### Requirements
