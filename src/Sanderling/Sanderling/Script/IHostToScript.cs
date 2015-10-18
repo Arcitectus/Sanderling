@@ -8,7 +8,19 @@ namespace Sanderling.Script
 {
 	public interface IHostToScript
 	{
+		/// <summary>
+		/// Raw data obtained from memory reading.
+		/// </summary>
 		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Note that parsing/mapping might depend on localization specific symbols in the UI.
+		/// In case of problems with parsing, make sure the language in eve online is set to english.
+		/// </summary>
+		FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed
 		{
 			get;
 		}
@@ -20,11 +32,15 @@ namespace Sanderling.Script
 	{
 		public const int FromScriptRequestMemoryMeasurementDelayMax = 3000;
 
-		public Func<FromProcessMeasurement<MemoryStruct.IMemoryMeasurement>> MemoryMeasurementFunc;
+		public Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>> MemoryMeasurementFunc;
 
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
-		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> IHostToScript.MemoryMeasurement => MemoryMeasurementFunc?.Invoke();
+		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
+			MemoryMeasurementFunc?.Invoke().MapValue(Evaluation => Evaluation?.MemoryMeasurement);
+
+		public FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed =>
+			MemoryMeasurementFunc?.Invoke().MapValue(Evaluation => Evaluation?.MemoryMeasurementParsed);
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 	}

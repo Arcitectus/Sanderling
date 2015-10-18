@@ -1,6 +1,7 @@
 ﻿using Bib3;
 using BotEngine.Interface;
 using BotEngine.UI;
+using Sanderling.Interface;
 using Sanderling.Script;
 using System;
 using System.Linq;
@@ -46,7 +47,7 @@ namespace Sanderling.Exe
 		public int? EveOnlineClientProcessId =>
 			InterfaceToEveControl?.ProcessChoice?.ChoosenProcessId;
 
-		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurementLast;
+		FromProcessMeasurement<MemoryMeasurementEvaluation> MemoryMeasurementLast;
 
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
@@ -63,7 +64,7 @@ namespace Sanderling.Exe
 			}
 		}
 
-		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurementIfRecentEnough
+		FromProcessMeasurement<MemoryMeasurementEvaluation> MemoryMeasurementIfRecentEnough
 		{
 			get
 			{
@@ -87,7 +88,7 @@ namespace Sanderling.Exe
 			}
 		}
 
-		FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> FromScriptRequestMemoryMeasurement()
+		FromProcessMeasurement<MemoryMeasurementEvaluation> FromScriptRequestMemoryMeasurementEvaluation()
 		{
 			lock (MotorLock)
 			{
@@ -183,7 +184,7 @@ namespace Sanderling.Exe
 
 		void CallbackMeasurementMemoryNew(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> Measurement)
 		{
-			MemoryMeasurementLast = Measurement;
+			MemoryMeasurementLast = Measurement.MapValue(Value => new Interface.MemoryMeasurementEvaluation(Value));
 		}
 	}
 }

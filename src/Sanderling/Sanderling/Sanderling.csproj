@@ -92,13 +92,17 @@
     <Compile Include="ExeConfig.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="GameWorldStatic.cs" />
+    <Compile Include="Interface\MemoryMeasurementEvaluation.cs" />
     <Compile Include="Motor\Extension.cs" />
     <Compile Include="Motor\Motion.cs" />
     <Compile Include="Motor\WindowMotor.cs" />
     <Compile Include="Parse\Distance.cs" />
     <Compile Include="Parse\Drone.cs" />
+    <Compile Include="Parse\Extension.cs" />
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\ListEntry.cs" />
+    <Compile Include="Parse\MemoryMeasurement.cs" />
+    <Compile Include="Parse\ModuleButtonTooltip.cs" />
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
     <Compile Include="Parse\SpaceObject.cs" />

@@ -31,6 +31,7 @@ namespace Sanderling.Script
 			typeof(BotEngine.Common.Extension),
 			typeof(Sanderling.Extension),
 			typeof(ToScriptExtension),
+			typeof(Parse.IMemoryMeasurement),
 		};
 
 		static readonly Type[] NamespaceStaticAdditionType = new[]

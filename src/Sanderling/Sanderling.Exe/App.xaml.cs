@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using BotEngine.Interface;
 using System;
 using System.Linq;
 using System.Windows;
@@ -81,7 +82,7 @@ namespace Sanderling.Exe
 					MemoryMeasurementFunc = () =>
 					{
 						ScriptExecutionCheck?.Invoke();
-						return FromScriptRequestMemoryMeasurement();
+						return FromScriptRequestMemoryMeasurementEvaluation();
 					},
 
 					MotionExecuteFunc = MotionParam =>
@@ -94,7 +95,7 @@ namespace Sanderling.Exe
 
 		void ActivatedFirstTime()
 		{
-            ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
+			ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
 
 			ScriptIDE.ScriptParamBase = new BotScript.ScriptParam()
 			{
@@ -129,7 +130,7 @@ namespace Sanderling.Exe
 
 			LicenseClientInspect?.Present(LicenseClient?.Wert);
 
-			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast);
+			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(Evaluation => Evaluation?.MemoryMeasurement));
 		}
 
 		void ToggleButtonChecked(object sender, RoutedEventArgs e)
