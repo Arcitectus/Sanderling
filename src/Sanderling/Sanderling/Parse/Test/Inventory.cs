@@ -4,34 +4,34 @@ namespace Sanderling.Parse.Test
 {
 	static public class Inventory
 	{
-		static public TestCaseMapCompareByRefNezDif<string, InventoryCapacityGaugeNumeric>[]
+		static public TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>[]
 			CapacityGaugeTestCase =>
-			new TestCaseMapCompareByRefNezDif<string, InventoryCapacityGaugeNumeric>[]{
+			new TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>[]{
 
-				new TestCaseMapCompareByRefNezDif<string, InventoryCapacityGaugeNumeric>()
+				new TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>()
 				{
 					In = "(0,1) 2.153,8 m³",
-					Out = new InventoryCapacityGaugeNumeric()
+					Out = new InventoryCapacityGauge()
 					{
 						Used = 2153800L,
 						Selected = 100,
 					},
 				},
 
-				new TestCaseMapCompareByRefNezDif<string, InventoryCapacityGaugeNumeric>()
+				new TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>()
 				{
 					In  = "0,0/450,0 m³",
-					Out = new InventoryCapacityGaugeNumeric()
+					Out = new InventoryCapacityGauge()
 					{
 						Used = 0,
 						Max = 450L * 1000,
 					},
 				},
 
-				new TestCaseMapCompareByRefNezDif<string, InventoryCapacityGaugeNumeric>()
+				new TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>()
 				{
 					In = "0.0/8'500.0 m³",
-					Out = new   InventoryCapacityGaugeNumeric()
+					Out = new   InventoryCapacityGauge()
 					{
 						Used = 0,
 						Max = 8500L * 1000,

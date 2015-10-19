@@ -1,28 +1,172 @@
 ﻿using Bib3;
 using BotEngine.Common;
-using Sanderling.Interface.MemoryStruct;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using MemoryStruct = Sanderling.Interface.MemoryStruct;
+using System;
 
 namespace Sanderling.Parse
 {
-	public class InventoryCapacityGaugeNumeric
+	public interface IInventoryCapacityGauge
 	{
-		public long? Used;
-		public long? Max;
-		public long? Selected;
+		long? Used { get; }
+		long? Max { get; }
+		long? Selected { get; }
+	}
 
-		public InventoryCapacityGaugeNumeric()
+	public interface IInventoryTreeViewEntryShip : MemoryStruct.ITreeViewEntry
+	{
+		IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, MemoryStruct.ITreeViewEntry>> SetCargoSpaceTypeAndTreeEntry { get; }
+	}
+
+	public interface IWindowInventory : MemoryStruct.IWindowInventory
+	{
+		IInventoryTreeViewEntryShip TreeEntryActiveShip { get; }
+
+		IInventoryCapacityGauge SelectedRightInventoryCapacityMilli { get; }
+
+		ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceTypeEnum { get; }
+	}
+
+	public class WindowInventoryTreeViewShip : IInventoryTreeViewEntryShip
+	{
+		public MemoryStruct.ITreeViewEntry Raw { private set; get; }
+
+		public IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, MemoryStruct.ITreeViewEntry>> SetCargoSpaceTypeAndTreeEntry { private set; get; }
+
+		public MemoryStruct.ITreeViewEntry[] Child => Raw?.Child;
+
+		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+
+		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+
+		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+
+		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+
+		public bool? IsSelected => Raw?.IsSelected;
+
+		public MemoryStruct.IUIElement ExpandToggleButton => Raw?.ExpandToggleButton;
+
+		public bool? IsExpanded => Raw?.IsExpanded;
+
+		public string Text => Raw?.Text;
+
+		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Leer;
+
+		public int? InTreeIndex => Raw?.InTreeIndex;
+
+		public OrtogoonInt? RegionInteraction => Raw?.RegionInteraction;
+
+		public long Id => Raw?.Id ?? 0;
+
+		WindowInventoryTreeViewShip()
+		{ }
+
+		public WindowInventoryTreeViewShip(MemoryStruct.ITreeViewEntry Raw)
+		{
+			this.Raw = Raw;
+
+			if (null == Raw)
+			{
+				return;
+			}
+
+			SetCargoSpaceTypeAndTreeEntry = Raw.FromShipExtractSetCargoSpaceTypeAndTreeEntry()?.ToArray();
+		}
+	}
+
+	public class WindowInventory : IWindowInventory
+	{
+		public MemoryStruct.IWindowInventory Raw { private set; get; }
+
+		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+
+		public string Caption => Raw?.Caption;
+
+		public MemoryStruct.ISprite[] HeaderButton => Raw?.HeaderButton;
+
+		public bool? HeaderButtonsVisible => Raw?.HeaderButtonsVisible;
+
+		public long Id => Raw?.Id ?? 0;
+
+		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+
+		public int? InTreeIndex => Raw?.InTreeIndex;
+
+		public bool? isModal => Raw?.isModal;
+
+		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+
+		public MemoryStruct.ITreeViewEntry[] LeftTreeListEntry => Raw?.LeftTreeListEntry;
+
+		public MemoryStruct.IScroll LeftTreeViewportScroll => Raw?.LeftTreeViewportScroll;
+
+		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Leer;
+
+		public OrtogoonInt? RegionInteraction => Raw?.RegionInteraction;
+
+		public MemoryStruct.ISprite[] SelectedRightControlViewButton => Raw?.SelectedRightControlViewButton;
+
+		public MemoryStruct.IUIElement SelectedRightFilterButtonClear => Raw?.SelectedRightFilterButtonClear;
+
+		public MemoryStruct.IUIElementInputText SelectedRightFilterTextBox => Raw?.SelectedRightFilterTextBox;
+
+		public MemoryStruct.IInventory SelectedRightInventory => Raw?.SelectedRightInventory;
+
+		public MemoryStruct.IUIElementText SelectedRightInventoryCapacity => Raw?.SelectedRightInventoryCapacity;
+
+		public MemoryStruct.IUIElementText SelectedRightInventoryPathLabel => Raw?.SelectedRightInventoryPathLabel;
+
+		public int? SelectedRightItemDisplayedCount => Raw?.SelectedRightItemDisplayedCount;
+
+		public int? SelectedRightItemFilteredCount => Raw?.SelectedRightItemFilteredCount;
+
+		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+
+		public IInventoryTreeViewEntryShip TreeEntryActiveShip { set; get; }
+
+		public IInventoryCapacityGauge SelectedRightInventoryCapacityMilli { set; get; }
+
+		public ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceTypeEnum =>
+			TreeEntryActiveShip?.SetCargoSpaceTypeAndTreeEntry?.KeyMap(Bib3.Extension.ToNullable)
+			?.FirstOrDefault(CargoSpaceTypeAndTreeEntry => CargoSpaceTypeAndTreeEntry.Value?.IsSelected ?? false).Key;
+
+		WindowInventory()
+		{ }
+
+		public WindowInventory(MemoryStruct.IWindowInventory Raw)
+		{
+			this.Raw = Raw;
+
+			if (null == Raw)
+			{
+				return;
+			}
+
+			TreeEntryActiveShip = Raw.TreeEntryActiveShip()?.ParseAsInventoryTreeEntryShip();
+
+			SelectedRightInventoryCapacityMilli = Raw?.SelectedRightInventoryCapacity?.Text?.ParseAsInventoryCapacityGaugeMilli();
+		}
+	}
+
+	public class InventoryCapacityGauge : IInventoryCapacityGauge
+	{
+		public long? Used { set; get; }
+		public long? Max { set; get; }
+		public long? Selected { set; get; }
+
+		public InventoryCapacityGauge()
 		{
 		}
 
 		public override bool Equals(object obj) =>
 			base.Equals(obj) ||
-			(obj is InventoryCapacityGaugeNumeric &&
-			(obj as InventoryCapacityGaugeNumeric)?.Used == Used &&
-			(obj as InventoryCapacityGaugeNumeric)?.Max == Max &&
-			(obj as InventoryCapacityGaugeNumeric)?.Selected == Selected);
+			(obj is InventoryCapacityGauge &&
+			(obj as InventoryCapacityGauge)?.Used == Used &&
+			(obj as InventoryCapacityGauge)?.Max == Max &&
+			(obj as InventoryCapacityGauge)?.Selected == Selected);
 
 		public override int GetHashCode()
 		{
@@ -30,7 +174,7 @@ namespace Sanderling.Parse
 		}
 	}
 
-	static public class Inventory
+	static public class InventoryExtension
 	{
 		static readonly string CapacityGaugeUnitPattern = Regex.Escape("m³");
 
@@ -72,8 +216,7 @@ namespace Sanderling.Parse
 				new KeyValuePair<ShipCargoSpaceTypeEnum, IEnumerable<string>>(ShipCargoSpaceTypeEnum.OreHold, new[] {"Ore Hold"}),
 			};
 
-
-		static public InventoryCapacityGaugeNumeric ParseAsInventoryCapacityGaugeMilli(this string GaugeString)
+		static public IInventoryCapacityGauge ParseAsInventoryCapacityGaugeMilli(this string GaugeString)
 		{
 			if (null == GaugeString)
 			{
@@ -91,7 +234,7 @@ namespace Sanderling.Parse
 			var Max = Number.NumberParseDecimalMilli(Match.Groups[CapacityGaugeGroupMaxId].Value);
 			var Selected = Number.NumberParseDecimalMilli(Match.Groups[CapacityGaugeGroupSelectedId].Value);
 
-			return new InventoryCapacityGaugeNumeric()
+			return new InventoryCapacityGauge()
 			{
 				Used = Used,
 				Max = Max,
@@ -105,25 +248,25 @@ namespace Sanderling.Parse
 			CargoSpaceTypeAndSetLabel.Value?.Any(Label => Label.EqualsIgnoreCase(ShipCargoSpaceTypeLabel)) ?? false)
 			?.CastToNullable()?.FirstOrDefault()?.Key;
 
-		static public IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>> FromShipExtractSetCargoSpaceTypeAndTreeEntry(
-			this ITreeViewEntry ShipTreeEntry) =>
-			new[] { new KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>(ShipCargoSpaceTypeEnum.General, ShipTreeEntry) }
+		static public IEnumerable<KeyValuePair<ShipCargoSpaceTypeEnum, MemoryStruct.ITreeViewEntry>> FromShipExtractSetCargoSpaceTypeAndTreeEntry(
+			this MemoryStruct.ITreeViewEntry ShipTreeEntry) =>
+			new[] { new KeyValuePair<ShipCargoSpaceTypeEnum, MemoryStruct.ITreeViewEntry>(ShipCargoSpaceTypeEnum.General, ShipTreeEntry) }
 			.ConcatNullable(InventoryCargoTypeAndSetLabel?.Select(CargoTypeAndSetLabel =>
-			new KeyValuePair<ShipCargoSpaceTypeEnum, ITreeViewEntry>(
+			new KeyValuePair<ShipCargoSpaceTypeEnum, MemoryStruct.ITreeViewEntry>(
 				CargoTypeAndSetLabel.Key,
 				ShipTreeEntry?.EnumerateChildNodeTransitive()
 				?.FirstOrDefault(Node => Node?.Text?.FromIventoryLabelParseShipCargoSpaceType() == CargoTypeAndSetLabel.Key))))
 			?.Where(TreeEntryForCargoSpaceType => null != TreeEntryForCargoSpaceType.Value);
 
-		static public ITreeViewEntry TreeEntryFromCargoSpaceType(
-			this ITreeViewEntry ShipTreeEntry,
+		static public MemoryStruct.ITreeViewEntry TreeEntryFromCargoSpaceType(
+			this MemoryStruct.ITreeViewEntry ShipTreeEntry,
 			ShipCargoSpaceTypeEnum CargoSpaceType) =>
 			FromShipExtractSetCargoSpaceTypeAndTreeEntry(ShipTreeEntry)
 			?.FirstOrDefault(TreeEntryForCargoShipType => TreeEntryForCargoShipType.Key == CargoSpaceType).Value;
 
 		static public ShipCargoSpaceTypeEnum? CargoSpaceTypeFromTreeEntry(
-			this ITreeViewEntry EntryShip,
-			ITreeViewEntry EntryCargoSpace) =>
+			this MemoryStruct.ITreeViewEntry EntryShip,
+			MemoryStruct.ITreeViewEntry EntryCargoSpace) =>
 			FromShipExtractSetCargoSpaceTypeAndTreeEntry(EntryShip)
 			?.Where(CargoShipTypeAndTreeEntry => CargoShipTypeAndTreeEntry.Value == EntryCargoSpace)
 			?.Select(CargoShipTypeAndTreeEntry => CargoShipTypeAndTreeEntry.Key)
@@ -145,14 +288,14 @@ namespace Sanderling.Parse
 				Match.Groups[TreeEntryShipGroupTypeId].Value?.Trim());
 		}
 
-		static public ITreeViewEntry TreeEntryActiveShip(
-			this IWindowInventory Inventory) =>
+		static public MemoryStruct.ITreeViewEntry TreeEntryActiveShip(
+			this MemoryStruct.IWindowInventory Inventory) =>
 			//	Topmost entry which is a root and has a conforming Label.
 			Inventory?.LeftTreeListEntry?.OrderByCenterVerticalDown()
 			?.FirstOrDefault(TreeEntry => 0 < TreeEntry?.Text?.ParseTreeEntryLabelShipNameAndType()?.Value?.Length);
 
-		static public IEnumerable<ITreeViewEntry> SetTreeEntrySuitingSelectedPath(
-			this IEnumerable<ITreeViewEntry> SetTreeEntryRoot,
+		static public IEnumerable<MemoryStruct.ITreeViewEntry> SetTreeEntrySuitingSelectedPath(
+			this IEnumerable<MemoryStruct.ITreeViewEntry> SetTreeEntryRoot,
 			IEnumerable<string> SelectedPathListNodeLabel)
 		{
 			if (null == SetTreeEntryRoot || null == SelectedPathListNodeLabel)
@@ -196,18 +339,23 @@ namespace Sanderling.Parse
 				?.ConcatNullable();
 		}
 
-		static public IEnumerable<ITreeViewEntry> SetLeftTreeEntrySelected(
-			this IWindowInventory WindowInventory) =>
+		static public IEnumerable<MemoryStruct.ITreeViewEntry> SetLeftTreeEntrySelected(
+			this MemoryStruct.IWindowInventory WindowInventory) =>
 			WindowInventory?.LeftTreeListEntry?.Select(RootTreeEntry => RootTreeEntry?.EnumerateChildNodeTransitive()).ConcatNullable()
 			?.Where(TreeEntry => TreeEntry?.IsSelected ?? false);
 
 		static public ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceType(
-			this IWindowInventory WindowInventory) =>
+			this MemoryStruct.IWindowInventory WindowInventory) =>
 			WindowInventory?.TreeEntryActiveShip()?.FromShipExtractSetCargoSpaceTypeAndTreeEntry()
 			?.Where(CargoTypeAndTreeEntry => WindowInventory?.SetLeftTreeEntrySelected()?.Contains(CargoTypeAndTreeEntry.Value) ?? false)
 			?.Select(CargoTypeAndTreeEntry => CargoTypeAndTreeEntry.Key)
 			?.CastToNullable()
 			?.FirstOrDefault();
 
+		static public IInventoryTreeViewEntryShip ParseAsInventoryTreeEntryShip(this MemoryStruct.ITreeViewEntry TreeViewEntry) =>
+			null == TreeViewEntry ? null : new WindowInventoryTreeViewShip(TreeViewEntry);
+
+		static public IWindowInventory Parse(this MemoryStruct.IWindowInventory WindowInventory) =>
+			null == WindowInventory ? null : new WindowInventory(WindowInventory);
 	}
 }

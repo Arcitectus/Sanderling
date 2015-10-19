@@ -111,6 +111,7 @@
     <Compile Include="Parse\ListEntry.cs" />
     <Compile Include="Parse\MemoryMeasurement.cs" />
     <Compile Include="Parse\ModuleButtonTooltip.cs" />
+    <Compile Include="Parse\Neocom.cs" />
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
     <Compile Include="Parse\SpaceObject.cs" />

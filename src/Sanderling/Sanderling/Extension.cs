@@ -40,7 +40,7 @@ namespace Sanderling
 
 		static public IEnumerable<ITreeViewEntry> EnumerateChildNodeTransitive(
 			this ITreeViewEntry TreeViewEntry) =>
-			TreeViewEntry?.BaumEnumFlacListeKnoote(Node => Node.Child);
+			TreeViewEntry?.EnumerateNodeFromTree(Node => Node.Child);
 
 		static public IUIElement CopyWithRegionSubstituted(
 			this IUIElement Base,

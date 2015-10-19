@@ -8,6 +8,8 @@ namespace Sanderling.Parse
 	{
 		new IModuleButtonTooltip ModuleButtonTooltip { get; }
 
+		new IWindowInventory[] WindowInventory { get; }
+
 		bool? IsDocked { get; }
 	}
 
@@ -16,6 +18,8 @@ namespace Sanderling.Parse
 		MemoryStruct.IMemoryMeasurement Raw;
 
 		public IModuleButtonTooltip ModuleButtonTooltip { set; get; }
+
+		public IWindowInventory[] WindowInventory { set; get; }
 
 		public MemoryStruct.IUIElementText[] AbovemainMessage => Raw?.AbovemainMessage;
 
@@ -63,7 +67,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowFittingWindow[] WindowFittingWindow => Raw?.WindowFittingWindow;
 
-		public MemoryStruct.IWindowInventory[] WindowInventory => Raw?.WindowInventory;
+		MemoryStruct.IWindowInventory[] MemoryStruct.IMemoryMeasurement.WindowInventory => WindowInventory;
 
 		public MemoryStruct.WindowItemSell[] WindowItemSell => Raw?.WindowItemSell;
 
@@ -116,6 +120,8 @@ namespace Sanderling.Parse
 			{
 				IsDocked = false;
 			}
-		}
+
+			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
+        }
 	}
 }
