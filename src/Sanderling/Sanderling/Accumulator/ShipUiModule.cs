@@ -20,6 +20,30 @@ namespace Sanderling.Accumulator
 	{
 		public FieldGenMitIntervalInt64<IModuleButtonTooltip> TooltipLast { private set; get; }
 
+		public MemoryStruct.IShipUiModule RepresentedInstant => LastInstant?.Wert?.Module;
+
+		public bool? ModuleButtonVisible => RepresentedInstant?.ModuleButtonVisible;
+
+		public MemoryStruct.IObjectIdInMemory ModuleButtonIconTexture => RepresentedInstant?.ModuleButtonIconTexture;
+
+		public string ModuleButtonQuantity => RepresentedInstant?.ModuleButtonQuantity;
+
+		public bool RampActive => RepresentedInstant?.RampActive ?? false;
+
+		public int? RampRotationMilli => RepresentedInstant?.RampRotationMilli;
+
+		public bool? HiliteVisible => RepresentedInstant?.HiliteVisible;
+
+		public bool? GlowVisible => RepresentedInstant?.GlowVisible;
+
+		public bool? BusyVisible => RepresentedInstant?.BusyVisible;
+
+		public OrtogoonInt Region => RepresentedInstant?.Region ?? OrtogoonInt.Leer;
+
+		public int? InTreeIndex => RepresentedInstant?.InTreeIndex;
+
+		public OrtogoonInt? RegionInteraction => RepresentedInstant?.RegionInteraction;
+
 		protected override void Accumulated(FieldGenMitIntervalInt64<Accumulation.IShipUiModuleAndContext> Instant, Parse.IMemoryMeasurement Shared)
 		{
 			base.Accumulated(Instant, Shared);
@@ -52,7 +76,7 @@ namespace Sanderling.Accumulator
 		public ShipUiModule(
 			Int64 Id,
 			FieldGenMitIntervalInt64<Accumulation.IShipUiModuleAndContext> Instant)
-			: base(Id, Instant)
+				: base(Id, Instant)
 		{
 		}
 

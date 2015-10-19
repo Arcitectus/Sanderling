@@ -110,6 +110,7 @@
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\ListEntry.cs" />
     <Compile Include="Parse\MemoryMeasurement.cs" />
+    <Compile Include="Parse\Menu.cs" />
     <Compile Include="Parse\ModuleButtonTooltip.cs" />
     <Compile Include="Parse\Neocom.cs" />
     <Compile Include="Parse\Number.cs" />
