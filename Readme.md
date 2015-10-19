@@ -1,4 +1,6 @@
 # Sanderling
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Arcitectus/Sanderling?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Sanderling is a botting framework for [eve online](https://www.eveonline.com).
 It helps you create and run eve online bots.
 
