@@ -22,11 +22,13 @@ namespace Sanderling.Parse
 
 	public interface IWindowInventory : MemoryStruct.IWindowInventory
 	{
-		IInventoryTreeViewEntryShip TreeEntryActiveShip { get; }
+		IInventoryTreeViewEntryShip ActiveShipEntry { get; }
 
 		IInventoryCapacityGauge SelectedRightInventoryCapacityMilli { get; }
 
 		ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceTypeEnum { get; }
+
+		MemoryStruct.ITreeViewEntry ItemHangarEntry { get; }
 	}
 
 	public class WindowInventoryTreeViewShip : IInventoryTreeViewEntryShip
@@ -125,13 +127,15 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
 
-		public IInventoryTreeViewEntryShip TreeEntryActiveShip { set; get; }
+		public IInventoryTreeViewEntryShip ActiveShipEntry { set; get; }
 
 		public IInventoryCapacityGauge SelectedRightInventoryCapacityMilli { set; get; }
 
 		public ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceTypeEnum =>
-			TreeEntryActiveShip?.SetCargoSpaceTypeAndTreeEntry?.KeyMap(Bib3.Extension.ToNullable)
+			ActiveShipEntry?.SetCargoSpaceTypeAndTreeEntry?.KeyMap(Bib3.Extension.ToNullable)
 			?.FirstOrDefault(CargoSpaceTypeAndTreeEntry => CargoSpaceTypeAndTreeEntry.Value?.IsSelected ?? false).Key;
+
+		public MemoryStruct.ITreeViewEntry ItemHangarEntry { set; get; }
 
 		WindowInventory()
 		{ }
@@ -145,9 +149,11 @@ namespace Sanderling.Parse
 				return;
 			}
 
-			TreeEntryActiveShip = Raw.TreeEntryActiveShip()?.ParseAsInventoryTreeEntryShip();
+			ActiveShipEntry = Raw.TreeEntryActiveShip()?.ParseAsInventoryTreeEntryShip();
 
 			SelectedRightInventoryCapacityMilli = Raw?.SelectedRightInventoryCapacity?.Text?.ParseAsInventoryCapacityGaugeMilli();
+
+			ItemHangarEntry = Raw?.LeftTreeListEntry?.FirstOrDefault(c => c?.Text?.RegexMatchSuccess(@"item\s*hangar", RegexOptions.IgnoreCase) ?? false);
 		}
 	}
 
