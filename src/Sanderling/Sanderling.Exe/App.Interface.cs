@@ -184,7 +184,9 @@ namespace Sanderling.Exe
 
 		void CallbackMeasurementMemoryNew(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> Measurement)
 		{
-			MemoryMeasurementLast = Measurement.MapValue(Value => new Interface.MemoryMeasurementEvaluation(Value));
+			MemoryMeasurementLast = Measurement.MapValue(Value => new Interface.MemoryMeasurementEvaluation(
+				Measurement,
+				MemoryMeasurementLast?.Wert?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
 		}
 	}
 }

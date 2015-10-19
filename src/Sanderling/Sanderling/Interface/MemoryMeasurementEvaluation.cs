@@ -1,4 +1,5 @@
-﻿using Sanderling.Parse;
+﻿using BotEngine.Interface;
+using Sanderling.Parse;
 using System;
 
 namespace Sanderling.Interface
@@ -11,21 +12,45 @@ namespace Sanderling.Interface
 
 		public Exception MemoryMeasurementParseException { private set; get; }
 
+		public Accumulation.IMemoryMeasurement MemoryMeasurementAccumulation { private set; get; }
+
+		public Exception MemoryMeasurementAccuException { private set; get; }
+
 		public MemoryMeasurementEvaluation()
 		{
 		}
 
-		public MemoryMeasurementEvaluation(MemoryStruct.IMemoryMeasurement MemoryMeasurement)
+		public MemoryMeasurementEvaluation(
+			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement,
+			Accumulator.MemoryMeasurementAccumulator MemoryMeasurementAccu = null)
 		{
-			this.MemoryMeasurement = MemoryMeasurement;
+			this.MemoryMeasurement = MemoryMeasurement?.Wert;
 
 			try
 			{
-				MemoryMeasurementParsed = MemoryMeasurement.Parse();
+				MemoryMeasurementParsed = MemoryMeasurement?.Wert?.Parse();
 			}
 			catch (Exception Exception)
 			{
 				MemoryMeasurementParseException = Exception;
+			}
+
+			if (null == MemoryMeasurement)
+			{
+				return;
+			}
+
+			try
+			{
+				MemoryMeasurementAccu = MemoryMeasurementAccu ?? new Accumulator.MemoryMeasurementAccumulator();
+
+				MemoryMeasurementAccu.Accumulate(MemoryMeasurement?.MapValue(t => MemoryMeasurementParsed));
+
+				this.MemoryMeasurementAccumulation = MemoryMeasurementAccu;
+			}
+			catch (Exception Exception)
+			{
+				MemoryMeasurementAccuException = Exception;
 			}
 		}
 	}

@@ -17,10 +17,18 @@ namespace Sanderling.Script
 		}
 
 		/// <summary>
-		/// Note that parsing/mapping might depend on localization specific symbols in the UI.
+		/// Parsing/mapping might depend on localization specific symbols in the UI.
 		/// In case of problems with parsing, make sure the language in eve online is set to english.
 		/// </summary>
 		FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Data collected and connected from multiple measurements.
+		/// </summary>
+		FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccumulation
 		{
 			get;
 		}
@@ -37,10 +45,13 @@ namespace Sanderling.Script
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
 		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
-			MemoryMeasurementFunc?.Invoke().MapValue(Evaluation => Evaluation?.MemoryMeasurement);
+			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurement);
 
 		public FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed =>
-			MemoryMeasurementFunc?.Invoke().MapValue(Evaluation => Evaluation?.MemoryMeasurementParsed);
+			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementParsed);
+
+		public FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccumulation =>
+			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementAccumulation);
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 	}

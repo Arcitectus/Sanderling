@@ -1,10 +1,14 @@
-﻿using MemoryStruct = Sanderling.Interface.MemoryStruct;
+﻿using Bib3;
+using System.Linq;
+using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {
 	public interface IMemoryMeasurement : MemoryStruct.IMemoryMeasurement
 	{
 		new IModuleButtonTooltip ModuleButtonTooltip { get; }
+
+		bool? IsDocked { get; }
 	}
 
 	public class MemoryMeasurement : IMemoryMeasurement
@@ -85,6 +89,8 @@ namespace Sanderling.Parse
 
 		MemoryStruct.IContainer MemoryStruct.IMemoryMeasurement.ModuleButtonTooltip => ModuleButtonTooltip;
 
+		public bool? IsDocked { private set; get; }
+
 		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement Raw)
 		{
 			this.Raw = Raw;
@@ -95,6 +101,21 @@ namespace Sanderling.Parse
 			}
 
 			ModuleButtonTooltip = Raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
-        }
+
+			var ShipUi = Raw?.ShipUi;
+
+			var WindowStationLobby = Raw?.WindowStationLobby;
+
+			if (!WindowStationLobby.IsNullOrEmpty())
+			{
+				IsDocked = true;
+			}
+
+			if (null != ShipUi ||
+				(Raw?.WindowOverview?.WhereNotDefault()?.Any() ?? false))
+			{
+				IsDocked = false;
+			}
+		}
 	}
 }
