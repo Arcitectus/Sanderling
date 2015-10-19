@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using BotEngine.Common;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
@@ -11,6 +12,8 @@ namespace Sanderling.Parse
 		new IWindowInventory[] WindowInventory { get; }
 
 		bool? IsDocked { get; }
+
+		bool? IsUnDocking { get; }
 	}
 
 	public class MemoryMeasurement : IMemoryMeasurement
@@ -95,6 +98,8 @@ namespace Sanderling.Parse
 
 		public bool? IsDocked { private set; get; }
 
+		public bool? IsUnDocking { private set; get; }
+
 		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement Raw)
 		{
 			this.Raw = Raw;
@@ -108,9 +113,9 @@ namespace Sanderling.Parse
 
 			var ShipUi = Raw?.ShipUi;
 
-			var WindowStationLobby = Raw?.WindowStationLobby;
+			var SetWindowStationLobby = Raw?.WindowStationLobby;
 
-			if (!WindowStationLobby.IsNullOrEmpty())
+			if (!SetWindowStationLobby.IsNullOrEmpty())
 			{
 				IsDocked = true;
 			}
@@ -122,6 +127,12 @@ namespace Sanderling.Parse
 			}
 
 			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
-        }
+
+			if (SetWindowStationLobby?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
+				 LabelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
+			{
+				IsUnDocking = true;
+			}
+		}
 	}
 }
