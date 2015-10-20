@@ -56,7 +56,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IWindow SystemMenu => Raw?.SystemMenu;
 
-		public MemoryStruct.ShipUiTarget[] Target => Raw?.Target;
+		public MemoryStruct.IShipUiTarget[] Target => Raw?.Target;
 
 		public MemoryStruct.IContainer[] Utilmenu => Raw?.Utilmenu;
 

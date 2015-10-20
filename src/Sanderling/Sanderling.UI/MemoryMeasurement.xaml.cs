@@ -24,7 +24,7 @@ namespace Sanderling.UI
 		{
 			Summary?.Present(Measurement);
 
-			Detail?.TreeView?.Präsentiire(new[] { Measurement?.Wert });
+			Detail?.TreeView?.Präsentiire(new[] { Measurement?.Value });
 		}
 	}
 }

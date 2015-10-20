@@ -13,6 +13,6 @@ namespace Sanderling.Accumulation
 
 	public interface IShipUiModule : IEntityWithHistory<IShipUiModuleAndContext>, IEntityScoring<IShipUiModuleAndContext, Parse.IMemoryMeasurement>, MemoryStruct.IShipUiModule
 	{
-		FieldGenMitIntervalInt64<Parse.IModuleButtonTooltip> TooltipLast { get; }
+		PropertyGenTimespanInt64<Parse.IModuleButtonTooltip> TooltipLast { get; }
 	}
 }

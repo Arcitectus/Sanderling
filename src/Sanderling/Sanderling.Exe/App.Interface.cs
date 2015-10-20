@@ -28,7 +28,7 @@ namespace Sanderling.Exe
 
 		readonly object LicenseClientLock = new object();
 
-		WertZuZaitraum<LicenseClient> LicenseClient;
+		PropertyGenTimespanInt64<LicenseClient> LicenseClient;
 
 		Int64 LicenseClientExchangeStartedLastTime;
 
@@ -60,7 +60,7 @@ namespace Sanderling.Exe
 					return null;
 				}
 
-				return (MotionExecutionLast?.EndeZait + 300) ?? Int64.MaxValue;
+				return (MotionExecutionLast?.End + 300) ?? Int64.MaxValue;
 			}
 		}
 
@@ -129,7 +129,7 @@ namespace Sanderling.Exe
 
 				return
 					FromMotionExecutionMemoryMeasurementTimeMin ??
-					(MemoryMeasurementLast?.EndeZait + 4000);
+					(MemoryMeasurementLast?.End + 4000);
 			}
 		}
 
@@ -148,16 +148,16 @@ namespace Sanderling.Exe
 
 				if (null == LicenseClient)
 				{
-					LicenseClient = new WertZuZaitraum<LicenseClient>(new LicenseClient(), Time);
+					LicenseClient = new PropertyGenTimespanInt64<LicenseClient>(new LicenseClient(), Time, Time);
 
 					SensorServerDispatcher = new SimpleSensorServerDispatcher()
 					{
-						LicenseClient = LicenseClient.Wert,
+						LicenseClient = LicenseClient.Value,
 						SensorAppManager = SensorAppManager,
 					};
 				}
 
-				LicenseClient.Wert.ServerAddress = LicenseClientConfigControl?.ApiVersionAddress();
+				LicenseClient.Value.ServerAddress = LicenseClientConfigControl?.ApiVersionAddress();
 
 				var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
 
@@ -167,12 +167,12 @@ namespace Sanderling.Exe
 				{
 					var LicenseClient = this.LicenseClient;
 
-					if (null == LicenseClient?.Wert)
+					if (null == LicenseClient?.Value)
 					{
 						return;
 					}
 
-					LicenseClient.Wert.Timeout = 1000;
+					LicenseClient.Value.Timeout = 1000;
 
 					SensorServerDispatcher.Exchange(
 						EveOnlineClientProcessId,
@@ -186,7 +186,7 @@ namespace Sanderling.Exe
 		{
 			MemoryMeasurementLast = Measurement.MapValue(Value => new Interface.MemoryMeasurementEvaluation(
 				Measurement,
-				MemoryMeasurementLast?.Wert?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
+				MemoryMeasurementLast?.Value?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
 		}
 	}
 }

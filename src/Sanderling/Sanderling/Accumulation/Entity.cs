@@ -5,8 +5,8 @@ namespace Sanderling.Accumulation
 	public interface IEntityWithHistory<AccumulatedT>
 	{
 		int AccumulatedCount { get; }
-		FieldGenMitIntervalInt64<AccumulatedT> LastInstant { get; }
-		FieldGenMitIntervalInt64<AccumulatedT> NotDefaultLastInstant { get; }
+		PropertyGenTimespanInt64<AccumulatedT> LastInstant { get; }
+		PropertyGenTimespanInt64<AccumulatedT> NotDefaultLastInstant { get; }
 	}
 
 	public interface IEntityScoring<in AccumulatedT, in SharedT>

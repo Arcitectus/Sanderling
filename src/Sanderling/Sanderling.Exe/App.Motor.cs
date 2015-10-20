@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BotEngine.Common;
 using Sanderling.Motor;
+using Bib3;
 
 namespace Sanderling.Exe
 {
-	public class MotionExecution : Bib3.WertZuZaitraum<MotionParam>
+	public class MotionExecution : PropertyGenTimespanInt64<MotionParam>
 	{
 		public MotionExecution(
 			MotionParam Param,
@@ -26,7 +27,7 @@ namespace Sanderling.Exe
 	{
 		readonly object MotorLock = new object();
 
-		Int64? MotionLastTime => MotionExecution?.LastOrDefault()?.EndeZait ?? MotionExecution?.LastOrDefault()?.BeginZait;
+		Int64? MotionLastTime => MotionExecution?.LastOrDefault()?.End ?? MotionExecution?.LastOrDefault()?.Begin;
 
 		readonly Queue<MotionExecution> MotionExecution = new Queue<MotionExecution>();
 

@@ -19,9 +19,9 @@ namespace Sanderling.Accumulator
 
 	public class ShipUiModule : EntityScoring<Accumulation.IShipUiModuleAndContext, Parse.IMemoryMeasurement>, Accumulation.IShipUiModule
 	{
-		public FieldGenMitIntervalInt64<IModuleButtonTooltip> TooltipLast { private set; get; }
+		public PropertyGenTimespanInt64<IModuleButtonTooltip> TooltipLast { private set; get; }
 
-		public MemoryStruct.IShipUiModule RepresentedInstant => LastInstant?.Wert?.Module;
+		public MemoryStruct.IShipUiModule RepresentedInstant => LastInstant?.Value?.Module;
 
 		public bool? ModuleButtonVisible => RepresentedInstant?.ModuleButtonVisible;
 
@@ -47,17 +47,17 @@ namespace Sanderling.Accumulator
 
 		public int? ChildLastInTreeIndex => RepresentedInstant?.ChildLastInTreeIndex;
 
-		protected override void Accumulated(FieldGenMitIntervalInt64<Accumulation.IShipUiModuleAndContext> Instant, Parse.IMemoryMeasurement Shared)
+		protected override void Accumulated(PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> Instant, Parse.IMemoryMeasurement Shared)
 		{
 			base.Accumulated(Instant, Shared);
 
 			var ModuleButtonTooltip = Shared?.ModuleButtonTooltip;
 
-			if ((Instant?.Wert?.Module?.HiliteVisible ?? false) &&
-				(Instant?.Wert?.Location).HasValue &&
+			if ((Instant?.Value?.Module?.HiliteVisible ?? false) &&
+				(Instant?.Value?.Location).HasValue &&
 				null != ModuleButtonTooltip)
 			{
-				TooltipLast = ModuleButtonTooltip.AsIntervalInt64(Instant);
+				TooltipLast = ModuleButtonTooltip.WithTimespanInt64(Instant);
 			}
 
 		}
@@ -70,7 +70,7 @@ namespace Sanderling.Accumulator
 		/// <returns></returns>
 		public override int Score(Accumulation.IShipUiModuleAndContext Instant, Parse.IMemoryMeasurement Shared)
 		{
-			return (int)(10 - ((Instant?.Location - NotDefaultLastInstant?.Wert?.Location)?.Length ?? int.MaxValue));
+			return (int)(10 - ((Instant?.Location - NotDefaultLastInstant?.Value?.Location)?.Length ?? int.MaxValue));
 		}
 
 		ShipUiModule()
@@ -78,7 +78,7 @@ namespace Sanderling.Accumulator
 
 		public ShipUiModule(
 			Int64 Id,
-			FieldGenMitIntervalInt64<Accumulation.IShipUiModuleAndContext> Instant)
+			PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> Instant)
 				: base(Id, Instant)
 		{
 		}

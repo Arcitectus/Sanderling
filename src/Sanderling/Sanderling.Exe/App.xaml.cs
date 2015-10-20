@@ -128,7 +128,7 @@ namespace Sanderling.Exe
 
 			LicenseClientExchange();
 
-			LicenseClientInspect?.Present(LicenseClient?.Wert);
+			LicenseClientInspect?.Present(LicenseClient?.Value);
 
 			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(Evaluation => Evaluation?.MemoryMeasurement));
 		}

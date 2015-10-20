@@ -24,13 +24,13 @@ namespace Sanderling.Accumulator
 			get;
 		}
 
-		public FieldGenMitIntervalInt64<AccumulatedT> NotDefaultLastInstant
+		public PropertyGenTimespanInt64<AccumulatedT> NotDefaultLastInstant
 		{
 			private set;
 			get;
 		}
 
-		public FieldGenMitIntervalInt64<AccumulatedT> LastInstant
+		public PropertyGenTimespanInt64<AccumulatedT> LastInstant
 		{
 			private set;
 			get;
@@ -42,7 +42,7 @@ namespace Sanderling.Accumulator
 
 		public EntityWithHistory(
 			Int64 Id,
-			FieldGenMitIntervalInt64<AccumulatedT> Instant,
+			PropertyGenTimespanInt64<AccumulatedT> Instant,
 			SharedT Shared = default(SharedT))
 			:
 			base(Id)
@@ -51,7 +51,7 @@ namespace Sanderling.Accumulator
 		}
 
 		public void Accumulate(
-			FieldGenMitIntervalInt64<AccumulatedT> Instant,
+			PropertyGenTimespanInt64<AccumulatedT> Instant,
 			SharedT Other = default(SharedT))
 		{
 			if (null == Instant)
@@ -63,7 +63,7 @@ namespace Sanderling.Accumulator
 
 			LastInstant = Instant;
 
-			if (!object.Equals(default(AccumulatedT), Instant.Wert))
+			if (!object.Equals(default(AccumulatedT), Instant.Value))
 			{
 				NotDefaultLastInstant = Instant;
 			}
@@ -72,7 +72,7 @@ namespace Sanderling.Accumulator
 		}
 
 		virtual protected void Accumulated(
-			FieldGenMitIntervalInt64<AccumulatedT> Instant,
+			PropertyGenTimespanInt64<AccumulatedT> Instant,
 			SharedT Shared)
 		{
 		}
@@ -86,7 +86,7 @@ namespace Sanderling.Accumulator
 
 		public EntityScoring(
 			Int64 Id,
-			FieldGenMitIntervalInt64<AccumulatedT> Instant)
+			PropertyGenTimespanInt64<AccumulatedT> Instant)
 			:
 			base(Id, Instant)
 		{

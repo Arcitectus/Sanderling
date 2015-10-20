@@ -24,11 +24,11 @@ namespace Sanderling.Interface
 			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement,
 			Accumulator.MemoryMeasurementAccumulator MemoryMeasurementAccu = null)
 		{
-			this.MemoryMeasurement = MemoryMeasurement?.Wert;
+			this.MemoryMeasurement = MemoryMeasurement?.Value;
 
 			try
 			{
-				MemoryMeasurementParsed = MemoryMeasurement?.Wert?.Parse();
+				MemoryMeasurementParsed = MemoryMeasurement?.Value?.Parse();
 			}
 			catch (Exception Exception)
 			{

@@ -42,7 +42,7 @@ namespace Sanderling
 					{
 						ServerExchangeLastTime = Time;
 
-						var LicenseServerSessionId = LicenseClient?.ExchangeAuthLast?.Wert?.Response?.SessionId;
+						var LicenseServerSessionId = LicenseClient?.ExchangeAuthLast?.Value?.Response?.SessionId;
 
 						var ToServerMessage = new BotEngine.Interface.FromClientToServerMessage()
 						{
@@ -64,7 +64,7 @@ namespace Sanderling
 					}
 				}
 
-				var MeasurementMemoryReceivedLastTime = MeasurementMemoryReceivedLast?.EndeZait;
+				var MeasurementMemoryReceivedLastTime = MeasurementMemoryReceivedLast?.End;
 
 				var ToSensorMessage = new FromConsumerToSensorMessage()
 				{
@@ -95,7 +95,7 @@ namespace Sanderling
 					return;
 				}
 
-				if (MeasurementMemory?.EndeZait == MeasurementMemoryReceivedLast?.EndeZait)
+				if (MeasurementMemory?.End == MeasurementMemoryReceivedLast?.End)
 				{
 					return;
 				}

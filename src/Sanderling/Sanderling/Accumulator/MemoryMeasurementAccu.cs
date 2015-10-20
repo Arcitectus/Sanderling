@@ -16,12 +16,12 @@ namespace Sanderling.Accumulator
 
 		public void Accumulate(FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementAtTime)
 		{
-			var MemoryMeasurement = MemoryMeasurementAtTime?.Wert;
+			var MemoryMeasurement = MemoryMeasurementAtTime?.Value;
 
             var ShipUi = MemoryMeasurement?.ShipUi;
 
 			var SetModuleInstantNotAssigned =
-				ShipUi?.Module?.Select(Module => Module.AsAccuInstant(ShipUi).AsIntervalInt64(MemoryMeasurementAtTime))
+				ShipUi?.Module?.Select(Module => Module.AsAccuInstant(ShipUi).WithTimespanInt64(MemoryMeasurementAtTime))
 				?.Distribute(
 				MemoryMeasurement,
 				ShipUiModule);

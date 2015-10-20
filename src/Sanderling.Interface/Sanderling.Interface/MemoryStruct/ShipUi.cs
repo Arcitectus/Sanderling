@@ -58,6 +58,23 @@ namespace Sanderling.Interface.MemoryStruct
 		IShipUiTimer[] Timer { get; }
 	}
 
+	public interface IShipUiTarget : IUIElement, ISelectable
+	{
+		IUIElementText[] LabelText { get; }
+
+		IShipHitpointsAndEnergy Hitpoints { get; }
+
+		/// <summary>
+		/// click here to activate (input focus) or open a menu.
+		/// </summary>
+		IUIElement RegionInteractionElement { get; }
+
+		/// <summary>
+		/// e.g. groups of modules or drones assigned to this target.
+		/// </summary>
+		ShipUiTargetAssignedGroup[] Assigned { get; }
+	}
+
 	public class ShipUi : UIElement, IShipUi, ICloneable
 	{
 		public IUIElement Center { set; get; }
@@ -97,25 +114,19 @@ namespace Sanderling.Interface.MemoryStruct
 		public object Clone() => Copy();
 	}
 
-	public class ShipUiTarget : UIElement, IUIElement
+	public class ShipUiTarget : UIElement, IShipUiTarget
 	{
-		public IUIElementText[] LabelText;
+		public IUIElementText[] LabelText { set; get; }
 
-		public bool? Active;
+		public bool? IsSelected { set; get; }
 
-		public IShipHitpointsAndEnergy Hitpoints;
+		public IShipHitpointsAndEnergy Hitpoints { set; get; }
 
-		/// <summary>
-		/// click here to activate (input focus) or open a menu.
-		/// </summary>
-		public IUIElement RegionInteractionElement;
+		public IUIElement RegionInteractionElement { set; get; }
 
 		override public IUIElement RegionInteraction => RegionInteractionElement?.WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(40, 40));
 
-		/// <summary>
-		/// e.g. groups of modules or drones assigned to this target.
-		/// </summary>
-		public ShipUiTargetAssignedGroup[] Assigned;
+		public ShipUiTargetAssignedGroup[] Assigned { set; get; }
 
 		public ShipUiTarget()
 			:

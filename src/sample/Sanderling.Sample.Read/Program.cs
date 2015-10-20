@@ -39,7 +39,7 @@ namespace Sanderling.Sample.Read
 				Thread.Sleep(1111);
 			}
 
-			var AuthResult = LicenseClient?.ExchangeAuthLast?.Wert?.Response;
+			var AuthResult = LicenseClient?.ExchangeAuthLast?.Value?.Response;
 
 			var LicenseServerSessionId = AuthResult?.SessionId;
 
@@ -85,17 +85,17 @@ namespace Sanderling.Sample.Read
 		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> Measurement)
 		{
 			Console.WriteLine("\nMeasurement received");
-			Console.WriteLine("measurement time: " + ((Measurement?.EndeZait)?.ToString("### ### ### ### ###")?.Trim() ?? "null"));
+			Console.WriteLine("measurement time: " + ((Measurement?.End)?.ToString("### ### ### ### ###")?.Trim() ?? "null"));
 
 			var ListUIElement =
-				Measurement?.Wert?.EnumerateReferencedUIElementTransitive()
+				Measurement?.Value?.EnumerateReferencedUIElementTransitive()
 				?.GroupBy(UIElement => UIElement.Id)
 				?.Select(Group => Group?.FirstOrDefault())
 				?.ToArray();
 
 			Console.WriteLine("number of UI elements in measurement: " + (ListUIElement?.Length.ToString() ?? "null"));
 
-			var ContextMenu = Measurement?.Wert?.Menu?.FirstOrDefault();
+			var ContextMenu = Measurement?.Value?.Menu?.FirstOrDefault();
 
 			var ContextMenuFirstEntry = ContextMenu?.Entry?.FirstOrDefault();
 

@@ -19,8 +19,8 @@ namespace Sanderling.Accumulator
 		/// <param name="Shared"></param>
 		/// <param name="Destination"></param>
 		/// <returns>subset of <paramref name="Source"/> which was not assigned to elements in <paramref name="Destination"/>.</returns>
-		static public IEnumerable<FieldGenMitIntervalInt64<AccumulatedT>> Distribute<AccumulatedT, SharedT, DestEntityT>(
-			this IEnumerable<FieldGenMitIntervalInt64<AccumulatedT>> Source,
+		static public IEnumerable<PropertyGenTimespanInt64<AccumulatedT>> Distribute<AccumulatedT, SharedT, DestEntityT>(
+			this IEnumerable<PropertyGenTimespanInt64<AccumulatedT>> Source,
 			SharedT Shared,
 			ICollection<DestEntityT> Destination)
 			where DestEntityT : EntityScoring<AccumulatedT, SharedT>
@@ -30,7 +30,7 @@ namespace Sanderling.Accumulator
 				return Source;
 			}
 
-			var SourceInstantConsumed = new HashSet<FieldGenMitIntervalInt64<AccumulatedT>>();
+			var SourceInstantConsumed = new HashSet<PropertyGenTimespanInt64<AccumulatedT>>();
 
 			var DestinationEntityFed = new HashSet<DestEntityT>();
 
@@ -41,7 +41,7 @@ namespace Sanderling.Accumulator
 				SourceRendered
 				?.WhereNotDefault()
 				?.Select(SourceInstant =>
-				new { SourceInstant, DestinationEntity, Score = DestinationEntity?.Score(SourceInstant.Wert, Shared) ?? int.MinValue }))
+				new { SourceInstant, DestinationEntity, Score = DestinationEntity?.Score(SourceInstant.Value, Shared) ?? int.MinValue }))
 				?.OrderByDescending(Combi => Combi.Score)
 				?.ToArray();
 

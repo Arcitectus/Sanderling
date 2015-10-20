@@ -13,7 +13,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		IShipUi ShipUi { get; }
 
-		ShipUiTarget[] Target { get; }
+		IShipUiTarget[] Target { get; }
 
 		/// <summary>
 		/// shown when hovering mouse cursor over module.
@@ -95,7 +95,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IShipUi ShipUi { set; get; }
 
-		public ShipUiTarget[] Target { set; get; }
+		public IShipUiTarget[] Target { set; get; }
 
 		public IContainer ModuleButtonTooltip { set; get; }
 
