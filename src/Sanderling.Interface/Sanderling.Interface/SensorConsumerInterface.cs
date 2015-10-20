@@ -4,6 +4,7 @@ using BotEngine.Interface;
 using System;
 using System.Text;
 using BotEngine;
+using System.Linq;
 
 namespace Sanderling.Interface
 {
@@ -45,7 +46,7 @@ namespace Sanderling.Interface
 		{
 			var ListRoot = Bib3.RefNezDiferenz.Extension.ListeWurzelDeserialisiire(Json.DeserializeFromString<Bib3.RefNezDiferenz.SictZuNezSictDiferenzScritAbbild>(), SerialisPolicyCache);
 
-			return (T)ListRoot.FirstOrDefaultNullable();
+			return (T)(ListRoot?.FirstOrDefault());
 		}
 
 		static public T DeserializeFromUTF8<T>(byte[] Utf8)

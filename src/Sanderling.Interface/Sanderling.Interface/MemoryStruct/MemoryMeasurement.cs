@@ -25,9 +25,9 @@ namespace Sanderling.Interface.MemoryStruct
 		/// </summary>
 		IWindow SystemMenu { get; }
 
-		Neocom Neocom { get; }
+		INeocom Neocom { get; }
 
-		IUIElement InfoPanelButtonLocationInfo { get; }
+		IUIElement InfoPanelButtonCurrentSystem { get; }
 
 		IUIElement InfoPanelButtonRoute { get; }
 
@@ -35,7 +35,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		IUIElement InfoPanelButtonIncursions { get; }
 
-		InfoPanelCurrentSystem InfoPanelLocationInfo { get; }
+		InfoPanelCurrentSystem InfoPanelCurrentSystem { get; }
 
 		InfoPanelRoute InfoPanelRoute { get; }
 
@@ -63,13 +63,13 @@ namespace Sanderling.Interface.MemoryStruct
 
 		WindowPeopleAndPlaces[] WindowPeopleAndPlaces { get; }
 
-		WindowStationLobby[] WindowStationLobby { get; }
+		IWindowStation[] WindowStation { get; }
 
-		WindowFittingWindow[] WindowFittingWindow { get; }
+		WindowShipFitting[] WindowShipFitting { get; }
 
 		WindowFittingMgmt[] WindowFittingMgmt { get; }
 
-		WindowSurveyScanView[] WindowSurveyScanView { get; }
+		IWindowSurveyScanView[] WindowSurveyScanView { get; }
 
 		IWindowInventory[] WindowInventory { get; }
 
@@ -101,9 +101,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IWindow SystemMenu { set; get; }
 
-		public Neocom Neocom { set; get; }
+		public INeocom Neocom { set; get; }
 
-		public IUIElement InfoPanelButtonLocationInfo { set; get; }
+		public IUIElement InfoPanelButtonCurrentSystem { set; get; }
 
 		public IUIElement InfoPanelButtonRoute { set; get; }
 
@@ -111,7 +111,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IUIElement InfoPanelButtonIncursions { set; get; }
 
-		public InfoPanelCurrentSystem InfoPanelLocationInfo { set; get; }
+		public InfoPanelCurrentSystem InfoPanelCurrentSystem { set; get; }
 
 		public InfoPanelRoute InfoPanelRoute { set; get; }
 
@@ -139,13 +139,13 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public WindowPeopleAndPlaces[] WindowPeopleAndPlaces { set; get; }
 
-		public WindowStationLobby[] WindowStationLobby { set; get; }
+		public IWindowStation[] WindowStation { set; get; }
 
-		public WindowFittingWindow[] WindowFittingWindow { set; get; }
+		public WindowShipFitting[] WindowShipFitting { set; get; }
 
 		public WindowFittingMgmt[] WindowFittingMgmt { set; get; }
 
-		public WindowSurveyScanView[] WindowSurveyScanView { set; get; }
+		public IWindowSurveyScanView[] WindowSurveyScanView { set; get; }
 
 		public IWindowInventory[] WindowInventory { set; get; }
 

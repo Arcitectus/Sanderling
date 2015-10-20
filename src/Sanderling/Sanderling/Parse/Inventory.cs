@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using Bib3.Geometrik;
 using BotEngine.Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,13 +56,15 @@ namespace Sanderling.Parse
 
 		public string Text => Raw?.Text;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Leer;
+		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
 
 		public int? InTreeIndex => Raw?.InTreeIndex;
 
-		public OrtogoonInt? RegionInteraction => Raw?.RegionInteraction;
+		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 
 		public long Id => Raw?.Id ?? 0;
+
+		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
 		WindowInventoryTreeViewShip()
 		{ }
@@ -105,9 +108,9 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IScroll LeftTreeViewportScroll => Raw?.LeftTreeViewportScroll;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Leer;
+		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
 
-		public OrtogoonInt? RegionInteraction => Raw?.RegionInteraction;
+		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 
 		public MemoryStruct.ISprite[] SelectedRightControlViewButton => Raw?.SelectedRightControlViewButton;
 
@@ -121,10 +124,6 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElementText SelectedRightInventoryPathLabel => Raw?.SelectedRightInventoryPathLabel;
 
-		public int? SelectedRightItemDisplayedCount => Raw?.SelectedRightItemDisplayedCount;
-
-		public int? SelectedRightItemFilteredCount => Raw?.SelectedRightItemFilteredCount;
-
 		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
 
 		public IInventoryTreeViewEntryShip ActiveShipEntry { set; get; }
@@ -136,6 +135,8 @@ namespace Sanderling.Parse
 			?.FirstOrDefault(CargoSpaceTypeAndTreeEntry => CargoSpaceTypeAndTreeEntry.Value?.IsSelected ?? false).Key;
 
 		public MemoryStruct.ITreeViewEntry ItemHangarEntry { set; get; }
+
+		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
 		WindowInventory()
 		{ }
@@ -323,7 +324,7 @@ namespace Sanderling.Parse
 			var SetTreeEntryRootSuitingPathNodeNext =
 				SetTreeEntryRoot
 				?.Where(TreeEntry => (TreeEntry?.Text?.RemoveXmlTag()?.Trim()).EqualsIgnoreCase(PathListNodeLabelNext))
-				.ToArrayNullable();
+				?.ToArray();
 
 			if (null == SetTreeEntryRootSuitingPathNodeNext)
 			{

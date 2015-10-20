@@ -52,10 +52,6 @@ namespace Sanderling.Interface.MemoryStruct
 		IUIElementInputText SelectedRightFilterTextBox { get; }
 
 		IUIElement SelectedRightFilterButtonClear { get; }
-
-		int? SelectedRightItemDisplayedCount { get; }
-
-		int? SelectedRightItemFilteredCount { get; }
 	}
 
 	public class WindowInventory : Window, IWindowInventory

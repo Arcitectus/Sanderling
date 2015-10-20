@@ -3,9 +3,14 @@ using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class WindowSurveyScanView : Window
+	public interface IWindowSurveyScanView : IWindow
 	{
-		public IListViewAndControl ListView;
+		IListViewAndControl ListView { get; }
+	}
+
+	public class WindowSurveyScanView : Window, IWindowSurveyScanView
+	{
+		public IListViewAndControl ListView { set; get; }
 
 		public WindowSurveyScanView(IWindow Base)
 			:

@@ -69,6 +69,7 @@
     <Compile Include="MemoryStruct\MemoryMeasurement.cs" />
     <Compile Include="MemoryStruct\Menu.cs" />
     <Compile Include="MemoryStruct\MessageBox.cs" />
+    <Compile Include="MemoryStruct\Neocom.cs" />
     <Compile Include="MemoryStruct\Other.cs" />
     <Compile Include="MemoryStruct\Overview.cs" />
     <Compile Include="MemoryStruct\PeopleAndPlaces.cs" />

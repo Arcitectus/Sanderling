@@ -18,7 +18,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IUIElement ExpandToggleButton { set; get; }
 
-		override public OrtogoonInt? RegionInteraction => LabelText?.Largest()?.Region;
+		override public IUIElement RegionInteraction => LabelText?.Largest();
 
 		public string Text => LabelText?.Largest()?.Text;
 

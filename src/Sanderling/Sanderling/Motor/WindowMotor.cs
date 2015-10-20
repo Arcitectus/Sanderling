@@ -1,8 +1,9 @@
-﻿using BotEngine.Motor;
+﻿using Bib3;
+using Bib3.Geometrik;
+using BotEngine.Motor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Bib3;
 using BotEngine.Windows;
 using BotEngine.WinApi;
 using System.Threading;
@@ -142,13 +143,13 @@ namespace Sanderling.Motor
 						Thread.Sleep(MouseEventDelay);
 					}
 
-					Motion?.KeyDown?.ForEachNullable(KeyDown =>
+					Motion?.KeyDown?.ForEach(KeyDown =>
 					{
 						EnsureWindowIsForeground(WindowHandle);
 						InputSimulator.Keyboard.KeyDown(KeyDown);
 					});
 
-					Motion?.KeyUp?.ForEachNullable(KeyUp =>
+					Motion?.KeyUp?.ForEach(KeyUp =>
 					{
 						EnsureWindowIsForeground(WindowHandle);
 						InputSimulator.Keyboard.KeyUp(KeyUp);

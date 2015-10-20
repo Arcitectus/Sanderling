@@ -1,14 +1,11 @@
-﻿using MemoryStruct = Sanderling.Interface.MemoryStruct;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BotEngine.Common;
+using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {
-	public interface INeocom
+	public interface INeocom : MemoryStruct.INeocom
 	{
 		MemoryStruct.IUIElement PeopleAndPlacesButton { get; }
 
@@ -26,7 +23,7 @@ namespace Sanderling.Parse
 
 	public class Neocom : INeocom
 	{
-		public MemoryStruct.Neocom Raw { private set; get; }
+		public MemoryStruct.INeocom Raw { private set; get; }
 
 		public MemoryStruct.IUIElement PeopleAndPlacesButton { private set; get; }
 
@@ -40,12 +37,25 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElement MarketButton { private set; get; }
 
+		public MemoryStruct.IUIElement EveMenuButton => Raw?.EveMenuButton;
+
+		public MemoryStruct.IUIElement CharButton => Raw?.CharButton;
+
+		public MemoryStruct.ISprite[] Button => Raw?.Button;
+
+		public MemoryStruct.IUIElementText Clock => Raw?.Clock;
+
 		Neocom()
 		{ }
 
-		public Neocom(MemoryStruct.Neocom Raw)
+		public Neocom(MemoryStruct.INeocom Raw)
 		{
 			this.Raw = Raw;
+
+			if (null == Raw)
+			{
+				return;
+			}
 
 			var ButtonWithTexturePathMatch = new Func<string, MemoryStruct.IUIElement>(TexturePathRegexPattern =>
 				Raw?.Button?.FirstOrDefault(candidate => candidate?.TexturePath?.RegexMatchSuccess(TexturePathRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false));

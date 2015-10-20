@@ -15,15 +15,15 @@
 		}
 	}
 
-	public class WindowFittingWindow : Window
+	public class WindowShipFitting : Window
 	{
-		public WindowFittingWindow(IWindow Base)
+		public WindowShipFitting(IWindow Base)
 			:
 			base(Base)
 		{
 		}
 
-		public WindowFittingWindow()
+		public WindowShipFitting()
 		{
 		}
 	}

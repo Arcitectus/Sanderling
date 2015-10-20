@@ -11,6 +11,8 @@ namespace Sanderling.Parse
 
 		new IWindowInventory[] WindowInventory { get; }
 
+		new INeocom Neocom { get; }
+
 		bool? IsDocked { get; }
 
 		bool? IsUnDocking { get; }
@@ -24,6 +26,8 @@ namespace Sanderling.Parse
 
 		public IWindowInventory[] WindowInventory { set; get; }
 
+		public INeocom Neocom { set; get; }
+
 		public MemoryStruct.IUIElementText[] AbovemainMessage => Raw?.AbovemainMessage;
 
 		public MemoryStruct.PanelGroup[] AbovemainPanelEveMenu => Raw?.AbovemainPanelEveMenu;
@@ -32,13 +36,13 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElement InfoPanelButtonIncursions => Raw?.InfoPanelButtonIncursions;
 
-		public MemoryStruct.IUIElement InfoPanelButtonLocationInfo => Raw?.InfoPanelButtonLocationInfo;
+		public MemoryStruct.IUIElement InfoPanelButtonCurrentSystem => Raw?.InfoPanelButtonCurrentSystem;
 
 		public MemoryStruct.IUIElement InfoPanelButtonMissions => Raw?.InfoPanelButtonMissions;
 
 		public MemoryStruct.IUIElement InfoPanelButtonRoute => Raw?.InfoPanelButtonRoute;
 
-		public MemoryStruct.InfoPanelCurrentSystem InfoPanelLocationInfo => Raw?.InfoPanelLocationInfo;
+		public MemoryStruct.InfoPanelCurrentSystem InfoPanelCurrentSystem => Raw?.InfoPanelCurrentSystem;
 
 		public MemoryStruct.InfoPanelMissions InfoPanelMissions => Raw?.InfoPanelMissions;
 
@@ -46,7 +50,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IMenu[] Menu => Raw?.Menu;
 
-		public MemoryStruct.Neocom Neocom => Raw?.Neocom;
+		MemoryStruct.INeocom MemoryStruct.IMemoryMeasurement.Neocom => Neocom;
 
 		public MemoryStruct.IShipUi ShipUi => Raw?.ShipUi;
 
@@ -68,7 +72,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowFittingMgmt[] WindowFittingMgmt => Raw?.WindowFittingMgmt;
 
-		public MemoryStruct.WindowFittingWindow[] WindowFittingWindow => Raw?.WindowFittingWindow;
+		public MemoryStruct.WindowShipFitting[] WindowShipFitting => Raw?.WindowShipFitting;
 
 		MemoryStruct.IWindowInventory[] MemoryStruct.IMemoryMeasurement.WindowInventory => WindowInventory;
 
@@ -88,9 +92,9 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowStack[] WindowStack => Raw?.WindowStack;
 
-		public MemoryStruct.WindowStationLobby[] WindowStationLobby => Raw?.WindowStationLobby;
+		public MemoryStruct.IWindowStation[] WindowStation => Raw?.WindowStation;
 
-		public MemoryStruct.WindowSurveyScanView[] WindowSurveyScanView => Raw?.WindowSurveyScanView;
+		public MemoryStruct.IWindowSurveyScanView[] WindowSurveyScanView => Raw?.WindowSurveyScanView;
 
 		public MemoryStruct.WindowTelecom[] WindowTelecom => Raw?.WindowTelecom;
 
@@ -113,9 +117,9 @@ namespace Sanderling.Parse
 
 			var ShipUi = Raw?.ShipUi;
 
-			var SetWindowStationLobby = Raw?.WindowStationLobby;
+			var SetWindowStation = Raw?.WindowStation;
 
-			if (!SetWindowStationLobby.IsNullOrEmpty())
+			if (!SetWindowStation.IsNullOrEmpty())
 			{
 				IsDocked = true;
 			}
@@ -128,11 +132,13 @@ namespace Sanderling.Parse
 
 			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
 
-			if (SetWindowStationLobby?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
+			if (SetWindowStation?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
 				 LabelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
 			{
 				IsUnDocking = true;
 			}
-		}
+
+			Neocom = Raw?.Neocom?.Parse();
+        }
 	}
 }

@@ -12,34 +12,6 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class Neocom : UIElement
-	{
-		public IUIElement EveMenuButton;
-
-		public IUIElement CharButton;
-
-		/// <summary>
-		/// The type can be identified by TexturePath.
-		/// Some examples:
-		/// "res:/ui/Texture/WindowIcons/peopleandplaces.png"
-		/// "res:/UI/Texture/WindowIcons/items.png"
-		/// "res:/ui/Texture/WindowIcons/market.png"
-		/// </summary>
-		public ISprite[] Button;
-
-		public IUIElementText Clock;
-
-		public Neocom()
-		{
-		}
-
-		public Neocom(IUIElement Base)
-			: base(Base)
-		{
-		}
-	}
-
-
 	public class TabGroup : UIElement
 	{
 		public Tab[] ListTab;

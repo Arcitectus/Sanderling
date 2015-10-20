@@ -1,4 +1,4 @@
-﻿using Bib3;
+﻿using Bib3.Geometrik;
 using BotEngine;
 using System;
 
@@ -17,10 +17,12 @@ namespace Sanderling.Interface.MemoryStruct
 		/// </summary>
 		int? InTreeIndex { get; }
 
+		int? ChildLastInTreeIndex { get; }
+
 		/// <summary>
 		/// Region used to select or open contextmenu.
 		/// </summary>
-		OrtogoonInt? RegionInteraction { get; }
+		IUIElement RegionInteraction { get; }
 	}
 
 	public interface IUIElementText : IUIElement
@@ -67,7 +69,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public int? InTreeIndex { set; get; }
 
-		virtual public OrtogoonInt? RegionInteraction => Region;
+		public int? ChildLastInTreeIndex { set; get; }
+
+		virtual public IUIElement RegionInteraction => this;
 
 		public UIElement()
 			:
@@ -75,22 +79,20 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public UIElement(IUIElement Base)
+		public UIElement(IObjectIdInMemory Base)
 			:
-			this(Base, Base?.Region ?? OrtogoonInt.Leer, Base?.InTreeIndex)
+			base(Base)
 		{
 		}
 
-		public UIElement(
-			IObjectIdInt64 Base,
-			OrtogoonInt Region = default(OrtogoonInt),
-			int? InTreeIndex = null)
+		public UIElement(IUIElement Base)
 			:
-			base(Base?.Id ?? 0)
+			this((IObjectIdInMemory)Base)
 		{
-			this.Region = Region;
+			Region = Base?.Region ?? OrtogoonInt.Empty;
 
-			this.InTreeIndex = InTreeIndex;
+			InTreeIndex = Base?.InTreeIndex;
+			ChildLastInTreeIndex = Base?.ChildLastInTreeIndex;
 		}
 
 		public override string ToString() =>

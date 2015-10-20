@@ -93,7 +93,7 @@ namespace Sanderling.Accumulator
 		static public Accumulation.IShipUiModuleAndContext AsAccuInstant(
 			this MemoryStruct.IShipUiModule Module,
 			MemoryStruct.IShipUi ShipUi) =>
-			new ShipUiModuleAndContext() { Module = Module, Position = Module?.PositionInShipUi(ShipUi), };
+			new ShipUiModuleAndContext() { Module = Module, Location = Module?.PositionInShipUi(ShipUi), };
 
 		static public Accumulation.IShipUiModule Accumulation(
 			this Accumulation.IMemoryMeasurement Accumulation,

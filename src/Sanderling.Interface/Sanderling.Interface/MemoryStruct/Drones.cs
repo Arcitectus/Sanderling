@@ -12,7 +12,7 @@ namespace Sanderling.Interface.MemoryStruct
 		IShipHitpointsAndEnergy Hitpoints { get; }
 	}
 
-	public interface IWindowDroneView
+	public interface IWindowDroneView : IWindow
 	{
 		IListViewAndControl ListView { get; }
 	}

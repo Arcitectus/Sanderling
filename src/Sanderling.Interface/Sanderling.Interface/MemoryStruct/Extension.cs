@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using BotEngine;
+using Bib3.Geometrik;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -14,7 +15,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public T Largest<T>(this IEnumerable<T> source)
 			where T : class, IUIElement =>
-			source.OrderByDescending(item => item?.Region.Betraag ?? -1)
+			source.OrderByDescending(item => item?.Region.Area ?? -1)
 			?.FirstOrDefault();
 
 		static public IEnumerable<object> EnumerateReferencedTransitive(
@@ -29,5 +30,14 @@ namespace Sanderling.Interface.MemoryStruct
 		static public T CopyByPolicyMemoryMeasurement<T>(this T ToBeCopied)
 			where T : class =>
 			Bib3.SictRefBaumKopii.ObjektKopiiErsctele(ToBeCopied, new Bib3.SictRefBaumKopiiParam(null, FromSensorToConsumerMessage.SerialisPolicyCache));
+
+		static public IUIElement WithRegion(this IUIElement Base, OrtogoonInt Region) =>
+			null == Base ? null : new UIElement(Base) { Region = Region };
+
+		static public IUIElement WithRegionSizePivotAtCenter(this IUIElement Base, Vektor2DInt RegionSize) =>
+			null == Base ? null : Base.WithRegion(Base.Region.WithSizePivotAtCenter(RegionSize));
+
+		static public IUIElement WithRegionSizeBoundedMaxPivotAtCenter(this IUIElement Base, Vektor2DInt RegionSizeMax) =>
+			null == Base ? null : Base.WithRegion(Base.Region.WithSizeBoundedMaxPivotAtCenter(RegionSizeMax));
 	}
 }

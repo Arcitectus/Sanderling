@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using Bib3.Geometrik;
 using BotEngine.Common;
 using System;
 using System.Linq;
@@ -78,9 +79,9 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Leer;
+		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
 
-		public OrtogoonInt? RegionInteraction => Raw?.RegionInteraction;
+		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 
 		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
 
@@ -109,6 +110,8 @@ namespace Sanderling.Parse
 		public int? RangeMax { private set; get; }
 
 		public int? RangeFalloff { private set; get; }
+
+		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
 		public ModuleButtonTooltip(MemoryStruct.IContainer Raw)
 		{

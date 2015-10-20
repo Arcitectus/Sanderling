@@ -22,7 +22,7 @@ namespace Sanderling.Script
 			typeof(Enumerable),
 			typeof(IHostToScript),
 			typeof(BotScript.IHostToScript),
-			typeof(Vektor2DInt),
+			typeof(Bib3.Geometrik.Vektor2DInt),
 			typeof(ObjectIdInt64),
 			typeof(FromProcessMeasurement<>),
 			typeof(MemoryStruct.IMemoryMeasurement),

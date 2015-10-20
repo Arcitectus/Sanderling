@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using Bib3.Geometrik;
 using System;
 
 namespace Sanderling.Interface.MemoryStruct
@@ -109,7 +110,7 @@ namespace Sanderling.Interface.MemoryStruct
 		/// </summary>
 		public IUIElement RegionInteractionElement;
 
-		override public OrtogoonInt? RegionInteraction => RegionInteractionElement?.RegionInteraction;
+		override public IUIElement RegionInteraction => RegionInteractionElement?.WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(40, 40));
 
 		/// <summary>
 		/// e.g. groups of modules or drones assigned to this target.
@@ -165,6 +166,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public bool? GlowVisible { set; get; }
 
 		public bool? BusyVisible { set; get; }
+
+		public override IUIElement RegionInteraction => this.WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(16, 16));
 
 		public ShipUiModule()
 		{

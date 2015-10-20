@@ -1,10 +1,10 @@
 ﻿namespace Sanderling.Interface.MemoryStruct
 {
-	public class WindowStationLobby : Window
+	public interface IWindowStation : IWindow
 	{
-		public IUIElementText[] AboveServicesLabel;
+		IUIElementText[] AboveServicesLabel { get; }
 
-		public IUIElement ButtonUndock;
+		IUIElement UndockButton { get; }
 
 		/// <summary>
 		/// Station services.
@@ -13,22 +13,35 @@
 		/// "res:/ui/Texture/WindowIcons/fitting.png"
 		/// "res:/UI/Texture/WindowIcons/Industry.png"
 		/// </summary>
-		public ISprite[] ServiceButton;
+		ISprite[] ServiceButton { get; }
 
-		public LobbyAgentEntry[] AgentEntry;
+		LobbyAgentEntry[] AgentEntry { get; }
 
 		/// <summary>
 		/// Label which are displayed between Agent Entries ("available to you", "Agents of interest").
 		/// </summary>
-		public IUIElementText[] AgentEntryHeader;
+		IUIElementText[] AgentEntryHeader { get; }
+	}
 
-		public WindowStationLobby(IWindow Base)
+	public class WindowStation : Window, IWindowStation
+	{
+		public IUIElementText[] AboveServicesLabel { set; get; }
+
+		public IUIElement UndockButton { set; get; }
+
+		public ISprite[] ServiceButton { set; get; }
+
+		public LobbyAgentEntry[] AgentEntry { set; get; }
+
+		public IUIElementText[] AgentEntryHeader { set; get; }
+
+		public WindowStation(IWindow Base)
 			:
 			base(Base)
 		{
 		}
 
-		public WindowStationLobby()
+		public WindowStation()
 		{
 		}
 

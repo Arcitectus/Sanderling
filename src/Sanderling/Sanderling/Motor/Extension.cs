@@ -3,6 +3,7 @@ using BotEngine.Motor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Motor
 {
@@ -40,7 +41,7 @@ namespace Sanderling.Motor
 					throw new ApplicationException("mouse waypoint not anymore contained in UITree");
 				}
 
-				var WaypointUIElementRegion = WaypointUIElementCurrent.RegionInteraction;
+				var WaypointUIElementRegion = WaypointUIElementCurrent.RegionInteraction?.Region;
 
 				if (!WaypointUIElementRegion.HasValue)
 				{
@@ -49,32 +50,32 @@ namespace Sanderling.Motor
 
 				if (WaypointRegionReplacement.HasValue)
 				{
-					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.ZentrumLaage;
+					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.Center;
 				}
 
-				WaypointUIElementCurrent = WaypointUIElementCurrent.CopyWithRegionSubstituted(WaypointUIElementRegion.Value);
+				WaypointUIElementCurrent = WaypointUIElementCurrent.WithRegion(WaypointUIElementRegion.Value);
 
 				var WaypointRegionPortionVisible =
 					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(MemoryMeasurement)
 					//	remaining region is contracted to provide an safety margin.
-					?.Select(PortionVisible => PortionVisible.Expanded(-MotionMouseWaypointSafetyMarginMin * 2))
-					?.Where(PortionVisible => !PortionVisible.IsLeer)
+					?.Select(PortionVisible => PortionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
+					?.Where(PortionVisible => !PortionVisible.IsEmpty)
 					?.ToArray();
 
 				var WaypointRegionPortionVisibleLargestPatch =
 					WaypointRegionPortionVisible
-					?.OrderByDescending(Patch => Math.Min(Patch.Grööse.A, Patch.Grööse.B))
+					?.OrderByDescending(Patch => Math.Min(Patch.Size.A, Patch.Size.B))
 					?.FirstOrDefault();
 
-				if (!(0 < WaypointRegionPortionVisibleLargestPatch?.Grööse.A &&
-					0 < WaypointRegionPortionVisibleLargestPatch?.Grööse.B))
+				if (!(0 < WaypointRegionPortionVisibleLargestPatch?.Size.A &&
+					0 < WaypointRegionPortionVisibleLargestPatch?.Size.B))
 				{
 					throw new ApplicationException("mouse waypoint region remaining after occlusion is too small");
 				}
 
 				var Point =
 					WaypointRegionPortionVisibleLargestPatch.Value
-					.Expanded(-MotionMouseWaypointSafetyMarginAdditional * 2)
+					.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginAdditional * 2)
 					.RandomPointInRectangle(Random);
 
 				yield return new Motion(Point);
