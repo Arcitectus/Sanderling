@@ -8,7 +8,7 @@ const string MenuEntryRegexPattern = "dock|jump";
 
 while(true)
 {
-	var Measurement = HostSanderling?.MemoryMeasurement?.Wert;
+	var Measurement = HostSanderling?.MemoryMeasurement?.Value;
 
 	//	from the set of route element markers in the Info Panel pick the one that represents the next Waypoint/System.
 	//	We assume this is the one which is nearest to the topleft corner of the Screen which is at (0,0)
@@ -26,7 +26,7 @@ while(true)
 	HostSanderling.MouseClickRight(RouteElementMarkerNext);
 
 	//	retrieve a new measurement.
-	Measurement = HostSanderling?.MemoryMeasurement?.Wert;
+	Measurement = HostSanderling?.MemoryMeasurement?.Value;
 
 	//	from the first menu, pick the first matching entry.
 	var MenuEntry =
