@@ -24,6 +24,8 @@ namespace Sanderling.Exe
 
 		BotScript.UI.Wpf.IDE ScriptIDE => Window?.Main?.Bot?.IDE;
 
+		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.Bot?.APIExplorer;
+
 		BotScript.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
 
 		bool WasActivated = false;
@@ -32,9 +34,16 @@ namespace Sanderling.Exe
 
 		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild(@"\");
 
+		Sanderling.Script.HostToScript UIAPI;
+
 		public App()
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
+			UIAPI = new Sanderling.Script.HostToScript()
+			{
+				MemoryMeasurementFunc = new Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>>(() => MemoryMeasurementLast),
+			};
 		}
 
 		private System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -123,6 +132,8 @@ namespace Sanderling.Exe
 			Window?.ProcessInput();
 
 			Motor = GetMotor();
+
+			BotAPIExplorer?.Present(UIAPI);
 
 			ScriptExchange();
 

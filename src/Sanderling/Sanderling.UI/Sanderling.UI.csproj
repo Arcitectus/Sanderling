@@ -61,6 +61,10 @@
     <Reference Include="BotScript.UI">
       <HintPath>..\..\..\lib\BotScript.UI.dll</HintPath>
     </Reference>
+    <Reference Include="Fasterflect, Version=2.1.3.0, Culture=neutral, PublicKeyToken=38d18473284c1ca7, processorArchitecture=MSIL">
+      <HintPath>..\packages\fasterflect.2.1.3\lib\net40\Fasterflect.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Sanderling.Interface">
@@ -82,8 +86,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiTreeView.cs" />
     <Compile Include="Bot.xaml.cs">
       <DependentUpon>Bot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="BotAPIExplorer.xaml.cs">
+      <DependentUpon>BotAPIExplorer.xaml</DependentUpon>
     </Compile>
     <Compile Include="InterfaceToEve.xaml.cs">
       <DependentUpon>InterfaceToEve.xaml</DependentUpon>
@@ -98,6 +106,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Bot.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BotAPIExplorer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -125,7 +137,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

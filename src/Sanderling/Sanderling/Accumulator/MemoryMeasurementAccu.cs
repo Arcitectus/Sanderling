@@ -10,30 +10,30 @@ namespace Sanderling.Accumulator
 	{
 		Int64 EntityIdLast = 0;
 
-		readonly List<ShipUiModule> ShipUiModule = new List<ShipUiModule>();
+		readonly List<ShipUiModule> InternShipUiModule = new List<ShipUiModule>();
 
-		IEnumerable<Accumulation.IShipUiModule> Accumulation.IMemoryMeasurement.ShipUiModule => ShipUiModule;
+		public IEnumerable<Accumulation.IShipUiModule> ShipUiModule => InternShipUiModule;
 
 		public void Accumulate(FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementAtTime)
 		{
 			var MemoryMeasurement = MemoryMeasurementAtTime?.Value;
 
-            var ShipUi = MemoryMeasurement?.ShipUi;
+			var ShipUi = MemoryMeasurement?.ShipUi;
 
 			var SetModuleInstantNotAssigned =
 				ShipUi?.Module?.Select(Module => Module.AsAccuInstant(ShipUi).WithTimespanInt64(MemoryMeasurementAtTime))
 				?.Distribute(
 				MemoryMeasurement,
-				ShipUiModule);
+				InternShipUiModule);
 
 			foreach (var ModuleInstantNotAssigned in SetModuleInstantNotAssigned.EmptyIfNull())
 			{
-				ShipUiModule.Add(new ShipUiModule(++EntityIdLast, ModuleInstantNotAssigned));
+				InternShipUiModule.Add(new ShipUiModule(++EntityIdLast, ModuleInstantNotAssigned));
 			}
 
 			if (MemoryMeasurement?.IsDocked ?? false)
 			{
-				this.ShipUiModule?.Clear();
+				InternShipUiModule?.Clear();
 			}
 		}
 	}

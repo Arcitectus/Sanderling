@@ -6,10 +6,24 @@
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:BotScript.UI.Wpf="clr-namespace:BotScript.UI.Wpf;assembly=BotScript.UI"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="444">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
+    </UserControl.Resources>
+
     <Grid>
-        <BotScript.UI.Wpf:IDE
-            x:Name="IDE"
-            x:FieldModifier="public"></BotScript.UI.Wpf:IDE>
+        <TabControl>
+            <TabItem Header="create &amp; run script">
+                <BotScript.UI.Wpf:IDE
+                    x:Name="IDE"
+                    x:FieldModifier="public"></BotScript.UI.Wpf:IDE>
+            </TabItem>
+
+            <TabItem Header="API Explorer">
+                <local:BotAPIExplorer
+                    x:Name="APIExplorer"
+                    x:FieldModifier="public"></local:BotAPIExplorer>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>
