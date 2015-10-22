@@ -1,10 +1,4 @@
-﻿//	Welcome to Sanderling, the botting framework that makes eve online easily scriptable.
-//	Got questions or a feature request? Leave a message at http://forum.botengine.de/cat/eve-online/
-
-//	The script below is a Warp to 0 Auto-Pilot, making your travels faster and thus safer.
-
-//	this pattern matches strings containing "dock" or "jump".
-const string MenuEntryRegexPattern = "dock|jump";
+﻿//	This is a Warp to 0 Auto-Pilot, making your travels faster and thus safer by directly warping to gates/stations.
 
 while(true)
 {
@@ -28,10 +22,10 @@ while(true)
 	//	retrieve a new measurement.
 	Measurement = HostSanderling?.MemoryMeasurement?.Value;
 
-	//	from the first menu, pick the first matching entry.
+	//	from the first menu, pick the first entry that contains "dock" or "jump".
 	var MenuEntry =
 		Measurement?.Menu?.FirstOrDefault()
-		?.Entry?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase(MenuEntryRegexPattern));
+		?.Entry?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase("dock|jump"));
 	
 	if(null == MenuEntry)
 	{
@@ -46,3 +40,4 @@ loop:
 	//	wait for four seconds before repeating.
 	Host.Delay(4000);
 }
+
