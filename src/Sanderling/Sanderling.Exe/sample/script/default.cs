@@ -1,4 +1,4 @@
-﻿//	This is a Warp to 0 Auto-Pilot, making your travels faster and thus safer by directly warping to gates/stations.
+﻿//	This is a warp to 0km auto-pilot, making your travels faster and thus safer by directly warping to gates/stations.
 
 while(true)
 {
@@ -16,7 +16,7 @@ while(true)
 		goto loop;
 	}
 	
-	//	righclick the marker to open the contextmenu.
+	//	rightclick the marker to open the contextmenu.
 	HostSanderling.MouseClickRight(RouteElementMarkerNext);
 
 	//	retrieve a new measurement.
