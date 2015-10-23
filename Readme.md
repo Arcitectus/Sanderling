@@ -16,7 +16,7 @@ It helps you create and run eve online bots.**
 Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
 
 ### Bot Authors
-To get started with creating bots, continue on the [[Script Engine|Script Engine]] page.
+To get started with creating bots, continue on the [Script Engine](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine) page.
 
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
