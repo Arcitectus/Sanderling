@@ -1,19 +1,26 @@
 # Sanderling
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Arcitectus/Sanderling?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Sanderling is a botting framework for [eve online](https://www.eveonline.com).
-It helps you create and run eve online bots.
+**Sanderling is a botting framework for [eve online](https://www.eveonline.com).
+It helps you create and run eve online bots.**
 
 ### Features
 * **safe**: does not inject into or write to the eve online client. That is why using it with eve online is not detectable.
 * **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-* **comprehensive**: provides all tools needed to build mining, trading and mission bots.
+* **easy to use**: You will achieve quick results with the integrated script engine and API explorer.
+* **comprehensive**: Sanderling provides all tools needed to build mining, trading and mission bots.
 
 ### Requirements
 * the application requires Microsoft .NET Framework 4.5 which can be dowloaded from [http://www.microsoft.com/en-us/download/details.aspx?id=30653](http://www.microsoft.com/en-us/download/details.aspx?id=30653).
 
+### Download
+Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
+
+### Bot Authors
+To get started with creating bots, continue on the [[Script Engine|Script Engine]] page.
+
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
+
 ### Need Help?
 Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/cat/eve-online](http://forum.botengine.de/cat/eve-online).
 
