@@ -81,6 +81,12 @@
                     x:FieldModifier="public"></BotEngine.UI:WriteToOrReadFromFile>
             </TabItem>
 
+            <TabItem Header="About">
+                <BotEngine.UI:AppProperty
+                    DataContext="{StaticResource ResourceKey=AppProperty}">
+                </BotEngine.UI:AppProperty>
+            </TabItem>
+
         </TabControl>
     </Grid>
 </UserControl>
