@@ -15,6 +15,9 @@ namespace Sanderling.Exe
 			InitializeComponent();
 		}
 
+		public string TitleComputed =>
+			"Sanderling v" + (TryFindResource("AppVersionId") ?? "");
+
 		public IEnumerable<IEnumerable<System.Windows.Input.Key>> SetKeyBotMotionDisable()
 		{
 			yield return new[] { System.Windows.Input.Key.LeftCtrl, System.Windows.Input.Key.LeftAlt };

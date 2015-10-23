@@ -13,7 +13,7 @@
 
     <Grid>
         <TabControl>
-            <TabItem Header="create &amp; run script">
+            <TabItem Header="Script Engine">
                 <BotScript.UI.Wpf:IDE
                     x:Name="IDE"
                     x:FieldModifier="public"></BotScript.UI.Wpf:IDE>

@@ -5,6 +5,7 @@
              StartupUri="MainWindow.xaml"
              Activated="Application_Activated">
     <Application.Resources>
-         
+        <ResourceDictionary Source="pack://application:,,,/Sanderling.Exe;component/resource.xaml"></ResourceDictionary>
+
     </Application.Resources>
 </Application>
