@@ -28,7 +28,7 @@ namespace Sanderling.Script
 		/// <summary>
 		/// Data collected and connected from multiple measurements.
 		/// </summary>
-		FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccumulation
+		FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccu
 		{
 			get;
 		}
@@ -50,7 +50,7 @@ namespace Sanderling.Script
 		public FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed =>
 			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementParsed);
 
-		public FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccumulation =>
+		public FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccu =>
 			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementAccumulation);
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);

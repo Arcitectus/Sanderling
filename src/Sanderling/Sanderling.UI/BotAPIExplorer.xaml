@@ -14,9 +14,22 @@
     </UserControl.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Expander Header="time &amp; origin of displayed measurement">
+            <BotEngine.UI:FromProcessMeasurement
+                x:Name="TimeAndOrigin"
+                x:FieldModifier="public"></BotEngine.UI:FromProcessMeasurement>
+        </Expander>
+
         <BotEngine.UI:InspectTreeView
             x:Name="TreeView"
-            x:FieldModifier="public">
+            x:FieldModifier="public"
+            Grid.Row="2">
             <BotEngine.UI:InspectTreeView.ListTransformControl>
                 <Bib3.Terz.GBS.Inspektor:SictRefNezDif></Bib3.Terz.GBS.Inspektor:SictRefNezDif>
                 <Bib3.Terz.GBS.Inspektor:SictNewtonsoftJsonSerialis></Bib3.Terz.GBS.Inspektor:SictNewtonsoftJsonSerialis>

@@ -16,7 +16,9 @@ namespace Sanderling.UI
 
 		public void Present(Script.IHostToScript Api)
 		{
-			TreeView.TreeView.Präsentiire(Api);
+			TimeAndOrigin.Present(Api?.MemoryMeasurement);
+
+            TreeView.TreeView.Präsentiire(Api);
 		}
 	}
 
