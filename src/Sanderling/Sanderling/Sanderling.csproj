@@ -116,6 +116,7 @@
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
     <Compile Include="Parse\Overview.cs" />
+    <Compile Include="Parse\ShipUi.cs" />
     <Compile Include="Parse\SpaceObject.cs" />
     <Compile Include="Parse\Test\Drone.cs" />
     <Compile Include="Parse\Test\Inventory.cs" />

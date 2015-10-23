@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Bib3.Geometrik;
+using BotEngine.Interface;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {
-	public interface IOverviewEntry : MemoryStruct.IOverviewEntry
+	public interface IOverviewEntry : MemoryStruct.IOverviewEntry, IListEntry
 	{
 
 	}
@@ -16,6 +14,24 @@ namespace Sanderling.Parse
 	public interface IWindowOverview : MemoryStruct.IWindowOverview
 	{
 		new MemoryStruct.IListViewAndControl<IOverviewEntry> ListView { get; }
+	}
+
+	public class OverviewEntry : ListEntry, IOverviewEntry
+	{
+		MemoryStruct.IOverviewEntry Raw;
+
+		public MemoryStruct.ISprite[] RightIcon => Raw?.RightIcon;
+
+		public OverviewEntry()
+		{
+		}
+
+		public OverviewEntry(MemoryStruct.IOverviewEntry Raw)
+			:
+			base(Raw)
+		{
+			this.Raw = Raw;
+		}
 	}
 
 	public class WindowOverview : IWindowOverview
@@ -55,5 +71,30 @@ namespace Sanderling.Parse
 		public string ViewportOverallLabelString => Raw?.ViewportOverallLabelString;
 
 		MemoryStruct.IListViewAndControl<MemoryStruct.IOverviewEntry> MemoryStruct.IWindowOverview.ListView => ListView;
+
+		WindowOverview()
+		{
+		}
+
+		public WindowOverview(MemoryStruct.IWindowOverview Raw)
+		{
+			this.Raw = Raw;
+
+			if (null == Raw)
+			{
+				return;
+			}
+
+			ListView = Raw?.ListView?.Map(OverviewExtension.Parse);
+		}
+	}
+
+	static public class OverviewExtension
+	{
+		static public IWindowOverview Parse(this MemoryStruct.IWindowOverview WindowOverview) =>
+			null == WindowOverview ? null : new WindowOverview(WindowOverview);
+
+		static public IOverviewEntry Parse(this MemoryStruct.IOverviewEntry OverviewEntry) =>
+			null == OverviewEntry ? null : new OverviewEntry(OverviewEntry);
 	}
 }

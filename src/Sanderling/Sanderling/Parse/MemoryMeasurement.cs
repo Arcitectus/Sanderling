@@ -7,7 +7,11 @@ namespace Sanderling.Parse
 {
 	public interface IMemoryMeasurement : MemoryStruct.IMemoryMeasurement
 	{
+		new IShipUiTarget[] Target { get; }
+
 		new IModuleButtonTooltip ModuleButtonTooltip { get; }
+
+		new IWindowOverview[] WindowOverview { get; }
 
 		new IWindowInventory[] WindowInventory { get; }
 
@@ -22,7 +26,11 @@ namespace Sanderling.Parse
 	{
 		MemoryStruct.IMemoryMeasurement Raw;
 
+		public IShipUiTarget[] Target { set; get; }
+
 		public IModuleButtonTooltip ModuleButtonTooltip { set; get; }
+
+		public IWindowOverview[] WindowOverview { set; get; }
 
 		public IWindowInventory[] WindowInventory { set; get; }
 
@@ -56,7 +64,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IWindow SystemMenu => Raw?.SystemMenu;
 
-		public MemoryStruct.IShipUiTarget[] Target => Raw?.Target;
+		MemoryStruct.IShipUiTarget[] MemoryStruct.IMemoryMeasurement.Target => Target;
 
 		public MemoryStruct.IContainer[] Utilmenu => Raw?.Utilmenu;
 
@@ -74,6 +82,8 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowShipFitting[] WindowShipFitting => Raw?.WindowShipFitting;
 
+		MemoryStruct.IWindowOverview[] MemoryStruct.IMemoryMeasurement.WindowOverview => WindowOverview;
+
 		MemoryStruct.IWindowInventory[] MemoryStruct.IMemoryMeasurement.WindowInventory => WindowInventory;
 
 		public MemoryStruct.WindowItemSell[] WindowItemSell => Raw?.WindowItemSell;
@@ -81,8 +91,6 @@ namespace Sanderling.Parse
 		public MemoryStruct.WindowMarketAction[] WindowMarketAction => Raw?.WindowMarketAction;
 
 		public MemoryStruct.IWindow[] WindowOther => Raw?.WindowOther;
-
-		public MemoryStruct.IWindowOverview[] WindowOverview => Raw?.WindowOverview;
 
 		public MemoryStruct.WindowPeopleAndPlaces[] WindowPeopleAndPlaces => Raw?.WindowPeopleAndPlaces;
 
@@ -113,7 +121,13 @@ namespace Sanderling.Parse
 				return;
 			}
 
+			Target = Raw?.Target?.Select(ShipUiExtension.Parse)?.ToArray();
+
 			ModuleButtonTooltip = Raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
+
+			WindowOverview = Raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
+
+			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
 
 			var ShipUi = Raw?.ShipUi;
 
@@ -130,7 +144,10 @@ namespace Sanderling.Parse
 				IsDocked = false;
 			}
 
-			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
+			if (!(IsDocked ?? true))
+			{
+				IsUnDocking = false;
+			}
 
 			if (SetWindowStation?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
 				 LabelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
@@ -139,6 +156,6 @@ namespace Sanderling.Parse
 			}
 
 			Neocom = Raw?.Neocom?.Parse();
-        }
+		}
 	}
 }
