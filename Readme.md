@@ -1,7 +1,6 @@
 # Sanderling
 
-**Sanderling is a botting framework for [eve online](https://www.eveonline.com).
-It helps you create and run eve online bots.**
+**Sanderling is a framework that helps you create and run [eve online](https://www.eveonline.com) bots.**
 
 ### Features
 * **safe**: does not inject into or write to the eve online client. That is why using it with eve online is not detectable.
@@ -16,7 +15,10 @@ It helps you create and run eve online bots.**
 Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
 
 ### Bot Authors
-To get started with creating bots, continue on the [Script Engine](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine) page.
+To get started with creating bots, read the [Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started) and continue on the [Script Engine page](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine).
+
+### Bot Users
+[Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started)
 
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
