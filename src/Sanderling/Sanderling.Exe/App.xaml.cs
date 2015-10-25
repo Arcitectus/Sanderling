@@ -133,16 +133,12 @@ namespace Sanderling.Exe
 
 			Motor = GetMotor();
 
-			BotAPIExplorer?.Present(UIAPI);
-
 			ScriptExchange();
 
 			LicenseClientExchange();
 
-			LicenseClientInspect?.Present(LicenseClient?.Value);
-
-			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(Evaluation => Evaluation?.MemoryMeasurement));
-		}
+			UIPresent();
+        }
 
 		void ToggleButtonChecked(object sender, RoutedEventArgs e)
 		{

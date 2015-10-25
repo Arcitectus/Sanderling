@@ -49,6 +49,8 @@ namespace Sanderling.Exe
 
 		FromProcessMeasurement<MemoryMeasurementEvaluation> MemoryMeasurementLast;
 
+		Int64? MemoryMeasurementLastAge => GetTimeStopwatch() - MemoryMeasurementLast?.Begin;
+
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
 			get

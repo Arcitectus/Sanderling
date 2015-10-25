@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+             xmlns:Bib3.FCL.UI="clr-namespace:Bib3.FCL.UI;assembly=Bib3.FCL"
              xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
+             xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
              mc:Ignorable="d" 
              d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
@@ -15,11 +17,18 @@
     <Grid>
         <TabControl>
             <TabControl.Resources>
-                <Style TargetType="TabItem" BasedOn="{StaticResource ContentControlHeaderWithSetIcon}"></Style>
+                <Style TargetType="TabItem" BasedOn="{StaticResource ContentControlHeaderWithStatusIcon}"></Style>
             </TabControl.Resources>
 
-            <TabItem
-                Header="process">
+            <TabItem>
+                <TabItem.Header>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="ProcessHeader"
+                        x:FieldModifier="public"
+                        Content="process">
+                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
+                </TabItem.Header>
+
                 <ScrollViewer>
                     <BotEngine.UI:SictAuswaalWindowsProcess
                         x:Name="ProcessChoice"
@@ -28,8 +37,16 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem
-                Header="license">
+            <TabItem>
+                <TabItem.Header>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="LicenseHeader"
+                        x:FieldModifier="public"
+                        Content="license">
+                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
+                </TabItem.Header>
+
+
                 <ScrollViewer>
                     <StackPanel>
                         <BotEngine.UI:LicenseClientConfig
@@ -42,7 +59,14 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="last measurement">
+            <TabItem>
+                <TabItem.Header>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="MeasurementLastHeader"
+                        x:FieldModifier="public"
+                        Content="last measurement">
+                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
+                </TabItem.Header>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"></RowDefinition>
@@ -57,9 +81,9 @@
                         <GroupBox.Header>
                             <Grid>
                                 <TextBlock Visibility="Hidden" Text="set height"></TextBlock>
-                                <Bib3.FCL.GBS:SictSymboolAkzeptanzFeelerWarnung
-                                    SymboolTyp="Warnung"
-                                    Style="{StaticResource WidthAssignFromActualHeight}"></Bib3.FCL.GBS:SictSymboolAkzeptanzFeelerWarnung>
+                                <Bib3.FCL.UI:StatusIcon
+                                    Status="Warning"
+                                    Style="{StaticResource WidthAssignFromActualHeight}"></Bib3.FCL.UI:StatusIcon>
                             </Grid>
                         </GroupBox.Header>
                         <TextBlock

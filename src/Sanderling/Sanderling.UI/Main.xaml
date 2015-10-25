@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:Bib3.FCL.GBS="clr-namespace:Bib3.FCL.GBS;assembly=Bib3.FCL"
+             xmlns:Bib3.FCL.UI="clr-namespace:Bib3.FCL.UI;assembly=Bib3.FCL"
              xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
+             xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
              mc:Ignorable="d" 
              d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
@@ -14,56 +16,62 @@
 
     <Grid>
         <TabControl>
-            <TabItem
-                x:Name="TabSensor"
-                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
-                Header="Interface">
-                <!--
-                <Optimat.EveOnline.UI:ExeSensor></Optimat.EveOnline.UI:ExeSensor>
-                -->
+            <TabControl.Resources>
+                <Style TargetType="TabItem" BasedOn="{StaticResource ContentControlHeaderWithStatusIcon}">
+                </Style>
+            </TabControl.Resources>
+            <TabItem>
+                <TabItem.Header>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="InterfaceHeader"
+                        x:FieldModifier="public"
+                        Content="Interface">
+                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
+                </TabItem.Header>
                 <local:InterfaceToEve
                     x:Name="Interface"
-                    x:FieldModifier="public"></local:InterfaceToEve>
+                    x:FieldModifier="public">
+                </local:InterfaceToEve>
             </TabItem>
 
-            <TabItem
-                x:Name="TabBot"
-                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}">
+            <TabItem>
                 <TabItem.Header>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="4"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="BotHeader"
+                        x:FieldModifier="public">
+                        <BotEngine.UI.ViewModel:ContentAndStatusIcon.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <Grid
+                                    VerticalAlignment="Center"
+                                    Name="PanelMeasureDesiredHeight">
+                                    <TextBlock Text="Bot"></TextBlock>
+                                </Grid>
 
-                        <Grid
-                            VerticalAlignment="Center"
-                            Name="PanelMeasureDesiredHeight">
-                            <TextBlock Text="Bot"></TextBlock>
-                        </Grid>
-
-                        <Grid Grid.Column="2" Height="{Binding ElementName=PanelMeasureDesiredHeight, Path=ActualHeight}">
-                            <Viewbox
-                                Stretch="Uniform" StretchDirection="Both"
-                                Margin="-1">
-                                <Bib3.FCL.GBS:ToggleButtonHorizBinär
-                                    x:Name="ToggleButtonMotionEnable"
-                                    x:FieldModifier="public">
-                                    <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
-                                        <TextBlock
+                                <Grid Grid.Column="2" Height="{Binding ElementName=PanelMeasureDesiredHeight, Path=ActualHeight}">
+                                    <Viewbox
+                                        Stretch="Uniform" StretchDirection="Both"
+                                        Margin="2,-1">
+                                        <Bib3.FCL.GBS:ToggleButtonHorizBinär
+                                            x:Name="ToggleButtonMotionEnable"
+                                            x:FieldModifier="public">
+                                            <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
+                                                <TextBlock
                                             Text="pause"
                                             ToolTip="pause generation of input by clicking here or by pressing Ctrl + Alt."></TextBlock>
-                                    </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
-                                    <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
-                                        <TextBlock
+                                            </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
+                                            <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
+                                                <TextBlock
                                             Text="play"
                                             ToolTip="resume generation of input."></TextBlock>
-                                    </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
-                                </Bib3.FCL.GBS:ToggleButtonHorizBinär>
-                            </Viewbox>
-                        </Grid>
-                    </Grid>
+                                            </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
+                                        </Bib3.FCL.GBS:ToggleButtonHorizBinär>
+                                    </Viewbox>
+                                </Grid>
+
+                                <Grid Width="3"></Grid>
+                            </StackPanel>
+                        </BotEngine.UI.ViewModel:ContentAndStatusIcon.Content>
+                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
                 </TabItem.Header>
 
                 <TabItem.Content>
@@ -74,14 +82,16 @@
             </TabItem>
 
             <TabItem
-                Style="{StaticResource ResourceKey=ContentControlHeaderWithSetIcon}"
+                Style="{StaticResource TabItemStyleFromBotEngine}"
                 Header="Config">
                 <BotEngine.UI:WriteToOrReadFromFile
                     x:Name="ConfigFileControl"
                     x:FieldModifier="public"></BotEngine.UI:WriteToOrReadFromFile>
             </TabItem>
 
-            <TabItem Header="About">
+            <TabItem
+                Style="{StaticResource TabItemStyleFromBotEngine}"
+                Header="About">
                 <BotEngine.UI:AppProperty
                     DataContext="{StaticResource ResourceKey=AppProperty}">
                 </BotEngine.UI:AppProperty>

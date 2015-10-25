@@ -134,6 +134,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="App.UI.cs" />
     <Compile Include="Script\ToScriptGlobals.cs" />
     <EmbeddedResource Include="sample\script\default.cs" />
     <Page Include="MainWindow.xaml">

@@ -8,7 +8,12 @@
         <ResourceDictionary Source="pack://application:,,,/BotEngine.UI;component/resource.xaml"></ResourceDictionary>
 
         <ResourceDictionary>
-            
+
+            <Style
+                x:Key="TabItemStyleFromBotEngine"
+                TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}"></Style>
+
+            <Style TargetType="TabItem" BasedOn="{StaticResource TabItemStyleFromBotEngine}"></Style>
         </ResourceDictionary>
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

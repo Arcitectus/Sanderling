@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sanderling.UI"
+             xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
              xmlns:BotScript.UI.Wpf="clr-namespace:BotScript.UI.Wpf;assembly=BotScript.UI"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="444">
@@ -13,7 +14,14 @@
 
     <Grid>
         <TabControl>
-            <TabItem Header="Script Engine">
+            <TabItem
+                Style="{StaticResource ContentControlHeaderWithStatusIcon}">
+                <TabItem.Header>
+                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
+                        x:Name="ScriptEngineHeader"
+                        x:FieldModifier="public"
+                        Content="Script Engine"></BotEngine.UI.ViewModel:ContentAndStatusIcon>
+                </TabItem.Header>
                 <BotScript.UI.Wpf:IDE
                     x:Name="IDE"
                     x:FieldModifier="public"></BotScript.UI.Wpf:IDE>
