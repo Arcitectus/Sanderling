@@ -34,7 +34,8 @@
                 </local:InterfaceToEve>
             </TabItem>
 
-            <TabItem>
+            <TabItem
+                IsSelected="True">
                 <TabItem.Header>
                     <BotEngine.UI.ViewModel:ContentAndStatusIcon
                         x:Name="BotHeader"
