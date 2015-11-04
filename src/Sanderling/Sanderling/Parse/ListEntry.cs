@@ -60,7 +60,7 @@ namespace Sanderling.Parse
 		public KeyValuePair<IColumnHeader, string>[] ListColumnCellLabel => Raw?.ListColumnCellLabel;
 
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public IUIElement RegionInteraction => Raw?.RegionInteraction;
 

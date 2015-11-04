@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using Sanderling.Interface.MemoryStruct;
+using Bib3.Geometrik;
 
 namespace Sanderling.Sample.Read
 {
@@ -105,7 +106,7 @@ namespace Sanderling.Sample.Read
 			}
 			else
 			{
-				var Center = ContextMenuFirstEntry.Region.Center;
+				var Center = ContextMenuFirstEntry.Region.Center();
 
 				Console.WriteLine("contextmenu first entry : label: \"" + (ContextMenuFirstEntry?.Text ?? "null") + "\", center location : " +
 					Center.A.ToString() + ", " + Center.B.ToString());

@@ -65,11 +65,6 @@ namespace Sanderling.Interface.MemoryStruct
 		IShipHitpointsAndEnergy Hitpoints { get; }
 
 		/// <summary>
-		/// click here to activate (input focus) or open a menu.
-		/// </summary>
-		IUIElement RegionInteractionElement { get; }
-
-		/// <summary>
 		/// e.g. groups of modules or drones assigned to this target.
 		/// </summary>
 		ShipUiTargetAssignedGroup[] Assigned { get; }

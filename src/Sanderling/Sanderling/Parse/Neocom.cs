@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Bib3.Geometrik;
 using BotEngine.Common;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
@@ -44,6 +45,24 @@ namespace Sanderling.Parse
 		public MemoryStruct.ISprite[] Button => Raw?.Button;
 
 		public MemoryStruct.IUIElementText Clock => Raw?.Clock;
+
+		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+
+		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+
+		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+
+		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+
+		public RectInt Region => Raw?.Region ?? default(RectInt);
+
+		public Int32? InTreeIndex => Raw?.InTreeIndex;
+
+		public Int32? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
+
+		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
+
+		public Int64 Id => Raw?.Id ?? 0;
 
 		Neocom()
 		{ }

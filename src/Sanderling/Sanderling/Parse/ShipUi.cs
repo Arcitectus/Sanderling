@@ -39,11 +39,9 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
-
-		public MemoryStruct.IUIElement RegionInteractionElement => Raw?.RegionInteractionElement;
 
 		ShipUiTarget()
 		{

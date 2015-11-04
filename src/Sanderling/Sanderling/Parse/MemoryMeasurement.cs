@@ -2,6 +2,7 @@
 using BotEngine.Common;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
+using Bib3.Geometrik;
 
 namespace Sanderling.Parse
 {
@@ -111,6 +112,8 @@ namespace Sanderling.Parse
 		public bool? IsDocked { private set; get; }
 
 		public bool? IsUnDocking { private set; get; }
+
+		public Vektor2DInt ScreenSize => Raw?.ScreenSize ?? default(Vektor2DInt);
 
 		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement Raw)
 		{

@@ -56,7 +56,7 @@ namespace Sanderling.Parse
 
 		public string Text => Raw?.Text;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public int? InTreeIndex => Raw?.InTreeIndex;
 
@@ -108,7 +108,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IScroll LeftTreeViewportScroll => Raw?.LeftTreeViewportScroll;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 

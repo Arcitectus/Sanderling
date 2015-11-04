@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sanderling.Interface.MemoryStruct;
+using Bib3.Geometrik;
 
 namespace Sanderling.Motor
 {
@@ -50,7 +51,7 @@ namespace Sanderling.Motor
 
 				if (WaypointRegionReplacement.HasValue)
 				{
-					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.Center;
+					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.Center();
 				}
 
 				WaypointUIElementCurrent = WaypointUIElementCurrent.WithRegion(WaypointUIElementRegion.Value);
@@ -59,16 +60,16 @@ namespace Sanderling.Motor
 					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(MemoryMeasurement)
 					//	remaining region is contracted to provide an safety margin.
 					?.Select(PortionVisible => PortionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
-					?.Where(PortionVisible => !PortionVisible.IsEmpty)
+					?.Where(PortionVisible => !PortionVisible.IsEmpty())
 					?.ToArray();
 
 				var WaypointRegionPortionVisibleLargestPatch =
 					WaypointRegionPortionVisible
-					?.OrderByDescending(Patch => Math.Min(Patch.Size.A, Patch.Size.B))
+					?.OrderByDescending(Patch => Math.Min(Patch.Side0Length(), Patch.Side1Length()))
 					?.FirstOrDefault();
 
-				if (!(0 < WaypointRegionPortionVisibleLargestPatch?.Size.A &&
-					0 < WaypointRegionPortionVisibleLargestPatch?.Size.B))
+				if (!(0 < WaypointRegionPortionVisibleLargestPatch?.Side0Length() &&
+					0 < WaypointRegionPortionVisibleLargestPatch?.Side1Length()))
 				{
 					throw new ApplicationException("mouse waypoint region remaining after occlusion is too small");
 				}

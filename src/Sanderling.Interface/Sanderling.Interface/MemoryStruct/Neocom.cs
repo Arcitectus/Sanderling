@@ -1,6 +1,8 @@
-﻿namespace Sanderling.Interface.MemoryStruct
+﻿using System;
+
+namespace Sanderling.Interface.MemoryStruct
 {
-	public interface INeocom
+	public interface INeocom : IContainer
 	{
 		IUIElement EveMenuButton { get; }
 
@@ -11,7 +13,7 @@
 		IUIElementText Clock { get; }
 	}
 
-	public class Neocom : UIElement, INeocom
+	public class Neocom : Container, INeocom
 	{
 		public IUIElement EveMenuButton { set; get; }
 

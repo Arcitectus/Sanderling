@@ -62,7 +62,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.Tab[] PresetTab => Raw?.PresetTab;
 
-		public OrtogoonInt Region => Raw?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 

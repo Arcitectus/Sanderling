@@ -10,7 +10,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public interface IUIElement : IObjectIdInMemory
 	{
-		OrtogoonInt Region { get; }
+		RectInt Region { get; }
 
 		/// <summary>
 		/// Element occludes other Elements with lower Value.
@@ -65,7 +65,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class UIElement : ObjectIdInMemory, IUIElement
 	{
-		public OrtogoonInt Region { set; get; }
+		public RectInt Region { set; get; }
 
 		public int? InTreeIndex { set; get; }
 
@@ -89,7 +89,7 @@ namespace Sanderling.Interface.MemoryStruct
 			:
 			this((IObjectIdInMemory)Base)
 		{
-			Region = Base?.Region ?? OrtogoonInt.Empty;
+			Region = Base?.Region ?? RectInt.Empty;
 
 			InTreeIndex = Base?.InTreeIndex;
 			ChildLastInTreeIndex = Base?.ChildLastInTreeIndex;

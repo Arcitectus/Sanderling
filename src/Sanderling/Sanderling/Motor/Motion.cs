@@ -11,7 +11,7 @@ namespace Sanderling.Motor
 	{
 		public IUIElement UIElement;
 
-		public OrtogoonInt? RegionReplacement;
+		public RectInt? RegionReplacement;
 
 		public MotionParamMouseRegion()
 		{

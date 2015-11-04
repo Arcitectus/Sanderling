@@ -39,7 +39,7 @@ namespace Sanderling.Accumulator
 
 		public bool? BusyVisible => RepresentedInstant?.BusyVisible;
 
-		public OrtogoonInt Region => RepresentedInstant?.Region ?? OrtogoonInt.Empty;
+		public RectInt Region => RepresentedInstant?.Region ?? RectInt.Empty;
 
 		public int? InTreeIndex => RepresentedInstant?.InTreeIndex;
 
@@ -70,7 +70,7 @@ namespace Sanderling.Accumulator
 		/// <returns></returns>
 		public override int Score(Accumulation.IShipUiModuleAndContext Instant, Parse.IMemoryMeasurement Shared)
 		{
-			return (int)(10 - ((Instant?.Location - NotDefaultLastInstant?.Value?.Location)?.Length ?? int.MaxValue));
+			return (int)(10 - ((Instant?.Location - NotDefaultLastInstant?.Value?.Location)?.Length() ?? int.MaxValue));
 		}
 
 		ShipUiModule()

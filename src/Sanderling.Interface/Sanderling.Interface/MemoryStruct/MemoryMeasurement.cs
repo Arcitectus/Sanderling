@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bib3.Geometrik;
+using System;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -8,6 +9,8 @@ namespace Sanderling.Interface.MemoryStruct
 	public interface IMemoryMeasurement
 	{
 		string VersionString { get; }
+
+		Vektor2DInt ScreenSize { get; }
 
 		IMenu[] Menu { get; }
 
@@ -90,6 +93,8 @@ namespace Sanderling.Interface.MemoryStruct
 	public class MemoryMeasurement : IMemoryMeasurement, ICloneable
 	{
 		public string VersionString { set; get; }
+
+		public Vektor2DInt ScreenSize { set; get; }
 
 		public IMenu[] Menu { set; get; }
 

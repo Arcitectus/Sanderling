@@ -12,23 +12,23 @@ namespace Sanderling
 	{
 		static public Vektor2DInt? RegionCenter(
 			this IUIElement UIElement) =>
-			(UIElement?.Region)?.Center;
+			(UIElement?.Region)?.Center();
 
 		static public Vektor2DInt? RegionSize(
 			this IUIElement UIElement) =>
-			(UIElement?.Region)?.Size;
+			(UIElement?.Region)?.Size();
 
 		static public Vektor2DInt? RegionCornerLeftTop(
-			this IUIElement UIElement) => UIElement?.Region.PunktMin;
+			this IUIElement UIElement) => UIElement?.Region.MinPoint();
 
 		static public Vektor2DInt? RegionCornerRightBottom(
-			this IUIElement UIElement) => UIElement?.Region.PunktMax;
+			this IUIElement UIElement) => UIElement?.Region.MaxPoint();
 
 		static public IEnumerable<T> OrderByCenterDistanceToPoint<T>(
 			this IEnumerable<T> Sequence,
 			Vektor2DInt Point)
 			where T : IUIElement =>
-			Sequence?.OrderBy(element => (Point - element?.RegionCenter())?.LengthSquared ?? Int64.MaxValue);
+			Sequence?.OrderBy(element => (Point - element?.RegionCenter())?.LengthSquared() ?? Int64.MaxValue);
 
 		static public IEnumerable<T> OrderByCenterVerticalDown<T>(
 			this IEnumerable<T> Source)
@@ -133,25 +133,25 @@ namespace Sanderling
 			this IEnumerable<IListEntry> List) =>
 			SequenceGroupByPredicate(List, entry => entry?.IsGroup ?? false);
 
-		static public OrtogoonInt WithSizeExpandedPivotAtCenter(
-			this OrtogoonInt BeforeExpansion,
+		static public RectInt WithSizeExpandedPivotAtCenter(
+			this RectInt BeforeExpansion,
 			int Expansion) =>
 			BeforeExpansion.WithSizeExpandedPivotAtCenter(new Vektor2DInt(Expansion, Expansion));
 
-		static public IEnumerable<OrtogoonInt> SubstractionRemainder(
-			this OrtogoonInt Minuend,
-			OrtogoonInt Subtrahend) => Minuend.Diferenz(Subtrahend);
+		static public IEnumerable<RectInt> SubstractionRemainder(
+			this RectInt Minuend,
+			RectInt Subtrahend) => Minuend.Diferenz(Subtrahend);
 
 		static public Vektor2DInt RandomPointInRectangle(
-			this OrtogoonInt Rectangle,
+			this RectInt Rectangle,
 			Random Random) =>
 			new Vektor2DInt(
 				Rectangle.Min0 + (Random.Next() % Math.Max(1, Rectangle.Max0 - Rectangle.Min0)),
 				Rectangle.Min1 + (Random.Next() % Math.Max(1, Rectangle.Max1 - Rectangle.Min1)));
 
-		static public IEnumerable<OrtogoonInt> SubstractionRemainder(
-			this OrtogoonInt Minuend,
-			IEnumerable<OrtogoonInt> SetSubtrahend)
+		static public IEnumerable<RectInt> SubstractionRemainder(
+			this RectInt Minuend,
+			IEnumerable<RectInt> SetSubtrahend)
 		{
 			var Diference = new[] { Minuend };
 
@@ -231,7 +231,7 @@ namespace Sanderling
 			?.Where(IsOccludingModal)
 			?.TakeWhile(OccludingUIElement => OccludedElement.InTreeIndex < OccludingUIElement?.InTreeIndex);
 
-		static public IEnumerable<KeyValuePair<IUIElement, OrtogoonInt[]>> GetOccludingUIElementAndRemainingRegion(
+		static public IEnumerable<KeyValuePair<IUIElement, RectInt[]>> GetOccludingUIElementAndRemainingRegion(
 			this IUIElement OccludedElement,
 			object UITree)
 			=>
@@ -240,13 +240,13 @@ namespace Sanderling
 			//	Assume that children of OccludedElement do not participate in Occlusion
 			?.Where(candidateOccluding => (OccludedElement?.ChildLastInTreeIndex ?? 0) < candidateOccluding?.InTreeIndex)
 
-			?.Select(OccludingElement => new KeyValuePair<IUIElement, OrtogoonInt[]>(
+			?.Select(OccludingElement => new KeyValuePair<IUIElement, RectInt[]>(
 				OccludingElement, OccludedElement.Region.SubstractionRemainder(OccludingElement.Region).ToArray()))
 			//	only take elements where the remaining region is smaller than the region of the OccludedElement.
 			?.Where(OccludingElementAndRemainingRegion =>
-				(OccludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Area)?.Sum() ?? 0) < OccludedElement.Region.Area);
+				(OccludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Area())?.Sum() ?? 0) < OccludedElement.Region.Area());
 
-		static public IEnumerable<OrtogoonInt> GetOccludedUIElementRemainingRegion(
+		static public IEnumerable<RectInt> GetOccludedUIElementRemainingRegion(
 			this IUIElement OccludedElement,
 			object UITree) =>
 			OccludedElement.Region.SubstractionRemainder(

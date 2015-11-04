@@ -15,7 +15,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public T Largest<T>(this IEnumerable<T> source)
 			where T : class, IUIElement =>
-			source.OrderByDescending(item => item?.Region.Area ?? -1)
+			source.OrderByDescending(item => item?.Region.Area() ?? -1)
 			?.FirstOrDefault();
 
 		static public IEnumerable<object> EnumerateReferencedTransitive(
@@ -29,9 +29,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public T CopyByPolicyMemoryMeasurement<T>(this T ToBeCopied)
 			where T : class =>
-			Bib3.SictRefBaumKopii.ObjektKopiiErsctele(ToBeCopied, new Bib3.SictRefBaumKopiiParam(null, FromSensorToConsumerMessage.SerialisPolicyCache));
+			Bib3.RefBaumKopii.RefBaumKopiiStatic.ObjektKopiiErsctele(ToBeCopied, new Bib3.RefBaumKopii.Param(null, FromSensorToConsumerMessage.SerialisPolicyCache));
 
-		static public IUIElement WithRegion(this IUIElement Base, OrtogoonInt Region) =>
+		static public IUIElement WithRegion(this IUIElement Base, RectInt Region) =>
 			null == Base ? null : new UIElement(Base) { Region = Region };
 
 		static public IUIElement WithRegionSizePivotAtCenter(this IUIElement Base, Vektor2DInt RegionSize) =>
