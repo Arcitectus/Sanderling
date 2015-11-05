@@ -8,6 +8,7 @@
              xmlns:Bib3.FCL.GBS.Inspektor="clr-namespace:Bib3.FCL.GBS.Inspektor;assembly=Bib3.FCL"
              xmlns:Bib3.Terz.GBS.Inspektor="clr-namespace:Bib3.Terz.GBS.Inspektor;assembly=Bib3.Terz"
              xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
+             xmlns:WpfAutoGrid="clr-namespace:WpfAutoGrid;assembly=WpfAutoGrid"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
@@ -20,11 +21,33 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Expander Header="time &amp; origin of displayed measurement">
-            <BotEngine.UI:FromProcessMeasurement
+        <StackPanel>
+            <Expander Header="time &amp; origin of displayed measurement">
+                <BotEngine.UI:FromProcessMeasurement
                 x:Name="TimeAndOrigin"
                 x:FieldModifier="public"></BotEngine.UI:FromProcessMeasurement>
-        </Expander>
+            </Expander>
+
+            <Expander Header="tools">
+                <TabControl>
+                    <TabItem Header="search object">
+                        <StackPanel>
+                            <GroupBox Header="filter">
+                                <WpfAutoGrid:AutoGrid
+						        RowHeight="Auto" RowCount="4"
+						        ColumnCount="2" Columns="Auto,*">
+                                    <TextBlock Text="Id"></TextBlock>
+                                    <TextBox Name="SearchObjectFilterId"></TextBox>
+                                </WpfAutoGrid:AutoGrid>
+                            </GroupBox>
+                            <Button
+                                Name="SearchObjectButtonSelectObject"
+                                Click="SearchObjectButtonSelectObject_Click">select object in tree view</Button>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </Expander>
+        </StackPanel>
 
         <BotEngine.UI:InspectTreeView
             x:Name="TreeView"
