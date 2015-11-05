@@ -16,7 +16,7 @@ namespace Sanderling.Motor
 
 		static public IEnumerable<Motion> AsSequenceMotion(
 			this MotionParam Motion,
-			object MemoryMeasurement)
+			IMemoryMeasurement MemoryMeasurement)
 		{
 			if (null == Motion)
 			{

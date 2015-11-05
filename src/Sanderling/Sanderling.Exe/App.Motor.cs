@@ -88,7 +88,7 @@ namespace Sanderling.Exe
 
 				  var BeginTime = GetTimeStopwatch();
 
-				  var Result = Motor.ActSequenceMotion(Motion.AsSequenceMotion(MemoryMeasurementLast));
+				  var Result = Motor.ActSequenceMotion(Motion.AsSequenceMotion(MemoryMeasurementLast?.Value?.MemoryMeasurement));
 
 				  var EndTime = GetTimeStopwatch();
 
