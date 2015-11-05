@@ -21,6 +21,8 @@ namespace Sanderling.Accumulator
 	{
 		public PropertyGenTimespanInt64<IModuleButtonTooltip> TooltipLast { private set; get; }
 
+		public MemoryStruct.IObjectIdInMemory RepresentedMemoryObject => RepresentedInstant;
+
 		public MemoryStruct.IShipUiModule RepresentedInstant => LastInstant?.Value?.Module;
 
 		public bool? ModuleButtonVisible => RepresentedInstant?.ModuleButtonVisible;

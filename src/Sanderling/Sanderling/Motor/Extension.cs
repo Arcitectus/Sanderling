@@ -32,6 +32,9 @@ namespace Sanderling.Motor
 				var MouseWaypoint = MouseListWaypoint[WaypointIndex];
 
 				var WaypointUIElement = MouseWaypoint?.UIElement;
+
+				WaypointUIElement = (WaypointUIElement as Accumulation.IRepresentingMemoryObject)?.RepresentedMemoryObject as UIElement ?? WaypointUIElement;
+
 				var WaypointRegionReplacement = MouseWaypoint.RegionReplacement;
 
 				var WaypointUIElementCurrent =

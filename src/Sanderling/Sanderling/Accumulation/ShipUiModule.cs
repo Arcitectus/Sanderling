@@ -11,7 +11,7 @@ namespace Sanderling.Accumulation
 		Vektor2DInt? Location { get; }
 	}
 
-	public interface IShipUiModule : IEntityWithHistory<IShipUiModuleAndContext>, IEntityScoring<IShipUiModuleAndContext, Parse.IMemoryMeasurement>, MemoryStruct.IShipUiModule
+	public interface IShipUiModule : IEntityWithHistory<IShipUiModuleAndContext>, IEntityScoring<IShipUiModuleAndContext, Parse.IMemoryMeasurement>, MemoryStruct.IShipUiModule, IRepresentingMemoryObject
 	{
 		PropertyGenTimespanInt64<Parse.IModuleButtonTooltip> TooltipLast { get; }
 	}

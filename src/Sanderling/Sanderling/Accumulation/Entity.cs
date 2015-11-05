@@ -14,4 +14,8 @@ namespace Sanderling.Accumulation
 		int Score(AccumulatedT Instant, SharedT Shared);
 	}
 
+	public interface IRepresentingMemoryObject
+	{
+		Interface.MemoryStruct.IObjectIdInMemory RepresentedMemoryObject { get; }
+	}
 }
