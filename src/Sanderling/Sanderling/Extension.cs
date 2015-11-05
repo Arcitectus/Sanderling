@@ -248,9 +248,11 @@ namespace Sanderling
 
 		static public IEnumerable<RectInt> GetOccludedUIElementRemainingRegion(
 			this IUIElement OccludedElement,
-			object UITree) =>
+			object UITree,
+			Func<IUIElement, bool> CallbackExclude = null) =>
 			OccludedElement.Region.SubstractionRemainder(
 			GetOccludingUIElementAndRemainingRegion(OccludedElement, UITree)
+			?.Where(OccludingElementAndRemainingRegion => !(CallbackExclude?.Invoke(OccludingElementAndRemainingRegion.Key) ?? false))
 			?.Select(OccludingElementAndRemainingRegion => OccludingElementAndRemainingRegion.Key.Region));
 
 	}

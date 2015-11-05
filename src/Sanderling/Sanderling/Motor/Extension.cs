@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
+using Bib3;
 
 namespace Sanderling.Motor
 {
@@ -14,6 +15,11 @@ namespace Sanderling.Motor
 
 		public const int MotionMouseWaypointSafetyMarginAdditional = 0;
 
+		static public IEnumerable<IUIElement> EnumerateSetElementExcludedFromOcclusion(this IMemoryMeasurement MemoryMeasurement) => new[]
+			{
+				MemoryMeasurement?.ModuleButtonTooltip,
+			}.WhereNotDefault();
+
 		static public IEnumerable<Motion> AsSequenceMotion(
 			this MotionParam Motion,
 			IMemoryMeasurement MemoryMeasurement)
@@ -22,6 +28,8 @@ namespace Sanderling.Motor
 			{
 				yield break;
 			}
+
+			var SetElementExcludedFromOcclusion = MemoryMeasurement?.EnumerateSetElementExcludedFromOcclusion()?.ToArray();
 
 			var Random = new Random((int)Bib3.Glob.StopwatchZaitMiliSictInt());
 
@@ -60,7 +68,9 @@ namespace Sanderling.Motor
 				WaypointUIElementCurrent = WaypointUIElementCurrent.WithRegion(WaypointUIElementRegion.Value);
 
 				var WaypointRegionPortionVisible =
-					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(MemoryMeasurement)
+					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(
+						MemoryMeasurement,
+						c => SetElementExcludedFromOcclusion?.Contains(c) ?? false)
 					//	remaining region is contracted to provide an safety margin.
 					?.Select(PortionVisible => PortionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
 					?.Where(PortionVisible => !PortionVisible.IsEmpty())
