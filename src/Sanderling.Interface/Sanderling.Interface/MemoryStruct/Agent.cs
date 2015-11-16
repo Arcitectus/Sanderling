@@ -9,21 +9,21 @@
 	{
 	}
 
-	public interface IWindowAgentDialogue
+	public interface IWindowAgentDialogue : IWindowAgent
 	{
-		WindowAgentPane LeftPane { get; }
+		IWindowAgentPane LeftPane { get; }
 
 		/// <summary>
 		/// The Mission objectives (locations, items) and rewards are described in here in the "Html" member.
 		/// </summary>
-		WindowAgentPane RightPane { get; }
+		IWindowAgentPane RightPane { get; }
 	}
 
 	public class WindowAgentDialogue : WindowAgent, IWindowAgentDialogue
 	{
-		public WindowAgentPane LeftPane { set; get; }
+		public IWindowAgentPane LeftPane { set; get; }
 
-		public WindowAgentPane RightPane { set; get; }
+		public IWindowAgentPane RightPane { set; get; }
 
 		public WindowAgentDialogue()
 		{
@@ -36,7 +36,7 @@
 		}
 	}
 
-	public class WindowAgentBrowser : WindowAgent
+	public class WindowAgentBrowser : WindowAgent, IWindowAgent
 	{
 		public WindowAgentBrowser(WindowAgent Base)
 			:
