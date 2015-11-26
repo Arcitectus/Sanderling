@@ -38,11 +38,11 @@ namespace Sanderling.Interface.MemoryStruct
 
 		IUIElement InfoPanelButtonIncursions { get; }
 
-		InfoPanelCurrentSystem InfoPanelCurrentSystem { get; }
+		IInfoPanelSystem InfoPanelCurrentSystem { get; }
 
-		InfoPanelRoute InfoPanelRoute { get; }
+		IInfoPanelRoute InfoPanelRoute { get; }
 
-		InfoPanelMissions InfoPanelMissions { get; }
+		IInfoPanelMissions InfoPanelMissions { get; }
 
 		IContainer[] Utilmenu { get; }
 
@@ -116,11 +116,11 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IUIElement InfoPanelButtonIncursions { set; get; }
 
-		public InfoPanelCurrentSystem InfoPanelCurrentSystem { set; get; }
+		public IInfoPanelSystem InfoPanelCurrentSystem { set; get; }
 
-		public InfoPanelRoute InfoPanelRoute { set; get; }
+		public IInfoPanelRoute InfoPanelRoute { set; get; }
 
-		public InfoPanelMissions InfoPanelMissions { set; get; }
+		public IInfoPanelMissions InfoPanelMissions { set; get; }
 
 		public IContainer[] Utilmenu { set; get; }
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public interface IInfoPanel : IUIElement, IExpandable
 	{
@@ -10,9 +8,30 @@ namespace Sanderling.Interface.MemoryStruct
 		/// content which is only visible when expanded.
 		/// </summary>
 		IContainer ExpandedContent { get; }
+
+		string HeaderText { get; }
+    }
+
+	public interface IInfoPanelSystem : IInfoPanel
+	{
+		IUIElement ListSurroundingsButton { get; }
 	}
 
-	public class InfoPanel : UIElement, IInfoPanel, IUIElementText
+	public interface IInfoPanelRoute : IInfoPanel
+	{
+		IUIElementText NextLabel { get; }
+
+		IUIElementText DestinationLabel { get; }
+
+		IUIElement[] RouteElementMarker { get; }
+	}
+
+	public interface IInfoPanelMissions : IInfoPanel
+	{
+		IUIElementText[] ListMissionButton { get; }
+	}
+
+	public class InfoPanel : UIElement, IInfoPanel
 	{
 		public bool? IsExpanded { set; get; }
 
@@ -22,7 +41,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IContainer ExpandedContent { set; get; }
 
-		public string Text => HeaderContent?.LabelText?.Largest()?.Text;
+		public string HeaderText => HeaderContent?.LabelText?.Largest()?.Text;
 
 		public InfoPanel()
 		{
@@ -45,29 +64,28 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class InfoPanelCurrentSystem : InfoPanel
+	public class InfoPanelSystem : InfoPanel, IInfoPanelSystem
 	{
-		public IUIElement ListSurroundingsButton;
+		public IUIElement ListSurroundingsButton { set; get; }
 
-		public InfoPanelCurrentSystem()
+		public InfoPanelSystem()
 		{
 		}
 
-		public InfoPanelCurrentSystem(IInfoPanel Base)
+		public InfoPanelSystem(IInfoPanel Base)
 			:
 			base(Base)
 		{
 		}
 	}
 
-
-	public class InfoPanelRoute : InfoPanel
+	public class InfoPanelRoute : InfoPanel, IInfoPanelRoute
 	{
-		public IUIElementText NextLabel;
+		public IUIElementText NextLabel { set; get; }
 
-		public IUIElementText DestinationLabel;
+		public IUIElementText DestinationLabel { set; get; }
 
-		public IUIElement[] RouteElementMarker;
+		public IUIElement[] RouteElementMarker { set; get; }
 
 		public InfoPanelRoute()
 		{
@@ -80,9 +98,9 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 	}
 
-	public class InfoPanelMissions : InfoPanel
+	public class InfoPanelMissions : InfoPanel, IInfoPanelMissions
 	{
-		public IUIElementText[] ListMissionButton;
+		public IUIElementText[] ListMissionButton { set; get; }
 
 		public InfoPanelMissions()
 		{
@@ -94,6 +112,5 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 	}
-
 
 }

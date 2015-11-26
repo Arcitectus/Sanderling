@@ -51,11 +51,11 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElement InfoPanelButtonRoute => Raw?.InfoPanelButtonRoute;
 
-		public MemoryStruct.InfoPanelCurrentSystem InfoPanelCurrentSystem => Raw?.InfoPanelCurrentSystem;
+		public MemoryStruct.IInfoPanelSystem InfoPanelCurrentSystem => Raw?.InfoPanelCurrentSystem;
 
-		public MemoryStruct.InfoPanelMissions InfoPanelMissions => Raw?.InfoPanelMissions;
+		public MemoryStruct.IInfoPanelMissions InfoPanelMissions => Raw?.InfoPanelMissions;
 
-		public MemoryStruct.InfoPanelRoute InfoPanelRoute => Raw?.InfoPanelRoute;
+		public MemoryStruct.IInfoPanelRoute InfoPanelRoute => Raw?.InfoPanelRoute;
 
 		public MemoryStruct.IMenu[] Menu => Raw?.Menu;
 
