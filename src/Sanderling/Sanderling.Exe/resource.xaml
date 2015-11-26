@@ -14,7 +14,7 @@
                 x:Key="AppProperty">
                 <BotEngine.UI.ViewModel:AppProperty.CompileTime>
                     <BotEngine.UI.ViewModel:AppPropertyCompileTime
-                        SourceRepoUri="https://github.com/Arcitectus/Sanderling"
+                        WebsiteUrl="https://github.com/Arcitectus/Sanderling"
                         VersionId="{StaticResource AppVersionId}"></BotEngine.UI.ViewModel:AppPropertyCompileTime>
                 </BotEngine.UI.ViewModel:AppProperty.CompileTime>
 

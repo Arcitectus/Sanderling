@@ -86,7 +86,7 @@ namespace Sanderling.Exe
 		Script.ToScriptGlobals ToScriptGlobalsConstruct(Action ScriptExecutionCheck) =>
 			new Script.ToScriptGlobals()
 			{
-				HostSanderling = new Sanderling.Script.HostToScript()
+				Sanderling = new Sanderling.Script.HostToScript()
 				{
 					MemoryMeasurementFunc = () =>
 					{
@@ -108,7 +108,7 @@ namespace Sanderling.Exe
 
 			ScriptIDE.ScriptParamBase = new BotScript.ScriptParam()
 			{
-				ImportAssembly = Sanderling.Script.ToScriptImport.ImportAssembly?.ToArray(),
+				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
 				ImportNamespace = Sanderling.Script.ToScriptImport.ImportNamespace?.ToArray(),
 			};
 

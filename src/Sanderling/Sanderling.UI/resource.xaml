@@ -6,6 +6,7 @@
     >
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/BotEngine.UI;component/resource.xaml"></ResourceDictionary>
+        <ResourceDictionary Source="pack://application:,,,/BotScript.UI;component/resource.xaml"></ResourceDictionary>
 
         <ResourceDictionary>
 

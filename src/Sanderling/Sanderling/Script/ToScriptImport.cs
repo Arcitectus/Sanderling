@@ -21,7 +21,7 @@ namespace Sanderling.Script
 			typeof(Uri),
 			typeof(Enumerable),
 			typeof(IHostToScript),
-			typeof(BotScript.IHostToScript),
+			typeof(BotScript.ToScript.IHostToScript),
 			typeof(Bib3.Geometrik.Vektor2DInt),
 			typeof(ObjectIdInt64),
 			typeof(FromProcessMeasurement<>),

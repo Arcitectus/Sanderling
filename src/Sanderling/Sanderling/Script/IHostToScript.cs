@@ -58,6 +58,8 @@ namespace Sanderling.Script
 
 	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals
 	{
-		public IHostToScript HostSanderling;
+		public IHostToScript Sanderling;
+
+		public IHostToScript HostSanderling => Sanderling;
 	}
 }
