@@ -16,6 +16,8 @@ namespace Sanderling.Parse
 
 		new IWindowInventory[] WindowInventory { get; }
 
+		new IWindowAgentDialogue[] WindowAgentDialogue { get; }
+
 		new INeocom Neocom { get; }
 
 		bool? IsDocked { get; }
@@ -34,6 +36,8 @@ namespace Sanderling.Parse
 		public IWindowOverview[] WindowOverview { set; get; }
 
 		public IWindowInventory[] WindowInventory { set; get; }
+
+		public IWindowAgentDialogue[] WindowAgentDialogue { set; get; }
 
 		public INeocom Neocom { set; get; }
 
@@ -73,7 +77,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowAgentBrowser[] WindowAgentBrowser => Raw?.WindowAgentBrowser;
 
-		public MemoryStruct.IWindowAgentDialogue[] WindowAgentDialogue => Raw?.WindowAgentDialogue;
+		MemoryStruct.IWindowAgentDialogue[] MemoryStruct.IMemoryMeasurement.WindowAgentDialogue => WindowAgentDialogue;
 
 		public MemoryStruct.WindowChatChannel[] WindowChatChannel => Raw?.WindowChatChannel;
 
@@ -131,6 +135,8 @@ namespace Sanderling.Parse
 			WindowOverview = Raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
 
 			WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
+
+			WindowAgentDialogue = Raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
 
 			var ShipUi = Raw?.ShipUi;
 

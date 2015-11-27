@@ -1,6 +1,4 @@
-﻿using Sanderling.Parse;
-
-namespace Sanderling.Parse.Test
+﻿namespace Sanderling.Parse.Test
 {
 	static public class Drone
 	{

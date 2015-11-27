@@ -1,5 +1,6 @@
 ﻿using Bib3;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -18,9 +19,13 @@ namespace Sanderling.Parse
 		const string InNumberRegexPatternDigitGroupSeparatorGroupName = "DigitGroupSeparator";
 
 		static readonly string DefaultNumberFormatRegexPattern = DefaultNumberFormatRegexPatternConstruct();
+		static readonly string DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars = DefaultNumberFormatRegexPatternConstruct(AllowLeadingCharacters: true, AllowTrailingCharacters: true);
 
 		static readonly public Regex DefaultNumberFormatRegex =
 			new Regex(DefaultNumberFormatRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		static readonly public Regex DefaultNumberFormatRegexAllowLeadingAndTrailingChars =
+			new Regex(DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		static public string DefaultNumberFormatRegexPatternConstruct(
 			bool AllowLeadingCharacters = false,
@@ -190,5 +195,102 @@ namespace Sanderling.Parse
 		static public Int64? NumberParseDecimal(this string NumberString) =>
 			NumberParseDecimalMilli(NumberString) / 1000;
 
+		private enum RomanDigitValue
+		{
+			I = 1,
+			V = 5,
+			X = 10,
+			L = 50,
+			C = 100,
+			D = 500,
+			M = 1000
+		}
+
+		static public int? IntFromRoman(this string roman)
+		{
+			if (roman.IsNullOrEmpty())
+				return null;
+
+			roman = roman.Trim().ToUpper();
+
+			if (roman == "N")
+				return 0;
+
+			// Rule 4
+			if (roman.Split('V').Length > 2 ||
+				roman.Split('L').Length > 2 ||
+				roman.Split('D').Length > 2)
+				return null;
+
+			// Rule 1
+			int count = 1;
+			char last = 'Z';
+			foreach (char numeral in roman)
+			{
+				// Valid character?
+				if ("IVXLCDM".IndexOf(numeral) == -1)
+					return null;
+
+				// Duplicate?
+				if (numeral == last)
+				{
+					count++;
+					if (count == 4)
+						return null;
+				}
+				else
+				{
+					count = 1;
+					last = numeral;
+				}
+			}
+
+			// Create an ArrayList containing the values
+			int DigitIndex = 0;
+			var ListDigitValue = new List<int>();
+			int maxDigit = 1000;
+			while (DigitIndex < roman.Length)
+			{
+				// Base value of digit
+				char numeral = roman[DigitIndex];
+				int DigitValue = (int)Enum.Parse(typeof(RomanDigitValue), numeral.ToString());
+
+				// Rule 3
+				if (DigitValue > maxDigit)
+					return null;
+
+				// Next digit
+				int nextDigit = 0;
+				if (DigitIndex < roman.Length - 1)
+				{
+					char nextNumeral = roman[DigitIndex + 1];
+					nextDigit = (int)Enum.Parse(typeof(RomanDigitValue), nextNumeral.ToString());
+
+					if (nextDigit > DigitValue)
+					{
+						if ("IXC".IndexOf(numeral) == -1 ||
+							nextDigit > (DigitValue * 10) ||
+							roman.Split(numeral).Length > 3)
+							throw new ArgumentException("Rule 3");
+
+						maxDigit = DigitValue - 1;
+						DigitValue = nextDigit - DigitValue;
+						DigitIndex++;
+					}
+				}
+
+				ListDigitValue.Add(DigitValue);
+
+				// Next digit
+				DigitIndex++;
+			}
+
+			// Rule 5
+			for (int i = 0; i < ListDigitValue.Count - 1; i++)
+				if (ListDigitValue[i] < ListDigitValue[i + 1])
+					return null;
+
+			return ListDigitValue.Sum();
+		}
 	}
 }

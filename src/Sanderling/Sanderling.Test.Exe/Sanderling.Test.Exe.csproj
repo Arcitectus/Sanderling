@@ -90,6 +90,8 @@
     <Compile Include="General.cs" />
     <Compile Include="Other.cs" />
     <Compile Include="Parse\Distance.cs" />
+    <Compile Include="Parse\Mission.cs" />
+    <Compile Include="Parse\Location.cs" />
     <Compile Include="Parse\Drone.cs" />
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\Number.cs" />
