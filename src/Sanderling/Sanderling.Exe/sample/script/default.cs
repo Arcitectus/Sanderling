@@ -33,7 +33,7 @@ while(true)
 		goto loop;
 	}
 
-	//	click on the "dock"/"jump" menu entry to initiate warp to at 0km.
+	Host.Log("menu entry found. clicking to initiate warp.");
 	Sanderling.MouseClickLeft(MenuEntry);
 
 loop:
