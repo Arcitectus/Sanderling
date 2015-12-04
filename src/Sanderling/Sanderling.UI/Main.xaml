@@ -58,12 +58,12 @@
                                             <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
                                                 <TextBlock
                                             Text="pause"
-                                            ToolTip="pause generation of input by clicking here or by pressing Ctrl + Alt."></TextBlock>
+                                            ToolTip="pause script execution by clicking here or by pressing Ctrl + Alt."></TextBlock>
                                             </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonLinxContent>
                                             <Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
                                                 <TextBlock
                                             Text="play"
-                                            ToolTip="resume generation of input."></TextBlock>
+                                            ToolTip="resume script execution."></TextBlock>
                                             </Bib3.FCL.GBS:ToggleButtonHorizBinär.ButtonReczContent>
                                         </Bib3.FCL.GBS:ToggleButtonHorizBinär>
                                     </Viewbox>

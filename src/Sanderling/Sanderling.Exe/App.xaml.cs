@@ -110,12 +110,17 @@ namespace Sanderling.Exe
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
 				ImportNamespace = Sanderling.Script.ToScriptImport.ImportNamespace?.ToArray(),
+				CompilationOption = new BotScript.CodeAnalysis.CompilationOption()
+				{
+					InstrumentationOption = BotScript.CodeAnalysis.Default.InstrumentationOption,
+				},
 			};
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
 			ScriptIDE.Editor.Document.Text = DefaultScript;
 
-			Window?.AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler(ToggleButtonChecked));
+			Window.KeyDown += Window_KeyDown;
+			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
 
 			Window?.Main?.ConfigFromModelToView(ConfigDefaultConstruct());
 
@@ -129,7 +134,7 @@ namespace Sanderling.Exe
 
 		void Timer_Tick(object sender, object e)
 		{
-			Window?.ProcessInput();
+			ProcessInput();
 
 			Motor = GetMotor();
 
@@ -140,7 +145,7 @@ namespace Sanderling.Exe
 			UIPresent();
         }
 
-		void ToggleButtonChecked(object sender, RoutedEventArgs e)
+		void ButtonClicked(object sender, RoutedEventArgs e)
 		{
 			var OriginalSource = e?.OriginalSource;
 
