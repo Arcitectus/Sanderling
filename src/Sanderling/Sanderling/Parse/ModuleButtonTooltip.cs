@@ -23,6 +23,7 @@ namespace Sanderling.Parse
 		int? RangeOptimal { get; }
 		int? RangeMax { get; }
 		int? RangeFalloff { get; }
+		int? RangeWithin { get; }
 	}
 
 	public class ModuleButtonTooltip : IModuleButtonTooltip
@@ -111,6 +112,8 @@ namespace Sanderling.Parse
 
 		public int? RangeFalloff { private set; get; }
 
+		public int? RangeWithin { private set; get; }
+
 		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
 		public ModuleButtonTooltip(MemoryStruct.IContainer Raw)
@@ -139,6 +142,22 @@ namespace Sanderling.Parse
 
 			IsMiner = LabelAnyRegexMatchSuccessIgnoreCase(IsMinerSetIndicatorLabelRegexPattern);
 			IsSurveyScanner = LabelRegexMatchSuccessIgnoreCase(@"Survey\s*Scan");
+
+			var DistanceMinFromLabelWithRegexPattern = new Func<string, int?>(prefixPattern =>
+			{
+				var pattern = prefixPattern + Distance.DistanceRegexPattern;
+
+				var Match = Raw?.LabelText?.Select(LabelText => LabelText?.Text?.RegexMatchIfSuccess(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault();
+
+				if (null == Match)
+					return null;
+
+				return (int?)Distance.DistanceParseMin(Match.Value.RegexMatchIfSuccess(Distance.DistanceRegexPattern)?.Value);
+			});
+
+			RangeWithin = DistanceMinFromLabelWithRegexPattern(@"^Range within\s*");
+			RangeOptimal = DistanceMinFromLabelWithRegexPattern(@"Optimal range within\s*");
+			RangeFalloff = DistanceMinFromLabelWithRegexPattern(@"Falloff range within\s*");
 		}
 	}
 }
