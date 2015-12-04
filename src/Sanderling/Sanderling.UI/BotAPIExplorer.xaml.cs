@@ -17,6 +17,8 @@ namespace Sanderling.UI
 			InitializeComponent();
 
 			TreeView.TreeViewView = new ApiTreeViewNodeView();
+
+			TreeView.Export.ZuExportiire = () => TreeView.TreeView?.AuswaalPfaadListeSegmentAstIdentUndWert?.LastOrDefault().Value;
 		}
 
 		public void Present(Script.IHostToScript Api)
