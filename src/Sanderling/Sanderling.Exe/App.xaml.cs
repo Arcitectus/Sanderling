@@ -1,6 +1,7 @@
 ﻿using Bib3;
 using BotEngine.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
@@ -116,8 +117,12 @@ namespace Sanderling.Exe
 				},
 			};
 
+			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =
+				SetScriptIncluded?.Select(ScriptIdAndContent => new KeyValuePair<string, Func<string>>(ScriptIdAndContent.Key, () => ScriptIdAndContent.Value))?.ToArray();
+
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
-			ScriptIDE.Editor.Document.Text = DefaultScript;
+			ScriptIDE.ScriptWriteToOrReadFromFile?.ReadFromFile();
+			ScriptIDE.Editor.Document.Text = ScriptIDE.Editor.Document.Text ?? SetScriptIncluded?.FirstOrDefault().Value ?? "";
 
 			Window.KeyDown += Window_KeyDown;
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
@@ -143,7 +148,7 @@ namespace Sanderling.Exe
 			LicenseClientExchange();
 
 			UIPresent();
-        }
+		}
 
 		void ButtonClicked(object sender, RoutedEventArgs e)
 		{

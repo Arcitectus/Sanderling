@@ -1,8 +1,10 @@
 ﻿using Bib3;
 using BotEngine;
 using BotEngine.Common;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Sanderling.Exe
 {
@@ -18,21 +20,30 @@ namespace Sanderling.Exe
 
 		string DefaultScriptPath => ScriptDirectoryPath.PathToFilesysChild("default.cs");
 
-		string DefaultScript
+		KeyValuePair<string, string>[] SetScriptIncluded =
+			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)?.ToArray();
+
+		static IEnumerable<KeyValuePair<string, string>> SetScriptIncludedConstruct()
 		{
-			get
+			var Assembly = typeof(App).Assembly;
+
+			var SetResourceName = Assembly?.GetManifestResourceNames();
+
+			var ScriptPrefix = Assembly.GetName().Name + ".sample.script.";
+
+			foreach (var ResourceName in SetResourceName.EmptyIfNull())
 			{
-				try
-				{
-					return
-						Encoding.UTF8.GetString(
-							System.Reflection.Assembly.GetCallingAssembly()?.GetManifestResourceStream(
-							System.Reflection.Assembly.GetCallingAssembly()?.GetManifestResourceNames()?.FirstOrDefault(k => k.RegexMatchSuccessIgnoreCase(@"default\.cs"))).LeeseGesamt());
-				}
-				catch
-				{
-					return null;
-				}
+				var ScriptIdMatch = ResourceName.RegexMatchIfSuccess(Regex.Escape(ScriptPrefix) + @"(.*)");
+
+				if (null == ScriptIdMatch)
+					continue;
+
+				var ScriptUTF8 = Assembly.GetManifestResourceStream(ResourceName)?.LeeseGesamt();
+
+				if (null == ScriptUTF8)
+					continue;
+
+				yield return new KeyValuePair<string, string>(ScriptIdMatch?.Groups?[1]?.Value, Encoding.UTF8.GetString(ScriptUTF8));
 			}
 		}
 

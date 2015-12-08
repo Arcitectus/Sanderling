@@ -169,7 +169,7 @@
     <Compile Include="App.UI.cs" />
     <Compile Include="Script\ToScriptGlobals.cs" />
     <Compile Include="ToScriptImport.cs" />
-    <EmbeddedResource Include="sample\script\default.cs" />
+    <EmbeddedResource Include="sample\script\Travel.simple.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
