@@ -1,14 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using Bib3.Geometrik;
-using BotEngine.Interface;
+﻿using Bib3.Geometrik;
+using BotEngine.Common;
+using System;
+using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {
 	public interface IOverviewEntry : MemoryStruct.IOverviewEntry, IListEntry
 	{
+		MemoryStruct.ISprite MainIcon { set; get; }
 
+		bool? MainIconIsRed { get; }
+
+		bool? IsAttackingMe { get; }
+
+		bool? IsJammingMe { get; }
 	}
 
 	public interface IWindowOverview : MemoryStruct.IWindowOverview
@@ -22,6 +28,14 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.ISprite[] RightIcon => Raw?.RightIcon;
 
+		public MemoryStruct.ISprite MainIcon { set; get; }
+
+		public bool? MainIconIsRed { set; get; }
+
+		public bool? IsAttackingMe { set; get; }
+
+		public bool? IsJammingMe { set; get; }
+
 		public OverviewEntry()
 		{
 		}
@@ -31,6 +45,19 @@ namespace Sanderling.Parse
 			base(Raw)
 		{
 			this.Raw = Raw;
+
+			MainIcon = Raw?.SetSprite?.FirstOrDefault(Sprite => Sprite?.Name == "iconSprite");
+
+			MainIconIsRed = MainIcon?.Color?.IsRed();
+
+			var ContainsLeftIconWithNameMatchingRegexPattern = new Func<string, bool>(regexPattern =>
+				Raw?.SetSprite?.Any(Sprite => (Sprite?.Name).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
+
+			var ContainsRightIconWithHintMatchingRegexPattern = new Func<string, bool>(regexPattern =>
+				Raw?.RightIcon?.Any(Sprite => (Sprite?.HintText).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
+
+			IsAttackingMe = ContainsLeftIconWithNameMatchingRegexPattern("attacking.*me");
+			IsJammingMe = ContainsRightIconWithHintMatchingRegexPattern("jamming.*me");
 		}
 	}
 
