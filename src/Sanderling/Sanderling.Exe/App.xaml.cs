@@ -122,7 +122,8 @@ namespace Sanderling.Exe
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
 			ScriptIDE.ScriptWriteToOrReadFromFile?.ReadFromFile();
-			ScriptIDE.Editor.Document.Text = ScriptIDE.Editor.Document.Text ?? ListScriptIncluded?.FirstOrDefault().Value ?? "";
+			if (!(0 < ScriptIDE.Editor.Document.Text?.Length))
+				ScriptIDE.Editor.Document.Text = ListScriptIncluded?.FirstOrDefault().Value ?? "";
 
 			Window.KeyDown += Window_KeyDown;
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
