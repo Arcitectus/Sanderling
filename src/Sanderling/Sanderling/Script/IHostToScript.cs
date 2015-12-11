@@ -38,7 +38,7 @@ namespace Sanderling.Script
 
 	public class HostToScript : IHostToScript
 	{
-		public const int FromScriptRequestMemoryMeasurementDelayMax = 3000;
+		public const int FromScriptRequestMemoryMeasurementDelayMax = 4000;
 
 		public Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>> MemoryMeasurementFunc;
 
