@@ -20,8 +20,10 @@ namespace Sanderling.Exe
 
 		string DefaultScriptPath => ScriptDirectoryPath.PathToFilesysChild("default.cs");
 
-		KeyValuePair<string, string>[] SetScriptIncluded =
-			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)?.ToArray();
+		KeyValuePair<string, string>[] ListScriptIncluded =
+			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)
+			?.OrderBy(ScriptNameAndContent => !ScriptNameAndContent.Key.RegexMatchSuccessIgnoreCase("travel"))
+			?.ToArray();
 
 		static IEnumerable<KeyValuePair<string, string>> SetScriptIncludedConstruct()
 		{

@@ -167,6 +167,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="App.UI.cs" />
+    <EmbeddedResource Include="sample\script\Mine.ore.cs" />
     <Compile Include="Script\ToScriptGlobals.cs" />
     <Compile Include="ToScriptImport.cs" />
     <EmbeddedResource Include="sample\script\Travel.simple.cs" />

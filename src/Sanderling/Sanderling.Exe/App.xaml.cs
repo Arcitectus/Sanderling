@@ -118,11 +118,11 @@ namespace Sanderling.Exe
 			};
 
 			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =
-				SetScriptIncluded?.Select(ScriptIdAndContent => new KeyValuePair<string, Func<string>>(ScriptIdAndContent.Key, () => ScriptIdAndContent.Value))?.ToArray();
+				ListScriptIncluded?.Select(ScriptIdAndContent => new KeyValuePair<string, Func<string>>(ScriptIdAndContent.Key, () => ScriptIdAndContent.Value))?.ToArray();
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
 			ScriptIDE.ScriptWriteToOrReadFromFile?.ReadFromFile();
-			ScriptIDE.Editor.Document.Text = ScriptIDE.Editor.Document.Text ?? SetScriptIncluded?.FirstOrDefault().Value ?? "";
+			ScriptIDE.Editor.Document.Text = ScriptIDE.Editor.Document.Text ?? ListScriptIncluded?.FirstOrDefault().Value ?? "";
 
 			Window.KeyDown += Window_KeyDown;
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
