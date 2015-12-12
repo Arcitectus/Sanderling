@@ -171,13 +171,13 @@ Func<object>	DefenseStep()
 		Host.Log("exit defense.");
 		return null;
 	}
-	
-	if(!(0 < DronesInSpaceCount))
-	{
-		DroneLaunch();
-	}
 
-	var	SetRatName =
+	if (!(0 < DronesInSpaceCount))
+		DroneLaunch();
+
+	EnsureOverviewTypeSelectionLoaded();
+
+	var SetRatName =
 		ListRatOverviewEntry?.Select(entry => Regex.Split(entry?.Name ?? "", @"\s+")?.FirstOrDefault())
 		?.Distinct()
 		?.ToArray();
@@ -206,6 +206,12 @@ Func<object>	DefenseStep()
 
 Func<object> InBeltMineStep()
 {
+	if (DefenseEnter)
+	{
+		Host.Log("enter defense.");
+		return DefenseStep;
+	}
+
 	EnsureWindowInventoryOpenOreHold();
 
 	EnsureOverviewTypeSelectionLoaded();
