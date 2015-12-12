@@ -137,8 +137,8 @@ void CloseModalUIElement()
 void DroneLaunch()
 {
 	Host.Log("launch drones.");
-	HostSanderling.MouseClickRight(DronesInBayListEntry);
-	HostSanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("launch", RegexOptions.IgnoreCase));
+	Sanderling.MouseClickRight(DronesInBayListEntry);
+	Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("launch", RegexOptions.IgnoreCase));
 }
 
 void DroneEnsureInBay()
@@ -154,8 +154,8 @@ void DroneEnsureInBay()
 void DroneReturnToBay()
 {
 	Host.Log("return drones to bay.");
-	HostSanderling.MouseClickRight(DronesInSpaceListEntry);
-	HostSanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("return.*bay", RegexOptions.IgnoreCase));
+	Sanderling.MouseClickRight(DronesInSpaceListEntry);
+	Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("return.*bay", RegexOptions.IgnoreCase));
 }
 
 Func<object>	DefenseStep()
@@ -280,11 +280,11 @@ Sanderling.Parse.IWindowInventory	WindowInventory	=>
 IWindowDroneView	WindowDrones	=>
 	Measurement?.WindowDroneView?.FirstOrDefault();
 
-ITreeViewEntry InventoryOreHold =>
+ITreeViewEntry InventoryActiveShipOreHold =>
 	WindowInventory?.ActiveShipEntry?.TreeEntryFromCargoSpaceType(ShipCargoSpaceTypeEnum.OreHold);
 
 IInventoryCapacityGauge OreHoldCapacityMilli =>
-	(InventoryOreHold?.IsSelected ?? false) ? WindowInventory?.SelectedRightInventoryCapacityMilli : null;
+	(InventoryActiveShipOreHold?.IsSelected ?? false) ? WindowInventory?.SelectedRightInventoryCapacityMilli : null;
 
 int? OreHoldFillPercent => (int?)((OreHoldCapacityMilli?.Used * 100) / OreHoldCapacityMilli?.Max);
 
@@ -348,19 +348,19 @@ void ClickMenuEntryOnMenuRoot(IUIElement MenuRoot, string MenuEntryRegexPattern)
 
 void EnsureWindowInventoryOpen()
 {
-	if(null == WindowInventory)
-	{
-		Host.Log("open Inventory.");
-		Sanderling.MouseClickLeft(Sanderling?.MemoryMeasurementParsed?.Value?.Neocom?.InventoryButton);
-	}
+	if (null != WindowInventory)
+		return;
+
+	Host.Log("open Inventory.");
+	Sanderling.MouseClickLeft(Measurement?.Neocom?.InventoryButton);
 }
 
 void EnsureWindowInventoryOpenOreHold()
 {
 	EnsureWindowInventoryOpen();
-	
-	if(!(InventoryOreHold?.IsSelected ?? false))
-		Sanderling.MouseClickLeft(InventoryOreHold);
+
+	if(!(InventoryActiveShipOreHold?.IsSelected ?? false))
+		Sanderling.MouseClickLeft(InventoryActiveShipOreHold);
 }
 
 void UnloadToHangar()
@@ -369,26 +369,27 @@ void UnloadToHangar()
 
 	EnsureWindowInventoryOpenOreHold();
 
-	while(true)
+	for (;;)
 	{
-		var	WindowInventoryItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.FirstOrDefault();
+		var	OreHoldItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.FirstOrDefault();
 		var	ItemHangar = WindowInventory?.ItemHangarEntry?.LabelText?.Largest();
 
-		if(null == WindowInventoryItem)
+		if(null == OreHoldItem)
+			//	0 items in OreHold
 			break;
-		
-		Sanderling.MouseDragAndDrop(WindowInventoryItem, ItemHangar);
+
+		Sanderling.MouseDragAndDrop(OreHoldItem, ItemHangar);
 	}
 }
 
 bool InitiateDockToOrWarpToBookmark(string Bookmark)
 {
 	Host.Log("dock to or warp to bookmark: '" + Bookmark + "'");
-	
+
 	var ListSurroundingsButton = Measurement?.InfoPanelCurrentSystem?.ListSurroundingsButton;
-	
+
 	Sanderling.MouseClickRight(ListSurroundingsButton);
-	
+
 	var BookmarkMenuEntry = Measurement?.Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("^" + Bookmark + "$", RegexOptions.IgnoreCase);
 
 	if(null == BookmarkMenuEntry)
@@ -405,7 +406,7 @@ bool InitiateDockToOrWarpToBookmark(string Bookmark)
 	var ApproachEntry = Menu?.EntryFirstMatchingRegexPattern(@"approach",RegexOptions.IgnoreCase);
 
 	var MenuEntry = DockMenuEntry ?? WarpMenuEntry;
-	
+
 	if(null == MenuEntry)
 	{
 		if(null != ApproachEntry)
@@ -417,7 +418,7 @@ bool InitiateDockToOrWarpToBookmark(string Bookmark)
 		Host.Log("no suitable menu entry found");
 		return true;
 	}
-	
+
 	Host.Log("initiating " + MenuEntry.Text);
 	Sanderling.MouseClickLeft(MenuEntry);
 
@@ -437,8 +438,8 @@ void Undock()
 void ModuleMeasureAllTooltip()
 {
 	Host.Log("measure tooltips of all modules.");
-	
-	while(true)
+
+	for (;;)
 	{
 		var NextModule = Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule?.FirstOrDefault(m => null == m?.TooltipLast);
 		
