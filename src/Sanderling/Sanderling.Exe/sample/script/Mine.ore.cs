@@ -1,12 +1,13 @@
 //	This script mines ore from asteroids.
 //	before running this script, make sure to prepare as follows:
+//	+enter bookmark for mining site and bookmark for station in the configuration section below.
+//	+in the Overview load a type selection which includes asteroids and rats.
+//	+set Overview to sort by distance with the nearest entry at the top.
+//	+in the Inventory select the 'List' view.
 //	+set the UI language to english.
 //	+use a ship with an ore hold. 
-//	+in the Overview load a preset which shows asteroids and rats and set it to sort by distance with the nearest entry at the top.
-//	+in the Inventory select the 'List' view.
-//	+enable the 'System info' info panel.
-//	+arrange to windows to not occlude modules or info panels.
-//	+enter bookmark for mining site and bookmark for station in the configuration section below.
+//	+enable the info panel 'System info'.
+//	+arrange windows to not occlude modules or info panels.
 
 using Parse = Sanderling.Parse;
 
@@ -17,6 +18,9 @@ using Parse = Sanderling.Parse;
 string StationBookmark = "station_bookmark_name";
 //	Bookmark to place with asteroids. 
 string MiningSiteBookmark ="belt_bookmark_name"; 
+
+//	The bot loads this preset to the active tab. 
+string OverviewPreset = null;
 
 var ActivateHardener = true;
 
@@ -102,7 +106,9 @@ Func<object>	MainStep()
 	}
 
 	EnsureWindowInventoryOpenOreHold();
-		
+
+	EnsureOverviewTypeSelectionLoaded();
+
 	if(ReadyForManeuver)
 	{
 		DroneEnsureInBay();
@@ -202,6 +208,8 @@ Func<object> InBeltMineStep()
 {
 	EnsureWindowInventoryOpenOreHold();
 
+	EnsureOverviewTypeSelectionLoaded();
+
 	if(OreHoldFilledForOffload)
 		return null;
 
@@ -222,15 +230,15 @@ Func<object> InBeltMineStep()
 
 		if(null == TargetAsteroidInputFocus)
 			Sanderling.MouseClickLeft(SetTargetAsteroid?.FirstOrDefault());
-		
+
 		foreach(var module in SetModuleMinerInactive)
 			Sanderling.MouseClickLeft(module);
 
 		return InBeltMineStep;
 	}
-	
+
 	var	AsteroidOverviewEntry	= ListAsteroidOverviewEntry?.FirstOrDefault();
-	
+
 	Host.Log("next asteroid: " + AsteroidOverviewEntry?.Name + " , Distance: " + AsteroidOverviewEntry?.DistanceMax);
 
 	if(null == AsteroidOverviewEntry)
@@ -288,6 +296,13 @@ IInventoryCapacityGauge OreHoldCapacityMilli =>
 
 int? OreHoldFillPercent => (int?)((OreHoldCapacityMilli?.Used * 100) / OreHoldCapacityMilli?.Max);
 
+Tab OverviewPresetTabActive =>
+	WindowOverview?.PresetTab
+	?.OrderByDescending(tab => tab?.LabelColorOpacityMilli ?? 0)
+	?.FirstOrDefault();
+
+string OverviewTypeSelectionName =>
+	WindowOverview?.Caption?.RegexMatchIfSuccess(@"\(([^\)]*)\)")?.Groups?[1]?.Value;
 
 Parse.IOverviewEntry[] ListRatOverviewEntry => WindowOverview?.ListView?.Entry?.Where(entry =>
 		(entry?.MainIconIsRed ?? false)	&& (entry?.IsAttackingMe ?? false))
@@ -358,7 +373,7 @@ void EnsureWindowInventoryOpen()
 void EnsureWindowInventoryOpenOreHold()
 {
 	EnsureWindowInventoryOpen();
-
+	
 	if(!(InventoryActiveShipOreHold?.IsSelected ?? false))
 		Sanderling.MouseClickLeft(InventoryActiveShipOreHold);
 }
@@ -377,7 +392,7 @@ void UnloadToHangar()
 		if(null == OreHoldItem)
 			//	0 items in OreHold
 			break;
-
+		
 		Sanderling.MouseDragAndDrop(OreHoldItem, ItemHangar);
 	}
 }
@@ -385,11 +400,11 @@ void UnloadToHangar()
 bool InitiateDockToOrWarpToBookmark(string Bookmark)
 {
 	Host.Log("dock to or warp to bookmark: '" + Bookmark + "'");
-
+	
 	var ListSurroundingsButton = Measurement?.InfoPanelCurrentSystem?.ListSurroundingsButton;
-
+	
 	Sanderling.MouseClickRight(ListSurroundingsButton);
-
+	
 	var BookmarkMenuEntry = Measurement?.Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("^" + Bookmark + "$", RegexOptions.IgnoreCase);
 
 	if(null == BookmarkMenuEntry)
@@ -406,7 +421,7 @@ bool InitiateDockToOrWarpToBookmark(string Bookmark)
 	var ApproachEntry = Menu?.EntryFirstMatchingRegexPattern(@"approach",RegexOptions.IgnoreCase);
 
 	var MenuEntry = DockMenuEntry ?? WarpMenuEntry;
-
+	
 	if(null == MenuEntry)
 	{
 		if(null != ApproachEntry)
@@ -418,7 +433,7 @@ bool InitiateDockToOrWarpToBookmark(string Bookmark)
 		Host.Log("no suitable menu entry found");
 		return true;
 	}
-
+	
 	Host.Log("initiating " + MenuEntry.Text);
 	Sanderling.MouseClickLeft(MenuEntry);
 
@@ -464,6 +479,28 @@ void ActivateHardenerExecute()
 
 	foreach(var Module in SubsetModuleToToggle.EmptyIfNull())
 		Sanderling.MouseClickLeft(Module);
+}
+
+void EnsureOverviewTypeSelectionLoaded()
+{
+	if(null == OverviewPresetTabActive || null == WindowOverview)
+		return;
+
+	if(string.Equals(OverviewTypeSelectionName, OverviewPreset, StringComparison.OrdinalIgnoreCase))
+		return;
+
+	Host.Log("loading preset '" + OverviewPreset + "' to overview (current selection is '" + OverviewTypeSelectionName + "').");
+	Sanderling.MouseClickRight(OverviewPresetTabActive);
+	Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("load.*preset", RegexOptions.IgnoreCase));
+	var PresetMenuEntry = Menu?.ElementAtOrDefault(1)?.EntryFirstMatchingRegexPattern(@"^\s*" + Regex.Escape(OverviewPreset) + @"\s*$", RegexOptions.IgnoreCase);
+
+	if(null == PresetMenuEntry)
+	{
+		Host.Log("error: menu entry '" + OverviewPreset + "' not found");
+		return;
+	}
+
+	Sanderling.MouseClickLeft(PresetMenuEntry);
 }
 
 void MemoryUpdate()
