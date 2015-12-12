@@ -10,12 +10,17 @@ namespace Sanderling.Accumulator
 	{
 		Int64 EntityIdLast = 0;
 
+		int ModuleInvisibleDurationMax = 10000;
+
 		readonly List<ShipUiModule> InternShipUiModule = new List<ShipUiModule>();
 
 		public IEnumerable<Accumulation.IShipUiModule> ShipUiModule => InternShipUiModule;
 
 		public void Accumulate(FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementAtTime)
 		{
+			if (null == MemoryMeasurementAtTime)
+				return;
+
 			var MemoryMeasurement = MemoryMeasurementAtTime?.Value;
 
 			var ShipUi = MemoryMeasurement?.ShipUi;
@@ -30,6 +35,9 @@ namespace Sanderling.Accumulator
 			{
 				InternShipUiModule.Add(new ShipUiModule(++EntityIdLast, ModuleInstantNotAssigned));
 			}
+
+			InternShipUiModule?.Where(Module => !(MemoryMeasurementAtTime?.End - Module?.LastInstant?.End < ModuleInvisibleDurationMax))?.ToArray()
+				?.ForEach(Module => InternShipUiModule.Remove(Module));
 
 			if (MemoryMeasurement?.IsDocked ?? false)
 			{
