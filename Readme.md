@@ -5,7 +5,7 @@
 ### Features
 * **safe**: does not inject into or write to the eve online client. That is why using it with eve online is not detectable.
 * **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-* **easy to use**: You will achieve quick results with the integrated script engine and API explorer.
+* **easy to use**: You will achieve quick results with the [integrated script engine](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine) and API explorer.
 * **comprehensive**: Sanderling provides all tools needed to build mining, trading and mission bots.
 
 ### Requirements
