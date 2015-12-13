@@ -6,6 +6,7 @@
 //	+in the Inventory select the 'List' view.
 //	+set the UI language to english.
 //	+use a ship with an ore hold. 
+//	+put some light drones into your ships' drone bay. The bot will make use of them to attack rats when HP are too low (configurable) or it gets jammed.
 //	+enable the info panel 'System info'.
 //	+arrange windows to not occlude modules or info panels.
 
