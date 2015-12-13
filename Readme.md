@@ -26,5 +26,6 @@ Spotted a bug or have a feature request? File an issue [here](https://github.com
 ### Need Help?
 Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/cat/eve-online](http://forum.botengine.de/cat/eve-online).
 
+<br><br><br><br>
 
 ![visualization of data read from eve online client memory.](image/uitree.extract.png)
