@@ -51,6 +51,8 @@ namespace Sanderling.Exe
 
 		Int64? MemoryMeasurementLastAge => GetTimeStopwatch() - MemoryMeasurementLast?.Begin;
 
+		public Int64? FromScriptMeasurementInvalidationTime = null;
+
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
 			get
@@ -66,26 +68,32 @@ namespace Sanderling.Exe
 			}
 		}
 
+		Int64? MeasurementRecentEnoughTime => new[]
+			{
+				FromMotionExecutionMemoryMeasurementTimeMin,
+				FromScriptMeasurementInvalidationTime,
+			}.Max();
+
+		Int64? RequestedMeasurementTime =>
+			new[]
+			{
+				MeasurementRecentEnoughTime,
+				MemoryMeasurementLast?.End + 4000,
+			}.Max();
+
 		FromProcessMeasurement<MemoryMeasurementEvaluation> MemoryMeasurementIfRecentEnough
 		{
 			get
 			{
 				lock (MotorLock)
 				{
-					var FromMotionExecutionMemoryMeasurementTimeMin = this.FromMotionExecutionMemoryMeasurementTimeMin;
 					var MemoryMeasurementLast = this.MemoryMeasurementLast;
+					var MeasurementRecentEnoughTime = this.MeasurementRecentEnoughTime;
 
-					if (!FromMotionExecutionMemoryMeasurementTimeMin.HasValue)
-					{
-						return MemoryMeasurementLast;
-					}
+					if (MemoryMeasurementLast?.Begin < MeasurementRecentEnoughTime)
+						return null;
 
-					if ((FromMotionExecutionMemoryMeasurementTimeMin <= MemoryMeasurementLast?.Begin))
-					{
-						return MemoryMeasurementLast;
-					}
-
-					return null;
+					return MemoryMeasurementLast;
 				}
 			}
 		}
@@ -118,21 +126,10 @@ namespace Sanderling.Exe
 			}
 		}
 
-		Int64? RequestedMeasurementTime
+		void FromScriptInvalidateMeasurement(int DelayToMeasurementMilli)
 		{
-			get
-			{
-				var MemoryMeasurementLast = this.MemoryMeasurementLast;
-
-				if (null == MemoryMeasurementLast)
-				{
-					return GetTimeStopwatch();
-				}
-
-				return
-					FromMotionExecutionMemoryMeasurementTimeMin ??
-					(MemoryMeasurementLast?.End + 4000);
-			}
+			FromScriptMeasurementInvalidationTime =
+				Math.Max(FromScriptMeasurementInvalidationTime ?? int.MinValue, Bib3.Glob.StopwatchZaitMiliSictInt() + Math.Min(DelayToMeasurementMilli, 10000));
 		}
 
 		void LicenseClientExchange()

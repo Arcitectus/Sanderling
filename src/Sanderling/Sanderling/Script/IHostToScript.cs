@@ -34,6 +34,12 @@ namespace Sanderling.Script
 		}
 
 		MotionResult MotionExecute(MotionParam MotionParam);
+
+		/// <summary>
+		/// Adds a lower bound to time of measurement to be returned on next call to a measurement property.
+		/// </summary>
+		/// <param name="DelayToMeasurementMilli"></param>
+		void InvalidateMeasurement(int DelayToMeasurementMilli);
 	}
 
 	public class HostToScript : IHostToScript
@@ -43,6 +49,8 @@ namespace Sanderling.Script
 		public Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>> MemoryMeasurementFunc;
 
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
+
+		public Action<int> InvalidateMeasurementAction;
 
 		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
 			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurement);
@@ -54,6 +62,8 @@ namespace Sanderling.Script
 			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementAccumulation);
 
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
+
+		public void InvalidateMeasurement(Int32 DelayToMeasurementMilli) => InvalidateMeasurementAction?.Invoke(DelayToMeasurementMilli);
 	}
 
 	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals

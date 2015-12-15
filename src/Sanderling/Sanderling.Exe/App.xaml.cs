@@ -100,6 +100,8 @@ namespace Sanderling.Exe
 						ScriptExecutionCheck?.Invoke();
 						return FromScriptMotionExecute(MotionParam);
 					},
+
+					InvalidateMeasurementAction = FromScriptInvalidateMeasurement,
 				}
 			};
 
