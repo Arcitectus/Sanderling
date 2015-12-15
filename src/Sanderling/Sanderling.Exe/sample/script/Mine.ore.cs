@@ -75,6 +75,7 @@ int?	ShieldHpPercent => ShipUi?.HitpointsAndEnergy?.Shield / 10;
 
 bool	DefenseExit =>
 	(Measurement?.IsDocked ?? false) ||
+	!(0 < ListRatOverviewEntry?.Length)	||
 	(DefenseExitHitpointThresholdPercent < ShieldHpPercent && !(JammedLastAge < 40) &&
 	!(FightAllRats && 0 < ListRatOverviewEntry?.Length));
 
@@ -107,9 +108,9 @@ Func<object>	MainStep()
 		return DefenseStep;
 	}
 
-	EnsureWindowInventoryOpenOreHold();
-
 	EnsureOverviewTypeSelectionLoaded();
+
+	EnsureWindowInventoryOpenOreHold();
 
 	if(ReadyForManeuver)
 	{
