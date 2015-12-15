@@ -1,14 +1,15 @@
 //	This script mines ore from asteroids.
 //	before running this script, make sure to prepare as follows:
 //	+enter bookmark for mining site and bookmark for station in the configuration section below.
-//	+in the Overview load a type selection which includes asteroids and rats.
+//	+in the Overview create a preset which includes asteroids and rats and enter the name of that preset in the configuration section below at 'OverviewPreset'. The bot will make sure this preset is loaded when it needs to use the overview.
 //	+set Overview to sort by distance with the nearest entry at the top.
 //	+in the Inventory select the 'List' view.
 //	+set the UI language to english.
-//	+use a ship with an ore hold. 
+//	+use a ship with an ore hold.
 //	+put some light drones into your ships' drone bay. The bot will make use of them to attack rats when HP are too low (configurable) or it gets jammed.
-//	+enable the info panel 'System info'.
+//	+enable the info panel 'System info'. The bot will use the button in there to access bookmarks and asteroid belts.
 //	+arrange windows to not occlude modules or info panels.
+//	+in the ship UI, disable "Display Passive Modules" and disable "Display Empty Slots" and enable "Display Module Tooltips". The bot uses the module tooltips to automatically identify the properties of the modules.
 
 using Parse = Sanderling.Parse;
 
@@ -18,7 +19,7 @@ using Parse = Sanderling.Parse;
 //	Bookmark to station where ore should be transfered to item hangar.
 string StationBookmark = "station_bookmark_name";
 //	Bookmark to place with asteroids. 
-string MiningSiteBookmark ="belt_bookmark_name"; 
+string MiningSiteBookmark = "belt_bookmark_name"; 
 
 //	The bot loads this preset to the active tab. 
 string OverviewPreset = null;
@@ -40,9 +41,9 @@ for(;;)
 	MemoryUpdate();
 
 	Host.Log(
-		"ore hold fill: " + OreHoldFillPercent +
-		"%, mining range: " + MiningRange +
-		", inactive mining modules: " + SetModuleMinerInactive?.Length +
+		"ore hold fill: " + OreHoldFillPercent + "%" +
+		", mining range: " + MiningRange +
+		", mining modules (inactive): " + SetModuleMiner?.Length + "(" + SetModuleMinerInactive?.Length + ")" +
 		", shield.hp: " + ShieldHpPercent + "%" +
 		", EWO: " + EmergencyWarpOut.ToString() + 
 		", JLA: " + JammedLastAge +
