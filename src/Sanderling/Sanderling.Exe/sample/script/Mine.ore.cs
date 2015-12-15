@@ -493,7 +493,7 @@ void ActivateHardenerExecute()
 
 void EnsureOverviewTypeSelectionLoaded()
 {
-	if(null == OverviewPresetTabActive || null == WindowOverview)
+	if(null == OverviewPresetTabActive || null == WindowOverview || null == OverviewPreset)
 		return;
 
 	if(string.Equals(OverviewTypeSelectionName, OverviewPreset, StringComparison.OrdinalIgnoreCase))
