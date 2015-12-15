@@ -20,5 +20,11 @@ namespace Sanderling.Accumulation
 			Func<Parse.IModuleButtonTooltip, bool> TooltipPredicate) =>
 			Source?.Where(Module => TooltipPredicate(Module?.TooltipLast?.Value));
 
+		static public T BestRead<T>(
+			this IEnumerable<T> SetRead,
+			Func<T, MemoryStruct.IUIElement> GetUIElementFromRead)
+			where T : class =>
+			SetRead?.OrderByDescending(Read => MemoryStruct.Extension.EnumerateReferencedUIElementTransitive(
+				GetUIElementFromRead?.Invoke(Read))?.Count() ?? -1)?.FirstOrDefault();
 	}
 }

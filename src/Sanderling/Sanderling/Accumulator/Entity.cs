@@ -1,6 +1,8 @@
 ﻿using Bib3;
 using BotEngine;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Sanderling.Accumulator
 {
@@ -18,6 +20,10 @@ namespace Sanderling.Accumulator
 
 	public class EntityWithHistory<AccumulatedT, SharedT> : Entity, Accumulation.IEntityWithHistory<AccumulatedT>
 	{
+		readonly Queue<PropertyGenTimespanInt64<AccumulatedT>> HistoryListStep = new Queue<PropertyGenTimespanInt64<AccumulatedT>>();
+
+		protected int HistoryLengthMax;
+
 		public int AccumulatedCount
 		{
 			private set;
@@ -35,6 +41,10 @@ namespace Sanderling.Accumulator
 			private set;
 			get;
 		}
+
+		public PropertyGenTimespanInt64<AccumulatedT> InstantWithAgeStepCount(int AgeStepCount) =>
+			0 == AgeStepCount ? LastInstant :
+			HistoryListStep?.ElementAtOrDefault(HistoryListStep.Count - AgeStepCount - 1);
 
 		protected EntityWithHistory()
 		{
@@ -60,6 +70,9 @@ namespace Sanderling.Accumulator
 			}
 
 			++AccumulatedCount;
+
+			HistoryListStep.Enqueue(Instant);
+			HistoryListStep.ListeKürzeBegin(HistoryLengthMax);
 
 			LastInstant = Instant;
 

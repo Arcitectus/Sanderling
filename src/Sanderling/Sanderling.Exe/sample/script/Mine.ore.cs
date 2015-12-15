@@ -465,12 +465,14 @@ void ModuleMeasureAllTooltip()
 	for (;;)
 	{
 		var NextModule = Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule?.FirstOrDefault(m => null == m?.TooltipLast);
-		
+
 		if(null == NextModule)
 			break;
-		
+
 		Host.Log("measure module.");
-	
+		//	take multiple measurements of module tooltip to reduce risk to keep bad read tooltip.
+		Sanderling.MouseMove(NextModule);
+		Sanderling.WaitForMeasurement();
 		Sanderling.MouseMove(NextModule);
 	}
 }
@@ -480,7 +482,7 @@ void ActivateHardenerExecute()
 	var	SubsetModuleHardener =
 		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
 		?.Where(module => module?.TooltipLast?.Value?.IsHardener ?? false);
-		
+
 	var	SubsetModuleToToggle =
 		SubsetModuleHardener
 		?.Where(module => !(module?.RampActive ?? false));

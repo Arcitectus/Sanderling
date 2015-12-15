@@ -53,5 +53,8 @@ namespace Sanderling.Script
 
 		static public void InvalidateMeasurement(this IHostToScript Sanderling) =>
 			Sanderling?.InvalidateMeasurement(0);
+
+		static public void WaitForMeasurement(this IHostToScript Sanderling) =>
+			Sanderling?.MemoryMeasurement?.Value?.VersionString?.ToArray();
 	}
 }

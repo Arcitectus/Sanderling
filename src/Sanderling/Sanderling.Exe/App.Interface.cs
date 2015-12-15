@@ -74,12 +74,19 @@ namespace Sanderling.Exe
 				FromScriptMeasurementInvalidationTime,
 			}.Max();
 
-		Int64? RequestedMeasurementTime =>
-			new[]
+		Int64? RequestedMeasurementTime
+		{
+			get
 			{
-				MeasurementRecentEnoughTime,
-				MemoryMeasurementLast?.End + 4000,
-			}.Max();
+				var MeasurementRecentEnoughTime = this.MeasurementRecentEnoughTime;
+				var MemoryMeasurementLast = this.MemoryMeasurementLast;
+
+				if (MemoryMeasurementLast?.Begin < MeasurementRecentEnoughTime)
+					return MeasurementRecentEnoughTime;
+
+				return MemoryMeasurementLast?.End + 4000;
+			}
+		}
 
 		FromProcessMeasurement<MemoryMeasurementEvaluation> MemoryMeasurementIfRecentEnough
 		{
@@ -129,7 +136,7 @@ namespace Sanderling.Exe
 		void FromScriptInvalidateMeasurement(int DelayToMeasurementMilli)
 		{
 			FromScriptMeasurementInvalidationTime =
-				Math.Max(FromScriptMeasurementInvalidationTime ?? int.MinValue, Bib3.Glob.StopwatchZaitMiliSictInt() + Math.Min(DelayToMeasurementMilli, 10000));
+				Math.Max(FromScriptMeasurementInvalidationTime ?? int.MinValue, GetTimeStopwatch() + Math.Min(DelayToMeasurementMilli, 10000));
 		}
 
 		void LicenseClientExchange()
