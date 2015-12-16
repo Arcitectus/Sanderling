@@ -3,6 +3,7 @@ using BotEngine.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -33,7 +34,7 @@ namespace Sanderling.Exe
 
 		DispatcherTimer Timer;
 
-		string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild(@"\");
+		static string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().EnsureEndsWith(@"\");
 
 		Sanderling.Script.HostToScript UIAPI;
 
@@ -192,5 +193,24 @@ namespace Sanderling.Exe
 			ScriptIDE?.Present();
 		}
 
+		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+		{
+			try
+			{
+				var FilePath = AssemblyDirectoryPath.PathToFilesysChild(DateTime.Now.SictwaiseKalenderString(".", 0) + " Exception");
+
+				FilePath.WriteToFileAndCreateDirectoryIfNotExisting(Encoding.UTF8.GetBytes(e.Exception.SictString()));
+
+				var Message = "exception written to file: " + FilePath;
+
+				MessageBox.Show(Message, Message, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+			}
+			catch (Exception PersistException)
+			{
+				Bib3.FCL.GBS.Extension.MessageBoxException(PersistException);
+			}
+
+			Bib3.FCL.GBS.Extension.MessageBoxException(e.Exception);
+		}
 	}
 }

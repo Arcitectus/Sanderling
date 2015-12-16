@@ -11,7 +11,7 @@ namespace Sanderling.Exe
 	partial class App
 	{
 		static public string ConfigFilePath =>
-			Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild("config");
+			AssemblyDirectoryPath.PathToFilesysChild("config");
 
 		BotEngine.UI.WriteToOrReadFromFile ConfigFileControl =>
 			Window?.Main?.ConfigFileControl;
