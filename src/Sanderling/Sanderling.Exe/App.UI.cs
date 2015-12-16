@@ -7,6 +7,7 @@ using System.Linq;
 using BotScript.UI.Wpf;
 using System.Collections.Generic;
 using System.Windows.Input;
+using System.Windows.Controls.Primitives;
 
 namespace Sanderling.Exe
 {
@@ -70,6 +71,13 @@ namespace Sanderling.Exe
 			{
 				ScriptRun?.Break();
 			}
+		}
+
+		void UIPresentScript()
+		{
+			ToggleButtonMotionEnable?.ButtonRecz?.SetValue(ToggleButton.IsCheckedProperty, ScriptRun?.IsRunning ?? false);
+
+			ScriptIDE?.Present();
 		}
 
 		void UIPresent()

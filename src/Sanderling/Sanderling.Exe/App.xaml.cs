@@ -147,9 +147,9 @@ namespace Sanderling.Exe
 
 			Motor = GetMotor();
 
-			ScriptExchange();
-
 			LicenseClientExchange();
+
+			UIPresentScript();
 
 			UIPresent();
 		}
@@ -176,21 +176,14 @@ namespace Sanderling.Exe
 		{
 			ScriptIDE.ScriptRunContinueOrStart();
 
-			ScriptExchange();
+			UIPresentScript();
 		}
 
 		void ScriptRunPause()
 		{
 			ScriptIDE.ScriptPause();
 
-			ScriptExchange();
-		}
-
-		void ScriptExchange()
-		{
-			ToggleButtonMotionEnable.ButtonReczIsChecked = ScriptRun?.IsRunning ?? false;
-
-			ScriptIDE?.Present();
+			UIPresentScript();
 		}
 
 		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
