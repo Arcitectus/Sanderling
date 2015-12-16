@@ -9,7 +9,7 @@
 * **comprehensive**: Sanderling provides all tools needed to build mining, trading and mission bots.
 
 ### Requirements
-* the application requires Microsoft .NET Framework 4.5 which can be dowloaded from [http://www.microsoft.com/en-us/download/details.aspx?id=30653](http://www.microsoft.com/en-us/download/details.aspx?id=30653).
+* the application requires Microsoft .NET Framework 4.6.1 which can be downloaded from [https://www.microsoft.com/download/details.aspx?id=49982](https://www.microsoft.com/download/details.aspx?id=49982).
 
 ### Download
 Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
