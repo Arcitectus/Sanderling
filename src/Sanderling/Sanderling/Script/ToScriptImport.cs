@@ -32,6 +32,7 @@ namespace Sanderling.Script
 			typeof(Sanderling.Extension),
 			typeof(ToScriptExtension),
 			typeof(Parse.IMemoryMeasurement),
+			typeof(WindowsInput.Native.VirtualKeyCode),
 		};
 
 		static readonly Type[] NamespaceStaticAdditionType = new[]

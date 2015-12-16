@@ -51,6 +51,14 @@ namespace Sanderling.Script
 			IUIElement Destination) =>
 			MouseDragAndDrop(Host, ElementToDrag, Destination, BotEngine.Motor.MouseButtonIdEnum.Left);
 
+		static public BotEngine.Motor.MotionResult KeyboardKeyDownAndUp(
+			this IHostToScript Sanderling,
+			WindowsInput.Native.VirtualKeyCode Key) =>
+			Sanderling?.MotionExecute(new Motor.MotionParam()
+			{
+				Key = new WindowsInput.Native.VirtualKeyCode[] { Key },
+			});
+
 		static public void InvalidateMeasurement(this IHostToScript Sanderling) =>
 			Sanderling?.InvalidateMeasurement(0);
 
