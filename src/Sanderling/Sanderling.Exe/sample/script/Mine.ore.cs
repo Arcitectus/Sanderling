@@ -49,8 +49,9 @@ for(;;)
 		", JLA: " + JammedLastAge +
 		", overview.rats: " + ListRatOverviewEntry?.Length +
 		", overview.roids: " + ListAsteroidOverviewEntry?.Length +
-		", offload count: " + OffloadCount);
-	
+		", offload count: " + OffloadCount +
+		", nextAct: " + nextAction?.Method?.Name);
+
 	CloseModalUIElement();
 	
 	if(EmergencyWarpOut)
