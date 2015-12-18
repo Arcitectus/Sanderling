@@ -1,4 +1,5 @@
 ﻿using Sanderling.Interface.MemoryStruct;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Sanderling.Script
@@ -51,12 +52,38 @@ namespace Sanderling.Script
 			IUIElement Destination) =>
 			MouseDragAndDrop(Host, ElementToDrag, Destination, BotEngine.Motor.MouseButtonIdEnum.Left);
 
-		static public BotEngine.Motor.MotionResult KeyboardKeyDownAndUp(
+		static public BotEngine.Motor.MotionResult KeyboardPressCombined(
 			this IHostToScript Sanderling,
-			WindowsInput.Native.VirtualKeyCode Key) =>
+			IEnumerable<WindowsInput.Native.VirtualKeyCode> SetKey) =>
 			Sanderling?.MotionExecute(new Motor.MotionParam()
 			{
-				Key = new WindowsInput.Native.VirtualKeyCode[] { Key },
+				KeyDown = SetKey?.ToArray(),
+				KeyUp = SetKey?.Reverse()?.ToArray(),
+			});
+
+		static public BotEngine.Motor.MotionResult KeyboardPress(
+			this IHostToScript Sanderling,
+			WindowsInput.Native.VirtualKeyCode Key) =>
+			Sanderling?.KeyboardPressCombined(new[] { Key });
+
+		static public IEnumerable<BotEngine.Motor.MotionResult> KeyboardPressSequence(
+			this IHostToScript Sanderling,
+			IEnumerable<WindowsInput.Native.VirtualKeyCode> ListKey) =>
+			ListKey?.Select(Key => Sanderling?.KeyboardPressCombined(new[] { Key }));
+
+		static public BotEngine.Motor.MotionResult TextEntry(
+			this IHostToScript Sanderling,
+			string Text) =>
+			Sanderling?.MotionExecute(new Motor.MotionParam()
+			{
+				TextEntry = Text,
+			});
+
+		static public BotEngine.Motor.MotionResult WindowToForeground(
+			this IHostToScript Sanderling) =>
+			Sanderling?.MotionExecute(new Motor.MotionParam()
+			{
+				WindowToForeground = true,
 			});
 
 		static public void InvalidateMeasurement(this IHostToScript Sanderling) =>

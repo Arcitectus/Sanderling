@@ -18,6 +18,8 @@ namespace Sanderling.Motor
 
 		public int MouseEventDelay;
 
+		public int KeyboardEventTimeDistanceMilli = 40;
+
 		/// <summary>
 		/// For some reason, the mouse positions seem to be offset when moving the mouse in the window client area.
 		/// </summary>
@@ -40,6 +42,8 @@ namespace Sanderling.Motor
 
 			BotEngine.WinApi.User32.SetForegroundWindow(WindowHandle);
 		}
+
+		void EnsureWindowIsForeground() => EnsureWindowIsForeground(WindowHandle);
 
 		static public void MouseMoveToPointInClientRect(
 			IntPtr WindowHandle,
@@ -115,17 +119,18 @@ namespace Sanderling.Motor
 				var MousePosition = BotEngine.Windows.Extension.User32GetCursorPos() ?? new Vektor2DInt(0, 0);
 
 				var InputSimulator = new WindowsInput.InputSimulator();
-				var KeyboardSimulator = new WindowsInput.KeyboardSimulator(InputSimulator);
 
-				foreach (var Motion in SeqMotion)
+				foreach (var Motion in SeqMotion.WhereNotDefault())
 				{
 					var MotionMousePosition = Motion?.MousePosition;
+					var MotionTextEntry = Motion?.TextEntry;
+
+					if (MotionMousePosition.HasValue || (Motion.WindowToForeground ?? false))
+						EnsureWindowIsForeground();
 
 					if (MotionMousePosition.HasValue)
 					{
 						POINT PositionOnScreen;
-
-						EnsureWindowIsForeground(WindowHandle);
 
 						MouseMoveToPointInClientRect(WindowHandle, MotionMousePosition.Value + MouseOffsetStatic, out PositionOnScreen);
 
@@ -136,7 +141,7 @@ namespace Sanderling.Motor
 
 					if (0 < Motion?.MouseButtonDown?.Count() || 0 < Motion?.MouseButtonUp?.Count())
 					{
-						EnsureWindowIsForeground(WindowHandle);
+						EnsureWindowIsForeground();
 
 						User32MouseEvent(MousePosition, Motion?.MouseButtonDown, Motion?.MouseButtonUp);
 
@@ -145,15 +150,23 @@ namespace Sanderling.Motor
 
 					Motion?.KeyDown?.ForEach(KeyDown =>
 					{
-						EnsureWindowIsForeground(WindowHandle);
+						EnsureWindowIsForeground();
 						InputSimulator.Keyboard.KeyDown(KeyDown);
+						Thread.Sleep(KeyboardEventTimeDistanceMilli);
 					});
 
 					Motion?.KeyUp?.ForEach(KeyUp =>
 					{
-						EnsureWindowIsForeground(WindowHandle);
+						EnsureWindowIsForeground();
 						InputSimulator.Keyboard.KeyUp(KeyUp);
+						Thread.Sleep(KeyboardEventTimeDistanceMilli);
 					});
+
+					if (0 < MotionTextEntry?.Length)
+					{
+						EnsureWindowIsForeground();
+						InputSimulator.Keyboard.TextEntry(MotionTextEntry);
+					}
 				}
 
 				return new MotionResult(true);

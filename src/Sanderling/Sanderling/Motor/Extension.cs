@@ -29,6 +29,9 @@ namespace Sanderling.Motor
 				yield break;
 			}
 
+			if (Motion?.WindowToForeground ?? false)
+				yield return new Motion(null, WindowToForeground: true);
+
 			var SetElementExcludedFromOcclusion = MemoryMeasurement?.EnumerateSetElementExcludedFromOcclusion()?.ToArray();
 
 			var Random = new Random((int)Bib3.Glob.StopwatchZaitMiliSictInt());
@@ -104,13 +107,23 @@ namespace Sanderling.Motor
 			//	Mouse Buttons Up
 			yield return new Motion(null, null, Motion?.MouseButton);
 
-			var MotionKey = Motion?.Key;
+			var MotionKeyDown = Motion?.KeyDown;
+			var MotionKeyUp = Motion?.KeyUp;
 
-			if (null != MotionKey)
+			if (null != MotionKeyDown)
 			{
-				yield return new Motion(null, null, null, MotionKey);
-				yield return new Motion(null, null, null, null, MotionKey);
+				yield return new Motion(null, KeyDown: MotionKeyDown);
 			}
+
+			if (null != MotionKeyUp)
+			{
+				yield return new Motion(null, KeyUp: MotionKeyUp);
+			}
+
+			var MotionTextEntry = Motion?.TextEntry;
+
+			if (0 < MotionTextEntry?.Length)
+				yield return new Motion(null, TextEntry: MotionTextEntry);
 		}
 	}
 }

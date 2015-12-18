@@ -24,7 +24,13 @@ namespace Sanderling.Motor
 
 		public MouseButtonIdEnum[] MouseButton;
 
-		public WindowsInput.Native.VirtualKeyCode[] Key;
+		public WindowsInput.Native.VirtualKeyCode[] KeyDown;
+
+		public WindowsInput.Native.VirtualKeyCode[] KeyUp;
+
+		public string TextEntry;
+
+		public bool? WindowToForeground;
 
 		public MotionParam()
 		{
@@ -76,9 +82,19 @@ namespace Sanderling.Motor
 					yield return MouseWaypointLast.UIElement;
 				}
 
-				if (0 < Key?.Length)
+				if (0 < KeyDown?.Length)
 				{
-					yield return "Press Key[" + string.Join(",", Key?.Select(key => key.ToString())) + "]";
+					yield return "KeyDown[" + string.Join(",", KeyDown?.Select(key => key.ToString())) + "]";
+				}
+
+				if (0 < KeyUp?.Length)
+				{
+					yield return "KeyUp[" + string.Join(",", KeyUp?.Select(key => key.ToString())) + "]";
+				}
+
+				if (0 < TextEntry?.Length)
+				{
+					yield return "enter Text:\"" + TextEntry + "\"";
 				}
 			}
 		}
