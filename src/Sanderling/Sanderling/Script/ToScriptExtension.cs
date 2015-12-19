@@ -1,6 +1,8 @@
-﻿using Sanderling.Interface.MemoryStruct;
+﻿using BotEngine.Motor;
+using Sanderling.Interface.MemoryStruct;
 using System.Collections.Generic;
 using System.Linq;
+using WindowsInput.Native;
 
 namespace Sanderling.Script
 {
@@ -9,69 +11,69 @@ namespace Sanderling.Script
 	/// </summary>
 	static public class ToScriptExtension
 	{
-		static public BotEngine.Motor.MotionResult MouseMove(
+		static public MotionResult MouseMove(
 			this IHostToScript Host,
 			IUIElement Destination,
-			BotEngine.Motor.MouseButtonIdEnum[] MouseButton = null) =>
+			MouseButtonIdEnum[] MouseButton = null) =>
 			Host?.MotionExecute(new Motor.MotionParam()
 			{
 				MouseListWaypoint = new[] { new Motor.MotionParamMouseRegion() { UIElement = Destination }, },
 				MouseButton = MouseButton,
 			});
 
-		static public BotEngine.Motor.MotionResult MouseClick(
+		static public MotionResult MouseClick(
 			this IHostToScript Host,
 			IUIElement Destination,
-			BotEngine.Motor.MouseButtonIdEnum MouseButton) =>
+			MouseButtonIdEnum MouseButton) =>
 			MouseMove(Host, Destination, new[] { MouseButton });
 
-		static public BotEngine.Motor.MotionResult MouseDragAndDrop(
+		static public MotionResult MouseDragAndDrop(
 			this IHostToScript Host,
 			IUIElement ElementToDrag,
 			IUIElement Destination,
-			BotEngine.Motor.MouseButtonIdEnum MouseButton) =>
+			MouseButtonIdEnum MouseButton) =>
 			Host?.MotionExecute(new Motor.MotionParam()
 			{
 				MouseListWaypoint = new[] { ElementToDrag, Destination }.Select(UIElement => new Motor.MotionParamMouseRegion() { UIElement = UIElement })?.ToArray(),
 				MouseButton = new[] { MouseButton },
 			});
 
-		static public BotEngine.Motor.MotionResult MouseClickLeft(
+		static public MotionResult MouseClickLeft(
 			this IHostToScript Host,
 			IUIElement Destination) =>
-			MouseClick(Host, Destination, BotEngine.Motor.MouseButtonIdEnum.Left);
+			MouseClick(Host, Destination, MouseButtonIdEnum.Left);
 
-		static public BotEngine.Motor.MotionResult MouseClickRight(
+		static public MotionResult MouseClickRight(
 			this IHostToScript Host,
 			IUIElement Destination) =>
-			MouseClick(Host, Destination, BotEngine.Motor.MouseButtonIdEnum.Right);
+			MouseClick(Host, Destination, MouseButtonIdEnum.Right);
 
-		static public BotEngine.Motor.MotionResult MouseDragAndDrop(
+		static public MotionResult MouseDragAndDrop(
 			this IHostToScript Host,
 			IUIElement ElementToDrag,
 			IUIElement Destination) =>
-			MouseDragAndDrop(Host, ElementToDrag, Destination, BotEngine.Motor.MouseButtonIdEnum.Left);
+			MouseDragAndDrop(Host, ElementToDrag, Destination, MouseButtonIdEnum.Left);
 
-		static public BotEngine.Motor.MotionResult KeyboardPressCombined(
+		static public MotionResult KeyboardPressCombined(
 			this IHostToScript Sanderling,
-			IEnumerable<WindowsInput.Native.VirtualKeyCode> SetKey) =>
+			IEnumerable<VirtualKeyCode> SetKey) =>
 			Sanderling?.MotionExecute(new Motor.MotionParam()
 			{
 				KeyDown = SetKey?.ToArray(),
 				KeyUp = SetKey?.Reverse()?.ToArray(),
 			});
 
-		static public BotEngine.Motor.MotionResult KeyboardPress(
+		static public MotionResult KeyboardPress(
 			this IHostToScript Sanderling,
-			WindowsInput.Native.VirtualKeyCode Key) =>
+			VirtualKeyCode Key) =>
 			Sanderling?.KeyboardPressCombined(new[] { Key });
 
-		static public IEnumerable<BotEngine.Motor.MotionResult> KeyboardPressSequence(
+		static public IEnumerable<MotionResult> KeyboardPressSequence(
 			this IHostToScript Sanderling,
-			IEnumerable<WindowsInput.Native.VirtualKeyCode> ListKey) =>
+			IEnumerable<VirtualKeyCode> ListKey) =>
 			ListKey?.Select(Key => Sanderling?.KeyboardPressCombined(new[] { Key }));
 
-		static public BotEngine.Motor.MotionResult TextEntry(
+		static public MotionResult TextEntry(
 			this IHostToScript Sanderling,
 			string Text) =>
 			Sanderling?.MotionExecute(new Motor.MotionParam()
@@ -79,7 +81,7 @@ namespace Sanderling.Script
 				TextEntry = Text,
 			});
 
-		static public BotEngine.Motor.MotionResult WindowToForeground(
+		static public MotionResult WindowToForeground(
 			this IHostToScript Sanderling) =>
 			Sanderling?.MotionExecute(new Motor.MotionParam()
 			{
