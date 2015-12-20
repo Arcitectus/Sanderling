@@ -39,5 +39,7 @@ while(true)
 loop:
 	//	wait for four seconds before repeating.
 	Host.Delay(4000);
+	//	make sure new measurement will be taken.
+	Sanderling.InvalidateMeasurement();
 }
 
