@@ -36,6 +36,10 @@ var FightAllRats = false;	//	when this is set to true, the bot will attack rats 
 
 //	<- end of configuration section
 
+Func<object> BotStopActivity = () => new object();
+
+Func<object> NextActivity = MainStep;
+
 for(;;)
 {
 	MemoryUpdate();
@@ -88,10 +92,6 @@ bool	DefenseEnter =>
 	!(DefenseEnterHitpointThresholdPercent < ShieldHpPercent) || JammedLastAge < 10;
 
 bool	OreHoldFilledForOffload => 97 < OreHoldFillPercent;
-
-Func<object> NextActivity = DefenseStep;
-
-Func<object> BotStopActivity = () => new object();
 
 Int64?	JammedLastTime = null;
 bool	EmergencyWarpOutEnabled	= false;
@@ -249,9 +249,8 @@ Func<object> InBeltMineStep()
 		if(null == TargetAsteroidInputFocus)
 			Sanderling.MouseClickLeft(SetTargetAsteroid?.FirstOrDefault());
 
-		foreach(var module in SetModuleMinerInactive)
-			Sanderling.MouseClickLeft(module);
-
+		foreach (var Module in SetModuleMinerInactive)
+			ModuleToggle(Module);
 		return InBeltMineStep;
 	}
 
@@ -498,8 +497,20 @@ void ActivateHardenerExecute()
 		SubsetModuleHardener
 		?.Where(module => !(module?.RampActive ?? false));
 
-	foreach(var Module in SubsetModuleToToggle.EmptyIfNull())
+	foreach (var Module in SubsetModuleToToggle.EmptyIfNull())
+		ModuleToggle(Module);
+}
+
+void ModuleToggle(Sanderling.Accumulation.IShipUiModule Module)
+{
+	var ToggleKey = Module?.TooltipLast?.Value?.ToggleKey;
+
+	Host.Log("toggle module using " + (null == ToggleKey ? "mouse" : Module?.TooltipLast?.Value?.ToggleKeyTextLabel?.Text));
+
+	if(null == ToggleKey)
 		Sanderling.MouseClickLeft(Module);
+	else
+		Sanderling.KeyboardPressCombined(ToggleKey);
 }
 
 void EnsureOverviewTypeSelectionLoaded()
