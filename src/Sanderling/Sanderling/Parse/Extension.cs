@@ -46,14 +46,14 @@ namespace Sanderling.Parse
 			SetKeyCodeFromUIText?.CastToNullable()?.FirstOrDefault(UITextAndKeyCode =>
 			string.Equals(UITextAndKeyCode?.Key, KeyUIText, System.StringComparison.OrdinalIgnoreCase))?.Value;
 
-		static public IEnumerable<VirtualKeyCode> ListKeyCodeFromUIText(this string ListKeyUIText)
+		static public IEnumerable<VirtualKeyCode> ListKeyCodeFromUIText(this string ListKeyUITextAggregated)
 		{
-			if (null == ListKeyUIText)
+			if (null == ListKeyUITextAggregated)
 				return null;
 
-			var ListComponent = Regex.Split(ListKeyUIText, "-");
+			var ListKeyText = Regex.Split(ListKeyUITextAggregated.Trim(), "-")?.Select(KeyText => KeyText.Trim())?.ToArray();
 
-			var ListKey = ListComponent?.Where(KeyText => 0 < KeyText?.Length)?.Select(KeyCodeFromUIText)?.ToArray();
+			var ListKey = ListKeyText?.Where(KeyText => 0 < KeyText?.Length)?.Select(KeyCodeFromUIText)?.ToArray();
 
 			if (ListKey?.Any(Key => null == Key) ?? true)
 				return null;
