@@ -45,26 +45,29 @@ for(;;)
 		", mining range: " + MiningRange +
 		", mining modules (inactive): " + SetModuleMiner?.Length + "(" + SetModuleMinerInactive?.Length + ")" +
 		", shield.hp: " + ShieldHpPercent + "%" +
-		", EWO: " + EmergencyWarpOut.ToString() + 
+		", EWO: " + EmergencyWarpOutEnabled.ToString() + 
 		", JLA: " + JammedLastAge +
 		", overview.rats: " + ListRatOverviewEntry?.Length +
 		", overview.roids: " + ListAsteroidOverviewEntry?.Length +
 		", offload count: " + OffloadCount +
-		", nextAct: " + nextAction?.Method?.Name);
+		", nextAct: " + NextActivity?.Method?.Name);
 
 	CloseModalUIElement();
 	
-	if(EmergencyWarpOut)
+	if(EmergencyWarpOutEnabled)
 		if(!(Measurement?.IsDocked ?? false))
 		{
 			InitiateDockToOrWarpToBookmark(StationBookmark);
 			continue;
 		}
 	
-	nextAction = nextAction?.Invoke() as Func<object>;
+	NextActivity = NextActivity?.Invoke() as Func<object>;
+
+	if(BotStopActivity == NextActivity)
+		break;
 	
-	if(null == nextAction)
-		nextAction = MainStep;
+	if(null == NextActivity)
+		NextActivity = MainStep;
 	
 	Host.Delay(1111);
 }
@@ -86,10 +89,12 @@ bool	DefenseEnter =>
 
 bool	OreHoldFilledForOffload => 97 < OreHoldFillPercent;
 
-Func<object> nextAction = DefenseStep;
+Func<object> NextActivity = DefenseStep;
+
+Func<object> BotStopActivity = () => new object();
 
 Int64?	JammedLastTime = null;
-bool	EmergencyWarpOut	= false;
+bool	EmergencyWarpOutEnabled	= false;
 int? LastCheckOreHoldFillPercent = null;
 
 int OffloadCount = 0;
@@ -99,7 +104,10 @@ Func<object>	MainStep()
 	if(Measurement?.IsDocked ?? false)
 	{
 		UnloadToHangar();
-	
+
+		if (EmergencyWarpOutEnabled)
+			return BotStopActivity;
+
 		Undock();
 	}
 	
@@ -458,6 +466,7 @@ void Undock()
 	while(Measurement?.IsDocked ?? true)	 Host.Delay(1111);
 
 	Host.Delay(4444);
+	Sanderling.InvalidateMeasurement();
 }
 
 void ModuleMeasureAllTooltip()
@@ -528,13 +537,21 @@ void JammedLastTimeUpdate()
 		JammedLastTime	= Host.GetTimeContinuousMilli();
 }
 
+bool MeasurementEmergencyWarpOutEnter =>
+	!(Measurement?.IsDocked ?? false) && !(EmergencyWarpOutHitpointPercent < ShieldHpPercent);
+
 void EmergencyWarpOutUpdate()
 {
-	if(Measurement?.IsDocked ?? false)
+	if (!MeasurementEmergencyWarpOutEnter)
 		return;
-		
-	if(!(EmergencyWarpOutHitpointPercent < ShieldHpPercent))
-		EmergencyWarpOut	= true;
+
+	//	measure multiple times to avoid being scared off by noise from a single measurement. 
+	Sanderling.InvalidateMeasurement();
+
+	if (!MeasurementEmergencyWarpOutEnter)
+		return;
+
+	EmergencyWarpOutEnabled	= true;
 }
 
 void OffloadCountUpdate()
