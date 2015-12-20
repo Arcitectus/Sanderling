@@ -3,6 +3,7 @@ using Bib3.Geometrik;
 using BotEngine.Common;
 using System;
 using System.Linq;
+using WindowsInput.Native;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
@@ -24,6 +25,10 @@ namespace Sanderling.Parse
 		int? RangeMax { get; }
 		int? RangeFalloff { get; }
 		int? RangeWithin { get; }
+
+		MemoryStruct.IUIElementText ToggleKeyTextLabel { get; }
+
+		VirtualKeyCode[] ToggleKey { get; }
 	}
 
 	public class ModuleButtonTooltip : IModuleButtonTooltip
@@ -114,6 +119,10 @@ namespace Sanderling.Parse
 
 		public int? RangeWithin { private set; get; }
 
+		public MemoryStruct.IUIElementText ToggleKeyTextLabel { private set; get; }
+
+		public VirtualKeyCode[] ToggleKey { private set; get; }
+
 		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
 		public ModuleButtonTooltip(MemoryStruct.IContainer Raw)
@@ -158,6 +167,9 @@ namespace Sanderling.Parse
 			RangeWithin = DistanceMinFromLabelWithRegexPattern(@"^Range within\s*");
 			RangeOptimal = DistanceMinFromLabelWithRegexPattern(@"Optimal range within\s*");
 			RangeFalloff = DistanceMinFromLabelWithRegexPattern(@"Falloff range within\s*");
+
+			ToggleKeyTextLabel = Raw?.LabelText?.OrderByNearestPointOnLine(new Vektor2DInt(-1, 1), label => label?.RegionCenter())?.FirstOrDefault();
+			ToggleKey = ToggleKeyTextLabel?.Text?.ListKeyCodeFromUIText()?.ToArray();
 		}
 	}
 }

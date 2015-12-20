@@ -93,5 +93,12 @@ namespace Sanderling.Script
 
 		static public void WaitForMeasurement(this IHostToScript Sanderling) =>
 			Sanderling?.MemoryMeasurement?.Value?.VersionString?.ToArray();
+
+		static public bool IsCtrlKey(this VirtualKeyCode Key) =>
+			VirtualKeyCode.CONTROL == Key || VirtualKeyCode.LCONTROL == Key || VirtualKeyCode.RCONTROL == Key;
+
+		static public bool IsAltKey(this VirtualKeyCode Key) =>
+			VirtualKeyCode.MENU == Key || VirtualKeyCode.LMENU == Key || VirtualKeyCode.RMENU == Key;
+
 	}
 }
