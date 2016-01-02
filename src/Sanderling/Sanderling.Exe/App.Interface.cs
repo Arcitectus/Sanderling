@@ -178,7 +178,7 @@ namespace Sanderling.Exe
 						return;
 					}
 
-					LicenseClient.Value.Timeout = 1000;
+					LicenseClient.Value.Timeout = 4000;
 
 					SensorServerDispatcher.Exchange(
 						EveOnlineClientProcessId,
