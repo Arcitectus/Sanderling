@@ -25,6 +25,7 @@ namespace Sanderling.Parse
 		int? RangeMax { get; }
 		int? RangeFalloff { get; }
 		int? RangeWithin { get; }
+		int? SignatureRadiusModifierMilli { get; }
 
 		MemoryStruct.IUIElementText ToggleKeyTextLabel { get; }
 
@@ -119,6 +120,8 @@ namespace Sanderling.Parse
 
 		public int? RangeWithin { private set; get; }
 
+		public int? SignatureRadiusModifierMilli { private set; get; }
+
 		public MemoryStruct.IUIElementText ToggleKeyTextLabel { private set; get; }
 
 		public VirtualKeyCode[] ToggleKey { private set; get; }
@@ -152,21 +155,17 @@ namespace Sanderling.Parse
 			IsMiner = LabelAnyRegexMatchSuccessIgnoreCase(IsMinerSetIndicatorLabelRegexPattern);
 			IsSurveyScanner = LabelRegexMatchSuccessIgnoreCase(@"Survey\s*Scan");
 
+			var MatchFromLabelWithRegexPattern = new Func<string, System.Text.RegularExpressions.Match>(regexPattern =>
+				Raw?.LabelText?.Select(LabelText => LabelText?.Text?.RegexMatchIfSuccess(regexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault());
+
 			var DistanceMinFromLabelWithRegexPattern = new Func<string, int?>(prefixPattern =>
-			{
-				var pattern = prefixPattern + Distance.DistanceRegexPattern;
-
-				var Match = Raw?.LabelText?.Select(LabelText => LabelText?.Text?.RegexMatchIfSuccess(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault();
-
-				if (null == Match)
-					return null;
-
-				return (int?)Distance.DistanceParseMin(Match.Value.RegexMatchIfSuccess(Distance.DistanceRegexPattern)?.Value);
-			});
+				(int?)Distance.DistanceParseMin(MatchFromLabelWithRegexPattern(prefixPattern + Distance.DistanceRegexPattern)?.Value?.RegexMatchIfSuccess(Distance.DistanceRegexPattern)?.Value));
 
 			RangeWithin = DistanceMinFromLabelWithRegexPattern(@"^Range within\s*");
 			RangeOptimal = DistanceMinFromLabelWithRegexPattern(@"Optimal range within\s*");
 			RangeFalloff = DistanceMinFromLabelWithRegexPattern(@"Falloff range within\s*");
+
+			SignatureRadiusModifierMilli = (int?)MatchFromLabelWithRegexPattern(@"(" + Number.DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars + @")\s*%\s*Signature\s*Radius\s*(Modifier|Bonus)")?.Groups[1]?.Value?.NumberParseDecimalMilli() / 100;
 
 			ToggleKeyTextLabel = Raw?.LabelText?.OrderByNearestPointOnLine(new Vektor2DInt(-1, 1), label => label?.RegionCenter())?.FirstOrDefault();
 			ToggleKey = ToggleKeyTextLabel?.Text?.ListKeyCodeFromUIText()?.ToArray();

@@ -18,8 +18,8 @@ namespace Sanderling.Parse
 		const string InNumberRegexPatternDecimalSeparatorGroupName = "DecimalSeparator";
 		const string InNumberRegexPatternDigitGroupSeparatorGroupName = "DigitGroupSeparator";
 
-		static readonly string DefaultNumberFormatRegexPattern = DefaultNumberFormatRegexPatternConstruct();
-		static readonly string DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars = DefaultNumberFormatRegexPatternConstruct(AllowLeadingCharacters: true, AllowTrailingCharacters: true);
+		static readonly public string DefaultNumberFormatRegexPattern = DefaultNumberFormatRegexPatternConstruct();
+		static readonly public string DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars = DefaultNumberFormatRegexPatternConstruct(AllowLeadingCharacters: true, AllowTrailingCharacters: true);
 
 		static readonly public Regex DefaultNumberFormatRegex =
 			new Regex(DefaultNumberFormatRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
