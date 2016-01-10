@@ -406,6 +406,9 @@ void UnloadToHangar()
 		var	OreHoldItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.FirstOrDefault();
 		var	ItemHangar = WindowInventory?.ItemHangarEntry?.LabelText?.Largest();
 
+		if (null == ItemHangar)
+			Host.Log("error: item hangar not found");
+
 		if(null == OreHoldItem)
 			//	0 items in OreHold
 			break;
