@@ -119,6 +119,10 @@ namespace Sanderling.Parse
 
 		public Vektor2DInt ScreenSize => Raw?.ScreenSize ?? default(Vektor2DInt);
 
+		MemoryMeasurement()
+		{
+		}
+
 		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement Raw)
 		{
 			this.Raw = Raw;
