@@ -154,7 +154,7 @@ namespace Sanderling.Parse
 
 			SelectedRightInventoryCapacityMilli = Raw?.SelectedRightInventoryCapacity?.Text?.ParseAsInventoryCapacityGaugeMilli();
 
-			ItemHangarEntry = Raw?.LeftTreeListEntry?.FirstOrDefault(c => c?.Text?.RegexMatchSuccess(@"item\s*hangar", RegexOptions.IgnoreCase) ?? false);
+			ItemHangarEntry = Raw?.LeftTreeListEntry?.FirstOrDefault(c => c?.Text?.RegexMatchSuccessIgnoreCase(@"item\s*hangar") ?? false);
 		}
 	}
 
