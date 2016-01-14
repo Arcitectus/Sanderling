@@ -118,6 +118,14 @@ namespace Sanderling.Exe
 				{
 					InstrumentationOption = BotScript.CodeAnalysis.Default.InstrumentationOption,
 				},
+				PreRunCallback = new Action<BotScript.ScriptRun>(ScriptRun =>
+				{
+					ScriptRun.InstrumentationCallbackSynchronousFirstTime = new Action<BotScript.SourceLocation>(ScriptSourceLocation =>
+					{
+						//	make sure script runs on same culture independend of host culture.
+						System.Threading.Thread.CurrentThread.CurrentCulture = Parse.Culture.ParseCulture;
+					});
+				}),
 			};
 
 			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =

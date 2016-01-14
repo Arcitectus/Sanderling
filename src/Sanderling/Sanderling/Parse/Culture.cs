@@ -1,9 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using WindowsInput.Native;
 
 namespace Sanderling.Parse
 {
+	static public class Culture
+	{
+		static public CultureInfo ParseCulture => CultureInfo.InvariantCulture;
+
+		static public void InvokeInParseCulture(this Action Method)
+		{
+			var OriginalCulture = Thread.CurrentThread.CurrentCulture;
+
+			Thread.CurrentThread.CurrentCulture = ParseCulture;
+
+			try
+			{
+				Method?.Invoke();
+			}
+			finally
+			{
+				Thread.CurrentThread.CurrentCulture = OriginalCulture;
+			}
+		}
+	}
+
 	static public class CultureAggregated
 	{
 		static VirtualKeyCode CtrlKeyCode => Extension.CtrlKeyCode;
