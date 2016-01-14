@@ -163,7 +163,7 @@ namespace Sanderling.Parse
 			}
 
 			if (SetWindowStation?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
-				 LabelText?.Text?.RegexMatchSuccessIgnoreCase(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
+				 LabelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
 			{
 				IsUnDocking = true;
 			}

@@ -77,7 +77,7 @@ namespace Sanderling.Parse
 			}
 
 			var ButtonWithTexturePathMatch = new Func<string, MemoryStruct.IUIElement>(TexturePathRegexPattern =>
-				Raw?.Button?.FirstOrDefault(candidate => candidate?.TexturePath?.RegexMatchSuccessIgnoreCase(TexturePathRegexPattern) ?? false));
+				Raw?.Button?.FirstOrDefault(candidate => candidate?.TexturePath?.RegexMatchSuccess(TexturePathRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false));
 
 			PeopleAndPlacesButton = ButtonWithTexturePathMatch("peopleandplaces");
 
