@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
-using System;
+using Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {

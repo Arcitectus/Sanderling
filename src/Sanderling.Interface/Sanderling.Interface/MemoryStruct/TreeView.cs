@@ -1,5 +1,6 @@
 ﻿using System;
 using Bib3;
+using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -20,7 +21,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		override public IUIElement RegionInteraction => LabelText?.Largest();
 
-		public string Text => LabelText?.Largest()?.Text;
+		public string Text => LabelText?.Where(label => 0 < label?.Text?.Trim()?.Length)?.OrderByCenterVerticalDown()?.FirstOrDefault()?.Text;
 
 		public TreeViewEntry()
 		{

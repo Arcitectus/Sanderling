@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using WindowsInput.Native;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
+using Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {

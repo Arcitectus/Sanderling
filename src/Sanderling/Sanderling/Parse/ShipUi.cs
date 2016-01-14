@@ -3,6 +3,7 @@ using System.Linq;
 using Bib3.Geometrik;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using BotEngine.Common;
+using Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Parse
 {
