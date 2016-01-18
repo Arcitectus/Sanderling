@@ -63,6 +63,8 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IMenu[] Menu => Raw?.Menu;
 
+		public MemoryStruct.IContainer[] Tooltip => Raw?.Tooltip;
+
 		MemoryStruct.INeocom MemoryStruct.IMemoryMeasurement.Neocom => Neocom;
 
 		public MemoryStruct.IShipUi ShipUi => Raw?.ShipUi;

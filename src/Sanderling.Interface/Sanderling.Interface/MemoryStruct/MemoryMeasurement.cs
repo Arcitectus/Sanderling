@@ -14,6 +14,8 @@ namespace Sanderling.Interface.MemoryStruct
 
 		IMenu[] Menu { get; }
 
+		IContainer[] Tooltip { get; }
+
 		IShipUi ShipUi { get; }
 
 		IShipUiTarget[] Target { get; }
@@ -97,6 +99,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public Vektor2DInt ScreenSize { set; get; }
 
 		public IMenu[] Menu { set; get; }
+
+		public IContainer[] Tooltip { set; get; }
 
 		public IShipUi ShipUi { set; get; }
 
