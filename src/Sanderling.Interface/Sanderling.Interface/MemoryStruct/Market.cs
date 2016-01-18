@@ -40,6 +40,8 @@
 
 		public MarketItemTypeDetails SelectedItemTypeDetails;
 
+		public MarketMyOrders MyOrders;
+
 		public WindowRegionalMarket(IWindow Base)
 			:
 			base(Base)
@@ -47,6 +49,23 @@
 		}
 
 		public WindowRegionalMarket()
+		{
+		}
+	}
+
+	public class MarketMyOrders : Container
+	{
+		public IListViewAndControl SellOrderView;
+
+		public IListViewAndControl BuyOrderView;
+
+		public MarketMyOrders(IContainer Base)
+			:
+			base(Base)
+		{
+		}
+
+		public MarketMyOrders()
 		{
 		}
 	}
