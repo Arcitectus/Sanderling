@@ -3,19 +3,42 @@ using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
-	public class ChatParticipant : ListEntry
+	public interface IChatParticipantEntry : IListEntry
 	{
-		public IUIElementText NameLabel;
+		IUIElementText NameLabel { get; }
 
-		public ISprite StatusIcon;
+		ISprite StatusIcon { get; }
 
-		public ChatParticipant(IListEntry Base)
-			:
-			base(Base)
+		IEnumerable<ISprite> FlagIcon { get; }
+	}
+
+	public class ChatParticipantEntry : ListEntry, IChatParticipantEntry
+	{
+		public IUIElementText NameLabel
+		{
+			set;
+			get;
+		}
+
+		public ISprite StatusIcon
+		{
+			set;
+			get;
+		}
+
+		public IEnumerable<ISprite> FlagIcon
+		{
+			set;
+			get;
+		}
+
+		public ChatParticipantEntry(IListEntry Base)
+				:
+				base(Base)
 		{
 		}
 
-		public ChatParticipant()
+		public ChatParticipantEntry()
 		{
 		}
 	}
@@ -31,16 +54,15 @@ namespace Sanderling.Interface.MemoryStruct
 		public ChatMessage()
 		{
 		}
-
 	}
 
 	public class WindowChatChannel : Window
 	{
-		public IListViewAndControl ParticipantView;
+		public IListViewAndControl<IChatParticipantEntry> ParticipantView;
 
 		public IListViewAndControl MessageView;
 
-		public IEnumerable<ChatParticipant> Participant => ParticipantView?.Entry?.OfType<ChatParticipant>();
+		public IEnumerable<IChatParticipantEntry> Participant => ParticipantView?.Entry?.OfType<IChatParticipantEntry>();
 
 		public IEnumerable<ChatMessage> Message => MessageView?.Entry?.OfType<ChatMessage>();
 
