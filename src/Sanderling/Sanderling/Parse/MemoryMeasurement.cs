@@ -3,6 +3,7 @@ using BotEngine.Common;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
+using System;
 
 namespace Sanderling.Parse
 {
@@ -28,6 +29,8 @@ namespace Sanderling.Parse
 	public class MemoryMeasurement : IMemoryMeasurement
 	{
 		MemoryStruct.IMemoryMeasurement Raw;
+
+		public string UserDefaultLocaleName => Raw?.UserDefaultLocaleName;
 
 		public IShipUiTarget[] Target { set; get; }
 

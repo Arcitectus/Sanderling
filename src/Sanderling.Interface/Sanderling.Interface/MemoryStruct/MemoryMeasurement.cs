@@ -8,6 +8,8 @@ namespace Sanderling.Interface.MemoryStruct
 	/// </summary>
 	public interface IMemoryMeasurement
 	{
+		string UserDefaultLocaleName { get; }
+
 		string VersionString { get; }
 
 		Vektor2DInt ScreenSize { get; }
@@ -94,6 +96,8 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class MemoryMeasurement : IMemoryMeasurement, ICloneable
 	{
+		public string UserDefaultLocaleName { set; get; }
+
 		public string VersionString { set; get; }
 
 		public Vektor2DInt ScreenSize { set; get; }
