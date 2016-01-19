@@ -57,7 +57,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public IEnumerable<ITreeViewEntry> EnumerateChildNodeTransitive(
 			this ITreeViewEntry TreeViewEntry) =>
-			TreeViewEntry?.EnumerateNodeFromTree(Node => Node.Child);
+			TreeViewEntry?.EnumerateNodeFromTreeBFirst(Node => Node.Child);
 
 		static public IEnumerable<T> OrderByCenterDistanceToPoint<T>(
 			this IEnumerable<T> Sequence,

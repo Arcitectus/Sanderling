@@ -262,7 +262,7 @@ namespace Sanderling.Parse
 			}
 		}
 		static public IEnumerable<IDialogueMissionObjective> SelfAndComponentTransitive(this IDialogueMissionObjective Parent) =>
-			Parent.EnumerateNodeFromTree(node => node.SetComponent);
+			Parent.EnumerateNodeFromTreeBFirst(node => node.SetComponent);
 
 		static public IWindowAgentDialogue Parse(this MemoryStruct.IWindowAgentDialogue Window)
 		{
