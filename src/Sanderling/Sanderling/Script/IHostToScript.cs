@@ -40,6 +40,8 @@ namespace Sanderling.Script
 		/// </summary>
 		/// <param name="DelayToMeasurementMilli"></param>
 		void InvalidateMeasurement(int DelayToMeasurementMilli);
+
+		IntPtr WindowHandle { get; }
 	}
 
 	public class HostToScript : IHostToScript
@@ -51,6 +53,8 @@ namespace Sanderling.Script
 		public Func<MotionParam, MotionResult> MotionExecuteFunc;
 
 		public Action<int> InvalidateMeasurementAction;
+
+		public Func<IntPtr> WindowHandleFunc;
 
 		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
 			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurement);
@@ -64,6 +68,8 @@ namespace Sanderling.Script
 		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
 
 		public void InvalidateMeasurement(Int32 DelayToMeasurementMilli) => InvalidateMeasurementAction?.Invoke(DelayToMeasurementMilli);
+
+		public IntPtr WindowHandle => WindowHandleFunc?.Invoke() ?? IntPtr.Zero;
 	}
 
 	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals

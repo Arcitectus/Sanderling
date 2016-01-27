@@ -1,5 +1,6 @@
 ﻿using BotEngine.Motor;
 using Sanderling.Interface.MemoryStruct;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WindowsInput.Native;
@@ -100,5 +101,13 @@ namespace Sanderling.Script
 		static public bool IsAltKey(this VirtualKeyCode Key) =>
 			VirtualKeyCode.MENU == Key || VirtualKeyCode.LMENU == Key || VirtualKeyCode.RMENU == Key;
 
+		static public bool WindowPostMessage(this IHostToScript host, uint msg, IntPtr wParam, IntPtr lParam = default(IntPtr)) =>
+			BotEngine.WinApi.User32.PostMessage(host.WindowHandle, msg, wParam, lParam);
+
+		static public bool WindowPostMessageKeyDown(this IHostToScript host, VirtualKeyCode key, IntPtr lParam = default(IntPtr)) =>
+			host.WindowPostMessage(0x100, (IntPtr)key, lParam);
+
+		static public bool WindowPostMessageKeyUp(this IHostToScript host, VirtualKeyCode key, IntPtr lParam = default(IntPtr)) =>
+			host.WindowPostMessage(0x101, (IntPtr)key, lParam);
 	}
 }

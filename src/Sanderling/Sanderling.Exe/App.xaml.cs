@@ -103,6 +103,8 @@ namespace Sanderling.Exe
 					},
 
 					InvalidateMeasurementAction = FromScriptInvalidateMeasurement,
+
+					WindowHandleFunc = () => ((Motor.WindowMotor)Motor)?.WindowHandle ?? IntPtr.Zero,
 				}
 			};
 
