@@ -364,7 +364,7 @@ namespace Sanderling.Parse
 
 			var RewardBonusCaptionNode = ListCaptionNode?.FirstOrDefault(node => node?.InnerText?.RegexMatchSuccessIgnoreCase("bonus rewards") ?? false);
 
-			var SetRewardCandidateNode = HtmlDocument.DocumentNode?.SelectNodes("//table");
+			var SetRewardCandidateNode = HtmlDocument?.DocumentNode?.SelectNodes("//table");
 
 			var RewardBaseNode = SetRewardCandidateNode?.FirstOrDefault(node => node.AfterNode(RewardBaseCaptionNode));
 
