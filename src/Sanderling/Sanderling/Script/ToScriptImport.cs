@@ -33,7 +33,6 @@ namespace Sanderling.Script
 			typeof(ToScriptExtension),
 			typeof(Parse.IMemoryMeasurement),
 			typeof(WindowsInput.Native.VirtualKeyCode),
-			typeof(System.Speech.Synthesis.SpeechSynthesizer),
 		};
 
 		static readonly Type[] NamespaceStaticAdditionType = new[]
