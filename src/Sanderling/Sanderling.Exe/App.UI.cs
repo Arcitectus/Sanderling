@@ -4,7 +4,7 @@ using Sanderling.UI;
 using BotEngine.Interface;
 using BotEngine.UI;
 using System.Linq;
-using BotScript.UI.Wpf;
+using BotSharp.UI.Wpf;
 using System.Collections.Generic;
 using System.Windows.Input;
 using System.Windows.Controls.Primitives;
@@ -20,7 +20,7 @@ namespace Sanderling.Exe
 
 		StatusIcon.StatusEnum InterfaceProcessStatus =>
 			(MainControl?.Interface?.ProcessChoice?.ChoosenProcessAtTime.Wert?.BewertungMainModuleDataiNaamePasend ?? false) ?
-			StatusIcon.StatusEnum.Acceptance : StatusIcon.StatusEnum.None;
+			StatusIcon.StatusEnum.Accept : StatusIcon.StatusEnum.None;
 
 		StatusIcon.StatusEnum InterfaceLicenseStatus =>
 			MainControl?.Interface?.LicenseClientInspect?.Status()?.FirstOrDefault() ?? StatusIcon.StatusEnum.None;
@@ -41,17 +41,17 @@ namespace Sanderling.Exe
 
 				if (!(MemoryMeasurementLastAge < 8000))
 				{
-					return StatusIcon.StatusEnum.Error;
+					return StatusIcon.StatusEnum.Reject;
 				}
 
 				if (!Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(
 						MemoryMeasurementLast?.Value?.MemoryMeasurement,
 						Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache).CountAtLeast(1))
 				{
-					return StatusIcon.StatusEnum.Error;
+					return StatusIcon.StatusEnum.Reject;
 				}
 
-				return StatusIcon.StatusEnum.Acceptance;
+				return StatusIcon.StatusEnum.Accept;
 			}
 		}
 

@@ -1,5 +1,6 @@
 ﻿using Bib3;
 using BotEngine;
+using BotEngine.Client;
 using BotEngine.Common;
 using System.Collections.Generic;
 using System.Linq;

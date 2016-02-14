@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sanderling.UI"
              xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
-             xmlns:BotScript.UI.Wpf="clr-namespace:BotScript.UI.Wpf;assembly=BotScript.UI"
+             xmlns:BotSharp.UI.Wpf="clr-namespace:BotSharp.UI.Wpf;assembly=BotSharp.UI"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="444">
     <UserControl.Resources>
@@ -22,9 +22,9 @@
                         x:FieldModifier="public"
                         Content="Script Engine"></BotEngine.UI.ViewModel:ContentAndStatusIcon>
                 </TabItem.Header>
-                <BotScript.UI.Wpf:IDE
+                <BotSharp.UI.Wpf:IDE
                     x:Name="IDE"
-                    x:FieldModifier="public"></BotScript.UI.Wpf:IDE>
+                    x:FieldModifier="public"></BotSharp.UI.Wpf:IDE>
             </TabItem>
 
             <TabItem Header="API Explorer">

@@ -18,7 +18,7 @@ namespace Sanderling.Sample.Read
 		{
 			Console.WriteLine("this Programm reads the memory of the eve online client process.");
 			Console.WriteLine("start an eve online client and login to your account. Then press any key to continue.\n");
-            Console.ReadKey();
+			Console.ReadKey();
 
 			var Config = Extension.ConfigReadFromConsole();
 
@@ -28,10 +28,17 @@ namespace Sanderling.Sample.Read
 				return;
 			}
 
-			var LicenseClient = new BotEngine.Interface.LicenseClient() { ServerAddress = Config.LicenseServerAddress, LicenseKey = Config.LicenseKey };
+			var LicenseClient = new BotEngine.Interface.LicenseClient()
+			{
+				ServerAddress = Config.LicenseServerAddress,
+				Request = new BotEngine.Client.AuthRequest
+				{
+					LicenseKey = Config.LicenseKey,
+				},
+			};
 
 			Console.WriteLine();
-			Console.WriteLine("connecting to " + (LicenseClient?.ServerAddress ?? "") + " using Key \"" + (LicenseClient?.LicenseKey ?? "") + "\" ....");
+			Console.WriteLine("connecting to " + (LicenseClient?.ServerAddress ?? "") + " using Key \"" + (LicenseClient?.Request?.LicenseKey ?? "") + "\" ....");
 
 			while (!LicenseClient.AuthCompleted)
 			{

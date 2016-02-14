@@ -4,6 +4,6 @@
 	{
 		public const string EveOnlineProcessMainModuleFileName = "ExeFile.exe";
 
-		public BotEngine.LicenseClientConfig LicenseClient;
+		public BotEngine.Client.LicenseClientConfig LicenseClient;
 	}
 }

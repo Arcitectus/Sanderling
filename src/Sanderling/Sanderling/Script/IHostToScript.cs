@@ -72,7 +72,7 @@ namespace Sanderling.Script
 		public IntPtr WindowHandle => WindowHandleFunc?.Invoke() ?? IntPtr.Zero;
 	}
 
-	public class ToScriptGlobals : BotScript.ScriptRun.ToScriptGlobals
+	public class ToScriptGlobals : BotSharp.ScriptRun.ToScriptGlobals
 	{
 		public IHostToScript Sanderling;
 

@@ -22,13 +22,13 @@ namespace Sanderling.UI
 		public void ConfigFromModelToView(ExeConfig Config)
 		{
 			LicenseClientConfigControl.DataContext =
-				new AutoDependencyPropertyComp<BotEngine.LicenseClientConfig>(Config?.LicenseClient);
+				new AutoDependencyPropertyComp<BotEngine.Client.LicenseClientConfig>(Config?.LicenseClient);
 		}
 
 		public ExeConfig ConfigFromViewToModel() =>
 			new ExeConfig()
 			{
-				LicenseClient = (LicenseClientConfigControl.DataContext as AutoDependencyPropertyComp<BotEngine.LicenseClientConfig>)
+				LicenseClient = (LicenseClientConfigControl.DataContext as AutoDependencyPropertyComp<BotEngine.Client.LicenseClientConfig>)
 				?.PropagateFromDependencyPropertyToClrMember()
 			};
 

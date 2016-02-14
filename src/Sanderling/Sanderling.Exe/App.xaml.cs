@@ -18,17 +18,17 @@ namespace Sanderling.Exe
 
 		public const string ConfigApiVersionDefaultAddress = @"http://sanderling.api.botengine.de:4034/api";
 
-		BotEngine.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
+		BotEngine.Client.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
 
 		public MainWindow Window => base.MainWindow as MainWindow;
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
 
-		BotScript.UI.Wpf.IDE ScriptIDE => Window?.Main?.Bot?.IDE;
+		BotSharp.UI.Wpf.IDE ScriptIDE => Window?.Main?.Bot?.IDE;
 
 		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.Bot?.APIExplorer;
 
-		BotScript.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
+		BotSharp.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
 
 		bool WasActivated = false;
 
@@ -112,17 +112,17 @@ namespace Sanderling.Exe
 		{
 			ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
 
-			ScriptIDE.ScriptParamBase = new BotScript.ScriptParam()
+			ScriptIDE.ScriptParamBase = new BotSharp.ScriptParam()
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
 				ImportNamespace = Sanderling.Script.ToScriptImport.ImportNamespace?.ToArray(),
-				CompilationOption = new BotScript.CodeAnalysis.CompilationOption()
+				CompilationOption = new BotSharp.CodeAnalysis.CompilationOption()
 				{
-					InstrumentationOption = BotScript.CodeAnalysis.Default.InstrumentationOption,
+					InstrumentationOption = BotSharp.CodeAnalysis.Default.InstrumentationOption,
 				},
-				PreRunCallback = new Action<BotScript.ScriptRun>(ScriptRun =>
+				PreRunCallback = new Action<BotSharp.ScriptRun>(ScriptRun =>
 				{
-					ScriptRun.InstrumentationCallbackSynchronousFirstTime = new Action<BotScript.SourceLocation>(ScriptSourceLocation =>
+					ScriptRun.InstrumentationCallbackSynchronousFirstTime = new Action<BotSharp.SourceLocation>(ScriptSourceLocation =>
 					{
 						//	make sure script runs on same culture independend of host culture.
 						System.Threading.Thread.CurrentThread.CurrentCulture = Parse.Culture.ParseCulture;
