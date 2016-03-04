@@ -66,6 +66,8 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IEnumerable<ChatMessage> Message => MessageView?.Entry?.OfType<ChatMessage>();
 
+		public IUIElementInputText MessageInput { set; get; }
+
 		public WindowChatChannel(IWindow Window)
 			:
 			base(Window)
