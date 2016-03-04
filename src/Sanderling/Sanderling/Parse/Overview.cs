@@ -3,6 +3,7 @@ using BotEngine.Common;
 using System;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
+using System.Collections.Generic;
 
 namespace Sanderling.Parse
 {
@@ -15,6 +16,14 @@ namespace Sanderling.Parse
 		bool? IsAttackingMe { get; }
 
 		bool? IsJammingMe { get; }
+
+		bool? IsHostile { get; }
+
+		bool? MeTargeted { get; }
+
+		bool? MeTargeting { get; }
+
+		bool? MeActiveTarget { get; }
 	}
 
 	public interface IWindowOverview : MemoryStruct.IWindowOverview
@@ -26,6 +35,8 @@ namespace Sanderling.Parse
 	{
 		MemoryStruct.IOverviewEntry Raw;
 
+		public IEnumerable<string> MainIconSetIndicatorName => Raw?.MainIconSetIndicatorName;
+
 		public MemoryStruct.ISprite[] RightIcon => Raw?.RightIcon;
 
 		public MemoryStruct.ISprite MainIcon { set; get; }
@@ -35,6 +46,14 @@ namespace Sanderling.Parse
 		public bool? IsAttackingMe { set; get; }
 
 		public bool? IsJammingMe { set; get; }
+
+		public bool? IsHostile { set; get; }
+
+		public bool? MeTargeted { set; get; }
+
+		public bool? MeTargeting { set; get; }
+
+		public bool? MeActiveTarget { set; get; }
 
 		public OverviewEntry()
 		{
@@ -50,13 +69,18 @@ namespace Sanderling.Parse
 
 			MainIconIsRed = MainIcon?.Color?.IsRed();
 
-			var ContainsLeftIconWithNameMatchingRegexPattern = new Func<string, bool>(regexPattern =>
-				Raw?.SetSprite?.Any(Sprite => (Sprite?.Name).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
+			var MainIconContainsIndicatorWithNameMatchingRegexPattern = new Func<string, bool>(regexPattern =>
+				Raw?.MainIconSetIndicatorName?.Any(indicatorName => indicatorName.RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
 
 			var ContainsRightIconWithHintMatchingRegexPattern = new Func<string, bool>(regexPattern =>
 				Raw?.RightIcon?.Any(Sprite => (Sprite?.HintText).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
 
-			IsAttackingMe = ContainsLeftIconWithNameMatchingRegexPattern("attacking.*me");
+			IsAttackingMe = MainIconContainsIndicatorWithNameMatchingRegexPattern("attacking.*me");
+			IsHostile = MainIconContainsIndicatorWithNameMatchingRegexPattern("hostile");
+			MeTargeting = MainIconContainsIndicatorWithNameMatchingRegexPattern("targeting");
+			MeTargeted = MainIconContainsIndicatorWithNameMatchingRegexPattern("targetedByMe");
+			MeActiveTarget = MainIconContainsIndicatorWithNameMatchingRegexPattern("myActiveTarget");
+
 			IsJammingMe = ContainsRightIconWithHintMatchingRegexPattern("jamming.*me");
 		}
 	}

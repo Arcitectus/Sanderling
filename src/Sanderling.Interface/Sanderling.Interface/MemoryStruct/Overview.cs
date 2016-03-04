@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -8,6 +9,8 @@ namespace Sanderling.Interface.MemoryStruct
 		/// contains EWar icons such as jamming or scrambling.
 		/// </summary>
 		ISprite[] RightIcon { get; }
+
+		IEnumerable<string> MainIconSetIndicatorName { get; }
 	}
 
 	public interface IWindowOverview : IWindow
@@ -57,6 +60,8 @@ namespace Sanderling.Interface.MemoryStruct
 	public class OverviewEntry : ListEntry, IOverviewEntry
 	{
 		public ISprite[] RightIcon { set; get; }
+
+		public IEnumerable<string> MainIconSetIndicatorName { set; get; }
 
 		public OverviewEntry(IListEntry Base)
 			:
