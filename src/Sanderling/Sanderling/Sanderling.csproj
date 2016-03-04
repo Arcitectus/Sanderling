@@ -174,7 +174,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Script\ToScriptImport.cs" />
     <Compile Include="Script\ToScriptExtension.cs" />
-    <Compile Include="SimpleSensorServerDispatcher.cs" />
+    <Compile Include="InterfaceAppManager.cs" />
     <Compile Include="Script\IHostToScript.cs" />
     <Compile Include="UIStatic.cs" />
   </ItemGroup>

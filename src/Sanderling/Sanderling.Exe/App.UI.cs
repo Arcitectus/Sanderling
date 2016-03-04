@@ -46,7 +46,7 @@ namespace Sanderling.Exe
 
 				if (!Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(
 						MemoryMeasurementLast?.Value?.MemoryMeasurement,
-						Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache).CountAtLeast(1))
+						Interface.FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache).CountAtLeast(1))
 				{
 					return StatusIcon.StatusEnum.Reject;
 				}

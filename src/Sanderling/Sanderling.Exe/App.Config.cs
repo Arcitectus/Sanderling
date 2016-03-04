@@ -65,7 +65,19 @@ namespace Sanderling.Exe
 		public void ConfigWriteToUIDeSerialized(byte[] Config) => ConfigWriteToUI(Config.DeserializeFromUtf8<ExeConfig>());
 
 		static public ExeConfig ConfigDefaultConstruct() =>
-			new ExeConfig() { LicenseClient = new LicenseClientConfig() { ApiVersionAddress = ConfigApiVersionDefaultAddress } };
+			new ExeConfig
+			{
+				LicenseClient = new LicenseClientConfig
+				{
+					ApiVersionAddress = ExeConfig.ConfigApiVersionAddressDefault,
+					Request = new AuthRequest
+					{
+						LicenseKey = ExeConfig.ConfigLicenseKeyFree,
+						ServiceId = ExeConfig.ConfigServiceId,
+						Consume = true,
+					},
+				},
+			};
 
 	}
 }

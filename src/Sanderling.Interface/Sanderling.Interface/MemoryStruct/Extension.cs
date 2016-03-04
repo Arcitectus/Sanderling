@@ -21,7 +21,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public IEnumerable<object> EnumerateReferencedTransitive(
 			this object Parent) =>
-			Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(Parent, FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache);
+			Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(Parent, FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache);
 
 		static public IEnumerable<IUIElement> EnumerateReferencedUIElementTransitive(
 			this object Parent) =>
@@ -30,7 +30,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		static public T CopyByPolicyMemoryMeasurement<T>(this T ToBeCopied)
 			where T : class =>
-			Bib3.RefBaumKopii.RefBaumKopiiStatic.ObjektKopiiErsctele(ToBeCopied, new Bib3.RefBaumKopii.Param(null, FromSensorToConsumerMessage.SerialisPolicyCache));
+			Bib3.RefBaumKopii.RefBaumKopiiStatic.ObjektKopiiErsctele(ToBeCopied, new Bib3.RefBaumKopii.Param(null, FromInterfaceResponse.SerialisPolicyCache));
 
 		static public IUIElement WithRegion(this IUIElement Base, RectInt Region) =>
 			null == Base ? null : new UIElement(Base) { Region = Region };

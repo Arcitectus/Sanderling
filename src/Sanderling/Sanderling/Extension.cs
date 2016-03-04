@@ -159,7 +159,7 @@ namespace Sanderling
 
 				if (null == NodeAsUIElement)
 				{
-					Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache));
+					Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache));
 				}
 				else
 				{
@@ -170,7 +170,7 @@ namespace Sanderling
 
 					if ((NodeAsUIElement.InTreeIndex ?? int.MinValue) < (ElementBehind.InTreeIndex ?? int.MinValue))
 					{
-						Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromSensorToConsumerMessage.UITreeComponentTypeHandlePolicyCache));
+						Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache));
 					}
 					else
 					{

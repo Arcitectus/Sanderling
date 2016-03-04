@@ -49,7 +49,7 @@ namespace Sanderling.Motor
 				var WaypointRegionReplacement = MouseWaypoint.RegionReplacement;
 
 				var WaypointUIElementCurrent =
-					WaypointUIElement.GetInstanceWithIdFromCLRGraph(MemoryMeasurement, Interface.FromSensorToConsumerMessage.SerialisPolicyCache);
+					WaypointUIElement.GetInstanceWithIdFromCLRGraph(MemoryMeasurement, Interface.FromInterfaceResponse.SerialisPolicyCache);
 
 				if (null == WaypointUIElementCurrent)
 				{

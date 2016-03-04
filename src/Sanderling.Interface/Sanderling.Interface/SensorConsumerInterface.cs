@@ -1,5 +1,4 @@
-﻿using Bib3;
-using Sanderling.Interface.MemoryStruct;
+﻿using Sanderling.Interface.MemoryStruct;
 using BotEngine.Interface;
 using System;
 using System.Text;
@@ -8,9 +7,27 @@ using System.Linq;
 
 namespace Sanderling.Interface
 {
-	public class FromSensorToConsumerMessage
+	public class MemoryMeasurementInitParam
 	{
-		public Int64 Time;
+		public int ProcessId;
+	}
+
+	public class ToInterfaceRequest
+	{
+		public MemoryMeasurementInitParam MemoryMeasurementInitTake;
+
+		public bool MemoryMeasurementInitGetLast;
+
+		public bool MemoryMeasurementTake;
+
+		public bool MemoryMeasurementGetLast;
+	}
+
+	public class FromInterfaceResponse
+	{
+		public bool MemoryMeasurementInProgress;
+
+		public FromProcessMeasurement<MemoryMeasurementInitParam> MemoryMeasurementInit;
 
 		public FromProcessMeasurement<IMemoryMeasurement> MemoryMeasurement;
 
@@ -18,10 +35,6 @@ namespace Sanderling.Interface
 		/// Area is Window Client Area.
 		/// </summary>
 		public FromProcessMeasurement<WindowMeasurement> WindowMeasurement;
-
-		public FromSensorToConsumerMessage()
-		{
-		}
 
 		static public Bib3.RefNezDiferenz.SictMengeTypeBehandlungRictliinie SerialisPolicyConstruct() =>
 			Bib3.SictRefNezKopii.SctandardRictlinieMitScatescpaicer.Rictliinie;
@@ -59,22 +72,4 @@ namespace Sanderling.Interface
 			return DeserializeFromString<T>(Encoding.UTF8.GetString(Utf8));
 		}
 	}
-
-	public class FromConsumerToSensorMessage
-	{
-		public int? RequestedMeasurementProcessId;
-
-		public Int64? MeasurementMemoryRequestTime;
-
-		public Int64? MeasurementWindowRequestTime;
-
-		public Int64? MeasurementMemoryReceivedLastTime;
-
-		public Int64? MeasurementWindowReceivedLastTime;
-
-		public FromConsumerToSensorMessage()
-		{
-		}
-	}
-
 }

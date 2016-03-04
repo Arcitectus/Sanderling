@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
+using BotEngine.Interface;
 
 namespace Sanderling.Sample.Read
 {
@@ -12,7 +13,7 @@ namespace Sanderling.Sample.Read
 	/// </summary>
 	class Program
 	{
-		const int MeasurementTimeDistanceMin = 1000;
+		const int MeasurementTimeDistance = 1000;
 
 		static void SampleRun()
 		{
@@ -55,35 +56,24 @@ namespace Sanderling.Sample.Read
 
 			Console.WriteLine("\nstarting to set up the sensor and read from memory.\nthe initial measurement takes longer.");
 
-			var SensorAppManager = new BotEngine.Interface.InterfaceAppManager();
-
-			var SensorServerHub = new SimpleSensorServerDispatcher() { SensorAppManager = SensorAppManager, LicenseClient = LicenseClient };
-
-			BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> MeasurementMemoryReceivedLast = null;
-
-			while (true)
+			var SensorServerHub = new SimpleInterfaceServerDispatcher
 			{
-				try
-				{
-					//	Limit the frequency of measurements.
-					var RequestedMeasurementTime =
-						(MeasurementMemoryReceivedLast?.Begin + MeasurementTimeDistanceMin) ??
-						Bib3.Glob.StopwatchZaitMiliSictInt();
+				InterfaceAppManager = new BotEngine.Interface.InterfaceAppManager(),
+				LicenseClient = LicenseClient
+			};
 
-					//	not specifying a subset to read, the sensor will simply read all available (types in MemoryStruct namespace) structures from memory.
-					SensorServerHub.Exchange(
-						Config.EveOnlineClientProcessId,
-						RequestedMeasurementTime,
-						Measurement =>
-						{
-							MeasurementMemoryReceivedLast = Measurement;
-							MeasurementReceived(Measurement);
-						});
-				}
-				finally
-				{
-					Thread.Sleep(250);
-				}
+			for (;;)
+			{
+				SensorServerHub?.Exchange();
+
+				var response = SensorServerHub?.InterfaceAppManager?.MeasurementTakeRequest(Config.EveOnlineClientProcessId);
+
+				if (null == response)
+					Console.WriteLine("Sensor Interface not yet ready.");
+				else
+					MeasurementReceived(response?.MemoryMeasurement);
+
+				Thread.Sleep(MeasurementTimeDistance);
 			}
 		}
 

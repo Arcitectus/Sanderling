@@ -16,8 +16,6 @@ namespace Sanderling.Exe
 	{
 		static public Int64 GetTimeStopwatch() => Bib3.Glob.StopwatchZaitMiliSictInt();
 
-		public const string ConfigApiVersionDefaultAddress = @"http://sanderling.api.botengine.de:4034/api";
-
 		BotEngine.Client.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
 
 		public MainWindow Window => base.MainWindow as MainWindow;
@@ -68,7 +66,7 @@ namespace Sanderling.Exe
 
 		void TimerConstruct()
 		{
-			Timer = new DispatcherTimer(TimeSpan.FromSeconds(1.0 / 4), DispatcherPriority.Normal, Timer_Tick, Dispatcher);
+			Timer = new DispatcherTimer(TimeSpan.FromSeconds(1.0 / 10), DispatcherPriority.Normal, Timer_Tick, Dispatcher);
 
 			Timer.Start();
 		}
@@ -157,7 +155,7 @@ namespace Sanderling.Exe
 
 			Motor = GetMotor();
 
-			LicenseClientExchange();
+			InterfaceExchange();
 
 			UIPresentScript();
 

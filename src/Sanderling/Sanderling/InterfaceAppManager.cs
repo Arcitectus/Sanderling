@@ -1,0 +1,60 @@
+﻿using BotEngine.Interface;
+using Sanderling.Interface;
+using System.Threading;
+using MemoryStruct = Sanderling.Interface.MemoryStruct;
+
+namespace Sanderling
+{
+	static public class InterfaceAppManagerExtension
+	{
+		static public FromInterfaceResponse ClientRequest(
+			this InterfaceAppManager interfaceAppManager,
+			ToInterfaceRequest request) =>
+			FromInterfaceResponse.DeserializeFromString<FromInterfaceResponse>(
+				interfaceAppManager?.ClientRequest(FromInterfaceResponse.SerializeToString(request)));
+
+		static public bool? MeasurementInProgress(this InterfaceAppManager interfaceAppManager) =>
+			interfaceAppManager?.ClientRequest(new ToInterfaceRequest())?.MemoryMeasurementInProgress;
+
+		static public FromInterfaceResponse MeasurementTakeRequest(
+			this InterfaceAppManager interfaceAppManager,
+			int processId)
+		{
+			var MeasurementBeginTimeMin = Bib3.Glob.StopwatchZaitMiliSictInt();
+
+			while (interfaceAppManager?.MeasurementInProgress() ?? false)
+				Thread.Sleep(11);
+
+			var processIdLast = interfaceAppManager?.ClientRequest(new ToInterfaceRequest
+			{
+				MemoryMeasurementInitGetLast = true,
+			})
+			?.MemoryMeasurementInit?.ProcessId;
+
+			var MemoryMeasurementInitReuse = processIdLast == processId;
+
+			var Response = interfaceAppManager?.ClientRequest(new ToInterfaceRequest
+			{
+				MemoryMeasurementInitTake = MemoryMeasurementInitReuse ? null : new MemoryMeasurementInitParam
+				{
+					ProcessId = processId,
+				},
+				MemoryMeasurementTake = !MemoryMeasurementInitReuse,
+				MemoryMeasurementGetLast = true,
+			});
+
+			if (!(MeasurementBeginTimeMin <= Response?.MemoryMeasurement?.Begin))
+				Response = interfaceAppManager?.ClientRequest(new ToInterfaceRequest
+				{
+					MemoryMeasurementTake = true,
+				});
+
+			return Response;
+		}
+
+		static public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementTake(
+			this InterfaceAppManager interfaceAppManager,
+			int processId) =>
+			MeasurementTakeRequest(interfaceAppManager, processId)?.MemoryMeasurement;
+	}
+}

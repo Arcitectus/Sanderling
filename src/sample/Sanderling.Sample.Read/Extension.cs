@@ -59,17 +59,19 @@ namespace Sanderling.Sample.Read
 
 			Console.WriteLine();
 
-			var LicenseServerAddress = config.LicenseServerAddressDefault.ConsoleEditString("enter license server address >");
+			var LicenseServerAddress = ExeConfig.ConfigApiVersionAddressDefault.ConsoleEditString("enter license server address >");
 
 			Console.WriteLine();
 
-			var LicenseKey = "".ConsoleEditString("enter license key >");
+			var LicenseKey = ExeConfig.ConfigLicenseKeyFree.ConsoleEditString("enter license key >");
+			var ServiceId = ExeConfig.ConfigServiceId.ConsoleEditString("enter service id >");
 
 			return new config()
 			{
 				EveOnlineClientProcessId = EveOnlineClientProcessId.Value,
 				LicenseServerAddress = LicenseServerAddress,
 				LicenseKey = LicenseKey,
+				ServiceId = ServiceId,
 			};
 		}
 	}

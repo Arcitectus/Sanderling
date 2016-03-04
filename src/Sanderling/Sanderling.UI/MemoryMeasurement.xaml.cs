@@ -14,7 +14,7 @@ namespace Sanderling.UI
 			InitializeComponent();
 
 			Detail.TreeViewView = BotEngine.UI.InspectTreeView.ViewRefNezDifConstruct(
-				Interface.FromSensorToConsumerMessage.SerialisPolicyCache,
+				Interface.FromInterfaceResponse.SerialisPolicyCache,
 				Bib3.FCL.GBS.Inspektor.AstHeaderBackgroundBrushParam.SctandardParam,
 				null,
 				null);

@@ -53,7 +53,7 @@ namespace Sanderling.UI
 
 		public ApiTreeViewNodeView()
 		{
-			Base = new Bib3.Terz.GBS.Inspektor.AstSictRefNezDif(Interface.FromSensorToConsumerMessage.SerialisPolicyCache);
+			Base = new Bib3.Terz.GBS.Inspektor.AstSictRefNezDif(Interface.FromInterfaceResponse.SerialisPolicyCache);
 		}
 
 		/// <summary>
