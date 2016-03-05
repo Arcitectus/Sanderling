@@ -1,5 +1,6 @@
 ﻿using BotEngine.Interface;
 using Sanderling.Interface;
+using System;
 using System.Threading;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
@@ -18,10 +19,9 @@ namespace Sanderling
 
 		static public FromInterfaceResponse MeasurementTakeRequest(
 			this InterfaceAppManager interfaceAppManager,
-			int processId)
+			int processId,
+			Int64 measurementBeginTimeMinMilli)
 		{
-			var MeasurementBeginTimeMin = Bib3.Glob.StopwatchZaitMiliSictInt();
-
 			while (interfaceAppManager?.MeasurementInProgress() ?? false)
 				Thread.Sleep(11);
 
@@ -43,7 +43,7 @@ namespace Sanderling
 				MemoryMeasurementGetLast = true,
 			});
 
-			if (!(MeasurementBeginTimeMin <= Response?.MemoryMeasurement?.Begin))
+			if (!(measurementBeginTimeMinMilli <= Response?.MemoryMeasurement?.Begin))
 				Response = interfaceAppManager?.ClientRequest(new ToInterfaceRequest
 				{
 					MemoryMeasurementTake = true,
@@ -54,7 +54,8 @@ namespace Sanderling
 
 		static public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementTake(
 			this InterfaceAppManager interfaceAppManager,
-			int processId) =>
-			MeasurementTakeRequest(interfaceAppManager, processId)?.MemoryMeasurement;
+			int processId,
+			Int64 measurementBeginTimeMinMilli) =>
+			MeasurementTakeRequest(interfaceAppManager, processId, measurementBeginTimeMinMilli)?.MemoryMeasurement;
 	}
 }

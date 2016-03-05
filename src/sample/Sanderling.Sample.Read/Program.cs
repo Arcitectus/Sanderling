@@ -66,7 +66,9 @@ namespace Sanderling.Sample.Read
 			{
 				SensorServerHub?.Exchange();
 
-				var response = SensorServerHub?.InterfaceAppManager?.MeasurementTakeRequest(Config.EveOnlineClientProcessId);
+				var response = SensorServerHub?.InterfaceAppManager?.MeasurementTakeRequest(
+					Config.EveOnlineClientProcessId,
+					Bib3.Glob.StopwatchZaitMiliSictInt());
 
 				if (null == response)
 					Console.WriteLine("Sensor Interface not yet ready.");

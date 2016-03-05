@@ -145,9 +145,11 @@ namespace Sanderling.Exe
 
 			var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
 
+			var RequestedMeasurementTime = this.RequestedMeasurementTime ?? 0;
+
 			if (EveOnlineClientProcessId.HasValue &&
 				!(MemoryMeasurementLastAge < 1000) && RequestedMeasurementTime <= Bib3.Glob.StopwatchZaitMiliSictInt())
-				Task.Run(() => MeasurementMemoryTake(EveOnlineClientProcessId.Value));
+				Task.Run(() => MeasurementMemoryTake(EveOnlineClientProcessId.Value, RequestedMeasurementTime));
 		}
 
 		void LicenseClientExchange()
@@ -199,13 +201,13 @@ namespace Sanderling.Exe
 			}
 		}
 
-		void MeasurementMemoryTake(int processId)
+		void MeasurementMemoryTake(int processId, Int64 measurementBeginTimeMinMilli)
 		{
 			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementRaw = null;
 
 			try
 			{
-				MeasurementRaw = SensorServerDispatcher.InterfaceAppManager.MeasurementTake(processId);
+				MeasurementRaw = SensorServerDispatcher.InterfaceAppManager.MeasurementTake(processId, measurementBeginTimeMinMilli);
 			}
 			finally
 			{
