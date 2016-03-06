@@ -11,6 +11,7 @@
 //	+arrange windows to not occlude modules or info panels.
 //	+in the ship UI, disable "Display Passive Modules" and disable "Display Empty Slots" and enable "Display Module Tooltips". The bot uses the module tooltips to automatically identify the properties of the modules.
 
+using BotSharp.ToScript.Extension;
 using Parse = Sanderling.Parse;
 
 //	begin of configuration section ->
