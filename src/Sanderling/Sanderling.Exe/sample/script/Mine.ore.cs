@@ -18,16 +18,18 @@ using Parse = Sanderling.Parse;
 
 //	The bot uses the bookmarks from the menu which is opened from the button in the 'System info' panel.
 
-//	Bookmark to place with asteroids. 
-string MiningSiteBookmark = "mining_site_bookmark_name"; 
+//	Bookmarks of places to mine. Add additional bookmarks separated by comma.
+string[] SetMiningSiteBookmark = new[] {
+	"mining_site_bookmark_name",
+	};
 
-//	Bookmark to location where ore should be unloaded.
+//	Bookmark of location where ore should be unloaded.
 string UnloadBookmark = "station_or_POS_bookmark_name";
 
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
 
-//	Bookmark to retreat to to prevent ship loss.
+//	Bookmark of place to retreat to to prevent ship loss.
 string RetreatBookmark = UnloadBookmark;
 
 //	The bot loads this preset to the active tab. 
@@ -142,7 +144,7 @@ Func<object>	MainStep()
 		}
 		
 		if(!(0 < ListAsteroidOverviewEntry?.Length))
-			InitiateDockToOrWarpToBookmark(MiningSiteBookmark);
+			InitiateWarpToRandomMiningSite();
 	}
 
 	ModuleMeasureAllTooltip();
@@ -152,6 +154,12 @@ Func<object>	MainStep()
 
 	return InBeltMineStep;
 }
+
+int RandomInt() => new Random((int)Host.GetTimeContinuousMilli()).Next();
+
+T RandomElement<T>(T[] array) =>
+	!(0 < array?.Length) ? default(T) : array[RandomInt() % array.Length];
+
 
 void CloseModalUIElement()
 {
@@ -436,6 +444,9 @@ void InInventoryUnloadItemsTo(string DestinationContainerName)
 		Sanderling.MouseDragAndDrop(OreHoldItem, DestinationContainer);
 	}
 }
+
+bool InitiateWarpToRandomMiningSite()	=>
+	InitiateDockToOrWarpToBookmark(RandomElement(SetMiningSiteBookmark));
 
 bool InitiateDockToOrWarpToBookmark(string Bookmark)
 {
