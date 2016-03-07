@@ -212,6 +212,8 @@ namespace Sanderling.Exe
 			}
 
 			Bib3.FCL.GBS.Extension.MessageBoxException(e.Exception);
+
+			e.Handled = true;
 		}
 	}
 }
