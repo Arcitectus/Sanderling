@@ -3,9 +3,6 @@ using Bib3.Test;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sanderling.Test.Exe
 {
@@ -33,6 +30,25 @@ namespace Sanderling.Test.Exe
 				catch (Exception Exception)
 				{
 					throw new ApplicationException("failed for test case: " + (TestCase?.ToString() ?? ""), Exception);
+				}
+			}
+		}
+
+		static public void AssertObjectEquals<InT, OutT>(
+			this IEnumerable<KeyValuePair<InT, OutT>> setTestCase,
+			Func<InT, OutT> map)
+		{
+			foreach (var testCase in setTestCase.EmptyIfNull())
+			{
+				try
+				{
+					var actual = map(testCase.Key);
+
+					Assert.That(object.Equals(testCase.Value, actual));
+				}
+				catch (Exception Exception)
+				{
+					throw new ApplicationException("failed for test case: " + (testCase.ToString() ?? ""), Exception);
 				}
 			}
 		}

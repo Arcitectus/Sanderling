@@ -29,6 +29,10 @@ namespace Sanderling.Parse
 		MemoryStruct.IUIElement CompleteButton { get; }
 
 		MemoryStruct.IUIElement DelayButton { get; }
+
+		bool? DeclineWithoutStandingLossAvailable { get; }
+
+		int? DeclineWithoutStandingLossWait { get; }
 	}
 
 	public interface IWindowAgentPane : MemoryStruct.IWindowAgentPane
@@ -175,6 +179,10 @@ namespace Sanderling.Parse
 		public MemoryStruct.IUIElement CompleteButton { set; get; }
 
 		public MemoryStruct.IUIElement DelayButton { set; get; }
+
+		public bool? DeclineWithoutStandingLossAvailable { set; get; }
+
+		public int? DeclineWithoutStandingLossWait { set; get; }
 	}
 
 	public partial class WindowAgentDialogue : IWindowAgentDialogue
@@ -281,7 +289,7 @@ namespace Sanderling.Parse
 
 			DialogueMission Mission = null;
 
-            try
+			try
 			{
 				LeftPane = Window?.LeftPane?.Parse();
 				RightPane = Window?.RightPane?.Parse();
@@ -324,6 +332,9 @@ namespace Sanderling.Parse
 				CompleteButton = CompleteButton,
 				QuitButton = QuitButton,
 				DelayButton = DelayButton,
+
+				DeclineWithoutStandingLossAvailable = LeftPane?.Html?.DeclineWithoutStandingLossAvailableFromDialogueHtml(),
+				DeclineWithoutStandingLossWait = LeftPane?.Html?.DeclineWithoutStandingLossWaitTimeFromDialogueHtml(),
 			};
 		}
 
@@ -566,6 +577,52 @@ namespace Sanderling.Parse
 				O0.Quantity == O1.Quantity;
 		}
 
+		static public bool? DeclineWithoutStandingLossAvailableFromDialogueHtml(this string html) =>
+			html?.RegexMatchSuccessIgnoreCase("Declining a mission from a particular agent more than once every 4 hours (will|may) result in a loss of standing");
+
+		static readonly KeyValuePair<string, int>[] DurationTextSetUnitRegexPatternAndValueInSecond = new KeyValuePair<string, int>[]
+			{
+				new KeyValuePair<string,    int>("hour", 60 * 60),
+				new KeyValuePair<string,    int>("minute", 60),
+				new KeyValuePair<string,    int>("second", 1),
+			};
+
+		static readonly string DurationTextComponentRegexPattern = "(\\d+)\\s*(\\w+)";
+
+		static public int? SecondCountFromDurationText(this string durationText)
+		{
+			if (null == durationText)
+				return null;
+
+			var listComponentMatch =
+				Regex.Matches(durationText, DurationTextComponentRegexPattern);
+
+			int sum = 0;
+
+			foreach (var componentMatch in (listComponentMatch?.Cast<Match>()).EmptyIfNull())
+			{
+				var componentValue = componentMatch.Groups[1].Value.TryParseInt();
+
+				if (!componentValue.HasValue)
+					return null;
+
+				var setUnitMatch =
+					DurationTextSetUnitRegexPatternAndValueInSecond
+					.Where((KandidaatAinhaitUndBetraagSekunde) => componentMatch.Groups[2].Value.RegexMatchSuccessIgnoreCase(KandidaatAinhaitUndBetraagSekunde.Key))
+					.ToArray();
+
+				if (!(1 == setUnitMatch.Length))
+					return null;
+
+				sum += componentValue.Value * setUnitMatch[0].Value;
+			}
+
+			return sum;
+		}
+
+		static public int? DeclineWithoutStandingLossWaitTimeFromDialogueHtml(this string html) =>
+			html?.RegexMatchIfSuccess("Declining a mission from this agent within the next ([\\w\\d\\s]{1,40}) will result in a loss of standing")
+			?.Groups[1]?.Value?.SecondCountFromDurationText();
 
 	}
 }
