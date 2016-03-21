@@ -25,6 +25,8 @@ namespace Sanderling.Interface
 
 	public class FromInterfaceResponse
 	{
+		public string ErrorText;
+
 		public bool MemoryMeasurementInProgress;
 
 		public FromProcessMeasurement<MemoryMeasurementInitParam> MemoryMeasurementInit;
