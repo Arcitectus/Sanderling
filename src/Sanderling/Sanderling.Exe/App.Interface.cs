@@ -203,18 +203,14 @@ namespace Sanderling.Exe
 
 		void MeasurementMemoryTake(int processId, Int64 measurementBeginTimeMinMilli)
 		{
-			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementRaw = null;
+			var MeasurementRaw = SensorServerDispatcher.InterfaceAppManager.MeasurementTake(processId, measurementBeginTimeMinMilli);
 
-			try
-			{
-				MeasurementRaw = SensorServerDispatcher.InterfaceAppManager.MeasurementTake(processId, measurementBeginTimeMinMilli);
-			}
-			finally
-			{
-				MemoryMeasurementLast = MeasurementRaw?.MapValue(Value => new Interface.MemoryMeasurementEvaluation(
-					MeasurementRaw,
-					MemoryMeasurementLast?.Value?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
-			}
+			if (null == MeasurementRaw)
+				return;
+
+			MemoryMeasurementLast = MeasurementRaw?.MapValue(Value => new Interface.MemoryMeasurementEvaluation(
+				MeasurementRaw,
+				MemoryMeasurementLast?.Value?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
 		}
 	}
 }
