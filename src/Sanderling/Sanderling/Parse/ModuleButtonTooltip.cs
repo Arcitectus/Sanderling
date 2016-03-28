@@ -21,6 +21,7 @@ namespace Sanderling.Parse
 		bool? IsHardener { get; }
 		bool? IsMiner { get; }
 		bool? IsSurveyScanner { get; }
+		bool? IsIceHarvester { get; }
 
 		int? RangeOptimal { get; }
 		int? RangeMax { get; }
@@ -113,6 +114,8 @@ namespace Sanderling.Parse
 
 		public bool? IsSurveyScanner { private set; get; }
 
+		public bool? IsIceHarvester { private set; get; }
+
 		public int? RangeOptimal { private set; get; }
 
 		public int? RangeMax { private set; get; }
@@ -155,6 +158,7 @@ namespace Sanderling.Parse
 
 			IsMiner = LabelAnyRegexMatchSuccessIgnoreCase(IsMinerSetIndicatorLabelRegexPattern);
 			IsSurveyScanner = LabelRegexMatchSuccessIgnoreCase(@"Survey\s*Scan");
+			IsIceHarvester = LabelRegexMatchSuccessIgnoreCase(@"Ice\s*Harvester");
 
 			var MatchFromLabelWithRegexPattern = new Func<string, System.Text.RegularExpressions.Match>(regexPattern =>
 				Raw?.LabelText?.Select(LabelText => LabelText?.Text?.RegexMatchIfSuccess(regexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault());
