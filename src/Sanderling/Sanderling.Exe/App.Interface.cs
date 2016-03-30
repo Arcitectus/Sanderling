@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
 namespace Sanderling.Exe
 {
@@ -52,6 +51,8 @@ namespace Sanderling.Exe
 		Int64? MemoryMeasurementLastAge => GetTimeStopwatch() - MemoryMeasurementLast?.Begin;
 
 		public Int64? FromScriptMeasurementInvalidationTime = null;
+
+		readonly Bib3.RateLimit.IRateLimitStateInt MemoryMeasurementRequestRateLimit = new Bib3.RateLimit.RateLimitStateIntSingle();
 
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
@@ -147,9 +148,9 @@ namespace Sanderling.Exe
 
 			var RequestedMeasurementTime = this.RequestedMeasurementTime ?? 0;
 
-			if (EveOnlineClientProcessId.HasValue &&
-				!(MemoryMeasurementLastAge < 1000) && RequestedMeasurementTime <= Bib3.Glob.StopwatchZaitMiliSictInt())
-				Task.Run(() => MeasurementMemoryTake(EveOnlineClientProcessId.Value, RequestedMeasurementTime));
+			if (EveOnlineClientProcessId.HasValue && RequestedMeasurementTime <= GetTimeStopwatch())
+				if (MemoryMeasurementRequestRateLimit.AttemptPass(GetTimeStopwatch(), 700))
+					Task.Run(() => MeasurementMemoryTake(EveOnlineClientProcessId.Value, RequestedMeasurementTime));
 		}
 
 		void LicenseClientExchange()

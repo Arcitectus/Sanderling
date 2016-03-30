@@ -26,7 +26,7 @@ namespace Sanderling.Exe
 
 		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.Bot?.APIExplorer;
 
-		BotSharp.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
+		BotSharp.ScriptRun.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
 
 		bool WasActivated = false;
 
@@ -83,33 +83,19 @@ namespace Sanderling.Exe
 			ActivatedFirstTime();
 		}
 
-		Script.ToScriptGlobals ToScriptGlobalsConstruct(Action ScriptExecutionCheck) =>
-			new Script.ToScriptGlobals()
+		BotSharp.ScriptRun.IScriptRunClient ScriptRunClientBuild(BotSharp.ScriptRun.ScriptRun run)
+		{
+			return new Sanderling.Script.Impl.ScriptRunClient
 			{
-				Sanderling = new Sanderling.Script.HostToScript()
-				{
-					MemoryMeasurementFunc = () =>
-					{
-						ScriptExecutionCheck?.Invoke();
-						return FromScriptRequestMemoryMeasurementEvaluation();
-					},
-
-					MotionExecuteFunc = MotionParam =>
-					{
-						ScriptExecutionCheck?.Invoke();
-						return FromScriptMotionExecute(MotionParam);
-					},
-
-					InvalidateMeasurementAction = FromScriptInvalidateMeasurement,
-
-					WindowHandleFunc = () => ((Motor.WindowMotor)Motor)?.WindowHandle ?? IntPtr.Zero,
-				}
+				InvalidateMeasurementAction = FromScriptInvalidateMeasurement,
+				MemoryMeasurementLastDelegate = () => MemoryMeasurementLast,
+				FromScriptRequestMemoryMeasurementEvaluation = FromScriptRequestMemoryMeasurementEvaluation,
+				FromScriptMotionExecute = FromScriptMotionExecute,
 			};
+		}
 
 		void ActivatedFirstTime()
 		{
-			ScriptIDE.ScriptRunGlobalsFunc = ToScriptGlobalsConstruct;
-
 			ScriptIDE.ScriptParamBase = new BotSharp.ScriptParam()
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
@@ -118,14 +104,10 @@ namespace Sanderling.Exe
 				{
 					InstrumentationOption = BotSharp.CodeAnalysis.Default.InstrumentationOption,
 				},
-				PreRunCallback = new Action<BotSharp.ScriptRun>(ScriptRun =>
-				{
-					ScriptRun.InstrumentationCallbackSynchronousFirstTime = new Action<BotSharp.SourceLocation>(ScriptSourceLocation =>
-					{
-						//	make sure script runs on same culture independend of host culture.
-						System.Threading.Thread.CurrentThread.CurrentCulture = Parse.Culture.ParseCulture;
-					});
-				}),
+
+				ScriptRunClientBuildDelegate = ScriptRunClientBuild,
+
+				CompilationGlobalsType = typeof(Sanderling.Script.ToScriptGlobals),
 			};
 
 			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =

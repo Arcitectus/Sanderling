@@ -172,6 +172,7 @@
     <Compile Include="Parse\Test\Mission.cs" />
     <Compile Include="Parse\Test\Number.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Script\Impl\ScriptRunClient.cs" />
     <Compile Include="Script\ToScriptImport.cs" />
     <Compile Include="Script\ToScriptExtension.cs" />
     <Compile Include="InterfaceAppManager.cs" />
