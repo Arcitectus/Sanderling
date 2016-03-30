@@ -118,11 +118,11 @@ namespace Sanderling.UI
 				}
 			}
 
-			if (Member.ReflectedType?.InheritsOrImplementsOrEquals<Script.HostToScript>() ?? false)
+			if (Member.ReflectedType?.InheritsOrImplementsOrEquals<Script.Impl.HostToScript>() ?? false)
 			{
 				if (new[] {
-					nameof(Script.HostToScript.MemoryMeasurementFunc),
-					nameof(Script.HostToScript.MotionExecuteFunc),
+					nameof(Script.Impl.HostToScript.MemoryMeasurementFunc),
+					nameof(Script.Impl.HostToScript.MotionExecuteFunc),
 				}.Contains(Member.Name))
 				{
 					return false;

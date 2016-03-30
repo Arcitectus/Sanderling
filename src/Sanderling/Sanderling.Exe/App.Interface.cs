@@ -2,7 +2,6 @@
 using BotEngine.Interface;
 using BotEngine.UI;
 using Sanderling.Interface;
-using Sanderling.Script;
 using System;
 using System.Linq;
 using System.Threading;
@@ -123,7 +122,7 @@ namespace Sanderling.Exe
 
 					var RequestAge = GetTimeStopwatch() - BeginTime;
 
-					if (HostToScript.FromScriptRequestMemoryMeasurementDelayMax < RequestAge)
+					if (Sanderling.Script.Impl.HostToScript.FromScriptRequestMemoryMeasurementDelayMax < RequestAge)
 					{
 						//	Timeout
 						return null;

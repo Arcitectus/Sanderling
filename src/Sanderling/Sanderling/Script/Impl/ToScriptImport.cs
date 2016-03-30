@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 
-namespace Sanderling.Script
+namespace Sanderling.Script.Impl
 {
 	static public class ToScriptImport
 	{

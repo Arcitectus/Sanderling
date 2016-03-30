@@ -34,13 +34,13 @@ namespace Sanderling.Exe
 
 		static string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().EnsureEndsWith(@"\");
 
-		Sanderling.Script.HostToScript UIAPI;
+		Sanderling.Script.Impl.HostToScript UIAPI;
 
 		public App()
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-			UIAPI = new Sanderling.Script.HostToScript()
+			UIAPI = new Sanderling.Script.Impl.HostToScript()
 			{
 				MemoryMeasurementFunc = new Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>>(() => MemoryMeasurementLast),
 			};
@@ -99,7 +99,7 @@ namespace Sanderling.Exe
 			ScriptIDE.ScriptParamBase = new BotSharp.ScriptParam()
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
-				ImportNamespace = Sanderling.Script.ToScriptImport.ImportNamespace?.ToArray(),
+				ImportNamespace = Sanderling.Script.Impl.ToScriptImport.ImportNamespace?.ToArray(),
 				CompilationOption = new BotSharp.CodeAnalysis.CompilationOption()
 				{
 					InstrumentationOption = BotSharp.CodeAnalysis.Default.InstrumentationOption,
