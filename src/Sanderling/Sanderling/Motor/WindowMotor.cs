@@ -4,7 +4,6 @@ using BotEngine.Motor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BotEngine.Windows;
 using BotEngine.WinApi;
 using System.Threading;
 
@@ -45,78 +44,28 @@ namespace Sanderling.Motor
 
 		void EnsureWindowIsForeground() => EnsureWindowIsForeground(WindowHandle);
 
-		static public void MouseMoveToPointInClientRect(
-			IntPtr WindowHandle,
-			Vektor2DInt DestinationPointInClientRect,
-			out POINT DestinationPointInScreen)
+		static readonly public IDictionary<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>> mouseActionFromButtonIdAndState =
+			new KeyValuePair<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>>[]
 		{
-			DestinationPointInScreen = DestinationPointInClientRect.AsWindowsPoint();
+			new KeyValuePair<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>>(
+				new KeyValuePair<MouseButtonIdEnum, bool>(MouseButtonIdEnum.Left, false), mouse => mouse.LeftButtonUp()),
 
-			// get screen coordinates
-			BotEngine.WinApi.User32.ClientToScreen(WindowHandle, ref DestinationPointInScreen);
+			new KeyValuePair<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>>(
+				new KeyValuePair<MouseButtonIdEnum, bool>(MouseButtonIdEnum.Left, true), mouse => mouse.LeftButtonDown()),
 
-			var lParam = (IntPtr)((((int)DestinationPointInClientRect.B) << 16) | ((int)DestinationPointInClientRect.A));
-			var wParam = IntPtr.Zero;
+			new KeyValuePair<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>>(
+				new KeyValuePair<MouseButtonIdEnum, bool>(MouseButtonIdEnum.Right, false), mouse => mouse.RightButtonUp()),
 
-			BotEngine.WinApi.User32.SetCursorPos(DestinationPointInScreen.x, DestinationPointInScreen.y);
-
-			BotEngine.WinApi.User32.SendMessage(WindowHandle, (uint)SictMessageTyp.WM_MOUSEMOVE, wParam, lParam);
-		}
-
-		/// <summary>
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
-		/// </summary>
-		static KeyValuePair<MouseButtonIdEnum, int>[] MouseEventButtonDownFlag = new[]
-		{
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Left, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_LEFTDOWN),
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Right, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_RIGHTDOWN),
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Left, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_MIDDLEDOWN),
-		};
-
-		/// <summary>
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
-		/// </summary>
-		static KeyValuePair<MouseButtonIdEnum, int>[] MouseEventButtonUpFlag = new[]
-		{
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Left, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_LEFTUP),
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Right, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_RIGHTUP),
-			new KeyValuePair<MouseButtonIdEnum, int>( MouseButtonIdEnum.Left, (int)User32.MouseEventFlagEnum.MOUSEEVENTF_MIDDLEUP),
-		};
-
-		static int User32MouseEventFlagAggregate(
-			IEnumerable<MouseButtonIdEnum> MouseButtonDown,
-			IEnumerable<MouseButtonIdEnum> MouseButtonUp) =>
-			MouseEventButtonDownFlag.Where(ButtonIdAndFlag => MouseButtonDown?.Contains(ButtonIdAndFlag.Key) ?? false)
-				.Concat(
-				MouseEventButtonUpFlag.Where(ButtonIdAndFlag => MouseButtonUp?.Contains(ButtonIdAndFlag.Key) ?? false))
-				.Select(ButtonIdAndFlag => ButtonIdAndFlag.Value)
-				.Aggregate(0, (a, b) => a | b);
-
-		static public void User32MouseEvent(
-			Vektor2DInt MousePositionOnScreen,
-			IEnumerable<MouseButtonIdEnum> MouseButtonDown,
-			IEnumerable<MouseButtonIdEnum> MouseButtonUp)
-		{
-			var MouseEventFlag = User32MouseEventFlagAggregate(MouseButtonDown, MouseButtonUp);
-
-			User32.mouse_event(
-				(uint)MouseEventFlag | (uint)User32.MouseEventFlagEnum.MOUSEEVENTF_ABSOLUTE,
-				(uint)MousePositionOnScreen.A,
-				(uint)MousePositionOnScreen.B,
-				0,
-				UIntPtr.Zero);
-		}
+			new KeyValuePair<KeyValuePair<MouseButtonIdEnum, bool>, Action<WindowsInput.IMouseSimulator>>(
+				new KeyValuePair<MouseButtonIdEnum, bool>(MouseButtonIdEnum.Right, true), mouse => mouse.RightButtonDown()),
+		}.ToDictionary();
 
 		public MotionResult ActSequenceMotion(IEnumerable<Motion> SeqMotion)
 		{
 			try
 			{
 				if (null == SeqMotion)
-				{
 					return null;
-				}
-
-				var MousePosition = BotEngine.Windows.Extension.User32GetCursorPos() ?? new Vektor2DInt(0, 0);
 
 				var InputSimulator = new WindowsInput.InputSimulator();
 
@@ -124,26 +73,28 @@ namespace Sanderling.Motor
 				{
 					var MotionMousePosition = Motion?.MousePosition;
 					var MotionTextEntry = Motion?.TextEntry;
+					var mouseLocationOnScreen = MotionMousePosition.HasValue ? WindowHandle.ClientToScreen(MotionMousePosition.Value) + MouseOffsetStatic : null;
 
-					if (MotionMousePosition.HasValue || (Motion.WindowToForeground ?? false))
+					if (mouseLocationOnScreen.HasValue || (Motion.WindowToForeground ?? false))
 						EnsureWindowIsForeground();
 
-					if (MotionMousePosition.HasValue)
+					if (mouseLocationOnScreen.HasValue)
 					{
-						POINT PositionOnScreen;
+						User32.SetCursorPos((int)mouseLocationOnScreen.Value.A, (int)mouseLocationOnScreen.Value.B);
 
-						MouseMoveToPointInClientRect(WindowHandle, MotionMousePosition.Value + MouseOffsetStatic, out PositionOnScreen);
-
-						MousePosition = PositionOnScreen.AsVektor2DInt();
-
-						Thread.Sleep(MouseMoveDelay);
+						Thread.Sleep(MouseEventDelay);
 					}
 
-					if (0 < Motion?.MouseButtonDown?.Count() || 0 < Motion?.MouseButtonUp?.Count())
+					var mouseSetAction = new[]
 					{
-						EnsureWindowIsForeground();
+						Motion?.MouseButtonDown?.Select(button => new KeyValuePair<MouseButtonIdEnum, bool>(button, true)),
+						Motion?.MouseButtonUp?.Select(button => new KeyValuePair<MouseButtonIdEnum, bool>(button, false)),
+					}.ConcatNullable().ToArray();
 
-						User32MouseEvent(MousePosition, Motion?.MouseButtonDown, Motion?.MouseButtonUp);
+					if (0 < mouseSetAction?.Length)
+					{
+						foreach (var mouseAction in mouseSetAction)
+							mouseActionFromButtonIdAndState?.TryGetValueOrDefault(mouseAction)?.Invoke(InputSimulator.Mouse);
 
 						Thread.Sleep(MouseEventDelay);
 					}

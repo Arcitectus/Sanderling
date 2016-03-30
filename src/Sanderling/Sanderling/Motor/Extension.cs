@@ -6,6 +6,7 @@ using System.Linq;
 using Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
 using Bib3;
+using BotEngine.Windows;
 
 namespace Sanderling.Motor
 {
@@ -124,6 +125,16 @@ namespace Sanderling.Motor
 
 			if (0 < MotionTextEntry?.Length)
 				yield return new Motion(null, TextEntry: MotionTextEntry);
+		}
+
+		static public Vektor2DInt? ClientToScreen(this IntPtr hWnd, Vektor2DInt locationInClient)
+		{
+			var structWinApi = locationInClient.AsWindowsPoint();
+
+			if (!BotEngine.WinApi.User32.ClientToScreen(hWnd, ref structWinApi))
+				return null;
+
+			return structWinApi.AsVektor2DInt();
 		}
 	}
 }
