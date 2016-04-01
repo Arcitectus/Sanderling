@@ -53,18 +53,18 @@ namespace Sanderling.Exe
 
 		readonly Bib3.RateLimit.IRateLimitStateInt MemoryMeasurementRequestRateLimit = new Bib3.RateLimit.RateLimitStateIntSingle();
 
+		int MotionInvalidateMeasurementDelay = 400;
+
 		Int64? FromMotionExecutionMemoryMeasurementTimeMin
 		{
 			get
 			{
-				var MotionExecutionLast = MotionExecution?.LastOrDefault();
+				var motionLastTime = MotionLastTime;
 
-				if (null == MotionExecutionLast)
-				{
+				if (!motionLastTime.HasValue)
 					return null;
-				}
 
-				return (MotionExecutionLast?.End + 300) ?? Int64.MaxValue;
+				return motionLastTime.Value + MotionInvalidateMeasurementDelay;
 			}
 		}
 
