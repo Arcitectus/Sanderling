@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MemoryStruct\Agent.cs" />
+    <Compile Include="MemoryStruct\Bracket.cs" />
     <Compile Include="MemoryStruct\Chat.cs" />
     <Compile Include="MemoryStruct\Container.cs" />
     <Compile Include="MemoryStruct\Drones.cs" />

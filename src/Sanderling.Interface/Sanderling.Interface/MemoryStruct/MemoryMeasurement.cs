@@ -22,6 +22,8 @@ namespace Sanderling.Interface.MemoryStruct
 
 		IShipUiTarget[] Target { get; }
 
+		IInSpaceBracket[] InflightBracket { get; }
+
 		/// <summary>
 		/// shown when hovering mouse cursor over module.
 		/// </summary>
@@ -109,6 +111,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public IShipUi ShipUi { set; get; }
 
 		public IShipUiTarget[] Target { set; get; }
+
+		public IInSpaceBracket[] InflightBracket { set; get; }
 
 		public IContainer ModuleButtonTooltip { set; get; }
 

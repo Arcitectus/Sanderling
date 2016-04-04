@@ -34,6 +34,8 @@ namespace Sanderling.Parse
 
 		public IShipUiTarget[] Target { set; get; }
 
+		public MemoryStruct.IInSpaceBracket[] InflightBracket => Raw?.InflightBracket;
+
 		public IModuleButtonTooltip ModuleButtonTooltip { set; get; }
 
 		public IWindowOverview[] WindowOverview { set; get; }
