@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using BotEngine.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -38,6 +39,33 @@ namespace Sanderling.Parse
 				return null;
 
 			return ListKey?.WhereNotNullSelectValue();
+		}
+
+		static public int? SecondCountFromBracketTimerText(
+			this string timerText,
+			bool allowLeadingText = false,
+			bool allowTrailingText = false)
+		{
+			const string groupMinuteId = "minute";
+			const string groupSecondId = "second";
+
+			var pattern = @"((?<" + groupMinuteId + @">\d+)m\s*|)(?<" + groupSecondId + @">\d{1,2})\s*s";
+
+			if (!allowLeadingText)
+				pattern = @"^\s*" + pattern;
+
+			if (!allowTrailingText)
+				pattern += @"\s*$";
+
+			var match = timerText?.RegexMatchIfSuccess(pattern, RegexOptions.IgnoreCase);
+
+			if (null == match)
+				return null;
+
+			var minuteCount = match.Groups[groupMinuteId]?.Value.TryParseInt() ?? 0;
+			var inMinuteSecondCount = match.Groups[groupSecondId]?.Value.TryParseInt();
+
+			return minuteCount * 60 + inMinuteSecondCount;
 		}
 	}
 }

@@ -98,6 +98,7 @@
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
+    <Compile Include="Parse\Other.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
