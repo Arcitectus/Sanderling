@@ -17,20 +17,13 @@ namespace Sanderling.UI
 
 		public void BotMotionEnable() => ToggleButtonMotionEnable?.RightButtonDown();
 
-		public LicenseClientConfig LicenseClientConfigControl => Interface?.LicenseClientConfig;
-
-		public void ConfigFromModelToView(ExeConfig Config)
-		{
-			LicenseClientConfigControl.DataContext =
-				new AutoDependencyPropertyComp<BotEngine.Client.LicenseClientConfig>(Config?.LicenseClient);
-		}
+		public void ConfigFromModelToView(ExeConfig Config) =>
+			Interface.LicenseView?.LicenseClientConfigViewModel?.PropagateFromClrMemberToDependencyProperty(Config?.LicenseClient?.CompletedWithDefault());
 
 		public ExeConfig ConfigFromViewToModel() =>
 			new ExeConfig()
 			{
-				LicenseClient = (LicenseClientConfigControl.DataContext as AutoDependencyPropertyComp<BotEngine.Client.LicenseClientConfig>)
-				?.PropagateFromDependencyPropertyToClrMember()
+				LicenseClient = Interface.LicenseView?.LicenseClientConfigViewModel?.PropagateFromDependencyPropertyToClrMember(),
 			};
-
 	}
 }

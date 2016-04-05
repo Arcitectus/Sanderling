@@ -9,5 +9,18 @@
 		public const string EveOnlineProcessMainModuleFileName = "ExeFile.exe";
 
 		public BotEngine.Client.LicenseClientConfig LicenseClient;
+
+		static public BotEngine.Client.AuthRequest InterfaceLicenseClientRequestDefault => new BotEngine.Client.AuthRequest
+		{
+			LicenseKey = ConfigLicenseKeyFree,
+			ServiceId = ConfigServiceId,
+			Consume = true,
+		};
+
+		static public BotEngine.Client.LicenseClientConfig LicenseClientDefault => new BotEngine.Client.LicenseClientConfig
+		{
+			ApiVersionAddress = ConfigApiVersionAddressDefault,
+			Request = InterfaceLicenseClientRequestDefault,
+		};
 	}
 }

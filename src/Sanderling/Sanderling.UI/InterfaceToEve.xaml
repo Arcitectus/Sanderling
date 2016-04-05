@@ -48,14 +48,9 @@
 
 
                 <ScrollViewer>
-                    <StackPanel>
-                        <BotEngine.UI:LicenseClientConfig
-                            x:Name="LicenseClientConfig"
-                            x:FieldModifier="public"></BotEngine.UI:LicenseClientConfig>
-                        <BotEngine.UI:LicenseClientInspect
-                            x:Name="LicenseClientInspect"
-                            x:FieldModifier="public"></BotEngine.UI:LicenseClientInspect>
-                    </StackPanel>
+                    <BotEngine.UI:SimpleInterfaceServerDispatcher
+                        x:Name="LicenseView"
+                        x:FieldModifier="public"></BotEngine.UI:SimpleInterfaceServerDispatcher>
                 </ScrollViewer>
             </TabItem>
 
@@ -82,8 +77,7 @@
                             <Grid>
                                 <TextBlock Visibility="Hidden" Text="set height"></TextBlock>
                                 <Bib3.FCL.UI:StatusIcon
-                                    Status="Warning"
-                                    Style="{StaticResource WidthAssignFromActualHeight}"></Bib3.FCL.UI:StatusIcon>
+                                    Status="Warn"></Bib3.FCL.UI:StatusIcon>
                             </Grid>
                         </GroupBox.Header>
                         <TextBlock

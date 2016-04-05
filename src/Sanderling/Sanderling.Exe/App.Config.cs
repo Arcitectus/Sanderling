@@ -67,16 +67,7 @@ namespace Sanderling.Exe
 		static public ExeConfig ConfigDefaultConstruct() =>
 			new ExeConfig
 			{
-				LicenseClient = new LicenseClientConfig
-				{
-					ApiVersionAddress = ExeConfig.ConfigApiVersionAddressDefault,
-					Request = new AuthRequest
-					{
-						LicenseKey = ExeConfig.ConfigLicenseKeyFree,
-						ServiceId = ExeConfig.ConfigServiceId,
-						Consume = true,
-					},
-				},
+				LicenseClient = ExeConfig.LicenseClientDefault,
 			};
 
 	}

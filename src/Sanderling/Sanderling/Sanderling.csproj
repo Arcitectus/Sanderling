@@ -141,9 +141,11 @@
     <Compile Include="Accumulator\Extension.cs" />
     <Compile Include="Accumulator\MemoryMeasurementAccu.cs" />
     <Compile Include="Accumulator\ShipUiModule.cs" />
+    <Compile Include="ConfigExtension.cs" />
     <Compile Include="ExeConfig.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="GameWorldStatic.cs" />
+    <Compile Include="InterfaceServerDispatcher.cs" />
     <Compile Include="Interface\MemoryMeasurementEvaluation.cs" />
     <Compile Include="Motor\Extension.cs" />
     <Compile Include="Motor\Motion.cs" />

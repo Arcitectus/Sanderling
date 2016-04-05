@@ -23,7 +23,7 @@ namespace Sanderling.Exe
 			StatusIcon.StatusEnum.Accept : StatusIcon.StatusEnum.None;
 
 		StatusIcon.StatusEnum InterfaceLicenseStatus =>
-			MainControl?.Interface?.LicenseClientInspect?.Status()?.FirstOrDefault() ?? StatusIcon.StatusEnum.None;
+			(SensorServerDispatcher?.AppInterfaceAvailable ?? false) ? StatusIcon.StatusEnum.Accept : StatusIcon.StatusEnum.Reject;
 
 		public IEnumerable<IEnumerable<Key>> SetKeyBotMotionDisable()
 		{
@@ -91,7 +91,7 @@ namespace Sanderling.Exe
 
 			BotAPIExplorer?.Present(UIAPI);
 
-			LicenseClientInspect?.Present(LicenseClient?.Value);
+			MainControl?.Interface?.LicenseView?.Present(SensorServerDispatcher);
 
 			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(Evaluation => Evaluation?.MemoryMeasurement));
 		}

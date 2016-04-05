@@ -1,6 +1,5 @@
 ﻿using Bib3;
 using BotEngine.Interface;
-using BotEngine.UI;
 using Sanderling.Interface;
 using System;
 using System.Linq;
@@ -22,25 +21,19 @@ namespace Sanderling.Exe
 
 	partial class App
 	{
-		SimpleInterfaceServerDispatcher SensorServerDispatcher;
+		readonly SimpleInterfaceServerDispatcher SensorServerDispatcher = new SimpleInterfaceServerDispatcher
+		{
+			InterfaceAppDomainSetupType = typeof(InterfaceAppDomainSetup),
+			InterfaceAppDomainSetupTypeLoadFromMainModule = true,
+		};
 
 		readonly object LicenseClientLock = new object();
 
-		PropertyGenTimespanInt64<LicenseClient> LicenseClient;
-
-		Int64 LicenseClientExchangeStartedLastTime;
-
-		int LicenseClientExchangeDistanceMin = 1000;
+		LicenseClient LicenseClient => SensorServerDispatcher?.LicenseClient;
 
 		InterfaceAppDomainSetup TriggerSetup = new InterfaceAppDomainSetup();
 
-		InterfaceAppManager SensorAppManager = new InterfaceAppManager(typeof(InterfaceAppDomainSetup), true);
-
 		public UI.InterfaceToEve InterfaceToEveControl => Window?.Main?.Interface;
-
-		BotEngine.UI.LicenseClientConfig LicenseClientConfigControl => InterfaceToEveControl?.LicenseClientConfig;
-
-		BotEngine.UI.LicenseClientInspect LicenseClientInspect => InterfaceToEveControl?.LicenseClientInspect;
 
 		public int? EveOnlineClientProcessId =>
 			InterfaceToEveControl?.ProcessChoice?.ChoosenProcessId;
@@ -154,51 +147,9 @@ namespace Sanderling.Exe
 
 		void LicenseClientExchange()
 		{
-			lock (LicenseClientLock)
-			{
-				var Time = Bib3.Glob.StopwatchZaitMiliSictInt();
+			var licenseClientConfig = ConfigReadFromUI()?.LicenseClient.CompletedWithDefault();
 
-				var LicenseClientExchangeStartedLastAge = Time - LicenseClientExchangeStartedLastTime;
-
-				if (LicenseClientExchangeStartedLastAge < LicenseClientExchangeDistanceMin)
-				{
-					return;
-				}
-
-				if (null == LicenseClient)
-				{
-					LicenseClient = new PropertyGenTimespanInt64<LicenseClient>(new LicenseClient
-					{
-						Request = ConfigDefaultConstruct()?.LicenseClient?.Request,
-					}, Time, Time);
-
-					SensorServerDispatcher = new SimpleInterfaceServerDispatcher()
-					{
-						LicenseClient = LicenseClient.Value,
-						InterfaceAppManager = SensorAppManager,
-					};
-				}
-
-				LicenseClient.Value.ServerAddress = LicenseClientConfigControl?.ApiVersionAddress();
-
-				var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
-
-				LicenseClientExchangeStartedLastTime = Time;
-
-				Task.Run(() =>
-				{
-					var LicenseClient = this.LicenseClient;
-
-					if (null == LicenseClient?.Value)
-					{
-						return;
-					}
-
-					LicenseClient.Value.Timeout = 4000;
-
-					SensorServerDispatcher.Exchange();
-				});
-			}
+			Task.Run(() => SensorServerDispatcher?.Exchange(licenseClientConfig, SensorServerDispatcher.AppInterfaceAvailable ? 1000 : (int?)null));
 		}
 
 		void MeasurementMemoryTake(int processId, Int64 measurementBeginTimeMinMilli)
