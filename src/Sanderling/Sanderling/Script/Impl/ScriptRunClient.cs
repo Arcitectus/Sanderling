@@ -50,6 +50,11 @@ namespace Sanderling.Script.Impl
 
 		public void ExecutionStatusChanged(ScriptRun run)
 		{
+			if (null == run)
+				return;
+
+			if (ScriptRunExecutionStatus.Failed == run.Status)
+				System.Media.SystemSounds.Beep.Play();
 		}
 
 		public void RunThreadEnterBefore(ScriptRun run)
