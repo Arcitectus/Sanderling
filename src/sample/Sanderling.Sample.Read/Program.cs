@@ -29,26 +29,32 @@ namespace Sanderling.Sample.Read
 				return;
 			}
 
-			var LicenseClient = new BotEngine.Interface.LicenseClient()
+			var licenseClientConfig = new BotEngine.Client.LicenseClientConfig
 			{
-				ServerAddress = Config.LicenseServerAddress,
+				ApiVersionAddress = Config.LicenseServerAddress,
 				Request = new BotEngine.Client.AuthRequest
 				{
+					ServiceId = Config.ServiceId,
 					LicenseKey = Config.LicenseKey,
+					Consume = true,
 				},
 			};
 
 			Console.WriteLine();
-			Console.WriteLine("connecting to " + (LicenseClient?.ServerAddress ?? "") + " using Key \"" + (LicenseClient?.Request?.LicenseKey ?? "") + "\" ....");
+			Console.WriteLine("connecting to " + (licenseClientConfig?.ApiOverviewAddress ?? "") + " using Key \"" + (licenseClientConfig?.Request?.LicenseKey ?? "") + "\" ....");
 
-			while (!LicenseClient.AuthCompleted)
+			var sensorServerDispatcher = new SimpleInterfaceServerDispatcher();
+
+			var licenseClient = new Func<LicenseClient>(() => sensorServerDispatcher.LicenseClient);
+
+			while (!(licenseClient()?.AuthCompleted ?? false))
 			{
-				LicenseClient.ExchangeAuth();
+				sensorServerDispatcher.Exchange(licenseClientConfig);
 
 				Thread.Sleep(1111);
 			}
 
-			var AuthResult = LicenseClient?.ExchangeAuthLast?.Value?.Response;
+			var AuthResult = licenseClient()?.ExchangeAuthLast?.Value?.Response;
 
 			var LicenseServerSessionId = AuthResult?.SessionId;
 
@@ -56,17 +62,11 @@ namespace Sanderling.Sample.Read
 
 			Console.WriteLine("\nstarting to set up the sensor and read from memory.\nthe initial measurement takes longer.");
 
-			var SensorServerHub = new SimpleInterfaceServerDispatcher
-			{
-				InterfaceAppManager = new BotEngine.Interface.InterfaceAppManager(),
-				LicenseClient = LicenseClient
-			};
-
 			for (;;)
 			{
-				SensorServerHub?.Exchange();
+				sensorServerDispatcher?.Exchange();
 
-				var response = SensorServerHub?.InterfaceAppManager?.MeasurementTakeRequest(
+				var response = sensorServerDispatcher?.InterfaceAppManager?.MeasurementTakeRequest(
 					Config.EveOnlineClientProcessId,
 					Bib3.Glob.StopwatchZaitMiliSictInt());
 
