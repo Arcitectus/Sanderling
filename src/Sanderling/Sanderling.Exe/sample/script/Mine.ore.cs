@@ -306,7 +306,7 @@ IWindow ModalUIElement =>
 	
 Sanderling.Interface.MemoryStruct.IMenu[] Menu => Measurement?.Menu;
 
-IShipUi ShipUi => Measurement?.ShipUi;
+Parse.IShipUi ShipUi => Measurement?.ShipUi;
 
 bool Jammed => ShipUi?.EWarElement?.Any(EwarElement => (EwarElement?.EWarType).RegexMatchSuccess("electronic")) ?? false;
 
@@ -359,8 +359,8 @@ DroneViewEntryGroup DronesInSpaceListEntry =>
 int?	DronesInSpaceCount => DronesInSpaceListEntry?.Caption?.Text?.AsDroneLabel()?.Status?.TryParseInt();
 
 bool ReadyForManeuverNot =>
-	Measurement?.ShipUi?.Indication?.Any(indication =>
-		(indication?.Text).RegexMatchSuccessIgnoreCase("warp|docking")) ?? false;
+	Measurement?.ShipUi?.Indication?.LabelText?.Any(indicationLabel =>
+		(indicationLabel?.Text).RegexMatchSuccessIgnoreCase("warp|docking")) ?? false;
 
 bool ReadyForManeuver => !ReadyForManeuverNot && !(Measurement?.IsDocked ?? true);
 
