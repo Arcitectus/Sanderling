@@ -10,20 +10,6 @@ using System.Text.RegularExpressions;
 
 namespace Sanderling.Parse
 {
-	public enum ShipManeuverTypeEnum
-	{
-		None = 0,
-		Stop = 9,
-		Approach = 10,
-		Orbit = 11,
-		KeepAtRange = 12,
-		Dock = 17,
-		Docked = 18,
-		Undock = 19,
-		Warp = 30,
-		Jump = 31,
-	}
-
 	public interface IShipUiTarget : MemoryStruct.IShipUiTarget
 	{
 		Int64? DistanceMin { get; }

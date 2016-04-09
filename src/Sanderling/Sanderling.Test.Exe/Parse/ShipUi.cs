@@ -13,12 +13,12 @@ namespace Sanderling.Test.Exe.Parse
 				new
 				{
 					text = "keep	at  range",
-					type = Sanderling.Parse.ShipManeuverTypeEnum.KeepAtRange,
+					type = ShipManeuverTypeEnum.KeepAtRange,
 				},
 				new
 				{
 					text = "orbiting",
-					type = Sanderling.Parse.ShipManeuverTypeEnum.Orbit,
+					type = ShipManeuverTypeEnum.Orbit,
 				},
 			})
 			{
