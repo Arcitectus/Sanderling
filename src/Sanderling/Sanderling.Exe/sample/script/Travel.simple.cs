@@ -2,7 +2,13 @@
 
 while(true)
 {
-	var Measurement = Sanderling?.MemoryMeasurement?.Value;
+	var Measurement = Sanderling?.MemoryMeasurementParsed?.Value;
+
+	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
+
+	if(ShipManeuverTypeEnum.Warp == ManeuverType	||
+		ShipManeuverTypeEnum.Jump == ManeuverType)
+		goto loop;	//	do nothing while warping or jumping.
 
 	//	from the set of route element markers in the Info Panel pick the one that represents the next Waypoint/System.
 	//	We assume this is the one which is nearest to the topleft corner of the Screen which is at (0,0)
@@ -20,7 +26,7 @@ while(true)
 	Sanderling.MouseClickRight(RouteElementMarkerNext);
 
 	//	retrieve a new measurement.
-	Measurement = Sanderling?.MemoryMeasurement?.Value;
+	Measurement = Sanderling?.MemoryMeasurementParsed?.Value;
 
 	//	from the first menu, pick the first entry that contains "dock" or "jump".
 	var MenuEntry =
