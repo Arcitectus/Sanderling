@@ -29,7 +29,7 @@ namespace Sanderling.Interface.MemoryStruct
 		string Name { get; }
 	}
 
-	public interface IShipUi
+	public interface IShipUi : IContainer
 	{
 		IUIElement Center { get; }
 
@@ -37,7 +37,7 @@ namespace Sanderling.Interface.MemoryStruct
 		/// Displays information about current maneuver ("Orbiting", "Warping",....)
 		/// The lower Label contains the target and distance or target distance if applicable.
 		/// </summary>
-		IUIElementText[] Indication { get; }
+		IContainer Indication { get; }
 
 		IShipHitpointsAndEnergy HitpointsAndEnergy { get; }
 
@@ -70,11 +70,11 @@ namespace Sanderling.Interface.MemoryStruct
 		ShipUiTargetAssignedGroup[] Assigned { get; }
 	}
 
-	public class ShipUi : UIElement, IShipUi, ICloneable
+	public class ShipUi : Container, IShipUi, ICloneable
 	{
 		public IUIElement Center { set; get; }
 
-		public IUIElementText[] Indication { set; get; }
+		public IContainer Indication { set; get; }
 
 		public IShipHitpointsAndEnergy HitpointsAndEnergy { set; get; }
 
