@@ -52,12 +52,15 @@ namespace Sanderling.Exe
 		{
 			get
 			{
-				var motionLastTime = MotionLastTime;
+				lock (MotorLock)
+				{
+					var motionLastTime = MotionLastTime;
 
-				if (!motionLastTime.HasValue)
-					return null;
+					if (!motionLastTime.HasValue)
+						return null;
 
-				return motionLastTime.Value + MotionInvalidateMeasurementDelay;
+					return motionLastTime.Value + MotionInvalidateMeasurementDelay;
+				}
 			}
 		}
 
