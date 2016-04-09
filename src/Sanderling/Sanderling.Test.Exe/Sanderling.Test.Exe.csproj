@@ -99,6 +99,7 @@
     <Compile Include="Parse\Number.cs" />
     <Compile Include="Parse\Ore.cs" />
     <Compile Include="Parse\Other.cs" />
+    <Compile Include="Parse\ShipUi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

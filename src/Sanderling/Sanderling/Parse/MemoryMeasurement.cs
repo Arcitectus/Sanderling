@@ -3,13 +3,14 @@ using BotEngine.Common;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
-using System;
 
 namespace Sanderling.Parse
 {
 	public interface IMemoryMeasurement : MemoryStruct.IMemoryMeasurement
 	{
 		new IShipUiTarget[] Target { get; }
+
+		new IShipUi ShipUi { get; }
 
 		new IModuleButtonTooltip ModuleButtonTooltip { get; }
 
@@ -26,15 +27,13 @@ namespace Sanderling.Parse
 		bool? IsUnDocking { get; }
 	}
 
-	public class MemoryMeasurement : IMemoryMeasurement
+	public partial class MemoryMeasurement
 	{
 		MemoryStruct.IMemoryMeasurement Raw;
 
-		public string UserDefaultLocaleName => Raw?.UserDefaultLocaleName;
-
 		public IShipUiTarget[] Target { set; get; }
 
-		public MemoryStruct.IInSpaceBracket[] InflightBracket => Raw?.InflightBracket;
+		public IShipUi ShipUi { set; get; }
 
 		public IModuleButtonTooltip ModuleButtonTooltip { set; get; }
 
@@ -45,6 +44,17 @@ namespace Sanderling.Parse
 		public IWindowAgentDialogue[] WindowAgentDialogue { set; get; }
 
 		public INeocom Neocom { set; get; }
+
+		public bool? IsDocked { private set; get; }
+
+		public bool? IsUnDocking { private set; get; }
+	}
+
+	public partial class MemoryMeasurement : IMemoryMeasurement
+	{
+		public string UserDefaultLocaleName => Raw?.UserDefaultLocaleName;
+
+		public MemoryStruct.IInSpaceBracket[] InflightBracket => Raw?.InflightBracket;
 
 		public MemoryStruct.IUIElementText[] AbovemainMessage => Raw?.AbovemainMessage;
 
@@ -72,7 +82,7 @@ namespace Sanderling.Parse
 
 		MemoryStruct.INeocom MemoryStruct.IMemoryMeasurement.Neocom => Neocom;
 
-		public MemoryStruct.IShipUi ShipUi => Raw?.ShipUi;
+		MemoryStruct.IShipUi MemoryStruct.IMemoryMeasurement.ShipUi => ShipUi;
 
 		public MemoryStruct.IWindow SystemMenu => Raw?.SystemMenu;
 
@@ -120,10 +130,6 @@ namespace Sanderling.Parse
 
 		MemoryStruct.IContainer MemoryStruct.IMemoryMeasurement.ModuleButtonTooltip => ModuleButtonTooltip;
 
-		public bool? IsDocked { private set; get; }
-
-		public bool? IsUnDocking { private set; get; }
-
 		public Vektor2DInt ScreenSize => Raw?.ScreenSize ?? default(Vektor2DInt);
 
 		MemoryMeasurement()
@@ -135,9 +141,7 @@ namespace Sanderling.Parse
 			this.Raw = Raw;
 
 			if (null == Raw)
-			{
 				return;
-			}
 
 			Culture.InvokeInParseCulture(() =>
 			{
@@ -151,7 +155,7 @@ namespace Sanderling.Parse
 
 				WindowAgentDialogue = Raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
 
-				var ShipUi = Raw?.ShipUi;
+				ShipUi = Raw?.ShipUi?.Parse();
 
 				var SetWindowStation = Raw?.WindowStation;
 
