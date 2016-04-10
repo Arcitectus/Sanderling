@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using Bib3.Synchronization;
 using BotEngine.Interface;
 using Sanderling.Interface;
 using System;
@@ -48,21 +49,18 @@ namespace Sanderling.Exe
 
 		int MotionInvalidateMeasurementDelay = 400;
 
-		Int64? FromMotionExecutionMemoryMeasurementTimeMin
-		{
-			get
+		Int64? FromMotionExecutionMemoryMeasurementTimeMin =>
+			MotorLock.BranchOnTryEnter(() =>
 			{
-				lock (MotorLock)
-				{
-					var motionLastTime = MotionLastTime;
+				var motionLastTime = MotionLastTime;
 
-					if (!motionLastTime.HasValue)
-						return null;
+				if (!motionLastTime.HasValue)
+					return null;
 
-					return motionLastTime.Value + MotionInvalidateMeasurementDelay;
-				}
-			}
-		}
+				return motionLastTime.Value + MotionInvalidateMeasurementDelay;
+
+			},
+			() => (Int64?)Int64.MaxValue);
 
 		Int64? MeasurementRecentEnoughTime => new[]
 			{
@@ -88,44 +86,33 @@ namespace Sanderling.Exe
 		{
 			get
 			{
-				lock (MotorLock)
-				{
-					var MemoryMeasurementLast = this.MemoryMeasurementLast;
-					var MeasurementRecentEnoughTime = this.MeasurementRecentEnoughTime;
+				var MemoryMeasurementLast = this.MemoryMeasurementLast;
+				var MeasurementRecentEnoughTime = this.MeasurementRecentEnoughTime;
 
-					if (MemoryMeasurementLast?.Begin < MeasurementRecentEnoughTime)
-						return null;
+				if (MemoryMeasurementLast?.Begin < MeasurementRecentEnoughTime)
+					return null;
 
-					return MemoryMeasurementLast;
-				}
+				return MemoryMeasurementLast;
 			}
 		}
 
 		FromProcessMeasurement<MemoryMeasurementEvaluation> FromScriptRequestMemoryMeasurementEvaluation()
 		{
-			lock (MotorLock)
+			var BeginTime = GetTimeStopwatch();
+
+			while (true)
 			{
-				var BeginTime = GetTimeStopwatch();
+				var MemoryMeasurementIfRecentEnough = this.MemoryMeasurementIfRecentEnough;
 
-				while (true)
-				{
-					var MemoryMeasurementIfRecentEnough = this.MemoryMeasurementIfRecentEnough;
+				if (null != MemoryMeasurementIfRecentEnough)
+					return MemoryMeasurementIfRecentEnough;
 
-					if (null != MemoryMeasurementIfRecentEnough)
-					{
-						return MemoryMeasurementIfRecentEnough;
-					}
+				var RequestAge = GetTimeStopwatch() - BeginTime;
 
-					var RequestAge = GetTimeStopwatch() - BeginTime;
+				if (Sanderling.Script.Impl.HostToScript.FromScriptRequestMemoryMeasurementDelayMax < RequestAge)
+					return null;    //	Timeout
 
-					if (Sanderling.Script.Impl.HostToScript.FromScriptRequestMemoryMeasurementDelayMax < RequestAge)
-					{
-						//	Timeout
-						return null;
-					}
-
-					Thread.Sleep(44);
-				}
+				Thread.Sleep(44);
 			}
 		}
 
