@@ -20,6 +20,9 @@ To get started with creating bots, read the [Getting Started Guide](https://gith
 ### Bot Users
 [Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started)
 
+### Building from source
+The source code uses C# 6 features. It is recommended to use [Visual Studio](https://www.visualstudio.com/) version 2015 or newer for building.
+
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
 
