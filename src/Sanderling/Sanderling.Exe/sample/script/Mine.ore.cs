@@ -47,7 +47,7 @@ var FightAllRats = false;	//	when this is set to true, the bot will attack rats 
 
 //	<- end of configuration section
 
-Func<object> BotStopActivity = () => new object();
+Func<object> BotStopActivity = () => null;
 
 Func<object> NextActivity = MainStep;
 
