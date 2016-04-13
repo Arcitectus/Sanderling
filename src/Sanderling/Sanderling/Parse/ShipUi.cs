@@ -107,6 +107,8 @@ namespace Sanderling.Parse
 
 		public IShipUiIndication Indication { private set; get; }
 
+		Int64? SpeedMilliParsed { set; get; }
+
 		ShipUi()
 		{
 		}
@@ -116,6 +118,8 @@ namespace Sanderling.Parse
 			Raw = raw;
 
 			Indication = Raw?.Indication?.ParseAsShipUiIndication();
+
+			SpeedMilliParsed = Raw?.SpeedLabel?.Text?.RegexMatchIfSuccess("(" + Number.DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars + @")\s*m/s")?.Groups[1]?.Value?.NumberParseDecimalMilli();
 		}
 	}
 
@@ -157,7 +161,7 @@ namespace Sanderling.Parse
 
 		public IUIElementText[] Readout => Raw?.Readout;
 
-		public long? SpeedMilli => Raw?.SpeedMilli;
+		public long? SpeedMilli => Raw?.SpeedMilli ?? SpeedMilliParsed;
 
 		public IShipUiTimer[] Timer => Raw?.Timer;
 	}
