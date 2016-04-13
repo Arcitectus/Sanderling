@@ -493,10 +493,12 @@ bool InitiateDockToOrWarpToBookmark(string Bookmark)
 
 void Undock()
 {
-	Sanderling.MouseClickLeft(Measurement?.WindowStation?.FirstOrDefault()?.UndockButton);
-	
-	Host.Log("waiting for undocking to complete.");
-	while(Measurement?.IsDocked ?? true)	 Host.Delay(1111);
+	while(Measurement?.IsDocked ?? true)
+	{
+		Sanderling.MouseClickLeft(Measurement?.WindowStation?.FirstOrDefault()?.UndockButton);
+		Host.Log("waiting for undocking to complete.");
+		Host.Delay(8000);
+	}
 
 	Host.Delay(4444);
 	Sanderling.InvalidateMeasurement();
