@@ -342,7 +342,7 @@ namespace Sanderling.Parse
 					SetTreeEntrySuitingSelectedPath(
 						linxTreeEntryPasend.Child,
 						selectedPathListNodeLabel.Skip(1)))
-				?.Where((kandidaat) => null != kandidaat)
+				?.WhereNotDefault()
 				?.ConcatNullable();
 		}
 

@@ -608,7 +608,7 @@ namespace Sanderling.Parse
 
 				var setUnitMatch =
 					DurationTextSetUnitRegexPatternAndValueInSecond
-					.Where((kandidaatAinhaitUndBetraagSekunde) => componentMatch.Groups[2].Value.RegexMatchSuccessIgnoreCase(kandidaatAinhaitUndBetraagSekunde.Key))
+					.Where(unitNameAndValueInSecond => componentMatch.Groups[2].Value.RegexMatchSuccessIgnoreCase(unitNameAndValueInSecond.Key))
 					.ToArray();
 
 				if (!(1 == setUnitMatch.Length))
