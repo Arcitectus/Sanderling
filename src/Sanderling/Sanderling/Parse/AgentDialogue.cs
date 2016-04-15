@@ -555,7 +555,7 @@ namespace Sanderling.Parse
 				return true;
 
 			if (null == o0 || null == o1)
-				return true;
+				return false;
 
 			return
 				o0.Name == o1.Name &&
@@ -569,7 +569,7 @@ namespace Sanderling.Parse
 				return true;
 
 			if (null == o0 || null == o1)
-				return true;
+				return false;
 
 			return
 				o0.Name == o1.Name &&
