@@ -17,12 +17,12 @@ namespace Sanderling.Parse
 
 		static public Regex DroneEntryLabelRegex = DroneEntryLabelRegexPattern.AsRegexCompiledIgnoreCase();
 
-		static public DroneLabel AsDroneLabel(this string DroneLabel)
+		static public DroneLabel AsDroneLabel(this string droneLabel)
 		{
-			var Name = DroneLabel?.Trim();
+			var Name = droneLabel?.Trim();
 			string Status = null;
 
-			var Match = DroneEntryLabelRegex.Match(DroneLabel ?? "");
+			var Match = DroneEntryLabelRegex.Match(droneLabel ?? "");
 
 			if (Match.Success)
 			{

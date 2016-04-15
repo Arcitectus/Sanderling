@@ -12,8 +12,8 @@ namespace Sanderling.Accumulator
 		{
 		}
 
-		public Entity(Int64 Id)
-			: base(Id)
+		public Entity(Int64 id)
+			: base(id)
 		{
 		}
 	}
@@ -42,51 +42,51 @@ namespace Sanderling.Accumulator
 			get;
 		}
 
-		public PropertyGenTimespanInt64<AccumulatedT> InstantWithAgeStepCount(int AgeStepCount) =>
-			0 == AgeStepCount ? LastInstant :
-			HistoryListStep?.ElementAtOrDefault(HistoryListStep.Count - AgeStepCount - 1);
+		public PropertyGenTimespanInt64<AccumulatedT> InstantWithAgeStepCount(int ageStepCount) =>
+			0 == ageStepCount ? LastInstant :
+			HistoryListStep?.ElementAtOrDefault(HistoryListStep.Count - ageStepCount - 1);
 
 		protected EntityWithHistory()
 		{
 		}
 
 		public EntityWithHistory(
-			Int64 Id,
-			PropertyGenTimespanInt64<AccumulatedT> Instant,
-			SharedT Shared = default(SharedT))
+			Int64 id,
+			PropertyGenTimespanInt64<AccumulatedT> instant,
+			SharedT shared = default(SharedT))
 			:
-			base(Id)
+			base(id)
 		{
-			Accumulate(Instant, Shared);
+			Accumulate(instant, shared);
 		}
 
 		public void Accumulate(
-			PropertyGenTimespanInt64<AccumulatedT> Instant,
-			SharedT Other = default(SharedT))
+			PropertyGenTimespanInt64<AccumulatedT> instant,
+			SharedT other = default(SharedT))
 		{
-			if (null == Instant)
+			if (null == instant)
 			{
 				return;
 			}
 
 			++AccumulatedCount;
 
-			HistoryListStep.Enqueue(Instant);
+			HistoryListStep.Enqueue(instant);
 			HistoryListStep.ListeKürzeBegin(HistoryLengthMax);
 
-			LastInstant = Instant;
+			LastInstant = instant;
 
-			if (!object.Equals(default(AccumulatedT), Instant.Value))
+			if (!object.Equals(default(AccumulatedT), instant.Value))
 			{
-				NotDefaultLastInstant = Instant;
+				NotDefaultLastInstant = instant;
 			}
 
-			Accumulated(Instant, Other);
+			Accumulated(instant, other);
 		}
 
 		virtual protected void Accumulated(
-			PropertyGenTimespanInt64<AccumulatedT> Instant,
-			SharedT Shared)
+			PropertyGenTimespanInt64<AccumulatedT> instant,
+			SharedT shared)
 		{
 		}
 	}
@@ -98,14 +98,14 @@ namespace Sanderling.Accumulator
 		}
 
 		public EntityScoring(
-			Int64 Id,
-			PropertyGenTimespanInt64<AccumulatedT> Instant)
+			Int64 id,
+			PropertyGenTimespanInt64<AccumulatedT> instant)
 			:
-			base(Id, Instant)
+			base(id, instant)
 		{
 		}
 
-		public virtual int Score(AccumulatedT Instant, SharedT Shared)
+		public virtual int Score(AccumulatedT instant, SharedT shared)
 		{
 			return 0;
 		}

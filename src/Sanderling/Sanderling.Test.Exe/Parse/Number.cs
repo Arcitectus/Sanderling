@@ -9,13 +9,13 @@ namespace Sanderling.Test.Exe.Parse
 {
 	static public class Number
 	{
-		static public void Test(IEnumerable<ParseNumberTestCase> SetTestCase) =>
-			SetTestCase.AssertSuccess(Sanderling.Parse.Number.NumberParseDecimalMilli);
+		static public void Test(IEnumerable<ParseNumberTestCase> setTestCase) =>
+			setTestCase.AssertSuccess(Sanderling.Parse.Number.NumberParseDecimalMilli);
 
 		static public void TestSupportedCulture() =>
 			Test(Sanderling.Parse.Test.Number.NumberTestCaseCombine(Sanderling.Parse.Test.Number.SupportedCulture));
 
-		static public void Test(CultureInfo Culture) => Test(Sanderling.Parse.Test.Number.NumberTestCaseCombine(Culture));
+		static public void Test(CultureInfo culture) => Test(Sanderling.Parse.Test.Number.NumberTestCaseCombine(culture));
 
 		[Test]
 		static public void Parse_Number_TestSupportedCulture()

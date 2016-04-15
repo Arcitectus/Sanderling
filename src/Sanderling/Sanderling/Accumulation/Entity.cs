@@ -11,7 +11,7 @@ namespace Sanderling.Accumulation
 
 	public interface IEntityScoring<in AccumulatedT, in SharedT>
 	{
-		int Score(AccumulatedT Instant, SharedT Shared);
+		int Score(AccumulatedT instant, SharedT shared);
 	}
 
 	public interface IRepresentingMemoryObject

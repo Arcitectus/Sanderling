@@ -6,11 +6,11 @@ namespace Sanderling.Sample.Read
 {
 	static public class Extension
 	{
-		static public int? TryParseInt(this string String)
+		static public int? TryParseInt(this string @string)
 		{
 			int Int;
 
-			if (!int.TryParse(String, out Int))
+			if (!int.TryParse(@string, out Int))
 			{
 				return null;
 			}
@@ -18,22 +18,22 @@ namespace Sanderling.Sample.Read
 			return Int;
 		}
 
-		static public string ConsoleEditString(this string Default, string Prefix = null)
+		static public string ConsoleEditString(this string @default, string prefix = null)
 		{
 			var Editor = new LineEditor(null);
 
 			Editor.TabAtStartCompletes = true;
 
-			return Editor.Edit(Prefix ?? "", Default);
+			return Editor.Edit(prefix ?? "", @default);
 		}
 
 		static public int? GetEveOnlineClientProcessId() =>
 			System.Diagnostics.Process.GetProcesses()
-			?.FirstOrDefault(Process =>
+			?.FirstOrDefault(process =>
 			{
 				try
 				{
-					return string.Equals("ExeFile.exe", Process?.MainModule?.ModuleName, StringComparison.InvariantCultureIgnoreCase);
+					return string.Equals("ExeFile.exe", process?.MainModule?.ModuleName, StringComparison.InvariantCultureIgnoreCase);
 				}
 				catch { }
 

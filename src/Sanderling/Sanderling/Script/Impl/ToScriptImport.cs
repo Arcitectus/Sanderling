@@ -50,7 +50,7 @@ namespace Sanderling.Script.Impl
 			AssemblyAdditionType?.Select(t => t.Assembly.GetName()?.Name)?.Distinct();
 
 		static public IEnumerable<Microsoft.CodeAnalysis.MetadataReference> ImportAssembly =>
-			AssemblyName?.Select(AssemblyName => GetAssemblyReference(AssemblyName));
+			AssemblyName?.Select(assemblyName => GetAssemblyReference(assemblyName));
 
 		static public IEnumerable<string> ImportNamespace =>
 			new[]
@@ -61,21 +61,21 @@ namespace Sanderling.Script.Impl
 
 		static readonly Func<string, Stream> CosturaAssemblyResolver = Costura.AssemblyResolverCosturaConstruct();
 
-		static public Microsoft.CodeAnalysis.MetadataReference GetAssemblyReference(string AssemblyName)
+		static public Microsoft.CodeAnalysis.MetadataReference GetAssemblyReference(string assemblyName)
 		{
-			var FromCosturaStream = CosturaAssemblyResolver?.Invoke(AssemblyName);
+			var FromCosturaStream = CosturaAssemblyResolver?.Invoke(assemblyName);
 
 			if (null != FromCosturaStream)
 			{
 				return Microsoft.CodeAnalysis.MetadataReference.CreateFromStream(FromCosturaStream);
 			}
 
-			return AssemblyReferenceFromLoadedAssembly(AssemblyName);
+			return AssemblyReferenceFromLoadedAssembly(assemblyName);
 		}
 
-		static Microsoft.CodeAnalysis.MetadataReference AssemblyReferenceFromLoadedAssembly(string AssemblyName)
+		static Microsoft.CodeAnalysis.MetadataReference AssemblyReferenceFromLoadedAssembly(string assemblyName)
 		{
-			var Assembly = AppDomain.CurrentDomain.GetAssemblies()?.FirstOrDefault(Candidate => Candidate?.GetName()?.Name == AssemblyName);
+			var Assembly = AppDomain.CurrentDomain.GetAssemblies()?.FirstOrDefault(candidate => candidate?.GetName()?.Name == assemblyName);
 
 			if (null == Assembly)
 			{

@@ -111,7 +111,7 @@ namespace Sanderling.Exe
 			};
 
 			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =
-				ListScriptIncluded?.Select(ScriptIdAndContent => new KeyValuePair<string, Func<string>>(ScriptIdAndContent.Key, () => ScriptIdAndContent.Value))?.ToArray();
+				ListScriptIncluded?.Select(scriptIdAndContent => new KeyValuePair<string, Func<string>>(scriptIdAndContent.Key, () => scriptIdAndContent.Value))?.ToArray();
 
 			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
 			ScriptIDE.ScriptWriteToOrReadFromFile?.ReadFromFile();

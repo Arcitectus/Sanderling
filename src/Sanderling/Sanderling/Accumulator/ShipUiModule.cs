@@ -54,17 +54,17 @@ namespace Sanderling.Accumulator
 
 		public int? ChildLastInTreeIndex => RepresentedInstant?.ChildLastInTreeIndex;
 
-		protected override void Accumulated(PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> Instant, Parse.IMemoryMeasurement Shared)
+		protected override void Accumulated(PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> instant, Parse.IMemoryMeasurement shared)
 		{
-			base.Accumulated(Instant, Shared);
+			base.Accumulated(instant, shared);
 
-			var ModuleButtonTooltip = Shared?.ModuleButtonTooltip;
+			var ModuleButtonTooltip = shared?.ModuleButtonTooltip;
 
-			if ((Instant?.Value?.Module?.HiliteVisible ?? false) &&
-				(Instant?.Value?.Location).HasValue &&
+			if ((instant?.Value?.Module?.HiliteVisible ?? false) &&
+				(instant?.Value?.Location).HasValue &&
 				null != ModuleButtonTooltip)
 			{
-				var TooltipWithTimespan = ModuleButtonTooltip.WithTimespanInt64(Instant);
+				var TooltipWithTimespan = ModuleButtonTooltip.WithTimespanInt64(instant);
 
 				var PreviousTooltip = ListTooltip?.LastOrDefault();
 
@@ -76,7 +76,7 @@ namespace Sanderling.Accumulator
 				var PreviousInstant = InstantWithAgeStepCount(1);
 
 				if ((PreviousInstant?.Value?.Module?.HiliteVisible ?? false) &&
-					PreviousInstant?.Value?.Module?.ModuleButtonIconTexture?.Id == Instant?.Value?.Module?.ModuleButtonIconTexture?.Id &&
+					PreviousInstant?.Value?.Module?.ModuleButtonIconTexture?.Id == instant?.Value?.Module?.ModuleButtonIconTexture?.Id &&
 					PreviousTooltip?.Begin == PreviousInstant?.Begin)
 				{
 					//	It seems that data read from module tooltips is corrupted frequently.
@@ -93,21 +93,21 @@ namespace Sanderling.Accumulator
 		/// <summary>
 		/// score by distance to last seen Instant.
 		/// </summary>
-		/// <param name="Instant"></param>
-		/// <param name="Shared"></param>
+		/// <param name="instant"></param>
+		/// <param name="shared"></param>
 		/// <returns></returns>
-		public override int Score(Accumulation.IShipUiModuleAndContext Instant, Parse.IMemoryMeasurement Shared)
+		public override int Score(Accumulation.IShipUiModuleAndContext instant, Parse.IMemoryMeasurement shared)
 		{
-			return (int)(10 - ((Instant?.Location - NotDefaultLastInstant?.Value?.Location)?.Length() ?? int.MaxValue));
+			return (int)(10 - ((instant?.Location - NotDefaultLastInstant?.Value?.Location)?.Length() ?? int.MaxValue));
 		}
 
 		ShipUiModule()
 		{ }
 
 		public ShipUiModule(
-			Int64 Id,
-			PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> Instant)
-				: base(Id, Instant)
+			Int64 id,
+			PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> instant)
+				: base(id, instant)
 		{
 			HistoryLengthMax = 2;
 		}

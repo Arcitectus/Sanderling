@@ -93,7 +93,7 @@ namespace Sanderling.Exe
 
 			MainControl?.Interface?.LicenseView?.Present(SensorServerDispatcher);
 
-			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(Evaluation => Evaluation?.MemoryMeasurement));
+			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(evaluation => evaluation?.MemoryMeasurement));
 		}
 	}
 }

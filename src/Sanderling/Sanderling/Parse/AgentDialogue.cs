@@ -255,26 +255,26 @@ namespace Sanderling.Parse
 
 	static public class DialogueMissionExtension
 	{
-		static public T ReturnValueOrDefaultIfThrows<T>(this Func<T> Func)
+		static public T ReturnValueOrDefaultIfThrows<T>(this Func<T> func)
 		{
 			try
 			{
-				if (null == Func)
+				if (null == func)
 					return default(T);
 
-				return Func();
+				return func();
 			}
 			catch
 			{
 				return default(T);
 			}
 		}
-		static public IEnumerable<IDialogueMissionObjective> SelfAndComponentTransitive(this IDialogueMissionObjective Parent) =>
-			Parent.EnumerateNodeFromTreeBFirst(node => node.SetComponent);
+		static public IEnumerable<IDialogueMissionObjective> SelfAndComponentTransitive(this IDialogueMissionObjective parent) =>
+			parent.EnumerateNodeFromTreeBFirst(node => node.SetComponent);
 
-		static public IWindowAgentDialogue Parse(this MemoryStruct.IWindowAgentDialogue Window)
+		static public IWindowAgentDialogue Parse(this MemoryStruct.IWindowAgentDialogue window)
 		{
-			if (null == Window)
+			if (null == window)
 				return null;
 
 			IWindowAgentPane LeftPane = null;
@@ -291,8 +291,8 @@ namespace Sanderling.Parse
 
 			try
 			{
-				LeftPane = Window?.LeftPane?.Parse();
-				RightPane = Window?.RightPane?.Parse();
+				LeftPane = window?.LeftPane?.Parse();
+				RightPane = window?.RightPane?.Parse();
 
 				var Objective = RightPane?.Objective;
 
@@ -306,7 +306,7 @@ namespace Sanderling.Parse
 					};
 
 				var ButtonContainingTextIgnoringCase = new Func<string, MemoryStruct.IUIElement>(
-					LabelText => Window?.ButtonText?.FirstOrDefault(Button => Button?.Text?.ToLower()?.Contains(LabelText?.ToLower()) ?? false));
+					labelText => window?.ButtonText?.FirstOrDefault(button => button?.Text?.ToLower()?.Contains(labelText?.ToLower()) ?? false));
 
 				AcceptButton = ButtonContainingTextIgnoringCase("Accept");
 				DeclineButton = ButtonContainingTextIgnoringCase("Decline");
@@ -321,7 +321,7 @@ namespace Sanderling.Parse
 
 			return new WindowAgentDialogue()
 			{
-				Raw = Window,
+				Raw = window,
 				LeftPane = LeftPane,
 				RightPane = RightPane,
 				Mission = Mission,
@@ -338,18 +338,18 @@ namespace Sanderling.Parse
 			};
 		}
 
-		static public IEnumerable<HtmlAgilityPack.HtmlNode> SetNodeAfterNode(this HtmlAgilityPack.HtmlNode ReferenceNode) =>
-			ReferenceNode.OwnerDocument?.DocumentNode?.Descendants()?.Where(node => ReferenceNode.StreamPosition < node.StreamPosition);
+		static public IEnumerable<HtmlAgilityPack.HtmlNode> SetNodeAfterNode(this HtmlAgilityPack.HtmlNode referenceNode) =>
+			referenceNode.OwnerDocument?.DocumentNode?.Descendants()?.Where(node => referenceNode.StreamPosition < node.StreamPosition);
 
-		static public bool AfterNode(this HtmlAgilityPack.HtmlNode Node, HtmlAgilityPack.HtmlNode ReferenceNode) =>
-			ReferenceNode?.StreamPosition < Node?.StreamPosition;
+		static public bool AfterNode(this HtmlAgilityPack.HtmlNode node, HtmlAgilityPack.HtmlNode referenceNode) =>
+			referenceNode?.StreamPosition < node?.StreamPosition;
 
-		static public IWindowAgentPane Parse(this MemoryStruct.IWindowAgentPane Pane)
+		static public IWindowAgentPane Parse(this MemoryStruct.IWindowAgentPane pane)
 		{
-			if (null == Pane)
+			if (null == pane)
 				return null;
 
-			var HtmlDocument = Pane?.Html?.HAPDocumentFromHtml();
+			var HtmlDocument = pane?.Html?.HAPDocumentFromHtml();
 
 			var ListCaptionNode = HtmlDocument?.DocumentNode?.SelectNodes("//*[@id='subheader']");
 			var CaptionNode = ListCaptionNode?.FirstOrDefault();
@@ -395,7 +395,7 @@ namespace Sanderling.Parse
 
 			return new WindowAgentPane()
 			{
-				Raw = Pane,
+				Raw = pane,
 				Caption = Caption,
 				Objective = Objective,
 				Reward = Reward,
@@ -415,14 +415,14 @@ namespace Sanderling.Parse
 			new KeyValuePair<string, RewardTypeEnum>("typeicon:29247", RewardTypeEnum.LP),
 		}.ToDictionary();
 
-		static public IDialogueMissionRewardAtom RewardAtomFromHtmlNode(this HtmlAgilityPack.HtmlNode HtmlNode)
+		static public IDialogueMissionRewardAtom RewardAtomFromHtmlNode(this HtmlAgilityPack.HtmlNode htmlNode)
 		{
-			if (null == HtmlNode)
+			if (null == htmlNode)
 				return null;
 
 			var SetComponentTypeAndAmount = new Dictionary<RewardTypeEnum, int>();
 
-			var SetComponentNode = HtmlNode?.SelectNodes(".//tr");
+			var SetComponentNode = htmlNode?.SelectNodes(".//tr");
 
 			foreach (var Node in SetComponentNode.EmptyIfNull())
 			{
@@ -440,20 +440,20 @@ namespace Sanderling.Parse
 
 			return new DialogueMissionRewardAtom()
 			{
-				Html = HtmlNode?.OuterHtml,
+				Html = htmlNode?.OuterHtml,
 				ISK = SetComponentTypeAndAmount?.TryGetValueNullable(RewardTypeEnum.ISK),
 				LP = SetComponentTypeAndAmount?.TryGetValueNullable(RewardTypeEnum.LP),
 			};
 		}
 
-		static public DialogueMissionObjective ParseObjectiveAtom(this HtmlAgilityPack.HtmlNode HtmlNode)
+		static public DialogueMissionObjective ParseObjectiveAtom(this HtmlAgilityPack.HtmlNode htmlNode)
 		{
-			if (null == HtmlNode)
+			if (null == htmlNode)
 				return null;
 
 			try
 			{
-				var ListTableCell = HtmlNode?.SelectNodes(".//td");
+				var ListTableCell = htmlNode?.SelectNodes(".//td");
 
 				var CompletionCell = ListTableCell?.FirstOrDefault();
 
@@ -484,7 +484,7 @@ namespace Sanderling.Parse
 
 				return new DialogueMissionObjective()
 				{
-					Html = HtmlNode?.OuterHtml,
+					Html = htmlNode?.OuterHtml,
 					TypeEnum = TypeEnum,
 					Location = Location,
 					Item = Item,
@@ -505,20 +505,20 @@ namespace Sanderling.Parse
 			new KeyValuePair<string, DialogueMissionObjectiveAtomTypeEnum>("Item", DialogueMissionObjectiveAtomTypeEnum.Item),
 		}.ToDictionary();
 
-		static public DialogueMissionObjectiveAtomTypeEnum? ObjectiveAtomTypeEnumFromTableDialogueText(this string DialogueText) =>
-			DictObjectiveAtomTypeEnumFromTableDialogueText?.TryGetValueNullable(DialogueText);
+		static public DialogueMissionObjectiveAtomTypeEnum? ObjectiveAtomTypeEnumFromTableDialogueText(this string dialogueText) =>
+			DictObjectiveAtomTypeEnumFromTableDialogueText?.TryGetValueNullable(dialogueText);
 
 		static readonly string ObjectiveItemFromDialogueTextRegexPattern =
 			@"(?<quant>\d+)\s*x" + @"\s*(?<name>[^" + Regex.Escape("(") + @"]+)(\((?<volume>[^\)]+)|)";
 
-		static public DialogueMissionLocation MissionLocationFromDialogue(this HtmlAgilityPack.HtmlNode Node)
+		static public DialogueMissionLocation MissionLocationFromDialogue(this HtmlAgilityPack.HtmlNode node)
 		{
 			var SecurityLevelMilli =
-				Node?.Descendants()?.Select(Descendant => Number.NumberParseDecimalMilli(Descendant?.InnerText?.Trim()))
+				node?.Descendants()?.Select(descendant => Number.NumberParseDecimalMilli(descendant?.InnerText?.Trim()))
 				?.WhereNotDefault()
 				?.FirstOrDefault();
 
-			var NameNode = Node?.SelectSingleNode(".//a");
+			var NameNode = node?.SelectSingleNode(".//a");
 
 			var Name = NameNode?.InnerText?.Trim();
 
@@ -530,9 +530,9 @@ namespace Sanderling.Parse
 			};
 		}
 
-		static public DialogueMissionObjectiveItem ObjectiveItemFromDialogueText(this string DialogueText)
+		static public DialogueMissionObjectiveItem ObjectiveItemFromDialogueText(this string dialogueText)
 		{
-			var Match = DialogueText.RegexMatchIfSuccess(ObjectiveItemFromDialogueTextRegexPattern, RegexOptions.IgnoreCase);
+			var Match = dialogueText.RegexMatchIfSuccess(ObjectiveItemFromDialogueTextRegexPattern, RegexOptions.IgnoreCase);
 
 			if (null == Match)
 				return null;
@@ -549,32 +549,32 @@ namespace Sanderling.Parse
 			};
 		}
 
-		static public bool LocationEquals(this IDialogueMissionLocation O0, IDialogueMissionLocation O1)
+		static public bool LocationEquals(this IDialogueMissionLocation o0, IDialogueMissionLocation o1)
 		{
-			if (ReferenceEquals(O0, O1))
+			if (ReferenceEquals(o0, o1))
 				return true;
 
-			if (null == O0 || null == O1)
+			if (null == o0 || null == o1)
 				return true;
 
 			return
-				O0.Name == O1.Name &&
-				O0.SystemName == O1.SystemName &&
-				O0.SecurityLevelMilli == O1.SecurityLevelMilli;
+				o0.Name == o1.Name &&
+				o0.SystemName == o1.SystemName &&
+				o0.SecurityLevelMilli == o1.SecurityLevelMilli;
 		}
 
-		static public bool ItemEquals(this DialogueMissionObjectiveItem O0, DialogueMissionObjectiveItem O1)
+		static public bool ItemEquals(this DialogueMissionObjectiveItem o0, DialogueMissionObjectiveItem o1)
 		{
-			if (ReferenceEquals(O0, O1))
+			if (ReferenceEquals(o0, o1))
 				return true;
 
-			if (null == O0 || null == O1)
+			if (null == o0 || null == o1)
 				return true;
 
 			return
-				O0.Name == O1.Name &&
-				O0.VolumeMilli == O1.VolumeMilli &&
-				O0.Quantity == O1.Quantity;
+				o0.Name == o1.Name &&
+				o0.VolumeMilli == o1.VolumeMilli &&
+				o0.Quantity == o1.Quantity;
 		}
 
 		static public bool? DeclineWithoutStandingLossAvailableFromDialogueHtml(this string html) =>
@@ -608,7 +608,7 @@ namespace Sanderling.Parse
 
 				var setUnitMatch =
 					DurationTextSetUnitRegexPatternAndValueInSecond
-					.Where((KandidaatAinhaitUndBetraagSekunde) => componentMatch.Groups[2].Value.RegexMatchSuccessIgnoreCase(KandidaatAinhaitUndBetraagSekunde.Key))
+					.Where((kandidaatAinhaitUndBetraagSekunde) => componentMatch.Groups[2].Value.RegexMatchSuccessIgnoreCase(kandidaatAinhaitUndBetraagSekunde.Key))
 					.ToArray();
 
 				if (!(1 == setUnitMatch.Length))

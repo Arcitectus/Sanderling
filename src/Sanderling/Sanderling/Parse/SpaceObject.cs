@@ -29,54 +29,54 @@ namespace Sanderling.Parse
 		/// </summary>
 		const string TargetLabelAsteroidRegexPattern = "Asteroid.*[^\\d\\w\\s]+([\\d\\w\\s]+)";
 
-		static public IMenuEntry EntryLock(this IMenu Menu) =>
-			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryLockRegexPattern) ?? false);
+		static public IMenuEntry EntryLock(this IMenu menu) =>
+			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryLockRegexPattern) ?? false);
 
-		static public IMenuEntry EntryUnlock(this IMenu Menu) =>
-			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryUnlockRegexPattern) ?? false);
+		static public IMenuEntry EntryUnlock(this IMenu menu) =>
+			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryUnlockRegexPattern) ?? false);
 
-		static public IMenuEntry EntryRemoveFromOverview(this IMenu Menu) =>
-			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryRemoveFromOverviewRegexPattern) ?? false);
+		static public IMenuEntry EntryRemoveFromOverview(this IMenu menu) =>
+			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryRemoveFromOverviewRegexPattern) ?? false);
 
-		static public KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>? OverviewEntryMenu(this IMemoryMeasurement MemoryMeasurement)
+		static public KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>? OverviewEntryMenu(this IMemoryMeasurement memoryMeasurement)
 		{
 			var OverviewEntry =
-				MemoryMeasurement?.WindowOverview
-				?.Select(WindowOverview => WindowOverview?.ListView?.Entry)
+				memoryMeasurement?.WindowOverview
+				?.Select(windowOverview => windowOverview?.ListView?.Entry)
 				?.ConcatNullable()
 				?.OfType<IOverviewEntry>()
-				?.FirstOrDefault(Entry => Entry?.IsSelected ?? false);
+				?.FirstOrDefault(entry => entry?.IsSelected ?? false);
 
 			if (null == OverviewEntry)
 			{
 				return null;
 			}
 
-			if (null == MemoryMeasurement?.Menu?.FirstOrDefault()?.EntryRemoveFromOverview())
+			if (null == memoryMeasurement?.Menu?.FirstOrDefault()?.EntryRemoveFromOverview())
 			{
 				return null;
 			}
 
-			return new KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>(OverviewEntry, MemoryMeasurement?.Menu);
+			return new KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>(OverviewEntry, memoryMeasurement?.Menu);
 		}
 
-		static public string OreTypeString(this IOverviewEntry OverviewEntry) =>
-			(OverviewEntry?.ColumnNameValue().RegexMatchSuccessIgnoreCase("Asteroid.*") ?? false) ?
-			OverviewEntry?.ColumnTypeValue() : null;
+		static public string OreTypeString(this IOverviewEntry overviewEntry) =>
+			(overviewEntry?.ColumnNameValue().RegexMatchSuccessIgnoreCase("Asteroid.*") ?? false) ?
+			overviewEntry?.ColumnTypeValue() : null;
 
-		static public OreTypeEnum? OreTypeEnum(this IOverviewEntry OverviewEntry) =>
+		static public OreTypeEnum? OreTypeEnum(this IOverviewEntry overviewEntry) =>
 			Bib3.Extension.EnumGetValues<OreTypeEnum>()
 			?.CastToNullable()
-			?.FirstOrDefault(OreType => OverviewEntry.OreTypeString().RegexMatchSuccessIgnoreCase(OreType?.RegexPattern()));
+			?.FirstOrDefault(oreType => overviewEntry.OreTypeString().RegexMatchSuccessIgnoreCase(oreType?.RegexPattern()));
 
 		static public OreTypeEnum? ExtractAsteroidOreType(
-			this ShipUiTarget Target,
-			out string OreTypeString)
+			this ShipUiTarget target,
+			out string oreTypeString)
 		{
-			OreTypeString = null;
+			oreTypeString = null;
 
 			var LabelAggregatedLessXml =
-				Target?.LabelText?.Select(Label => Label?.Text)?.StringJoin(" ")?.RemoveXmlTag()?.Trim();
+				target?.LabelText?.Select(label => label?.Text)?.StringJoin(" ")?.RemoveXmlTag()?.Trim();
 
 			if (null == LabelAggregatedLessXml)
 			{
@@ -91,16 +91,16 @@ namespace Sanderling.Parse
 				return null;
 			}
 
-			OreTypeString = Match.Groups[1].Value.Trim();
+			oreTypeString = Match.Groups[1].Value.Trim();
 
-			return OreTypeString.AsOreTypeEnum();
+			return oreTypeString.AsOreTypeEnum();
 		}
 
-		static public OreTypeEnum? ExtractAsteroidOreType(this ShipUiTarget Target)
+		static public OreTypeEnum? ExtractAsteroidOreType(this ShipUiTarget target)
 		{
 			string OreTypeString;
 
-			return ExtractAsteroidOreType(Target, out OreTypeString);
+			return ExtractAsteroidOreType(target, out OreTypeString);
 		}
 
 	}

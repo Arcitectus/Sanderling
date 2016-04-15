@@ -22,9 +22,9 @@ namespace Sanderling.UI
 
 		public bool AsSequence;
 
-		public IEnumerable<KeyValuePair<object, object>> ListeContainedNodeIdAndValue(object NodeValue)
+		public IEnumerable<KeyValuePair<object, object>> ListeContainedNodeIdAndValue(object nodeValue)
 		{
-			if (null == NodeValue)
+			if (null == nodeValue)
 			{
 				return null;
 			}
@@ -32,16 +32,16 @@ namespace Sanderling.UI
 			if (AsSequence)
 			{
 				return
-					(NodeValue as IEnumerable)
+					(nodeValue as IEnumerable)
 					?.OfType<object>()
-					?.Select((elementValue, Index) => new KeyValuePair<object, object>(Index, elementValue));
+					?.Select((elementValue, index) => new KeyValuePair<object, object>(index, elementValue));
 			}
 
-			var NodeValueWrapped = NodeValue.WrapIfValueType();
+			var NodeValueWrapped = nodeValue.WrapIfValueType();
 
 			return
 				MemberView
-				?.Select(MemberView => new KeyValuePair<object, object>(MemberView?.Id, MemberView?.Getter?.Invoke(NodeValueWrapped)));
+				?.Select(memberView => new KeyValuePair<object, object>(memberView?.Id, memberView?.Getter?.Invoke(NodeValueWrapped)));
 		}
 	}
 
@@ -59,21 +59,21 @@ namespace Sanderling.UI
 		/// <summary>
 		/// True if no members should be shown for this Type.
 		/// </summary>
-		/// <param name="Type"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		static public bool IsLeaf(Type Type)
+		static public bool IsLeaf(Type type)
 		{
-			if (null == Type)
+			if (null == type)
 			{
 				return true;
 			}
 
-			if (Type.IsPrimitive || Type.IsEnum)
+			if (type.IsPrimitive || type.IsEnum)
 			{
 				return true;
 			}
 
-			if (typeof(string) == Type)
+			if (typeof(string) == type)
 			{
 				return true;
 			}
@@ -81,17 +81,17 @@ namespace Sanderling.UI
 			return false;
 		}
 
-		ApiTreeViewNodeTypeView TypeView(Type Type) =>
-			null == Type ? null : CacheTypeView?.ValueFürKey(Type, TypeViewConstruct);
+		ApiTreeViewNodeTypeView TypeView(Type type) =>
+			null == type ? null : CacheTypeView?.ValueFürKey(type, TypeViewConstruct);
 
-		static bool MemberVisible(MemberInfo Member)
+		static bool MemberVisible(MemberInfo member)
 		{
-			if (null == Member)
+			if (null == member)
 			{
 				return false;
 			}
 
-			var Property = Member as PropertyInfo;
+			var Property = member as PropertyInfo;
 
 			if (null != Property)
 			{
@@ -107,29 +107,29 @@ namespace Sanderling.UI
 
 			}
 
-			if (Member.ReflectedType?.InheritsOrImplements<ITimespanInt64>() ?? false)
+			if (member.ReflectedType?.InheritsOrImplements<ITimespanInt64>() ?? false)
 			{
 				if (new[] {
 					nameof(PropertyGenTimespanInt64<int>.Up),
 					nameof(PropertyGenTimespanInt64<int>.Low)
-				}.Contains(Member.Name))
+				}.Contains(member.Name))
 				{
 					return false;
 				}
 			}
 
-			if (Member.ReflectedType?.InheritsOrImplementsOrEquals<Script.Impl.HostToScript>() ?? false)
+			if (member.ReflectedType?.InheritsOrImplementsOrEquals<Script.Impl.HostToScript>() ?? false)
 			{
 				if (new[] {
 					nameof(Script.Impl.HostToScript.MemoryMeasurementFunc),
 					nameof(Script.Impl.HostToScript.MotionExecuteFunc),
-				}.Contains(Member.Name))
+				}.Contains(member.Name))
 				{
 					return false;
 				}
 			}
 
-			switch (Member.MemberType)
+			switch (member.MemberType)
 			{
 				case MemberTypes.Property:
 					break;
@@ -143,23 +143,23 @@ namespace Sanderling.UI
 			return true;
 		}
 
-		MemberGetter MemberGetter(System.Reflection.MemberInfo Member) =>
-			(Member as PropertyInfo)?.DelegateForGetPropertyValue() ??
-			(Member as FieldInfo)?.DelegateForGetFieldValue();
+		MemberGetter MemberGetter(System.Reflection.MemberInfo member) =>
+			(member as PropertyInfo)?.DelegateForGetPropertyValue() ??
+			(member as FieldInfo)?.DelegateForGetFieldValue();
 
-		ApiTreeViewNodeTypeView TypeViewConstruct(Type Type)
+		ApiTreeViewNodeTypeView TypeViewConstruct(Type type)
 		{
-			if (IsLeaf(Type))
+			if (IsLeaf(type))
 			{
 				return null;
 			}
 
-			if (Type.IsArray)
+			if (type.IsArray)
 			{
 
 			}
 
-			if (Type.Implements(typeof(IEnumerable)))
+			if (type.Implements(typeof(IEnumerable)))
 			{
 				return new ApiTreeViewNodeTypeView()
 				{
@@ -168,7 +168,7 @@ namespace Sanderling.UI
 			}
 
 			var SetMember =
-				Type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
+				type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
 				?.Where(MemberVisible)
 				?.ToArray();
 
@@ -176,21 +176,21 @@ namespace Sanderling.UI
 			{
 				MemberView =
 				SetMember
-				?.Select(Member => new ApiTreeViewNodeTypeMemberView()
+				?.Select(member => new ApiTreeViewNodeTypeMemberView()
 				{
-					Id = Member?.Name,
-					Getter = MemberGetter(Member),
+					Id = member?.Name,
+					Getter = MemberGetter(member),
 				})
 				?.ToArray(),
 			};
 		}
 
-		public bool AstIdentGlaicwertig(object Id0, object Id1) => Base.AstIdentGlaicwertig(Id0, Id1);
+		public bool AstIdentGlaicwertig(object id0, object id1) => Base.AstIdentGlaicwertig(id0, id1);
 
-		public object HeaderContent(object NodeId, object NodeValue, object HeaderContentPrev) =>
-			Base?.HeaderContent(NodeId, NodeValue, HeaderContentPrev);
+		public object HeaderContent(object nodeId, object nodeValue, object headerContentPrev) =>
+			Base?.HeaderContent(nodeId, nodeValue, headerContentPrev);
 
-		public IEnumerable<KeyValuePair<object, object>> ListeAstEnthalteInAstIdentUndWert(object NodeValue) =>
-			TypeView(NodeValue?.GetType())?.ListeContainedNodeIdAndValue(NodeValue);
+		public IEnumerable<KeyValuePair<object, object>> ListeAstEnthalteInAstIdentUndWert(object nodeValue) =>
+			TypeView(nodeValue?.GetType())?.ListeContainedNodeIdAndValue(nodeValue);
 	}
 }

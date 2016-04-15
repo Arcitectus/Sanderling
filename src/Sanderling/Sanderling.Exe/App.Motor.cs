@@ -12,11 +12,11 @@ namespace Sanderling.Exe
 	public class MotionExecution : PropertyGenTimespanInt64<MotionParam>
 	{
 		public MotionExecution(
-			MotionParam Param,
-			Int64 BeginTime,
-			Int64 EndTime)
+			MotionParam param,
+			Int64 beginTime,
+			Int64 endTime)
 			:
-			base(Param, BeginTime, EndTime)
+			base(param, beginTime, endTime)
 		{
 		}
 
@@ -60,13 +60,13 @@ namespace Sanderling.Exe
 			}
 		}
 
-		Task<MotionResult> ActMotionAsync(MotionParam Motion)
+		Task<MotionResult> ActMotionAsync(MotionParam motion)
 		{
 			return Task.Run(() =>
 		  {
 			  lock (MotorLock)
 			  {
-				  if (null == Motion)
+				  if (null == motion)
 				  {
 					  return null;
 				  }
@@ -88,11 +88,11 @@ namespace Sanderling.Exe
 
 				  var BeginTime = GetTimeStopwatch();
 
-				  var Result = Motor.ActSequenceMotion(Motion.AsSequenceMotion(MemoryMeasurementLast?.Value?.MemoryMeasurement));
+				  var Result = Motor.ActSequenceMotion(motion.AsSequenceMotion(MemoryMeasurementLast?.Value?.MemoryMeasurement));
 
 				  var EndTime = GetTimeStopwatch();
 
-				  MotionExecution.Enqueue(new MotionExecution(Motion, BeginTime, EndTime)
+				  MotionExecution.Enqueue(new MotionExecution(motion, BeginTime, EndTime)
 				  {
 					  Result = Result,
 				  });
@@ -104,6 +104,6 @@ namespace Sanderling.Exe
 		  });
 		}
 
-		MotionResult FromScriptMotionExecute(MotionParam MotionParam) => ActMotionAsync(MotionParam).Result;
+		MotionResult FromScriptMotionExecute(MotionParam motionParam) => ActMotionAsync(motionParam).Result;
 	}
 }

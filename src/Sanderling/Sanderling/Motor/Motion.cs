@@ -37,18 +37,18 @@ namespace Sanderling.Motor
 		}
 
 		public MotionParam(
-			MotionParamMouseRegion[] MouseListWaypoint,
-			MouseButtonIdEnum[] MouseButton = null)
+			MotionParamMouseRegion[] mouseListWaypoint,
+			MouseButtonIdEnum[] mouseButton = null)
 		{
-			this.MouseListWaypoint = MouseListWaypoint;
-			this.MouseButton = MouseButton;
+			this.MouseListWaypoint = mouseListWaypoint;
+			this.MouseButton = mouseButton;
 		}
 
 		public MotionParam(
-			MotionParamMouseRegion[] MouseListWaypoint,
-			MouseButtonIdEnum MouseButton)
+			MotionParamMouseRegion[] mouseListWaypoint,
+			MouseButtonIdEnum mouseButton)
 			:
-			this(MouseListWaypoint, new MouseButtonIdEnum[] { MouseButton })
+			this(mouseListWaypoint, new MouseButtonIdEnum[] { mouseButton })
 		{
 		}
 

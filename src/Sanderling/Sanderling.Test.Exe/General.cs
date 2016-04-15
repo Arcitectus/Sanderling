@@ -9,23 +9,23 @@ namespace Sanderling.Test.Exe
 	static class General
 	{
 		static public void AssertSuccess<InT, OutT, ComparerT>(
-			this TestCaseMap<InT, OutT, ComparerT> TestCase,
-			Func<InT, OutT> Map)
+			this TestCaseMap<InT, OutT, ComparerT> testCase,
+			Func<InT, OutT> map)
 			where ComparerT : IEqualityComparer<OutT>
 		{
-			Assert.IsTrue(TestCase.Success(Map));
+			Assert.IsTrue(testCase.Success(map));
 		}
 
 		static public void AssertSuccess<InT, OutT, ComparerT>(
-			this IEnumerable<TestCaseMap<InT, OutT, ComparerT>> SetTestCase,
-			Func<InT, OutT> Map)
+			this IEnumerable<TestCaseMap<InT, OutT, ComparerT>> setTestCase,
+			Func<InT, OutT> map)
 			where ComparerT : IEqualityComparer<OutT>
 		{
-			foreach (var TestCase in SetTestCase.EmptyIfNull())
+			foreach (var TestCase in setTestCase.EmptyIfNull())
 			{
 				try
 				{
-					TestCase.AssertSuccess(Map);
+					TestCase.AssertSuccess(map);
 				}
 				catch (Exception Exception)
 				{

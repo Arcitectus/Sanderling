@@ -21,11 +21,11 @@ namespace Sanderling.UI
 			TreeView.Export.ZuExportiire = () => TreeView.TreeView?.AuswaalPfaadListeSegmentAstIdentUndWert?.LastOrDefault().Value;
 		}
 
-		public void Present(Script.IHostToScript Api)
+		public void Present(Script.IHostToScript api)
 		{
-			TimeAndOrigin.Present(Api?.MemoryMeasurement);
+			TimeAndOrigin.Present(api?.MemoryMeasurement);
 
-			ApiRoot = Api;
+			ApiRoot = api;
 		}
 
 		object ApiRoot

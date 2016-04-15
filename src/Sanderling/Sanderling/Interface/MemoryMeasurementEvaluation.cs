@@ -21,32 +21,32 @@ namespace Sanderling.Interface
 		}
 
 		public MemoryMeasurementEvaluation(
-			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement,
-			Accumulator.MemoryMeasurementAccumulator MemoryMeasurementAccu = null)
+			FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> memoryMeasurement,
+			Accumulator.MemoryMeasurementAccumulator memoryMeasurementAccu = null)
 		{
-			this.MemoryMeasurement = MemoryMeasurement?.Value;
+			this.MemoryMeasurement = memoryMeasurement?.Value;
 
 			try
 			{
-				MemoryMeasurementParsed = MemoryMeasurement?.Value?.Parse();
+				MemoryMeasurementParsed = memoryMeasurement?.Value?.Parse();
 			}
 			catch (Exception Exception)
 			{
 				MemoryMeasurementParseException = Exception;
 			}
 
-			if (null == MemoryMeasurement)
+			if (null == memoryMeasurement)
 			{
 				return;
 			}
 
 			try
 			{
-				MemoryMeasurementAccu = MemoryMeasurementAccu ?? new Accumulator.MemoryMeasurementAccumulator();
+				memoryMeasurementAccu = memoryMeasurementAccu ?? new Accumulator.MemoryMeasurementAccumulator();
 
-				MemoryMeasurementAccu.Accumulate(MemoryMeasurement?.MapValue(t => MemoryMeasurementParsed));
+				memoryMeasurementAccu.Accumulate(memoryMeasurement?.MapValue(t => MemoryMeasurementParsed));
 
-				this.MemoryMeasurementAccumulation = MemoryMeasurementAccu;
+				this.MemoryMeasurementAccumulation = memoryMeasurementAccu;
 			}
 			catch (Exception Exception)
 			{

@@ -51,18 +51,18 @@ namespace Sanderling.Parse
 		{
 		}
 
-		public ShipUiTarget(MemoryStruct.IShipUiTarget Raw)
+		public ShipUiTarget(MemoryStruct.IShipUiTarget raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 			{
 				return;
 			}
 
 			var TextRow =
-				Raw?.LabelText?.OrderByCenterVerticalDown()
-				?.Select(LabelText => LabelText?.Text?.RemoveXmlTag())
+				raw?.LabelText?.OrderByCenterVerticalDown()
+				?.Select(labelText => labelText?.Text?.RemoveXmlTag())
 				?.ToArray();
 
 			var DistanceMinMax = TextRow?.LastOrDefault()?.DistanceParseMinMaxKeyValue();
@@ -168,8 +168,8 @@ namespace Sanderling.Parse
 
 	static public class ShipUiExtension
 	{
-		static public IShipUiTarget Parse(this MemoryStruct.IShipUiTarget ShipUiTarget) =>
-			null == ShipUiTarget ? null : new ShipUiTarget(ShipUiTarget);
+		static public IShipUiTarget Parse(this MemoryStruct.IShipUiTarget shipUiTarget) =>
+			null == shipUiTarget ? null : new ShipUiTarget(shipUiTarget);
 
 		static public IShipUi Parse(this MemoryStruct.IShipUi raw) =>
 			null == raw ? null : new ShipUi(raw);

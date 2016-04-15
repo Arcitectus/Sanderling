@@ -72,22 +72,22 @@ namespace Sanderling.Parse
 		{
 		}
 
-		public ListEntry(MemoryStruct.IListEntry Raw)
+		public ListEntry(MemoryStruct.IListEntry raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 			{
 				return;
 			}
 
-			var DistanceMinMax = Raw?.ColumnDistanceValue()?.DistanceParseMinMaxKeyValue();
+			var DistanceMinMax = raw?.ColumnDistanceValue()?.DistanceParseMinMaxKeyValue();
 
 			DistanceMin = DistanceMinMax?.Key;
 			DistanceMax = DistanceMinMax?.Value;
 
-			Type = Raw?.ColumnTypeValue();
-			Name = Raw?.ColumnNameValue();
+			Type = raw?.ColumnTypeValue();
+			Name = raw?.ColumnNameValue();
 		}
 	}
 
@@ -95,47 +95,47 @@ namespace Sanderling.Parse
 	{
 		static Regex NoItemRegex = @"no\s+item".AsRegexCompiledIgnoreCase();
 
-		static public IUIElementText LabelTextLargest(this MemoryStruct.IListEntry ListEntry) =>
-			ListEntry?.LabelText?.Largest();
+		static public IUIElementText LabelTextLargest(this MemoryStruct.IListEntry listEntry) =>
+			listEntry?.LabelText?.Largest();
 
-		static public bool IsNoItem(this MemoryStruct.IListEntry ListEntry) =>
-			NoItemRegex.MatchSuccess(ListEntry?.LabelTextLargest()?.Text);
+		static public bool IsNoItem(this MemoryStruct.IListEntry listEntry) =>
+			NoItemRegex.MatchSuccess(listEntry?.LabelTextLargest()?.Text);
 
 		static public string CellValueFromColumnHeader(
-			this MemoryStruct.IListEntry ListEntry,
-			string HeaderLabel) =>
-			ListEntry?.ListColumnCellLabel
-			?.FirstOrDefault(Cell => (Cell.Key?.Text).EqualsIgnoreCase(HeaderLabel))
+			this MemoryStruct.IListEntry listEntry,
+			string headerLabel) =>
+			listEntry?.ListColumnCellLabel
+			?.FirstOrDefault(cell => (cell.Key?.Text).EqualsIgnoreCase(headerLabel))
 			.Value;
 
-		static public string ColumnTypeValue(this MemoryStruct.IListEntry ListEntry) =>
-			CellValueFromColumnHeader(ListEntry, "type");
+		static public string ColumnTypeValue(this MemoryStruct.IListEntry listEntry) =>
+			CellValueFromColumnHeader(listEntry, "type");
 
-		static public string ColumnNameValue(this MemoryStruct.IListEntry ListEntry) =>
-			CellValueFromColumnHeader(ListEntry, "name");
+		static public string ColumnNameValue(this MemoryStruct.IListEntry listEntry) =>
+			CellValueFromColumnHeader(listEntry, "name");
 
-		static public string ColumnDistanceValue(this MemoryStruct.IListEntry ListEntry) =>
-			CellValueFromColumnHeader(ListEntry, "distance");
+		static public string ColumnDistanceValue(this MemoryStruct.IListEntry listEntry) =>
+			CellValueFromColumnHeader(listEntry, "distance");
 
-		static public IListEntry ParseAsListEntry(this MemoryStruct.IListEntry ListEntry) =>
-			null == ListEntry ? null : new ListEntry(ListEntry);
+		static public IListEntry ParseAsListEntry(this MemoryStruct.IListEntry listEntry) =>
+			null == listEntry ? null : new ListEntry(listEntry);
 
 		static public IListViewAndControl<OutEntryT> Map<InEntryT, OutEntryT>(
-			this IListViewAndControl<InEntryT> ListViewAndControl,
-			Func<InEntryT, OutEntryT> EntryMap)
+			this IListViewAndControl<InEntryT> listViewAndControl,
+			Func<InEntryT, OutEntryT> entryMap)
 			where InEntryT : MemoryStruct.IListEntry
 			where OutEntryT : class, MemoryStruct.IListEntry
 		{
-			if (null == ListViewAndControl)
+			if (null == listViewAndControl)
 			{
 				return null;
 			}
 
-			return new ListViewAndControl<OutEntryT>(ListViewAndControl)
+			return new ListViewAndControl<OutEntryT>(listViewAndControl)
 			{
-				ColumnHeader = ListViewAndControl?.ColumnHeader,
-				Scroll = ListViewAndControl?.Scroll,
-				Entry = ListViewAndControl?.Entry?.Select(EntryMap)?.ToArray(),
+				ColumnHeader = listViewAndControl?.ColumnHeader,
+				Scroll = listViewAndControl?.Scroll,
+				Entry = listViewAndControl?.Entry?.Select(entryMap)?.ToArray(),
 			};
 		}
 	}

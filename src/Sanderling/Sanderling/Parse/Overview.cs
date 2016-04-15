@@ -59,21 +59,21 @@ namespace Sanderling.Parse
 		{
 		}
 
-		public OverviewEntry(MemoryStruct.IOverviewEntry Raw)
+		public OverviewEntry(MemoryStruct.IOverviewEntry raw)
 			:
-			base(Raw)
+			base(raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			MainIcon = Raw?.SetSprite?.FirstOrDefault(Sprite => Sprite?.Name == "iconSprite");
+			MainIcon = raw?.SetSprite?.FirstOrDefault(sprite => sprite?.Name == "iconSprite");
 
 			MainIconIsRed = MainIcon?.Color?.IsRed();
 
 			var MainIconContainsIndicatorWithNameMatchingRegexPattern = new Func<string, bool>(regexPattern =>
-				Raw?.MainIconSetIndicatorName?.Any(indicatorName => indicatorName.RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
+				raw?.MainIconSetIndicatorName?.Any(indicatorName => indicatorName.RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
 
 			var ContainsRightIconWithHintMatchingRegexPattern = new Func<string, bool>(regexPattern =>
-				Raw?.RightIcon?.Any(Sprite => (Sprite?.HintText).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
+				raw?.RightIcon?.Any(sprite => (sprite?.HintText).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
 
 			IsAttackingMe = MainIconContainsIndicatorWithNameMatchingRegexPattern("attacking.*me");
 			IsHostile = MainIconContainsIndicatorWithNameMatchingRegexPattern("hostile");
@@ -127,25 +127,25 @@ namespace Sanderling.Parse
 		{
 		}
 
-		public WindowOverview(MemoryStruct.IWindowOverview Raw)
+		public WindowOverview(MemoryStruct.IWindowOverview raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 			{
 				return;
 			}
 
-			ListView = Raw?.ListView?.Map(OverviewExtension.Parse);
+			ListView = raw?.ListView?.Map(OverviewExtension.Parse);
 		}
 	}
 
 	static public class OverviewExtension
 	{
-		static public IWindowOverview Parse(this MemoryStruct.IWindowOverview WindowOverview) =>
-			null == WindowOverview ? null : new WindowOverview(WindowOverview);
+		static public IWindowOverview Parse(this MemoryStruct.IWindowOverview windowOverview) =>
+			null == windowOverview ? null : new WindowOverview(windowOverview);
 
-		static public IOverviewEntry Parse(this MemoryStruct.IOverviewEntry OverviewEntry) =>
-			null == OverviewEntry ? null : new OverviewEntry(OverviewEntry);
+		static public IOverviewEntry Parse(this MemoryStruct.IOverviewEntry overviewEntry) =>
+			null == overviewEntry ? null : new OverviewEntry(overviewEntry);
 	}
 }

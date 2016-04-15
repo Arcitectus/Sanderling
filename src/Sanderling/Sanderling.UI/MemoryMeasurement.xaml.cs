@@ -20,11 +20,11 @@ namespace Sanderling.UI
 				null);
 		}
 
-		public void Present(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> Measurement)
+		public void Present(FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> measurement)
 		{
-			Summary?.Present(Measurement);
+			Summary?.Present(measurement);
 
-			Detail?.TreeView?.Präsentiire(new[] { Measurement?.Value });
+			Detail?.TreeView?.Präsentiire(new[] { measurement?.Value });
 		}
 	}
 }

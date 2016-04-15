@@ -81,21 +81,21 @@ namespace Sanderling.Sample.Read
 
 		/// <summary>
 		/// </summary>
-		/// <param name="Measurement">contains the structures read from the eve online client process memory.</param>
-		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> Measurement)
+		/// <param name="measurement">contains the structures read from the eve online client process memory.</param>
+		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> measurement)
 		{
 			Console.WriteLine("\nMeasurement received");
-			Console.WriteLine("measurement time: " + ((Measurement?.End)?.ToString("### ### ### ### ###")?.Trim() ?? "null"));
+			Console.WriteLine("measurement time: " + ((measurement?.End)?.ToString("### ### ### ### ###")?.Trim() ?? "null"));
 
 			var ListUIElement =
-				Measurement?.Value?.EnumerateReferencedUIElementTransitive()
-				?.GroupBy(UIElement => UIElement.Id)
-				?.Select(Group => Group?.FirstOrDefault())
+				measurement?.Value?.EnumerateReferencedUIElementTransitive()
+				?.GroupBy(uiElement => uiElement.Id)
+				?.Select(group => group?.FirstOrDefault())
 				?.ToArray();
 
 			Console.WriteLine("number of UI elements in measurement: " + (ListUIElement?.Length.ToString() ?? "null"));
 
-			var ContextMenu = Measurement?.Value?.Menu?.FirstOrDefault();
+			var ContextMenu = measurement?.Value?.Menu?.FirstOrDefault();
 
 			var ContextMenuFirstEntry = ContextMenu?.Entry?.FirstOrDefault();
 

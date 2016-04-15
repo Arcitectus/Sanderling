@@ -9,23 +9,23 @@ namespace Sanderling.Accumulation
 {
 	static public class Extension
 	{
-		static public bool IsActive(this IShipUiModule ModuleAccu) =>
-			ModuleAccu?.LastInstant?.Value?.Module?.RampActive ?? false;
+		static public bool IsActive(this IShipUiModule moduleAccu) =>
+			moduleAccu?.LastInstant?.Value?.Module?.RampActive ?? false;
 
 		static public Vektor2DInt? PositionInShipUi(
-			this MemoryStruct.IShipUiModule Module, MemoryStruct.IShipUi ShipUi) =>
-			Module?.RegionCenter() - ShipUi?.Center?.RegionCenter();
+			this MemoryStruct.IShipUiModule module, MemoryStruct.IShipUi shipUi) =>
+			module?.RegionCenter() - shipUi?.Center?.RegionCenter();
 
 		static public IEnumerable<IShipUiModule> WhereTooltip(
-			this IEnumerable<IShipUiModule> Source,
-			Func<Parse.IModuleButtonTooltip, bool> TooltipPredicate) =>
-			Source?.Where(Module => TooltipPredicate(Module?.TooltipLast?.Value));
+			this IEnumerable<IShipUiModule> source,
+			Func<Parse.IModuleButtonTooltip, bool> tooltipPredicate) =>
+			source?.Where(module => tooltipPredicate(module?.TooltipLast?.Value));
 
 		static public T BestRead<T>(
-			this IEnumerable<T> SetRead,
-			Func<T, MemoryStruct.IUIElement> GetUIElementFromRead)
+			this IEnumerable<T> setRead,
+			Func<T, MemoryStruct.IUIElement> getUIElementFromRead)
 			where T : class =>
-			SetRead?.OrderByDescending(Read => MemoryStruct.Extension.EnumerateReferencedUIElementTransitive(
-				GetUIElementFromRead?.Invoke(Read))?.Count() ?? -1)?.FirstOrDefault();
+			setRead?.OrderByDescending(read => MemoryStruct.Extension.EnumerateReferencedUIElementTransitive(
+				getUIElementFromRead?.Invoke(read))?.Count() ?? -1)?.FirstOrDefault();
 	}
 }

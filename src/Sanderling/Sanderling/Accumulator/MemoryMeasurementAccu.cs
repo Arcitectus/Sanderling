@@ -16,17 +16,17 @@ namespace Sanderling.Accumulator
 
 		public IEnumerable<Accumulation.IShipUiModule> ShipUiModule => InternShipUiModule;
 
-		public void Accumulate(FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementAtTime)
+		public void Accumulate(FromProcessMeasurement<Parse.IMemoryMeasurement> memoryMeasurementAtTime)
 		{
-			if (null == MemoryMeasurementAtTime)
+			if (null == memoryMeasurementAtTime)
 				return;
 
-			var MemoryMeasurement = MemoryMeasurementAtTime?.Value;
+			var MemoryMeasurement = memoryMeasurementAtTime?.Value;
 
 			var ShipUi = MemoryMeasurement?.ShipUi;
 
 			var SetModuleInstantNotAssigned =
-				ShipUi?.Module?.Select(Module => Module.AsAccuInstant(ShipUi).WithTimespanInt64(MemoryMeasurementAtTime))
+				ShipUi?.Module?.Select(module => module.AsAccuInstant(ShipUi).WithTimespanInt64(memoryMeasurementAtTime))
 				?.Distribute(
 				MemoryMeasurement,
 				InternShipUiModule);
@@ -36,8 +36,8 @@ namespace Sanderling.Accumulator
 				InternShipUiModule.Add(new ShipUiModule(++EntityIdLast, ModuleInstantNotAssigned));
 			}
 
-			InternShipUiModule?.Where(Module => !(MemoryMeasurementAtTime?.End - Module?.LastInstant?.End < ModuleInvisibleDurationMax))?.ToArray()
-				?.ForEach(Module => InternShipUiModule.Remove(Module));
+			InternShipUiModule?.Where(module => !(memoryMeasurementAtTime?.End - module?.LastInstant?.End < ModuleInvisibleDurationMax))?.ToArray()
+				?.ForEach(module => InternShipUiModule.Remove(module));
 
 			if (MemoryMeasurement?.IsDocked ?? false)
 			{

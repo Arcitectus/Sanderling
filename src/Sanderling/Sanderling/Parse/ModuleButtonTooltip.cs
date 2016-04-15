@@ -132,20 +132,20 @@ namespace Sanderling.Parse
 
 		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
-		public ModuleButtonTooltip(MemoryStruct.IContainer Raw)
+		public ModuleButtonTooltip(MemoryStruct.IContainer raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 			{
 				return;
 			}
 
 			var LabelRegexMatchSuccessIgnoreCase = new Func<string, bool>(
-				Pattern => Raw?.LabelText?.Any(Label => Label?.Text?.RegexMatchSuccess(Pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false) ?? false);
+				pattern => raw?.LabelText?.Any(label => label?.Text?.RegexMatchSuccess(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false) ?? false);
 
 			var LabelAnyRegexMatchSuccessIgnoreCase = new Func<string[], bool>(
-				SetPattern => SetPattern?.Any(LabelRegexMatchSuccessIgnoreCase) ?? false);
+				setPattern => setPattern?.Any(LabelRegexMatchSuccessIgnoreCase) ?? false);
 
 			IsWeapon = LabelAnyRegexMatchSuccessIgnoreCase(IsWeaponSetIndicatorLabelRegexPattern);
 
@@ -161,7 +161,7 @@ namespace Sanderling.Parse
 			IsIceHarvester = LabelRegexMatchSuccessIgnoreCase(@"Ice\s*Harvester");
 
 			var MatchFromLabelWithRegexPattern = new Func<string, System.Text.RegularExpressions.Match>(regexPattern =>
-				Raw?.LabelText?.Select(LabelText => LabelText?.Text?.RegexMatchIfSuccess(regexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault());
+				raw?.LabelText?.Select(labelText => labelText?.Text?.RegexMatchIfSuccess(regexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))?.WhereNotDefault()?.FirstOrDefault());
 
 			var DistanceMinFromLabelWithRegexPattern = new Func<string, int?>(prefixPattern =>
 				(int?)Distance.DistanceParseMin(MatchFromLabelWithRegexPattern(prefixPattern + Distance.DistanceRegexPattern)?.Value?.RegexMatchIfSuccess(Distance.DistanceRegexPattern)?.Value));
@@ -172,7 +172,7 @@ namespace Sanderling.Parse
 
 			SignatureRadiusModifierMilli = (int?)MatchFromLabelWithRegexPattern(@"(" + Number.DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars + @")\s*%\s*Signature\s*Radius\s*(Modifier|Bonus)")?.Groups[1]?.Value?.NumberParseDecimalMilli() / 100;
 
-			ToggleKeyTextLabel = Raw?.LabelText?.OrderByNearestPointOnLine(new Vektor2DInt(-1, 1), label => label?.RegionCenter())?.FirstOrDefault();
+			ToggleKeyTextLabel = raw?.LabelText?.OrderByNearestPointOnLine(new Vektor2DInt(-1, 1), label => label?.RegionCenter())?.FirstOrDefault();
 			ToggleKey = ToggleKeyTextLabel?.Text?.ListKeyCodeFromUIText()?.ToArray();
 		}
 	}

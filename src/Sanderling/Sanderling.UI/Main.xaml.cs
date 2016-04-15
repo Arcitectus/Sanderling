@@ -17,8 +17,8 @@ namespace Sanderling.UI
 
 		public void BotMotionEnable() => ToggleButtonMotionEnable?.RightButtonDown();
 
-		public void ConfigFromModelToView(ExeConfig Config) =>
-			Interface.LicenseView?.LicenseClientConfigViewModel?.PropagateFromClrMemberToDependencyProperty(Config?.LicenseClient?.CompletedWithDefault());
+		public void ConfigFromModelToView(ExeConfig config) =>
+			Interface.LicenseView?.LicenseClientConfigViewModel?.PropagateFromClrMemberToDependencyProperty(config?.LicenseClient?.CompletedWithDefault());
 
 		public ExeConfig ConfigFromViewToModel() =>
 			new ExeConfig()

@@ -9,40 +9,40 @@ namespace Sanderling.Accumulator
 	static public class Extension
 	{
 		/// <summary>
-		/// Distributes the elements from <paramref name="Source"/> among <paramref name="Destination"/>.
-		/// The method "Accumulate" is called once on each element in <paramref name="Destination"/>.
+		/// Distributes the elements from <paramref name="source"/> among <paramref name="destination"/>.
+		/// The method "Accumulate" is called once on each element in <paramref name="destination"/>.
 		/// </summary>
 		/// <typeparam name="AccumulatedT"></typeparam>
 		/// <typeparam name="SharedT"></typeparam>
 		/// <typeparam name="DestEntityT"></typeparam>
-		/// <param name="Source"></param>
-		/// <param name="Shared"></param>
-		/// <param name="Destination"></param>
-		/// <returns>subset of <paramref name="Source"/> which was not assigned to elements in <paramref name="Destination"/>.</returns>
+		/// <param name="source"></param>
+		/// <param name="shared"></param>
+		/// <param name="destination"></param>
+		/// <returns>subset of <paramref name="source"/> which was not assigned to elements in <paramref name="destination"/>.</returns>
 		static public IEnumerable<PropertyGenTimespanInt64<AccumulatedT>> Distribute<AccumulatedT, SharedT, DestEntityT>(
-			this IEnumerable<PropertyGenTimespanInt64<AccumulatedT>> Source,
-			SharedT Shared,
-			ICollection<DestEntityT> Destination)
+			this IEnumerable<PropertyGenTimespanInt64<AccumulatedT>> source,
+			SharedT shared,
+			ICollection<DestEntityT> destination)
 			where DestEntityT : EntityScoring<AccumulatedT, SharedT>
 		{
-			if (null == Destination)
+			if (null == destination)
 			{
-				return Source;
+				return source;
 			}
 
 			var SourceInstantConsumed = new HashSet<PropertyGenTimespanInt64<AccumulatedT>>();
 
 			var DestinationEntityFed = new HashSet<DestEntityT>();
 
-			var SourceRendered = Source?.ToArray();
+			var SourceRendered = source?.ToArray();
 
 			var SetCombination =
-				Destination?.SelectMany(DestinationEntity =>
+				destination?.SelectMany(destinationEntity =>
 				SourceRendered
 				?.WhereNotDefault()
-				?.Select(SourceInstant =>
-				new { SourceInstant, DestinationEntity, Score = DestinationEntity?.Score(SourceInstant.Value, Shared) ?? int.MinValue }))
-				?.OrderByDescending(Combi => Combi.Score)
+				?.Select(sourceInstant =>
+				new { sourceInstant, destinationEntity, Score = destinationEntity?.Score(sourceInstant.Value, shared) ?? int.MinValue }))
+				?.OrderByDescending(combi => combi.Score)
 				?.ToArray();
 
 			foreach (var Combination in SetCombination)
@@ -52,20 +52,20 @@ namespace Sanderling.Accumulator
 					break;
 				}
 
-				if (SourceInstantConsumed.Contains(Combination.SourceInstant))
+				if (SourceInstantConsumed.Contains(Combination.sourceInstant))
 				{
 					continue;
 				}
 
-				if (DestinationEntityFed.Contains(Combination.DestinationEntity))
+				if (DestinationEntityFed.Contains(Combination.destinationEntity))
 				{
 					continue;
 				}
 
-				Combination.DestinationEntity.Accumulate(Combination.SourceInstant, Shared);
+				Combination.destinationEntity.Accumulate(Combination.sourceInstant, shared);
 
-				SourceInstantConsumed.Add(Combination.SourceInstant);
-				DestinationEntityFed.Add(Combination.DestinationEntity);
+				SourceInstantConsumed.Add(Combination.sourceInstant);
+				DestinationEntityFed.Add(Combination.destinationEntity);
 			}
 
 			return SourceRendered.Except(SourceInstantConsumed);
@@ -76,30 +76,30 @@ namespace Sanderling.Accumulator
 		/// <typeparam name="AccumulationT"></typeparam>
 		/// <typeparam name="AccumulatedT"></typeparam>
 		/// <typeparam name="SharedT"></typeparam>
-		/// <param name="SourceCandidate"></param>
-		/// <param name="InstantToFit"></param>
-		/// <param name="Other"></param>
-		/// <returns>best fit according to method "Score" of element in <paramref name="SourceCandidate"/></returns>
+		/// <param name="sourceCandidate"></param>
+		/// <param name="instantToFit"></param>
+		/// <param name="other"></param>
+		/// <returns>best fit according to method "Score" of element in <paramref name="sourceCandidate"/></returns>
 		static public AccumulationT BestFitFromSet<AccumulationT, AccumulatedT, SharedT>(
-			this IEnumerable<AccumulationT> SourceCandidate,
-			AccumulatedT InstantToFit,
-			SharedT Other = default(SharedT))
+			this IEnumerable<AccumulationT> sourceCandidate,
+			AccumulatedT instantToFit,
+			SharedT other = default(SharedT))
 			where AccumulationT : class, Accumulation.IEntityScoring<AccumulatedT, SharedT> =>
-			SourceCandidate?.Select(Accumulation => new { Accumulation, Score = Accumulation?.Score(InstantToFit, Other) ?? int.MinValue })
+			sourceCandidate?.Select(accumulation => new { accumulation, Score = accumulation?.Score(instantToFit, other) ?? int.MinValue })
 			?.Where(scored => 0 < scored.Score)
 			?.OrderByDescending(scored => scored.Score)
-			?.FirstOrDefault()?.Accumulation;
+			?.FirstOrDefault()?.accumulation;
 
 		static public Accumulation.IShipUiModuleAndContext AsAccuInstant(
-			this MemoryStruct.IShipUiModule Module,
-			MemoryStruct.IShipUi ShipUi) =>
-			new ShipUiModuleAndContext() { Module = Module, Location = Module?.PositionInShipUi(ShipUi), };
+			this MemoryStruct.IShipUiModule module,
+			MemoryStruct.IShipUi shipUi) =>
+			new ShipUiModuleAndContext() { Module = module, Location = module?.PositionInShipUi(shipUi), };
 
 		static public Accumulation.IShipUiModule Accumulation(
-			this Accumulation.IMemoryMeasurement Accumulation,
-			MemoryStruct.IShipUiModule Module,
-			Parse.IMemoryMeasurement MemoryMeasurement) =>
-			Accumulation?.ShipUiModule?.BestFitFromSet(Module.AsAccuInstant(MemoryMeasurement?.ShipUi), MemoryMeasurement);
+			this Accumulation.IMemoryMeasurement accumulation,
+			MemoryStruct.IShipUiModule module,
+			Parse.IMemoryMeasurement memoryMeasurement) =>
+			accumulation?.ShipUiModule?.BestFitFromSet(module.AsAccuInstant(memoryMeasurement?.ShipUi), memoryMeasurement);
 
 	}
 }

@@ -35,10 +35,10 @@ namespace Sanderling.Script.Impl
 						return FromScriptRequestMemoryMeasurementEvaluation();
 					},
 
-					MotionExecuteFunc = MotionParam =>
+					MotionExecuteFunc = motionParam =>
 					{
 						FromScriptExecutionControlCheck?.Invoke();
-						return FromScriptMotionExecute?.Invoke(MotionParam);
+						return FromScriptMotionExecute?.Invoke(motionParam);
 					},
 
 					InvalidateMeasurementAction = InvalidateMeasurementAction,

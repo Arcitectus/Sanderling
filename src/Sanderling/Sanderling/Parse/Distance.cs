@@ -29,19 +29,19 @@ namespace Sanderling.Parse
 		readonly static public Regex DistanceRegex = DistanceRegexPattern.AsRegexCompiled();
 
 		static public void DistanceParse(
-			string DistanceString,
-			out Int64? DistanceMin,
-			out Int64? DistanceMax)
+			string distanceString,
+			out Int64? distanceMin,
+			out Int64? distanceMax)
 		{
-			DistanceMin = null;
-			DistanceMax = null;
+			distanceMin = null;
+			distanceMax = null;
 
-			if (null == DistanceString)
+			if (null == distanceString)
 			{
 				return;
 			}
 
-			var Match = DistanceRegex.Match(DistanceString);
+			var Match = DistanceRegex.Match(distanceString);
 
 			if (!Match.Success)
 			{
@@ -83,38 +83,38 @@ namespace Sanderling.Parse
 			}
 
 			//	Eve Online Client seems to always round down.
-			DistanceMin = DistanceParsed;
-			DistanceMax = DistanceMin + DiffBetweenLowerAndUpperBound;
+			distanceMin = DistanceParsed;
+			distanceMax = distanceMin + DiffBetweenLowerAndUpperBound;
 		}
 
 		static public Int64? DistanceParseMin(
-			this string DistanceString)
+			this string distanceString)
 		{
 			Int64? DistanceMin;
 			Int64? DistanceMax;
 
-			DistanceParse(DistanceString, out DistanceMin, out DistanceMax);
+			DistanceParse(distanceString, out DistanceMin, out DistanceMax);
 
 			return DistanceMin;
 		}
 
 		static public Int64? DistanceParseMax(
-			this string DistanceString)
+			this string distanceString)
 		{
 			Int64? DistanceMin;
 			Int64? DistanceMax;
 
-			DistanceParse(DistanceString, out DistanceMin, out DistanceMax);
+			DistanceParse(distanceString, out DistanceMin, out DistanceMax);
 
 			return DistanceMax;
 		}
 		static public KeyValuePair<Int64, Int64>? DistanceParseMinMaxKeyValue(
-			this string DistanceString)
+			this string distanceString)
 		{
 			Int64? DistanceMin;
 			Int64? DistanceMax;
 
-			DistanceParse(DistanceString, out DistanceMin, out DistanceMax);
+			DistanceParse(distanceString, out DistanceMin, out DistanceMax);
 
 			if (!DistanceMin.HasValue || !DistanceMax.HasValue)
 			{

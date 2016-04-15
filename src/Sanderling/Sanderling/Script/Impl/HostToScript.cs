@@ -19,17 +19,17 @@ namespace Sanderling.Script.Impl
 		public Func<IntPtr> WindowHandleFunc;
 
 		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
-			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurement);
+			MemoryMeasurementFunc?.Invoke()?.MapValue(evaluation => evaluation?.MemoryMeasurement);
 
 		public FromProcessMeasurement<Parse.IMemoryMeasurement> MemoryMeasurementParsed =>
-			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementParsed);
+			MemoryMeasurementFunc?.Invoke()?.MapValue(evaluation => evaluation?.MemoryMeasurementParsed);
 
 		public FromProcessMeasurement<Accumulation.IMemoryMeasurement> MemoryMeasurementAccu =>
-			MemoryMeasurementFunc?.Invoke()?.MapValue(Evaluation => Evaluation?.MemoryMeasurementAccumulation);
+			MemoryMeasurementFunc?.Invoke()?.MapValue(evaluation => evaluation?.MemoryMeasurementAccumulation);
 
-		public MotionResult MotionExecute(MotionParam MotionParam) => MotionExecuteFunc?.Invoke(MotionParam);
+		public MotionResult MotionExecute(MotionParam motionParam) => MotionExecuteFunc?.Invoke(motionParam);
 
-		public void InvalidateMeasurement(Int32 DelayToMeasurementMilli) => InvalidateMeasurementAction?.Invoke(DelayToMeasurementMilli);
+		public void InvalidateMeasurement(Int32 delayToMeasurementMilli) => InvalidateMeasurementAction?.Invoke(delayToMeasurementMilli);
 
 		public IntPtr WindowHandle => WindowHandleFunc?.Invoke() ?? IntPtr.Zero;
 	}

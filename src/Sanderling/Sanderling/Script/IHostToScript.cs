@@ -33,13 +33,13 @@ namespace Sanderling.Script
 			get;
 		}
 
-		MotionResult MotionExecute(MotionParam MotionParam);
+		MotionResult MotionExecute(MotionParam motionParam);
 
 		/// <summary>
 		/// Adds a lower bound to time of measurement to be returned on next call to a measurement property.
 		/// </summary>
-		/// <param name="DelayToMeasurementMilli"></param>
-		void InvalidateMeasurement(int DelayToMeasurementMilli);
+		/// <param name="delayToMeasurementMilli"></param>
+		void InvalidateMeasurement(int delayToMeasurementMilli);
 
 		IntPtr WindowHandle { get; }
 	}

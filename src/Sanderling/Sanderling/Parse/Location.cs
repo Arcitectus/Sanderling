@@ -35,23 +35,23 @@ namespace Sanderling.Parse
 
 		const string LocationRegexPattern = @"(?<system>[^-]+)(-\s*(?<moon>" + MoonRegexPattern + @")|)\s*(-|)";
 
-		static public bool LocationEquals(this ILocation L0, ILocation L1)
+		static public bool LocationEquals(this ILocation l0, ILocation l1)
 		{
-			if (ReferenceEquals(L0, L1))
+			if (ReferenceEquals(l0, l1))
 				return true;
 
-			if (null == L0 || null == L1)
+			if (null == l0 || null == l1)
 				return false;
 
 			return
-				L0.SystemName == L1.SystemName &&
-				L0.PlanetNumber == L1.PlanetNumber &&
-				L0.MoonNumber == L1.MoonNumber;
+				l0.SystemName == l1.SystemName &&
+				l0.PlanetNumber == l1.PlanetNumber &&
+				l0.MoonNumber == l1.MoonNumber;
 		}
 
-		static public ILocation AsLocation(this string LocationText)
+		static public ILocation AsLocation(this string locationText)
 		{
-			var TopMatch = LocationText.RegexMatchIfSuccess(LocationRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+			var TopMatch = locationText.RegexMatchIfSuccess(LocationRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
 			if (null == TopMatch)
 				return null;

@@ -136,28 +136,28 @@ namespace Sanderling.Parse
 		{
 		}
 
-		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement Raw)
+		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 				return;
 
 			Culture.InvokeInParseCulture(() =>
 			{
-				Target = Raw?.Target?.Select(ShipUiExtension.Parse)?.ToArray();
+				Target = raw?.Target?.Select(ShipUiExtension.Parse)?.ToArray();
 
-				ModuleButtonTooltip = Raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
+				ModuleButtonTooltip = raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
 
-				WindowOverview = Raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
+				WindowOverview = raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
 
-				WindowInventory = Raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
+				WindowInventory = raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
 
-				WindowAgentDialogue = Raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
+				WindowAgentDialogue = raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
 
-				ShipUi = Raw?.ShipUi?.Parse();
+				ShipUi = raw?.ShipUi?.Parse();
 
-				var SetWindowStation = Raw?.WindowStation;
+				var SetWindowStation = raw?.WindowStation;
 
 				if (!SetWindowStation.IsNullOrEmpty())
 				{
@@ -165,7 +165,7 @@ namespace Sanderling.Parse
 				}
 
 				if (null != ShipUi ||
-					(Raw?.WindowOverview?.WhereNotDefault()?.Any() ?? false))
+					(raw?.WindowOverview?.WhereNotDefault()?.Any() ?? false))
 				{
 					IsDocked = false;
 				}
@@ -175,13 +175,13 @@ namespace Sanderling.Parse
 					IsUnDocking = false;
 				}
 
-				if (SetWindowStation?.Any(WindowStationLobby => WindowStationLobby?.LabelText?.Any(LabelText =>
-					 LabelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
+				if (SetWindowStation?.Any(windowStationLobby => windowStationLobby?.LabelText?.Any(labelText =>
+					 labelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
 				{
 					IsUnDocking = true;
 				}
 
-				Neocom = Raw?.Neocom?.Parse();
+				Neocom = raw?.Neocom?.Parse();
 			});
 		}
 	}

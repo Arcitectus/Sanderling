@@ -24,22 +24,22 @@ namespace Sanderling.Motor
 		/// </summary>
 		static public Vektor2DInt MouseOffsetStatic = new Vektor2DInt(2, 2);
 
-		public WindowMotor(IntPtr WindowHandle)
+		public WindowMotor(IntPtr windowHandle)
 		{
-			this.WindowHandle = WindowHandle;
+			this.WindowHandle = windowHandle;
 		}
 
 		static public void EnsureWindowIsForeground(
-			IntPtr WindowHandle)
+			IntPtr windowHandle)
 		{
 			var PreviousForegroundWindowHandle = BotEngine.WinApi.User32.GetForegroundWindow();
 
-			if (PreviousForegroundWindowHandle == WindowHandle)
+			if (PreviousForegroundWindowHandle == windowHandle)
 			{
 				return;
 			}
 
-			BotEngine.WinApi.User32.SetForegroundWindow(WindowHandle);
+			BotEngine.WinApi.User32.SetForegroundWindow(windowHandle);
 		}
 
 		void EnsureWindowIsForeground() => EnsureWindowIsForeground(WindowHandle);
@@ -60,16 +60,16 @@ namespace Sanderling.Motor
 				new KeyValuePair<MouseButtonIdEnum, bool>(MouseButtonIdEnum.Right, true), mouse => mouse.RightButtonDown()),
 		}.ToDictionary();
 
-		public MotionResult ActSequenceMotion(IEnumerable<Motion> SeqMotion)
+		public MotionResult ActSequenceMotion(IEnumerable<Motion> seqMotion)
 		{
 			try
 			{
-				if (null == SeqMotion)
+				if (null == seqMotion)
 					return null;
 
 				var InputSimulator = new WindowsInput.InputSimulator();
 
-				foreach (var Motion in SeqMotion.WhereNotDefault())
+				foreach (var Motion in seqMotion.WhereNotDefault())
 				{
 					var MotionMousePosition = Motion?.MousePosition;
 					var MotionTextEntry = Motion?.TextEntry;
@@ -99,17 +99,17 @@ namespace Sanderling.Motor
 						Thread.Sleep(MouseEventDelay);
 					}
 
-					Motion?.KeyDown?.ForEach(KeyDown =>
+					Motion?.KeyDown?.ForEach(keyDown =>
 					{
 						EnsureWindowIsForeground();
-						InputSimulator.Keyboard.KeyDown(KeyDown);
+						InputSimulator.Keyboard.KeyDown(keyDown);
 						Thread.Sleep(KeyboardEventTimeDistanceMilli);
 					});
 
-					Motion?.KeyUp?.ForEach(KeyUp =>
+					Motion?.KeyUp?.ForEach(keyUp =>
 					{
 						EnsureWindowIsForeground();
-						InputSimulator.Keyboard.KeyUp(KeyUp);
+						InputSimulator.Keyboard.KeyUp(keyUp);
 						Thread.Sleep(KeyboardEventTimeDistanceMilli);
 					});
 

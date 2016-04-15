@@ -11,7 +11,7 @@ namespace Sanderling.Parse
 	{
 		static public CultureInfo ParseCulture => CultureInfo.InvariantCulture;
 
-		static public void InvokeInParseCulture(this Action Method)
+		static public void InvokeInParseCulture(this Action method)
 		{
 			var OriginalCulture = Thread.CurrentThread.CurrentCulture;
 
@@ -19,7 +19,7 @@ namespace Sanderling.Parse
 
 			try
 			{
-				Method?.Invoke();
+				method?.Invoke();
 			}
 			finally
 			{
@@ -34,7 +34,7 @@ namespace Sanderling.Parse
 		static VirtualKeyCode AltKeyCode => Extension.AltKeyCode;
 
 		static readonly KeyValuePair<string, VirtualKeyCode>[] SetKeyFCodeFromUIText =
-			Enumerable.Range(0, 12).Select(Index => new KeyValuePair<string, VirtualKeyCode>("f" + (Index + 1), VirtualKeyCode.F1 + Index)).ToArray();
+			Enumerable.Range(0, 12).Select(index => new KeyValuePair<string, VirtualKeyCode>("f" + (index + 1), VirtualKeyCode.F1 + index)).ToArray();
 
 		static public readonly KeyValuePair<string, VirtualKeyCode>[] SetKeyCodeFromUIText = new[]
 		{
@@ -55,6 +55,6 @@ namespace Sanderling.Parse
 		}.Concat(SetKeyFCodeFromUIText).ToArray();
 
 		static public IEnumerable<string> KeyCodeFromUITextSetCollidingKey() =>
-			SetKeyCodeFromUIText?.GroupBy(KeyCodeFromUIText => KeyCodeFromUIText.Key?.ToLower())?.Where(Group => 1 < Group.Count())?.Select(Group => Group.Key);
+			SetKeyCodeFromUIText?.GroupBy(keyCodeFromUIText => keyCodeFromUIText.Key?.ToLower())?.Where(group => 1 < group.Count())?.Select(group => group.Key);
 	}
 }

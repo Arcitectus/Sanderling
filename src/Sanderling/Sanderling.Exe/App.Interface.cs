@@ -116,10 +116,10 @@ namespace Sanderling.Exe
 			}
 		}
 
-		void FromScriptInvalidateMeasurement(int DelayToMeasurementMilli)
+		void FromScriptInvalidateMeasurement(int delayToMeasurementMilli)
 		{
 			FromScriptMeasurementInvalidationTime =
-				Math.Max(FromScriptMeasurementInvalidationTime ?? int.MinValue, GetTimeStopwatch() + Math.Min(DelayToMeasurementMilli, 10000));
+				Math.Max(FromScriptMeasurementInvalidationTime ?? int.MinValue, GetTimeStopwatch() + Math.Min(delayToMeasurementMilli, 10000));
 		}
 
 		void InterfaceExchange()
@@ -149,7 +149,7 @@ namespace Sanderling.Exe
 			if (null == MeasurementRaw)
 				return;
 
-			MemoryMeasurementLast = MeasurementRaw?.MapValue(Value => new Interface.MemoryMeasurementEvaluation(
+			MemoryMeasurementLast = MeasurementRaw?.MapValue(value => new Interface.MemoryMeasurementEvaluation(
 				MeasurementRaw,
 				MemoryMeasurementLast?.Value?.MemoryMeasurementAccumulation as Accumulator.MemoryMeasurementAccumulator));
 		}

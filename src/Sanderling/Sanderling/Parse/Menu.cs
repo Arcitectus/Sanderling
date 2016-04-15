@@ -8,10 +8,10 @@ namespace Sanderling.Parse
 	static public class MenuExtension
 	{
 		static public MemoryStruct.IMenuEntry EntryFirstMatchingRegexPattern(
-			this MemoryStruct.IMenu Menu,
-			string RegexPattern,
-			RegexOptions RegexOptions = RegexOptions.None) =>
-			null == RegexPattern ? null :
-			Menu?.Entry?.FirstOrDefault(Entry => Entry?.Text?.RegexMatchSuccess(RegexPattern, RegexOptions) ?? false);
+			this MemoryStruct.IMenu menu,
+			string regexPattern,
+			RegexOptions regexOptions = RegexOptions.None) =>
+			null == regexPattern ? null :
+			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccess(regexPattern, regexOptions) ?? false);
 	}
 }

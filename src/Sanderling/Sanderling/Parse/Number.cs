@@ -19,7 +19,7 @@ namespace Sanderling.Parse
 		const string InNumberRegexPatternDigitGroupSeparatorGroupName = "DigitGroupSeparator";
 
 		static readonly public string DefaultNumberFormatRegexPattern = DefaultNumberFormatRegexPatternConstruct();
-		static readonly public string DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars = DefaultNumberFormatRegexPatternConstruct(AllowLeadingCharacters: true, AllowTrailingCharacters: true);
+		static readonly public string DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars = DefaultNumberFormatRegexPatternConstruct(allowLeadingCharacters: true, allowTrailingCharacters: true);
 
 		static readonly public Regex DefaultNumberFormatRegex =
 			new Regex(DefaultNumberFormatRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -28,9 +28,9 @@ namespace Sanderling.Parse
 			new Regex(DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		static public string DefaultNumberFormatRegexPatternConstruct(
-			bool AllowLeadingCharacters = false,
-			bool AllowTrailingCharacters = false,
-			string GroupIdSufix = null)
+			bool allowLeadingCharacters = false,
+			bool allowTrailingCharacters = false,
+			string groupIdSufix = null)
 		{
 			return
 				NumberFormatRegexPatternConstruct(
@@ -40,21 +40,21 @@ namespace Sanderling.Parse
 						//	،: "Pashto" (ps)
 						,"،"
 					},
-					AllowLeadingCharacters,
-					AllowTrailingCharacters,
-					GroupIdSufix);
+					allowLeadingCharacters,
+					allowTrailingCharacters,
+					groupIdSufix);
 		}
 
 		static public string RegexPatternAlternativeConstruct(
-			string[] SetOption)
+			string[] setOption)
 		{
-			if (null == SetOption)
+			if (null == setOption)
 			{
 				return null;
 			}
 
 			var SetCandidateEscaped =
-				SetOption
+				setOption
 				.WhereNotDefault()
 				.Select(candidate =>
 				{
@@ -75,30 +75,30 @@ namespace Sanderling.Parse
 		}
 
 		static public string NumberFormatRegexPatternConstruct(
-			string[] SetSignOption,
-			string[] SetDecimalSeparatorOption,
-			string[] SetDigitGroupSeparatorOption,
-			bool AllowLeadingCharacters = false,
-			bool AllowTrailingCharacters = false,
-			string GroupIdSufix = null)
+			string[] setSignOption,
+			string[] setDecimalSeparatorOption,
+			string[] setDigitGroupSeparatorOption,
+			bool allowLeadingCharacters = false,
+			bool allowTrailingCharacters = false,
+			string groupIdSufix = null)
 		{
 			var InNumberRegexPatternDigitGroupSeparatorGroupName =
-				Number.InNumberRegexPatternDigitGroupSeparatorGroupName + (GroupIdSufix ?? "");
+				Number.InNumberRegexPatternDigitGroupSeparatorGroupName + (groupIdSufix ?? "");
 
 			var InNumberRegexPatternSignGroupName =
-				Number.InNumberRegexPatternSignGroupName + (GroupIdSufix ?? "");
+				Number.InNumberRegexPatternSignGroupName + (groupIdSufix ?? "");
 
 			var InNumberRegexPatternPreDecimalSeparatorGroupName =
-				Number.InNumberRegexPatternPreDecimalSeparatorGroupName + (GroupIdSufix ?? "");
+				Number.InNumberRegexPatternPreDecimalSeparatorGroupName + (groupIdSufix ?? "");
 
-			SetSignOption = (SetSignOption ?? new string[0]).WhereNotDefault().Concat(new string[] { "" }).ToArray();
+			setSignOption = (setSignOption ?? new string[0]).WhereNotDefault().Concat(new string[] { "" }).ToArray();
 
-			SetDigitGroupSeparatorOption = (SetDigitGroupSeparatorOption ?? new string[0]).WhereNotDefault().ToArray();
+			setDigitGroupSeparatorOption = (setDigitGroupSeparatorOption ?? new string[0]).WhereNotDefault().ToArray();
 
-			var PatternSign = RegexPatternAlternativeConstruct(SetSignOption);
+			var PatternSign = RegexPatternAlternativeConstruct(setSignOption);
 
-			var PatternDecimalSeparator = "(?!\\<" + InNumberRegexPatternDigitGroupSeparatorGroupName + ">)" + RegexPatternAlternativeConstruct(SetDecimalSeparatorOption);
-			var PatternDigitGroupSeparator = RegexPatternAlternativeConstruct(SetDigitGroupSeparatorOption);
+			var PatternDecimalSeparator = "(?!\\<" + InNumberRegexPatternDigitGroupSeparatorGroupName + ">)" + RegexPatternAlternativeConstruct(setDecimalSeparatorOption);
+			var PatternDigitGroupSeparator = RegexPatternAlternativeConstruct(setDigitGroupSeparatorOption);
 
 			//	Grupe direkt vor Dezimaltrenzaice mus drai Zifern enthalte. Grupe Linx davon dürfe zwai oder drai Zifern enthalte.
 			//	d.h. inerhalb der optionaale Grupe welce ale Zaice zwisce inklusiiv früühescte Grupetrenzaice und Dezimaltrenzaice enthalt
@@ -121,12 +121,12 @@ namespace Sanderling.Parse
 			//	post decimal seperator: allow for any number of digits except three.
 			var PatternPostDecimalSeparator = @"(\d{0,2}|\d{4,})";
 
-			var PatternBegin = AllowLeadingCharacters ? "" : "^\\s*";
+			var PatternBegin = allowLeadingCharacters ? "" : "^\\s*";
 
 			var PatternEnd =
 				//	prevent trailing digits (negative lookahead)
 				@"(?!\d)" +
-				(AllowTrailingCharacters ? "" : "\\s*$");
+				(allowTrailingCharacters ? "" : "\\s*$");
 
 			return
 				PatternBegin +
@@ -148,16 +148,16 @@ namespace Sanderling.Parse
 		/// <summary>
 		/// parses a decimal number and returns the number multiplied by thousand.
 		/// </summary>
-		/// <param name="NumberString"></param>
+		/// <param name="numberString"></param>
 		/// <returns></returns>
-		static public Int64? NumberParseDecimalMilli(this string NumberString)
+		static public Int64? NumberParseDecimalMilli(this string numberString)
 		{
-			if (null == NumberString)
+			if (null == numberString)
 			{
 				return null;
 			}
 
-			var RegexMatch = DefaultNumberFormatRegex.Match(NumberString.Trim());
+			var RegexMatch = DefaultNumberFormatRegex.Match(numberString.Trim());
 
 			if (!(RegexMatch?.Success ?? false))
 			{
@@ -192,8 +192,8 @@ namespace Sanderling.Parse
 			return Sign * (PreDecimalSeparatorValue * 1000 + PostDecimalSeparatorValueMikro / 1000);
 		}
 
-		static public Int64? NumberParseDecimal(this string NumberString) =>
-			NumberParseDecimalMilli(NumberString) / 1000;
+		static public Int64? NumberParseDecimal(this string numberString) =>
+			NumberParseDecimalMilli(numberString) / 1000;
 
 		private enum RomanDigitValue
 		{

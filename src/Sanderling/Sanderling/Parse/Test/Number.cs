@@ -40,23 +40,23 @@ namespace Sanderling.Parse.Test
 		};
 
 		static public IEnumerable<ParseNumberTestCase> NumberTestCaseCombine(
-			IEnumerable<Int64> SetNumberValueMilli,
-			CultureInfo Culture) =>
-			SetNumberValueMilli
-				.Concat(SetNumberValueMilli.Select(Value => -Value))
-				.Select(NumberValueMilli => new ParseNumberTestCase()
+			IEnumerable<Int64> setNumberValueMilli,
+			CultureInfo culture) =>
+			setNumberValueMilli
+				.Concat(setNumberValueMilli.Select(value => -value))
+				.Select(numberValueMilli => new ParseNumberTestCase()
 				{
-					In = (NumberValueMilli * 1e-3).ToString("N2", Culture),
-					Out = NumberValueMilli,
-					Culture = Culture,
+					In = (numberValueMilli * 1e-3).ToString("N2", culture),
+					Out = numberValueMilli,
+					Culture = culture,
 				});
 
-		static public IEnumerable<ParseNumberTestCase> NumberTestCaseCombine(CultureInfo Culture) =>
-			NumberTestCaseCombine(NumberTestCaseValueMilli, Culture);
+		static public IEnumerable<ParseNumberTestCase> NumberTestCaseCombine(CultureInfo culture) =>
+			NumberTestCaseCombine(NumberTestCaseValueMilli, culture);
 
 		static public IEnumerable<ParseNumberTestCase> NumberTestCaseCombine(
-			IEnumerable<CultureInfo> SetCulture) =>
-			SetCulture.Select(Culture => NumberTestCaseCombine(Culture)).ConcatNullable();
+			IEnumerable<CultureInfo> setCulture) =>
+			setCulture.Select(culture => NumberTestCaseCombine(culture)).ConcatNullable();
 
 	}
 

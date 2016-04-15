@@ -23,7 +23,7 @@ namespace Sanderling.Exe
 
 		KeyValuePair<string, string>[] ListScriptIncluded =
 			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)
-			?.OrderBy(ScriptNameAndContent => !ScriptNameAndContent.Key.RegexMatchSuccessIgnoreCase("travel"))
+			?.OrderBy(scriptNameAndContent => !scriptNameAndContent.Key.RegexMatchSuccessIgnoreCase("travel"))
 			?.ToArray();
 
 		static IEnumerable<KeyValuePair<string, string>> SetScriptIncludedConstruct()
@@ -55,14 +55,14 @@ namespace Sanderling.Exe
 			return Window?.Main?.ConfigFromViewToModel();
 		}
 
-		public void ConfigWriteToUI(ExeConfig Config)
+		public void ConfigWriteToUI(ExeConfig config)
 		{
-			Window?.Main?.ConfigFromModelToView(Config);
+			Window?.Main?.ConfigFromModelToView(config);
 		}
 
 		public byte[] ConfigReadFromUISerialized() => ConfigReadFromUI().SerializeToUtf8();
 
-		public void ConfigWriteToUIDeSerialized(byte[] Config) => ConfigWriteToUI(Config.DeserializeFromUtf8<ExeConfig>());
+		public void ConfigWriteToUIDeSerialized(byte[] config) => ConfigWriteToUI(config.DeserializeFromUtf8<ExeConfig>());
 
 		static public ExeConfig ConfigDefaultConstruct() =>
 			new ExeConfig

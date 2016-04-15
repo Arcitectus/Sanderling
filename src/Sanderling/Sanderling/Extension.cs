@@ -11,44 +11,44 @@ namespace Sanderling
 	static public class Extension
 	{
 		static public bool EachComponentLessThenOrEqual(
-			this IShipHitpointsAndEnergy O0,
-			IShipHitpointsAndEnergy O1)
+			this IShipHitpointsAndEnergy o0,
+			IShipHitpointsAndEnergy o1)
 		{
-			if (O0 == O1)
+			if (o0 == o1)
 			{
 				return true;
 			}
 
-			if (null == O0 || null == O1)
+			if (null == o0 || null == o1)
 			{
 				return false;
 			}
 
 			return
-				O0.Struct <= O1.Struct &&
-				O0.Armor <= O1.Armor &&
-				O0.Shield <= O1.Shield &&
-				O0.Capacitor <= O1.Capacitor;
+				o0.Struct <= o1.Struct &&
+				o0.Armor <= o1.Armor &&
+				o0.Shield <= o1.Shield &&
+				o0.Capacitor <= o1.Capacitor;
 		}
 
-		static public bool EveryComponentHasValue(this IShipHitpointsAndEnergy O) =>
-			null == O ? false :
-			(O.Struct.HasValue &&
-			O.Armor.HasValue &&
-			O.Shield.HasValue &&
-			O.Capacitor.HasValue);
+		static public bool EveryComponentHasValue(this IShipHitpointsAndEnergy o) =>
+			null == o ? false :
+			(o.Struct.HasValue &&
+			o.Armor.HasValue &&
+			o.Shield.HasValue &&
+			o.Capacitor.HasValue);
 
 		static public IEnumerable<KeyValuePair<EntryT, EntryT[]>> SequenceGroupByPredicate<EntryT>(
-			this IEnumerable<EntryT> SequenceEntryGroupOrItem,
-			Func<EntryT, bool> CallbackIsGroup)
+			this IEnumerable<EntryT> sequenceEntryGroupOrItem,
+			Func<EntryT, bool> callbackIsGroup)
 			where EntryT : class
 		{
 			EntryT Group = default(EntryT);
 			EntryT[] InGroupListItem = null;
 
-			foreach (var Entry in SequenceEntryGroupOrItem.EmptyIfNull())
+			foreach (var Entry in sequenceEntryGroupOrItem.EmptyIfNull())
 			{
-				if (CallbackIsGroup?.Invoke(Entry) ?? false)
+				if (callbackIsGroup?.Invoke(Entry) ?? false)
 				{
 					if (null != InGroupListItem)
 					{
@@ -74,50 +74,50 @@ namespace Sanderling
 		}
 
 		static public IEnumerable<KeyValuePair<GroupT, EntryT[]>> SequenceGroupByType<EntryT, GroupT>(
-			this IEnumerable<EntryT> SequenceEntryGroupOrItem)
+			this IEnumerable<EntryT> sequenceEntryGroupOrItem)
 			where EntryT : class
 			where GroupT : class, EntryT
 			=>
-			SequenceGroupByPredicate(SequenceEntryGroupOrItem, entry => entry is GroupT)
-			?.Select(Group => new KeyValuePair<GroupT, EntryT[]>(Group.Key as GroupT, Group.Value));
+			SequenceGroupByPredicate(sequenceEntryGroupOrItem, entry => entry is GroupT)
+			?.Select(group => new KeyValuePair<GroupT, EntryT[]>(group.Key as GroupT, group.Value));
 
 		static public IEnumerable<KeyValuePair<DroneViewEntryGroup, IDroneViewEntryItem[]>> ListDroneViewEntryGrouped(
-			this IEnumerable<IListEntry> List) =>
-			List
+			this IEnumerable<IListEntry> list) =>
+			list
 			?.OfType<DroneViewEntry>()
 			?.SequenceGroupByType<DroneViewEntry, DroneViewEntryGroup>()
-			?.Select(Group => new KeyValuePair<DroneViewEntryGroup, IDroneViewEntryItem[]>(Group.Key, Group.Value?.OfType<DroneViewEntryItem>()?.ToArray()));
+			?.Select(group => new KeyValuePair<DroneViewEntryGroup, IDroneViewEntryItem[]>(group.Key, group.Value?.OfType<DroneViewEntryItem>()?.ToArray()));
 
 		static public IEnumerable<KeyValuePair<IListEntry, IListEntry[]>> ListViewEntryGrouped(
-			this IEnumerable<IListEntry> List) =>
-			SequenceGroupByPredicate(List, entry => entry?.IsGroup ?? false);
+			this IEnumerable<IListEntry> list) =>
+			SequenceGroupByPredicate(list, entry => entry?.IsGroup ?? false);
 
 		static public RectInt WithSizeExpandedPivotAtCenter(
-			this RectInt BeforeExpansion,
-			int Expansion) =>
-			BeforeExpansion.WithSizeExpandedPivotAtCenter(new Vektor2DInt(Expansion, Expansion));
+			this RectInt beforeExpansion,
+			int expansion) =>
+			beforeExpansion.WithSizeExpandedPivotAtCenter(new Vektor2DInt(expansion, expansion));
 
 		static public IEnumerable<RectInt> SubstractionRemainder(
-			this RectInt Minuend,
-			RectInt Subtrahend) => Minuend.Diferenz(Subtrahend);
+			this RectInt minuend,
+			RectInt subtrahend) => minuend.Diferenz(subtrahend);
 
 		static public Vektor2DInt RandomPointInRectangle(
-			this RectInt Rectangle,
-			Random Random) =>
+			this RectInt rectangle,
+			Random random) =>
 			new Vektor2DInt(
-				Rectangle.Min0 + (Random.Next() % Math.Max(1, Rectangle.Max0 - Rectangle.Min0)),
-				Rectangle.Min1 + (Random.Next() % Math.Max(1, Rectangle.Max1 - Rectangle.Min1)));
+				rectangle.Min0 + (random.Next() % Math.Max(1, rectangle.Max0 - rectangle.Min0)),
+				rectangle.Min1 + (random.Next() % Math.Max(1, rectangle.Max1 - rectangle.Min1)));
 
 		static public IEnumerable<RectInt> SubstractionRemainder(
-			this RectInt Minuend,
-			IEnumerable<RectInt> SetSubtrahend)
+			this RectInt minuend,
+			IEnumerable<RectInt> setSubtrahend)
 		{
-			var Diference = new[] { Minuend };
+			var Diference = new[] { minuend };
 
-			foreach (var Subtrahend in SetSubtrahend.EmptyIfNull())
+			foreach (var Subtrahend in setSubtrahend.EmptyIfNull())
 			{
 				Diference =
-					Diference?.Select(DiferencePortion => DiferencePortion.SubstractionRemainder(Subtrahend))?.ConcatNullable()?.ToArray();
+					Diference?.Select(diferencePortion => diferencePortion.SubstractionRemainder(Subtrahend))?.ConcatNullable()?.ToArray();
 			}
 
 			return Diference;
@@ -126,21 +126,21 @@ namespace Sanderling
 		/// <summary>
 		/// only evaluates the InTreeIndex of the UIElements, not their 2D regions.
 		/// </summary>
-		/// <param name="ElementBehind"></param>
-		/// <param name="UITree"></param>
-		/// <returns>the upmost nodes of all subtrees which are in front of <paramref name="ElementBehind"/></returns>
+		/// <param name="elementBehind"></param>
+		/// <param name="uiTree"></param>
+		/// <returns>the upmost nodes of all subtrees which are in front of <paramref name="elementBehind"/></returns>
 		static public IEnumerable<IUIElement> GetUpmostUIElementOfSubtreeInFront(
-			this IUIElement ElementBehind,
-			object UITree)
+			this IUIElement elementBehind,
+			object uiTree)
 		{
-			if (null == ElementBehind || null == UITree)
+			if (null == elementBehind || null == uiTree)
 			{
 				yield break;
 			}
 
 			var Queue = new Queue<object>();
 
-			Queue.Enqueue(UITree);
+			Queue.Enqueue(uiTree);
 
 			var NodeVisited = new Dictionary<object, bool>();
 
@@ -163,12 +163,12 @@ namespace Sanderling
 				}
 				else
 				{
-					if (NodeAsUIElement.InTreeIndex == ElementBehind.InTreeIndex)
+					if (NodeAsUIElement.InTreeIndex == elementBehind.InTreeIndex)
 					{
 						continue;
 					}
 
-					if ((NodeAsUIElement.InTreeIndex ?? int.MinValue) < (ElementBehind.InTreeIndex ?? int.MinValue))
+					if ((NodeAsUIElement.InTreeIndex ?? int.MinValue) < (elementBehind.InTreeIndex ?? int.MinValue))
 					{
 						Queue.EnqueueSeq(Node.EnumRefClrVonObjekt(Interface.FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache));
 					}
@@ -180,39 +180,39 @@ namespace Sanderling
 			}
 		}
 
-		static public bool IsOccludingModal(this IUIElement UIElement) =>
-			(UIElement as IWindow)?.isModal ?? false;
+		static public bool IsOccludingModal(this IUIElement uiElement) =>
+			(uiElement as IWindow)?.isModal ?? false;
 
 		static public IEnumerable<IUIElement> GetOccludingUIElementModal(
-			this IUIElement OccludedElement,
-			object UITree) =>
-			UITree?.EnumerateReferencedUIElementTransitive()
+			this IUIElement occludedElement,
+			object uiTree) =>
+			uiTree?.EnumerateReferencedUIElementTransitive()
 			?.Where(IsOccludingModal)
-			?.TakeWhile(OccludingUIElement => OccludedElement.InTreeIndex < OccludingUIElement?.InTreeIndex);
+			?.TakeWhile(occludingUIElement => occludedElement.InTreeIndex < occludingUIElement?.InTreeIndex);
 
 		static public IEnumerable<KeyValuePair<IUIElement, RectInt[]>> GetOccludingUIElementAndRemainingRegion(
-			this IUIElement OccludedElement,
-			object UITree)
+			this IUIElement occludedElement,
+			object uiTree)
 			=>
-			OccludedElement.GetUpmostUIElementOfSubtreeInFront(UITree)
+			occludedElement.GetUpmostUIElementOfSubtreeInFront(uiTree)
 
 			//	Assume that children of OccludedElement do not participate in Occlusion
-			?.Where(candidateOccluding => (OccludedElement?.ChildLastInTreeIndex ?? 0) < candidateOccluding?.InTreeIndex)
+			?.Where(candidateOccluding => (occludedElement?.ChildLastInTreeIndex ?? 0) < candidateOccluding?.InTreeIndex)
 
-			?.Select(OccludingElement => new KeyValuePair<IUIElement, RectInt[]>(
-				OccludingElement, OccludedElement.Region.SubstractionRemainder(OccludingElement.Region).ToArray()))
+			?.Select(occludingElement => new KeyValuePair<IUIElement, RectInt[]>(
+				occludingElement, occludedElement.Region.SubstractionRemainder(occludingElement.Region).ToArray()))
 			//	only take elements where the remaining region is smaller than the region of the OccludedElement.
-			?.Where(OccludingElementAndRemainingRegion =>
-				(OccludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Area())?.Sum() ?? 0) < OccludedElement.Region.Area());
+			?.Where(occludingElementAndRemainingRegion =>
+				(occludingElementAndRemainingRegion.Value?.Select(subregion => subregion.Area())?.Sum() ?? 0) < occludedElement.Region.Area());
 
 		static public IEnumerable<RectInt> GetOccludedUIElementRemainingRegion(
-			this IUIElement OccludedElement,
-			object UITree,
-			Func<IUIElement, bool> CallbackExclude = null) =>
-			OccludedElement.Region.SubstractionRemainder(
-			GetOccludingUIElementAndRemainingRegion(OccludedElement, UITree)
-			?.Where(OccludingElementAndRemainingRegion => !(CallbackExclude?.Invoke(OccludingElementAndRemainingRegion.Key) ?? false))
-			?.Select(OccludingElementAndRemainingRegion => OccludingElementAndRemainingRegion.Key.Region));
+			this IUIElement occludedElement,
+			object uiTree,
+			Func<IUIElement, bool> callbackExclude = null) =>
+			occludedElement.Region.SubstractionRemainder(
+			GetOccludingUIElementAndRemainingRegion(occludedElement, uiTree)
+			?.Where(occludingElementAndRemainingRegion => !(callbackExclude?.Invoke(occludingElementAndRemainingRegion.Key) ?? false))
+			?.Select(occludingElementAndRemainingRegion => occludingElementAndRemainingRegion.Key.Region));
 
 	}
 }

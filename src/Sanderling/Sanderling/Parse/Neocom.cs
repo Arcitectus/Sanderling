@@ -67,17 +67,17 @@ namespace Sanderling.Parse
 		Neocom()
 		{ }
 
-		public Neocom(MemoryStruct.INeocom Raw)
+		public Neocom(MemoryStruct.INeocom raw)
 		{
-			this.Raw = Raw;
+			this.Raw = raw;
 
-			if (null == Raw)
+			if (null == raw)
 			{
 				return;
 			}
 
-			var ButtonWithTexturePathMatch = new Func<string, MemoryStruct.IUIElement>(TexturePathRegexPattern =>
-				Raw?.Button?.FirstOrDefault(candidate => candidate?.TexturePath?.RegexMatchSuccess(TexturePathRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false));
+			var ButtonWithTexturePathMatch = new Func<string, MemoryStruct.IUIElement>(texturePathRegexPattern =>
+				raw?.Button?.FirstOrDefault(candidate => candidate?.TexturePath?.RegexMatchSuccess(texturePathRegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false));
 
 			PeopleAndPlacesButton = ButtonWithTexturePathMatch("peopleandplaces");
 

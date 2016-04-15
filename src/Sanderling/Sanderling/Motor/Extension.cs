@@ -16,28 +16,28 @@ namespace Sanderling.Motor
 
 		public const int MotionMouseWaypointSafetyMarginAdditional = 0;
 
-		static public IEnumerable<IUIElement> EnumerateSetElementExcludedFromOcclusion(this IMemoryMeasurement MemoryMeasurement) => new[]
+		static public IEnumerable<IUIElement> EnumerateSetElementExcludedFromOcclusion(this IMemoryMeasurement memoryMeasurement) => new[]
 			{
-				MemoryMeasurement?.ModuleButtonTooltip,
+				memoryMeasurement?.ModuleButtonTooltip,
 			}.WhereNotDefault();
 
 		static public IEnumerable<Motion> AsSequenceMotion(
-			this MotionParam Motion,
-			IMemoryMeasurement MemoryMeasurement)
+			this MotionParam motion,
+			IMemoryMeasurement memoryMeasurement)
 		{
-			if (null == Motion)
+			if (null == motion)
 			{
 				yield break;
 			}
 
-			if (Motion?.WindowToForeground ?? false)
+			if (motion?.WindowToForeground ?? false)
 				yield return new Motion(null, WindowToForeground: true);
 
-			var SetElementExcludedFromOcclusion = MemoryMeasurement?.EnumerateSetElementExcludedFromOcclusion()?.ToArray();
+			var SetElementExcludedFromOcclusion = memoryMeasurement?.EnumerateSetElementExcludedFromOcclusion()?.ToArray();
 
 			var Random = new Random((int)Bib3.Glob.StopwatchZaitMiliSictInt());
 
-			var MouseListWaypoint = Motion?.MouseListWaypoint;
+			var MouseListWaypoint = motion?.MouseListWaypoint;
 
 			for (int WaypointIndex = 0; WaypointIndex < (MouseListWaypoint?.Length ?? 0); WaypointIndex++)
 			{
@@ -50,7 +50,7 @@ namespace Sanderling.Motor
 				var WaypointRegionReplacement = MouseWaypoint.RegionReplacement;
 
 				var WaypointUIElementCurrent =
-					WaypointUIElement.GetInstanceWithIdFromCLRGraph(MemoryMeasurement, Interface.FromInterfaceResponse.SerialisPolicyCache);
+					WaypointUIElement.GetInstanceWithIdFromCLRGraph(memoryMeasurement, Interface.FromInterfaceResponse.SerialisPolicyCache);
 
 				if (null == WaypointUIElementCurrent)
 				{
@@ -73,16 +73,16 @@ namespace Sanderling.Motor
 
 				var WaypointRegionPortionVisible =
 					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(
-						MemoryMeasurement,
+						memoryMeasurement,
 						c => SetElementExcludedFromOcclusion?.Contains(c) ?? false)
 					//	remaining region is contracted to provide an safety margin.
-					?.Select(PortionVisible => PortionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
-					?.Where(PortionVisible => !PortionVisible.IsEmpty())
+					?.Select(portionVisible => portionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
+					?.Where(portionVisible => !portionVisible.IsEmpty())
 					?.ToArray();
 
 				var WaypointRegionPortionVisibleLargestPatch =
 					WaypointRegionPortionVisible
-					?.OrderByDescending(Patch => Math.Min(Patch.Side0Length(), Patch.Side1Length()))
+					?.OrderByDescending(patch => Math.Min(patch.Side0Length(), patch.Side1Length()))
 					?.FirstOrDefault();
 
 				if (!(0 < WaypointRegionPortionVisibleLargestPatch?.Side0Length() &&
@@ -101,15 +101,15 @@ namespace Sanderling.Motor
 				if (0 == WaypointIndex)
 				{
 					//	Mouse Buttons Down
-					yield return new Motion(null, Motion?.MouseButton);
+					yield return new Motion(null, motion?.MouseButton);
 				}
 			}
 
 			//	Mouse Buttons Up
-			yield return new Motion(null, null, Motion?.MouseButton);
+			yield return new Motion(null, null, motion?.MouseButton);
 
-			var MotionKeyDown = Motion?.KeyDown;
-			var MotionKeyUp = Motion?.KeyUp;
+			var MotionKeyDown = motion?.KeyDown;
+			var MotionKeyUp = motion?.KeyUp;
 
 			if (null != MotionKeyDown)
 			{
@@ -121,7 +121,7 @@ namespace Sanderling.Motor
 				yield return new Motion(null, KeyUp: MotionKeyUp);
 			}
 
-			var MotionTextEntry = Motion?.TextEntry;
+			var MotionTextEntry = motion?.TextEntry;
 
 			if (0 < MotionTextEntry?.Length)
 				yield return new Motion(null, TextEntry: MotionTextEntry);
