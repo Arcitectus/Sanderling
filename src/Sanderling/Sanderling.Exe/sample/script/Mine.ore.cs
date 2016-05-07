@@ -45,6 +45,8 @@ var EmergencyWarpOutHitpointPercent = 60;
 
 var FightAllRats = false;	//	when this is set to true, the bot will attack rats independent of shield hp.
 
+var EnterOffloadOreHoldFillPercent = 95;	//	percentage of ore hold fill level at which to enter the offload process.
+
 //	<- end of configuration section
 
 Func<object> BotStopActivity = () => null;
@@ -102,7 +104,7 @@ bool	DefenseEnter =>
 	!DefenseExit	||
 	!(DefenseEnterHitpointThresholdPercent < ShieldHpPercent) || JammedLastAge < 10;
 
-bool	OreHoldFilledForOffload => 97 < OreHoldFillPercent;
+bool	OreHoldFilledForOffload => Math.Max(0, Math.Min(100, EnterOffloadOreHoldFillPercent)) <= OreHoldFillPercent;
 
 Int64?	JammedLastTime = null;
 bool	EmergencyWarpOutEnabled	= false;
