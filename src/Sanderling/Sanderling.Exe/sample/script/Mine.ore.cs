@@ -250,48 +250,68 @@ Func<object> InBeltMineStep()
 	if(OreHoldFilledForOffload)
 		return null;
 
-	if(!(0 < SetModuleMinerInactive?.Length))
+	var moduleMinerInactive = SetModuleMinerInactive?.FirstOrDefault();
+
+	if (null == moduleMinerInactive)
 	{
 		Host.Delay(7777);
 		return InBeltMineStep;
 	}
 	
-	var	SetTargetAsteroidInRange	=
+	var	setTargetAsteroidInRange	=
 		SetTargetAsteroid?.Where(target => target?.DistanceMax <= MiningRange)?.ToArray();
 
-	Host.Log("targeted asteroids in range: " + SetTargetAsteroidInRange?.Length);
-	if(0 < SetTargetAsteroidInRange?.Length)
+	var setTargetAsteroidInRangeNotAssigned =
+		setTargetAsteroidInRange?.Where(target => !(0 < target?.Assigned?.Length))?.ToArray();
+
+	Host.Log("targeted asteroids in range (without assignment): " + setTargetAsteroidInRange?.Length + " (" + setTargetAsteroidInRangeNotAssigned?.Length + ")");
+
+	if(0 < setTargetAsteroidInRangeNotAssigned?.Length)
 	{
-		var TargetAsteroidInputFocus	=
-			SetTargetAsteroidInRange?.FirstOrDefault(target => target?.IsSelected ?? false);
+		var targetAsteroidInputFocus	=
+			setTargetAsteroidInRangeNotAssigned?.FirstOrDefault(target => target?.IsSelected ?? false);
 
-		if(null == TargetAsteroidInputFocus)
-			Sanderling.MouseClickLeft(SetTargetAsteroid?.FirstOrDefault());
+		if(null == targetAsteroidInputFocus)
+			Sanderling.MouseClickLeft(setTargetAsteroidInRangeNotAssigned?.FirstOrDefault());
 
-		foreach (var Module in SetModuleMinerInactive)
-			ModuleToggle(Module);
+		ModuleToggle(moduleMinerInactive);
+
 		return InBeltMineStep;
 	}
 
-	var	AsteroidOverviewEntry	= ListAsteroidOverviewEntry?.FirstOrDefault();
+	var asteroidOverviewEntryNext = ListAsteroidOverviewEntry?.FirstOrDefault();
+	var asteroidOverviewEntryNextNotTargeted = ListAsteroidOverviewEntry?.FirstOrDefault(entry => !((entry?.MeTargeted ?? false) || (entry?.MeTargeting ?? false)));
 
-	Host.Log("next asteroid: " + AsteroidOverviewEntry?.Name + " , Distance: " + AsteroidOverviewEntry?.DistanceMax);
+	Host.Log("next asteroid: (" + asteroidOverviewEntryNext?.Name + " , distance: " + asteroidOverviewEntryNext?.DistanceMax + ")" + 
+		", next asteroid not targeted: (" + asteroidOverviewEntryNext?.Name + " , distance: " + asteroidOverviewEntryNext?.DistanceMax + ")");
 
-	if(null == AsteroidOverviewEntry)
+	if(null == asteroidOverviewEntryNext)
 	{
 		Host.Log("no asteroid available");
 		return null;
 	}
 
-	if(!(AsteroidOverviewEntry.DistanceMax < MiningRange))
+	if(null == asteroidOverviewEntryNextNotTargeted)
 	{
+		Host.Log("all asteroids targeted");
+		return null;
+	}
+
+	if (!(asteroidOverviewEntryNextNotTargeted.DistanceMax < MiningRange))
+	{
+		if(!(1111 < asteroidOverviewEntryNext?.DistanceMin))
+		{
+			Host.Log("distance between asteroids too large");
+			return null;
+		}
+
 		Host.Log("out of range, approaching");
-		ClickMenuEntryOnMenuRoot(AsteroidOverviewEntry, "approach");
+		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNext, "approach");
 	}
 	else
 	{
-		Host.Log("locking");
-		ClickMenuEntryOnMenuRoot(AsteroidOverviewEntry, "^lock");
+		Host.Log("initiate lock asteroid");
+		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNextNotTargeted, "^lock");
 	}
 	
 	return InBeltMineStep;
