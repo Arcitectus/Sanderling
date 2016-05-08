@@ -450,47 +450,61 @@ void InInventoryUnloadItemsTo(string DestinationContainerName)
 bool InitiateWarpToRandomMiningSite()	=>
 	InitiateDockToOrWarpToBookmark(RandomElement(SetMiningSiteBookmark));
 
-bool InitiateDockToOrWarpToBookmark(string Bookmark)
+bool InitiateDockToOrWarpToBookmark(string bookmarkOrFolder)
 {
-	Host.Log("dock to or warp to bookmark: '" + Bookmark + "'");
+	Host.Log("dock to or warp to bookmark or random bookmark in folder: '" + bookmarkOrFolder + "'");
 	
-	var ListSurroundingsButton = Measurement?.InfoPanelCurrentSystem?.ListSurroundingsButton;
+	var listSurroundingsButton = Measurement?.InfoPanelCurrentSystem?.ListSurroundingsButton;
 	
-	Sanderling.MouseClickRight(ListSurroundingsButton);
+	Sanderling.MouseClickRight(listSurroundingsButton);
 	
-	var BookmarkMenuEntry = Measurement?.Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("^" + Bookmark + "$", RegexOptions.IgnoreCase);
+	var bookmarkMenuEntry = Measurement?.Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("^" + bookmarkOrFolder + "$", RegexOptions.IgnoreCase);
 
-	if(null == BookmarkMenuEntry)
+	if(null == bookmarkMenuEntry)
 	{
-		Host.Log("menu entry not found for bookmark: '" + Bookmark + "'");
+		Host.Log("menu entry not found for bookmark or folder: '" + bookmarkOrFolder + "'");
 		return true;
 	}
 
-	Sanderling.MouseClickLeft(BookmarkMenuEntry);
+	var currentLevelMenuEntry = bookmarkMenuEntry;
 
-	var Menu = Measurement?.Menu?.ElementAtOrDefault(1);
-	var DockMenuEntry = Menu?.EntryFirstMatchingRegexPattern("dock",RegexOptions.IgnoreCase);
-	var WarpMenuEntry = Menu?.EntryFirstMatchingRegexPattern(@"warp.*within\s*0",RegexOptions.IgnoreCase);
-	var ApproachEntry = Menu?.EntryFirstMatchingRegexPattern(@"approach",RegexOptions.IgnoreCase);
-
-	var MenuEntry = DockMenuEntry ?? WarpMenuEntry;
-	
-	if(null == MenuEntry)
+	for (var menuLevel = 1; ; ++menuLevel)
 	{
-		if(null != ApproachEntry)
+		Sanderling.MouseClickLeft(currentLevelMenuEntry);
+
+		var menu = Measurement?.Menu?.ElementAtOrDefault(menuLevel);
+		var dockMenuEntry = menu?.EntryFirstMatchingRegexPattern("dock", RegexOptions.IgnoreCase);
+		var warpMenuEntry = menu?.EntryFirstMatchingRegexPattern(@"warp.*within\s*0", RegexOptions.IgnoreCase);
+		var approachEntry = menu?.EntryFirstMatchingRegexPattern(@"approach", RegexOptions.IgnoreCase);
+
+		var maneuverMenuEntry = dockMenuEntry ?? warpMenuEntry;
+
+		if (null != maneuverMenuEntry)
 		{
-			Host.Log("found menu entry '" + ApproachEntry.Text + "'. Assuming we are already there.");
+			Host.Log("initiating " + maneuverMenuEntry.Text + " on entry '" + currentLevelMenuEntry?.Text + "'");
+			Sanderling.MouseClickLeft(maneuverMenuEntry);
 			return false;
 		}
 
-		Host.Log("no suitable menu entry found");
-		return true;
-	}
-	
-	Host.Log("initiating " + MenuEntry.Text);
-	Sanderling.MouseClickLeft(MenuEntry);
+		if (null != approachEntry)
+		{
+			Host.Log("found menu entry '" + approachEntry.Text + "'. Assuming we are already there.");
+			return false;
+		}
 
-	return false;
+		var setBookmarkOrFolderMenuEntry =
+			menu?.Entry;	//	assume that each entry on the current menu level is a bookmark or a bookmark folder.
+
+		var nextLevelMenuEntry = RandomElement(setBookmarkOrFolderMenuEntry);
+
+		if(null == nextLevelMenuEntry)
+		{
+			Host.Log("no suitable menu entry found");
+			return true;
+		}
+
+		currentLevelMenuEntry = nextLevelMenuEntry;
+	}
 }
 
 void Undock()
