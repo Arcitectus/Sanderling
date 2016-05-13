@@ -159,9 +159,15 @@ Func<object>	MainStep()
 
 int RandomInt() => new Random((int)Host.GetTimeContinuousMilli()).Next();
 
-T RandomElement<T>(T[] array) =>
-	!(0 < array?.Length) ? default(T) : array[RandomInt() % array.Length];
+T RandomElement<T>(IEnumerable<T> sequence)
+{
+	var array = (sequence as T[]) ?? sequence?.ToArray();
 
+	if (!(0 < array?.Length))
+		return default(T);
+
+	return array[RandomInt() % array.Length];
+}
 
 void CloseModalUIElement()
 {
@@ -325,8 +331,8 @@ IWindow ModalUIElement =>
 	Measurement?.EnumerateReferencedUIElementTransitive()?.OfType<IWindow>()?.Where(window => window?.isModal ?? false)
 	?.OrderByDescending(window => window?.InTreeIndex ?? int.MinValue)
 	?.FirstOrDefault();	
-	
-Sanderling.Interface.MemoryStruct.IMenu[] Menu => Measurement?.Menu;
+
+IEnumerable<Parse.IMenu> Menu => Measurement?.Menu;
 
 Parse.IShipUi ShipUi => Measurement?.ShipUi;
 

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -11,17 +8,19 @@ namespace Sanderling.Interface.MemoryStruct
 	/// </summary>
 	public interface IMenu : IUIElement
 	{
-		IMenuEntry[] Entry { get; }
+		IEnumerable<IMenuEntry> Entry { get; }
 	}
 
-	public interface IMenuEntry : IUIElementText
+	public interface IMenuEntry : IUIElementText, IContainer
 	{
 		bool? HighlightVisible { get; }
-    }
+	}
 
 	public class Menu : UIElement, IMenu
 	{
 		public IMenuEntry[] Entry { set; get; }
+
+		IEnumerable<IMenuEntry> IMenu.Entry => Entry;
 
 		public Menu(IUIElement @base)
 			:

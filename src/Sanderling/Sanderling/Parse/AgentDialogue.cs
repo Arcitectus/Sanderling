@@ -187,7 +187,7 @@ namespace Sanderling.Parse
 
 	public partial class WindowAgentDialogue : IWindowAgentDialogue
 	{
-		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<MemoryStruct.IUIElementText> ButtonText => Raw?.ButtonText;
 
 		public string Caption => Raw?.Caption;
 
@@ -199,19 +199,19 @@ namespace Sanderling.Parse
 
 		public Int64 Id => Raw?.Id ?? 0;
 
-		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<MemoryStruct.IUIElementInputText> InputText => Raw?.InputText;
 
 		public Int32? InTreeIndex => Raw?.InTreeIndex;
 
 		public bool? isModal => Raw?.isModal;
 
-		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<MemoryStruct.IUIElementText> LabelText => Raw?.LabelText;
 
 		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 
-		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<MemoryStruct.ISprite> Sprite => Raw?.Sprite;
 
 		MemoryStruct.IWindowAgentPane MemoryStruct.IWindowAgentDialogue.LeftPane => LeftPane;
 

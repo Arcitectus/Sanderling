@@ -3,6 +3,7 @@ using BotEngine.Common;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
+using System.Collections.Generic;
 
 namespace Sanderling.Parse
 {
@@ -21,6 +22,8 @@ namespace Sanderling.Parse
 		new IWindowAgentDialogue[] WindowAgentDialogue { get; }
 
 		new INeocom Neocom { get; }
+
+		new IEnumerable<IMenu> Menu { get; }
 
 		bool? IsDocked { get; }
 
@@ -45,9 +48,66 @@ namespace Sanderling.Parse
 
 		public INeocom Neocom { set; get; }
 
+		public IMenu[] Menu { private set; get; }
+
 		public bool? IsDocked { private set; get; }
 
 		public bool? IsUnDocking { private set; get; }
+
+		MemoryMeasurement()
+		{
+		}
+
+		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement raw)
+		{
+			this.Raw = raw;
+
+			if (null == raw)
+				return;
+
+			Culture.InvokeInParseCulture(() =>
+			{
+				Target = raw?.Target?.Select(ShipUiExtension.Parse)?.ToArray();
+
+				ModuleButtonTooltip = raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
+
+				WindowOverview = raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
+
+				WindowInventory = raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
+
+				WindowAgentDialogue = raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
+
+				ShipUi = raw?.ShipUi?.Parse();
+
+				var SetWindowStation = raw?.WindowStation;
+
+				if (!SetWindowStation.IsNullOrEmpty())
+				{
+					IsDocked = true;
+				}
+
+				if (null != ShipUi ||
+					(raw?.WindowOverview?.WhereNotDefault()?.Any() ?? false))
+				{
+					IsDocked = false;
+				}
+
+				if (!(IsDocked ?? true))
+				{
+					IsUnDocking = false;
+				}
+
+				if (SetWindowStation?.Any(windowStationLobby => windowStationLobby?.LabelText?.Any(labelText =>
+					 labelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
+				{
+					IsUnDocking = true;
+				}
+
+				Neocom = raw?.Neocom?.Parse();
+
+				Menu = raw?.Menu?.Select(menu => menu?.Parse())?.ToArrayIfNotEmpty();
+			});
+		}
 	}
 
 	public partial class MemoryMeasurement : IMemoryMeasurement
@@ -75,8 +135,6 @@ namespace Sanderling.Parse
 		public MemoryStruct.IInfoPanelMissions InfoPanelMissions => Raw?.InfoPanelMissions;
 
 		public MemoryStruct.IInfoPanelRoute InfoPanelRoute => Raw?.InfoPanelRoute;
-
-		public MemoryStruct.IMenu[] Menu => Raw?.Menu;
 
 		public MemoryStruct.IContainer[] Tooltip => Raw?.Tooltip;
 
@@ -132,57 +190,8 @@ namespace Sanderling.Parse
 
 		public Vektor2DInt ScreenSize => Raw?.ScreenSize ?? default(Vektor2DInt);
 
-		MemoryMeasurement()
-		{
-		}
+		IEnumerable<IMenu> IMemoryMeasurement.Menu => Menu;
 
-		public MemoryMeasurement(MemoryStruct.IMemoryMeasurement raw)
-		{
-			this.Raw = raw;
-
-			if (null == raw)
-				return;
-
-			Culture.InvokeInParseCulture(() =>
-			{
-				Target = raw?.Target?.Select(ShipUiExtension.Parse)?.ToArray();
-
-				ModuleButtonTooltip = raw?.ModuleButtonTooltip?.ParseAsModuleButtonTooltip();
-
-				WindowOverview = raw?.WindowOverview?.Select(OverviewExtension.Parse)?.ToArray();
-
-				WindowInventory = raw?.WindowInventory?.Select(InventoryExtension.Parse)?.ToArray();
-
-				WindowAgentDialogue = raw?.WindowAgentDialogue?.Select(DialogueMissionExtension.Parse)?.ToArray();
-
-				ShipUi = raw?.ShipUi?.Parse();
-
-				var SetWindowStation = raw?.WindowStation;
-
-				if (!SetWindowStation.IsNullOrEmpty())
-				{
-					IsDocked = true;
-				}
-
-				if (null != ShipUi ||
-					(raw?.WindowOverview?.WhereNotDefault()?.Any() ?? false))
-				{
-					IsDocked = false;
-				}
-
-				if (!(IsDocked ?? true))
-				{
-					IsUnDocking = false;
-				}
-
-				if (SetWindowStation?.Any(windowStationLobby => windowStationLobby?.LabelText?.Any(labelText =>
-					 labelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
-				{
-					IsUnDocking = true;
-				}
-
-				Neocom = raw?.Neocom?.Parse();
-			});
-		}
+		MemoryStruct.IMenu[] MemoryStruct.IMemoryMeasurement.Menu => Menu;
 	}
 }

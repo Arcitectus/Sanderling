@@ -1,25 +1,27 @@
-﻿namespace Sanderling.Interface.MemoryStruct
+﻿using System.Collections.Generic;
+
+namespace Sanderling.Interface.MemoryStruct
 {
 	public interface IContainer : IUIElement
 	{
-		IUIElementText[] ButtonText { get; }
+		IEnumerable<IUIElementText> ButtonText { get; }
 
-		IUIElementInputText[] InputText { get; }
+		IEnumerable<IUIElementInputText> InputText { get; }
 
-		IUIElementText[] LabelText { get; }
+		IEnumerable<IUIElementText> LabelText { get; }
 
-		ISprite[] Sprite { get; }
+		IEnumerable<ISprite> Sprite { get; }
 	}
 
 	public class Container : UIElement, IContainer
 	{
-		public IUIElementText[] ButtonText { set; get; }
+		public IEnumerable<IUIElementText> ButtonText { set; get; }
 
-		public IUIElementInputText[] InputText { set; get; }
+		public IEnumerable<IUIElementInputText> InputText { set; get; }
 
-		public IUIElementText[] LabelText { set; get; }
+		public IEnumerable<IUIElementText> LabelText { set; get; }
 
-		public ISprite[] Sprite { set; get; }
+		public IEnumerable<ISprite> Sprite { set; get; }
 
 		public Container()
 		{

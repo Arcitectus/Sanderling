@@ -6,6 +6,7 @@ using System.Linq;
 using WindowsInput.Native;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using Sanderling.Interface.MemoryStruct;
+using System.Collections.Generic;
 
 namespace Sanderling.Parse
 {
@@ -78,21 +79,21 @@ namespace Sanderling.Parse
 
 		MemoryStruct.IContainer Raw;
 
-		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<MemoryStruct.IUIElementText> ButtonText => Raw?.ButtonText;
 
 		public long Id => Raw?.Id ?? 0;
 
-		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<MemoryStruct.IUIElementInputText> InputText => Raw?.InputText;
 
 		public int? InTreeIndex => Raw?.InTreeIndex;
 
-		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<MemoryStruct.IUIElementText> LabelText => Raw?.LabelText;
 
 		public RectInt Region => Raw?.Region ?? RectInt.Empty;
 
 		public MemoryStruct.IUIElement RegionInteraction => Raw?.RegionInteraction;
 
-		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<MemoryStruct.ISprite> Sprite => Raw?.Sprite;
 
 		public bool? IsWeapon { private set; get; }
 

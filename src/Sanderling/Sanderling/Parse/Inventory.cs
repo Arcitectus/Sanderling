@@ -40,13 +40,13 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.ITreeViewEntry[] Child => Raw?.Child;
 
-		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<MemoryStruct.IUIElementText> ButtonText => Raw?.ButtonText;
 
-		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<MemoryStruct.IUIElementInputText> InputText => Raw?.InputText;
 
-		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<MemoryStruct.IUIElementText> LabelText => Raw?.LabelText;
 
-		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<MemoryStruct.ISprite> Sprite => Raw?.Sprite;
 
 		public bool? IsSelected => Raw?.IsSelected;
 
@@ -86,7 +86,7 @@ namespace Sanderling.Parse
 	{
 		public MemoryStruct.IWindowInventory Raw { private set; get; }
 
-		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<MemoryStruct.IUIElementText> ButtonText => Raw?.ButtonText;
 
 		public string Caption => Raw?.Caption;
 
@@ -96,13 +96,13 @@ namespace Sanderling.Parse
 
 		public long Id => Raw?.Id ?? 0;
 
-		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<MemoryStruct.IUIElementInputText> InputText => Raw?.InputText;
 
 		public int? InTreeIndex => Raw?.InTreeIndex;
 
 		public bool? isModal => Raw?.isModal;
 
-		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<MemoryStruct.IUIElementText> LabelText => Raw?.LabelText;
 
 		public MemoryStruct.ITreeViewEntry[] LeftTreeListEntry => Raw?.LeftTreeListEntry;
 
@@ -124,7 +124,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElementText SelectedRightInventoryPathLabel => Raw?.SelectedRightInventoryPathLabel;
 
-		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<MemoryStruct.ISprite> Sprite => Raw?.Sprite;
 
 		public IInventoryTreeViewEntryShip ActiveShipEntry { set; get; }
 

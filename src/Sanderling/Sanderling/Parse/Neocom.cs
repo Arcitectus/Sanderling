@@ -3,6 +3,7 @@ using System.Linq;
 using Bib3.Geometrik;
 using BotEngine.Common;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
+using System.Collections.Generic;
 
 namespace Sanderling.Parse
 {
@@ -46,13 +47,13 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElementText Clock => Raw?.Clock;
 
-		public MemoryStruct.IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<MemoryStruct.IUIElementText> ButtonText => Raw?.ButtonText;
 
-		public MemoryStruct.IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<MemoryStruct.IUIElementInputText> InputText => Raw?.InputText;
 
-		public MemoryStruct.IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<MemoryStruct.IUIElementText> LabelText => Raw?.LabelText;
 
-		public MemoryStruct.ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<MemoryStruct.ISprite> Sprite => Raw?.Sprite;
 
 		public RectInt Region => Raw?.Region ?? default(RectInt);
 

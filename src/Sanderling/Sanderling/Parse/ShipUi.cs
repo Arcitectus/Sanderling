@@ -127,13 +127,13 @@ namespace Sanderling.Parse
 	{
 		IContainer MemoryStruct.IShipUi.Indication => Indication;
 
-		public IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<IUIElementText> ButtonText => Raw?.ButtonText;
 
-		public IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<IUIElementInputText> InputText => Raw?.InputText;
 
-		public IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<IUIElementText> LabelText => Raw?.LabelText;
 
-		public ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<ISprite> Sprite => Raw?.Sprite;
 
 		public RectInt Region => Raw?.Region ?? default(RectInt);
 

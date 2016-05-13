@@ -33,7 +33,7 @@ namespace Sanderling.Parse
 
 		public Int64? Quantity { set; get; }
 
-		public IUIElementText[] ButtonText => Raw?.ButtonText;
+		public IEnumerable<IUIElementText> ButtonText => Raw?.ButtonText;
 
 		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
 
@@ -43,7 +43,7 @@ namespace Sanderling.Parse
 
 		public long Id => Raw?.Id ?? 0;
 
-		public IUIElementInputText[] InputText => Raw?.InputText;
+		public IEnumerable<IUIElementInputText> InputText => Raw?.InputText;
 
 		public int? InTreeIndex => Raw?.InTreeIndex;
 
@@ -53,7 +53,7 @@ namespace Sanderling.Parse
 
 		public bool? IsSelected => Raw?.IsSelected;
 
-		public IUIElementText[] LabelText => Raw?.LabelText;
+		public IEnumerable<IUIElementText> LabelText => Raw?.LabelText;
 
 		public ColorORGB[] ListBackgroundColor => Raw?.ListBackgroundColor;
 
@@ -66,7 +66,7 @@ namespace Sanderling.Parse
 
 		public ISprite[] SetSprite => Raw?.SetSprite;
 
-		public ISprite[] Sprite => Raw?.Sprite;
+		public IEnumerable<ISprite> Sprite => Raw?.Sprite;
 
 		public ListEntry()
 		{

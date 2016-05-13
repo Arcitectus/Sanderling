@@ -1,6 +1,5 @@
 ﻿using Bib3;
 using BotEngine.Common;
-using Sanderling.Interface.MemoryStruct;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,13 +28,13 @@ namespace Sanderling.Parse
 		/// </summary>
 		const string TargetLabelAsteroidRegexPattern = "Asteroid.*[^\\d\\w\\s]+([\\d\\w\\s]+)";
 
-		static public IMenuEntry EntryLock(this IMenu menu) =>
+		static public Interface.MemoryStruct.IMenuEntry EntryLock(this IMenu menu) =>
 			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryLockRegexPattern) ?? false);
 
-		static public IMenuEntry EntryUnlock(this IMenu menu) =>
+		static public Interface.MemoryStruct.IMenuEntry EntryUnlock(this IMenu menu) =>
 			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryUnlockRegexPattern) ?? false);
 
-		static public IMenuEntry EntryRemoveFromOverview(this IMenu menu) =>
+		static public Interface.MemoryStruct.IMenuEntry EntryRemoveFromOverview(this IMenu menu) =>
 			menu?.Entry?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(SpaceObjectMenuEntryRemoveFromOverviewRegexPattern) ?? false);
 
 		static public KeyValuePair<IOverviewEntry, IEnumerable<IMenu>>? OverviewEntryMenu(this IMemoryMeasurement memoryMeasurement)
@@ -102,6 +101,5 @@ namespace Sanderling.Parse
 
 			return ExtractAsteroidOreType(target, out OreTypeString);
 		}
-
 	}
 }
