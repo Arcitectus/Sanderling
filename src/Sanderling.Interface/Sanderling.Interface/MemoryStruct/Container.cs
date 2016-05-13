@@ -25,11 +25,11 @@
 		{
 		}
 
-		public Container(IUIElement Base)
+		public Container(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
-			var BaseAsContainer = Base as IContainer;
+			var BaseAsContainer = @base as IContainer;
 
 			ButtonText = BaseAsContainer?.ButtonText;
 			LabelText = BaseAsContainer?.LabelText;
@@ -37,5 +37,4 @@
 			Sprite = BaseAsContainer?.Sprite;
 		}
 	}
-
 }

@@ -1,6 +1,4 @@
-﻿using System;
-using Bib3;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -27,11 +25,10 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public TreeViewEntry(IUIElement Base)
+		public TreeViewEntry(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }

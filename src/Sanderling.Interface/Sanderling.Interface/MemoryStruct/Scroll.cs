@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public interface IScroll : IUIElement
 	{
@@ -33,21 +27,20 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public Scroll(IUIElement Base)
+		public Scroll(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
-		public Scroll(IScroll Base)
+		public Scroll(IScroll @base)
 			:
-			this((IUIElement)Base)
+			this((IUIElement)@base)
 		{
-			ColumnHeader = Base?.ColumnHeader;
-			Clipper = Base?.Clipper;
-			ScrollHandleBound = Base?.ScrollHandleBound;
-			ScrollHandle = Base?.ScrollHandle;
+			ColumnHeader = @base?.ColumnHeader;
+			Clipper = @base?.Clipper;
+			ScrollHandleBound = @base?.ScrollHandleBound;
+			ScrollHandle = @base?.ScrollHandle;
 		}
 	}
-
 }

@@ -4,11 +4,11 @@ namespace Sanderling.Interface.MemoryStruct
 {
 	static public class ToStringStatic
 	{
-		static public string SensorObjectToString(this object Obj)
+		static public string SensorObjectToString(this object obj)
 		{
 			return
-				(Obj as string) ??
-				Obj?.GetType()?.ToString();
+				(obj as string) ??
+				obj?.GetType()?.ToString();
 		}
 	}
 
@@ -20,9 +20,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public TabGroup(IUIElement Base)
+		public TabGroup(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -40,9 +40,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public Tab(IUIElement Base)
+		public Tab(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -54,9 +54,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public PanelGroup(IUIElement Base)
+		public PanelGroup(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -67,9 +67,9 @@ namespace Sanderling.Interface.MemoryStruct
 	/// </summary>
 	public class WindowTelecom : Window
 	{
-		public WindowTelecom(IWindow Window)
+		public WindowTelecom(IWindow window)
 			:
-			base(Window)
+			base(window)
 		{
 		}
 
@@ -77,6 +77,5 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 	}
-
 }
 

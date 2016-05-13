@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public interface INeocom : IContainer
 	{
@@ -34,10 +32,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public Neocom(IUIElement Base)
-			: base(Base)
+		public Neocom(IUIElement @base)
+			: base(@base)
 		{
 		}
 	}
-
 }

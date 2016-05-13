@@ -9,9 +9,9 @@ namespace Sanderling.Interface.MemoryStruct
 {
 	static public class Extension
 	{
-		static public IObjectIdInMemory AsObjectIdInMemory(this Int64 Id)
+		static public IObjectIdInMemory AsObjectIdInMemory(this Int64 id)
 		{
-			return new ObjectIdInMemory(new ObjectIdInt64(Id));
+			return new ObjectIdInMemory(new ObjectIdInt64(id));
 		}
 
 		static public T Largest<T>(this IEnumerable<T> source)
@@ -20,84 +20,84 @@ namespace Sanderling.Interface.MemoryStruct
 			?.FirstOrDefault();
 
 		static public IEnumerable<object> EnumerateReferencedTransitive(
-			this object Parent) =>
-			Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(Parent, FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache);
+			this object parent) =>
+			Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(parent, FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache);
 
 		static public IEnumerable<IUIElement> EnumerateReferencedUIElementTransitive(
-			this object Parent) =>
-			EnumerateReferencedTransitive(Parent)
+			this object parent) =>
+			EnumerateReferencedTransitive(parent)
 			?.OfType<IUIElement>();
 
-		static public T CopyByPolicyMemoryMeasurement<T>(this T ToBeCopied)
+		static public T CopyByPolicyMemoryMeasurement<T>(this T toBeCopied)
 			where T : class =>
-			Bib3.RefBaumKopii.RefBaumKopiiStatic.ObjektKopiiErsctele(ToBeCopied, new Bib3.RefBaumKopii.Param(null, FromInterfaceResponse.SerialisPolicyCache));
+			Bib3.RefBaumKopii.RefBaumKopiiStatic.ObjektKopiiErsctele(toBeCopied, new Bib3.RefBaumKopii.Param(null, FromInterfaceResponse.SerialisPolicyCache));
 
-		static public IUIElement WithRegion(this IUIElement Base, RectInt Region) =>
-			null == Base ? null : new UIElement(Base) { Region = Region };
+		static public IUIElement WithRegion(this IUIElement @base, RectInt region) =>
+			null == @base ? null : new UIElement(@base) { Region = region };
 
-		static public IUIElement WithRegionSizePivotAtCenter(this IUIElement Base, Vektor2DInt RegionSize) =>
-			null == Base ? null : Base.WithRegion(Base.Region.WithSizePivotAtCenter(RegionSize));
+		static public IUIElement WithRegionSizePivotAtCenter(this IUIElement @base, Vektor2DInt regionSize) =>
+			null == @base ? null : @base.WithRegion(@base.Region.WithSizePivotAtCenter(regionSize));
 
-		static public IUIElement WithRegionSizeBoundedMaxPivotAtCenter(this IUIElement Base, Vektor2DInt RegionSizeMax) =>
-			null == Base ? null : Base.WithRegion(Base.Region.WithSizeBoundedMaxPivotAtCenter(RegionSizeMax));
+		static public IUIElement WithRegionSizeBoundedMaxPivotAtCenter(this IUIElement @base, Vektor2DInt regionSizeMax) =>
+			null == @base ? null : @base.WithRegion(@base.Region.WithSizeBoundedMaxPivotAtCenter(regionSizeMax));
 
 		static public Vektor2DInt? RegionCenter(
-			this IUIElement UIElement) =>
-			(UIElement?.Region)?.Center();
+			this IUIElement uiElement) =>
+			(uiElement?.Region)?.Center();
 
 		static public Vektor2DInt? RegionSize(
-			this IUIElement UIElement) =>
-			(UIElement?.Region)?.Size();
+			this IUIElement uiElement) =>
+			(uiElement?.Region)?.Size();
 
 		static public Vektor2DInt? RegionCornerLeftTop(
-			this IUIElement UIElement) => UIElement?.Region.MinPoint();
+			this IUIElement uiElement) => uiElement?.Region.MinPoint();
 
 		static public Vektor2DInt? RegionCornerRightBottom(
-			this IUIElement UIElement) => UIElement?.Region.MaxPoint();
+			this IUIElement uiElement) => uiElement?.Region.MaxPoint();
 
 		static public IEnumerable<ITreeViewEntry> EnumerateChildNodeTransitive(
-			this ITreeViewEntry TreeViewEntry) =>
-			TreeViewEntry?.EnumerateNodeFromTreeBFirst(Node => Node.Child);
+			this ITreeViewEntry treeViewEntry) =>
+			treeViewEntry?.EnumerateNodeFromTreeBFirst(node => node.Child);
 
 		static public IEnumerable<T> OrderByCenterDistanceToPoint<T>(
-			this IEnumerable<T> Sequence,
-			Vektor2DInt Point)
+			this IEnumerable<T> sequence,
+			Vektor2DInt point)
 			where T : IUIElement =>
-			Sequence?.OrderBy(element => (Point - element?.RegionCenter())?.LengthSquared() ?? Int64.MaxValue);
+			sequence?.OrderBy(element => (point - element?.RegionCenter())?.LengthSquared() ?? Int64.MaxValue);
 
 		static public IEnumerable<T> OrderByCenterVerticalDown<T>(
-			this IEnumerable<T> Source)
+			this IEnumerable<T> source)
 			where T : IUIElement =>
-			Source?.OrderBy(element => element?.RegionCenter()?.B ?? int.MaxValue);
+			source?.OrderBy(element => element?.RegionCenter()?.B ?? int.MaxValue);
 
 		static public IEnumerable<T> OrderByNearestPointOnLine<T>(
-			this IEnumerable<T> Sequence,
-			Vektor2DInt LineVector,
-			Func<T, Vektor2DInt?> GetPointRepresentingElement)
+			this IEnumerable<T> sequence,
+			Vektor2DInt lineVector,
+			Func<T, Vektor2DInt?> getPointRepresentingElement)
 		{
-			var LineVectorLength = LineVector.Length();
+			var LineVectorLength = lineVector.Length();
 
-			if (null == GetPointRepresentingElement || LineVectorLength < 1)
-				return Sequence;
+			if (null == getPointRepresentingElement || LineVectorLength < 1)
+				return sequence;
 
-			var LineVectorNormalizedMilli = (LineVector * 1000) / LineVectorLength;
+			var LineVectorNormalizedMilli = (lineVector * 1000) / LineVectorLength;
 
 			return
-				Sequence?.Select(Element =>
+				sequence?.Select(element =>
 				{
 					Int64? LocationOnLine = null;
 
-					var PointRepresentingElement = GetPointRepresentingElement(Element);
+					var PointRepresentingElement = getPointRepresentingElement(element);
 
 					if (PointRepresentingElement.HasValue)
 					{
 						LocationOnLine = PointRepresentingElement.Value.A * LineVectorNormalizedMilli.A + PointRepresentingElement.Value.B * LineVectorNormalizedMilli.B;
 					}
 
-					return new { Element, LocationOnLine = LocationOnLine };
+					return new { Element = element, LocationOnLine = LocationOnLine };
 				})
-				?.OrderBy(ElementAndLocation => ElementAndLocation.LocationOnLine)
-				?.Select(ElementAndLocation => ElementAndLocation.Element);
+				?.OrderBy(elementAndLocation => elementAndLocation.LocationOnLine)
+				?.Select(elementAndLocation => (T)elementAndLocation.Element);
 		}
 	}
 }

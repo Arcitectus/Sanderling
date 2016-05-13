@@ -9,9 +9,9 @@
 	{
 		public ISprite[] ActionSprite { set; get; }
 
-		public WindowSelectedItemView(IWindow Base)
+		public WindowSelectedItemView(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -19,5 +19,4 @@
 		{
 		}
 	}
-
 }

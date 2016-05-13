@@ -6,9 +6,9 @@
 
 		public string MainEditText;
 
-		public MessageBox(IWindow Base)
+		public MessageBox(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -19,9 +19,9 @@
 
 	public class HybridWindow : MessageBox
 	{
-		public HybridWindow(MessageBox Base)
+		public HybridWindow(MessageBox @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -29,5 +29,4 @@
 		{
 		}
 	}
-
 }

@@ -1,5 +1,4 @@
-﻿using Bib3;
-using Bib3.Geometrik;
+﻿using Bib3.Geometrik;
 using System;
 
 namespace Sanderling.Interface.MemoryStruct
@@ -98,9 +97,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ShipUi(IUIElement Base)
+		public ShipUi(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -130,9 +129,9 @@ namespace Sanderling.Interface.MemoryStruct
 		}
 
 		public ShipUiTarget(
-			IUIElement Base)
+			IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -148,9 +147,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ShipUiEWarElement(IUIElement Base)
+		public ShipUiEWarElement(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -179,9 +178,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ShipUiModule(IUIElement Base)
+		public ShipUiModule(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -194,9 +193,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ShipUiTargetAssignedGroup(IUIElement Base)
+		public ShipUiTargetAssignedGroup(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -209,11 +208,10 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ShipUiTimer(IUIElement Base)
+		public ShipUiTimer(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }

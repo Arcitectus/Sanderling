@@ -42,9 +42,9 @@ namespace Sanderling.Interface.MemoryStruct
 		/// </summary>
 		public string ViewportOverallLabelString { set; get; }
 
-		public WindowOverView(IWindow Base)
+		public WindowOverView(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -63,9 +63,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IEnumerable<string> MainIconSetIndicatorName { set; get; }
 
-		public OverviewEntry(IListEntry Base)
+		public OverviewEntry(IListEntry @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -73,6 +73,4 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 	}
-
-
 }

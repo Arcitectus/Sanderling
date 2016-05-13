@@ -23,9 +23,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public IMenuEntry[] Entry { set; get; }
 
-		public Menu(IUIElement Base)
+		public Menu(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -44,14 +44,13 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public MenuEntry(IUIElement Base)
+		public MenuEntry(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
 		public string Text =>
-			LabelText?.Select(Label => Label?.Text)?.OrderByDescending(Text => Text?.Length ?? -1)?.FirstOrDefault();
+			LabelText?.Select(label => label?.Text)?.OrderByDescending(text => text?.Length ?? -1)?.FirstOrDefault();
 	}
-
 }

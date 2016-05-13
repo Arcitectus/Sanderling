@@ -1,6 +1,5 @@
 ﻿using Sanderling.Interface.MemoryStruct;
 using BotEngine.Interface;
-using System;
 using System.Text;
 using BotEngine;
 using System.Linq;
@@ -49,29 +48,27 @@ namespace Sanderling.Interface
 		static readonly public Bib3.RefNezDiferenz.SictTypeBehandlungRictliinieMitTransportIdentScatescpaicer
 			UITreeComponentTypeHandlePolicyCache = SerialisPolicyCache;
 
-		static public string SerializeToString<T>(T Snapshot) =>
-			Bib3.RefNezDiferenz.Extension.WurzelSerialisiire(Snapshot, SerialisPolicyCache).SerializeToString();
+		static public string SerializeToString<T>(T snapshot) =>
+			Bib3.RefNezDiferenz.Extension.WurzelSerialisiire(snapshot, SerialisPolicyCache).SerializeToString();
 
-		static public byte[] SerializeToUTF8<T>(T Snapshot)
+		static public byte[] SerializeToUTF8<T>(T snapshot)
 		{
-			return Encoding.UTF8.GetBytes(SerializeToString(Snapshot));
+			return Encoding.UTF8.GetBytes(SerializeToString(snapshot));
 		}
 
-		static public T DeserializeFromString<T>(string Json)
+		static public T DeserializeFromString<T>(string json)
 		{
-			var ListRoot = Bib3.RefNezDiferenz.Extension.ListeWurzelDeserialisiire(Json.DeserializeFromString<Bib3.RefNezDiferenz.SictZuNezSictDiferenzScritAbbild>(), SerialisPolicyCache);
+			var ListRoot = Bib3.RefNezDiferenz.Extension.ListeWurzelDeserialisiire(json.DeserializeFromString<Bib3.RefNezDiferenz.SictZuNezSictDiferenzScritAbbild>(), SerialisPolicyCache);
 
 			return (T)(ListRoot?.FirstOrDefault());
 		}
 
-		static public T DeserializeFromUTF8<T>(byte[] Utf8)
+		static public T DeserializeFromUTF8<T>(byte[] utf8)
 		{
-			if (null == Utf8)
-			{
+			if (null == utf8)
 				return default(T);
-			}
 
-			return DeserializeFromString<T>(Encoding.UTF8.GetString(Utf8));
+			return DeserializeFromString<T>(Encoding.UTF8.GetString(utf8));
 		}
 	}
 }

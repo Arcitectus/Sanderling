@@ -32,9 +32,9 @@ namespace Sanderling.Interface.MemoryStruct
 			get;
 		}
 
-		public ChatParticipantEntry(IListEntry Base)
+		public ChatParticipantEntry(IListEntry @base)
 				:
-				base(Base)
+				base(@base)
 		{
 		}
 
@@ -45,9 +45,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class ChatMessage : ListEntry
 	{
-		public ChatMessage(ChatMessage Base)
+		public ChatMessage(ChatMessage @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -68,9 +68,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IUIElementInputText MessageInput { set; get; }
 
-		public WindowChatChannel(IWindow Window)
+		public WindowChatChannel(IWindow window)
 			:
-			base(Window)
+			base(window)
 		{
 		}
 
@@ -78,5 +78,4 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 	}
-
 }

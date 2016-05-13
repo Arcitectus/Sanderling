@@ -8,8 +8,8 @@
 		{
 		}
 
-		public MarketItemTypeDetails(IUIElement Base)
-			: base(Base)
+		public MarketItemTypeDetails(IUIElement @base)
+			: base(@base)
 		{
 		}
 	}
@@ -24,8 +24,8 @@
 		{
 		}
 
-		public MarketItemTypeDetailsMarketData(IUIElement Base)
-			: base(Base)
+		public MarketItemTypeDetailsMarketData(IUIElement @base)
+			: base(@base)
 		{
 		}
 	}
@@ -42,9 +42,9 @@
 
 		public MarketMyOrders MyOrders;
 
-		public WindowRegionalMarket(IWindow Base)
+		public WindowRegionalMarket(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -59,9 +59,9 @@
 
 		public IListViewAndControl BuyOrderView;
 
-		public MarketMyOrders(IContainer Base)
+		public MarketMyOrders(IContainer @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -72,9 +72,9 @@
 
 	public class MarketOrderEntry : ListEntry
 	{
-		public MarketOrderEntry(IListEntry Base)
+		public MarketOrderEntry(IListEntry @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -85,9 +85,9 @@
 
 	public class WindowMarketAction : Window
 	{
-		public WindowMarketAction(IWindow Base)
+		public WindowMarketAction(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -98,9 +98,9 @@
 
 	public class WindowItemSell : Window
 	{
-		public WindowItemSell(IWindow Base)
+		public WindowItemSell(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 

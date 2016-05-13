@@ -15,11 +15,11 @@
 		{
 		}
 
-		public InSpaceBracket(IUIElement Base)
+		public InSpaceBracket(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
-			var BaseSpec = Base as IInSpaceBracket;
+			var BaseSpec = @base as IInSpaceBracket;
 
 			Name = BaseSpec?.Name;
 		}

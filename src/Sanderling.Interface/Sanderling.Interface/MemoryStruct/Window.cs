@@ -32,11 +32,11 @@
 		{
 		}
 
-		public Window(IUIElement Base)
+		public Window(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
-			var BaseAsWindow = Base as IWindow;
+			var BaseAsWindow = @base as IWindow;
 
 			isModal = BaseAsWindow?.isModal;
 			Caption = BaseAsWindow?.Caption;
@@ -64,11 +64,10 @@
 		{
 		}
 
-		public WindowStack(IWindow Base)
+		public WindowStack(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }

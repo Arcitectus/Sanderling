@@ -21,9 +21,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public IListViewAndControl ListView { set; get; }
 
-		public WindowDroneView(IWindow Base)
+		public WindowDroneView(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -36,9 +36,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public IShipHitpointsAndEnergy Hitpoints { set; get; }
 
-		public DroneViewEntryItem(IListEntry Base)
+		public DroneViewEntryItem(IListEntry @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -52,9 +52,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public IUIElementText Caption;
 
-		public DroneViewEntryGroup(IListEntry Base)
+		public DroneViewEntryGroup(IListEntry @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -65,9 +65,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class DroneViewEntry : ListEntry
 	{
-		public DroneViewEntry(IListEntry Base)
+		public DroneViewEntry(IListEntry @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 

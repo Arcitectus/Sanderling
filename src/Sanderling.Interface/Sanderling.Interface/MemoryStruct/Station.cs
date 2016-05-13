@@ -35,16 +35,15 @@
 
 		public IUIElementText[] AgentEntryHeader { set; get; }
 
-		public WindowStation(IWindow Base)
+		public WindowStation(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
 		public WindowStation()
 		{
 		}
-
 	}
 
 	public class LobbyAgentEntry : UIElement
@@ -53,9 +52,9 @@
 
 		public IUIElement StartConversationButton;
 
-		public LobbyAgentEntry(IUIElement Base)
+		public LobbyAgentEntry(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -63,5 +62,4 @@
 		{
 		}
 	}
-
 }

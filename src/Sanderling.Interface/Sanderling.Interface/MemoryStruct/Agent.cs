@@ -29,18 +29,18 @@
 		{
 		}
 
-		public WindowAgentDialogue(WindowAgent Base)
+		public WindowAgentDialogue(WindowAgent @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
 
 	public class WindowAgentBrowser : WindowAgent, IWindowAgent
 	{
-		public WindowAgentBrowser(WindowAgent Base)
+		public WindowAgentBrowser(WindowAgent @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -57,8 +57,8 @@
 		{
 		}
 
-		public WindowAgentPane(IUIElement Base)
-			: base(Base)
+		public WindowAgentPane(IUIElement @base)
+			: base(@base)
 		{
 		}
 	}
@@ -69,11 +69,10 @@
 		{
 		}
 
-		public WindowAgent(IWindow Base)
+		public WindowAgent(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }

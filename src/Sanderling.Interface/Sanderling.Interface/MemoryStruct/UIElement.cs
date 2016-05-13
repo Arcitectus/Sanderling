@@ -52,13 +52,13 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ObjectIdInMemory(IObjectIdInt64 Base)
-			: base(Base)
+		public ObjectIdInMemory(IObjectIdInt64 @base)
+			: base(@base)
 		{
 		}
 
-		public ObjectIdInMemory(Int64 Id)
-			: base(Id)
+		public ObjectIdInMemory(Int64 id)
+			: base(id)
 		{
 		}
 	}
@@ -79,20 +79,20 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public UIElement(IObjectIdInMemory Base)
+		public UIElement(IObjectIdInMemory @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
-		public UIElement(IUIElement Base)
+		public UIElement(IUIElement @base)
 			:
-			this((IObjectIdInMemory)Base)
+			this((IObjectIdInMemory)@base)
 		{
-			Region = Base?.Region ?? RectInt.Empty;
+			Region = @base?.Region ?? RectInt.Empty;
 
-			InTreeIndex = Base?.InTreeIndex;
-			ChildLastInTreeIndex = Base?.ChildLastInTreeIndex;
+			InTreeIndex = @base?.InTreeIndex;
+			ChildLastInTreeIndex = @base?.ChildLastInTreeIndex;
 		}
 
 		public override string ToString() =>
@@ -104,17 +104,17 @@ namespace Sanderling.Interface.MemoryStruct
 		public string Text { set; get; }
 
 		public UIElementText(
-			IUIElement Base,
-			string Text = null)
+			IUIElement @base,
+			string text = null)
 			:
-			base(Base)
+			base(@base)
 		{
-			this.Text = Text;
+			this.Text = text;
 		}
 
-		public UIElementText(IUIElementText Base)
+		public UIElementText(IUIElementText @base)
 			:
-			this(Base, Base?.Text)
+			this(@base, @base?.Text)
 		{
 		}
 
@@ -125,15 +125,15 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class UIElementInputText : UIElementText, IUIElementInputText
 	{
-		public UIElementInputText(IUIElement Base, string Label = null)
+		public UIElementInputText(IUIElement @base, string label = null)
 			:
-			base(Base, Label)
+			base(@base, label)
 		{
 		}
 
-		public UIElementInputText(IUIElementText Base)
+		public UIElementInputText(IUIElementText @base)
 			:
-			this(Base, Base?.Text)
+			this(@base, @base?.Text)
 		{
 		}
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public interface IInventory : IUIElement
 	{
@@ -20,9 +18,9 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public Inventory(IUIElement Base)
+		public Inventory(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -82,11 +80,10 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public WindowInventory(IWindow Base)
+		public WindowInventory(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }

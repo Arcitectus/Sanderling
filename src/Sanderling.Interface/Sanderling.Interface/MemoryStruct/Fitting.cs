@@ -4,9 +4,9 @@
 	{
 		public IListViewAndControl FittingView;
 
-		public WindowFittingMgmt(IWindow Base)
+		public WindowFittingMgmt(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -17,9 +17,9 @@
 
 	public class WindowShipFitting : Window
 	{
-		public WindowShipFitting(IWindow Base)
+		public WindowShipFitting(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 

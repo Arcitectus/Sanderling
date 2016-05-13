@@ -47,20 +47,20 @@
 		{
 		}
 
-		public InfoPanel(IUIElement Base)
+		public InfoPanel(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
-		public InfoPanel(IInfoPanel Base)
+		public InfoPanel(IInfoPanel @base)
 			:
-			this((IUIElement)Base)
+			this((IUIElement)@base)
 		{
-			IsExpanded = Base?.IsExpanded;
-			ExpandToggleButton = Base?.ExpandToggleButton;
-			HeaderContent = Base?.HeaderContent;
-			ExpandedContent = Base?.ExpandedContent;
+			IsExpanded = @base?.IsExpanded;
+			ExpandToggleButton = @base?.ExpandToggleButton;
+			HeaderContent = @base?.HeaderContent;
+			ExpandedContent = @base?.ExpandedContent;
 		}
 	}
 
@@ -72,9 +72,9 @@
 		{
 		}
 
-		public InfoPanelSystem(IInfoPanel Base)
+		public InfoPanelSystem(IInfoPanel @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -91,9 +91,9 @@
 		{
 		}
 
-		public InfoPanelRoute(IInfoPanel Base)
+		public InfoPanelRoute(IInfoPanel @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
@@ -106,9 +106,9 @@
 		{
 		}
 
-		public InfoPanelMissions(IInfoPanel Base)
+		public InfoPanelMissions(IInfoPanel @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}

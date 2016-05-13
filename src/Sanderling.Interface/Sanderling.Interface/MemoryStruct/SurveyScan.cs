@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public interface IWindowSurveyScanView : IWindow
 	{
@@ -12,9 +9,9 @@ namespace Sanderling.Interface.MemoryStruct
 	{
 		public IListViewAndControl ListView { set; get; }
 
-		public WindowSurveyScanView(IWindow Base)
+		public WindowSurveyScanView(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 

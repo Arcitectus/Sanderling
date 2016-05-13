@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Sanderling.Interface.MemoryStruct
+﻿namespace Sanderling.Interface.MemoryStruct
 {
 	public class WindowPeopleAndPlaces : Window
 	{
@@ -12,9 +6,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public IListViewAndControl ListView;
 
-		public WindowPeopleAndPlaces(IWindow Base)
+		public WindowPeopleAndPlaces(IWindow @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 

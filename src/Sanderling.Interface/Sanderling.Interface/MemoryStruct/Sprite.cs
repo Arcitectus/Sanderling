@@ -27,9 +27,9 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public string HintText { set; get; }
 
-		public Sprite(IUIElement Base)
+		public Sprite(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 
@@ -37,5 +37,4 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 	}
-
 }

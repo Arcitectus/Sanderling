@@ -68,12 +68,12 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ColumnHeader(IUIElementText Base)
+		public ColumnHeader(IUIElementText @base)
 			:
-			base(Base)
+			base(@base)
 		{
-			ColumnIndex = (Base as IColumnHeader)?.ColumnIndex;
-			SortDirection = (Base as IColumnHeader)?.SortDirection;
+			ColumnIndex = (@base as IColumnHeader)?.ColumnIndex;
+			SortDirection = (@base as IColumnHeader)?.SortDirection;
 		}
 	}
 
@@ -101,11 +101,11 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ListEntry(IUIElement Base)
+		public ListEntry(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
-			var BaseAsListEntry = Base as IListEntry;
+			var BaseAsListEntry = @base as IListEntry;
 
 			ContentBoundLeft = BaseAsListEntry?.ContentBoundLeft;
 
@@ -135,11 +135,10 @@ namespace Sanderling.Interface.MemoryStruct
 		{
 		}
 
-		public ListViewAndControl(IUIElement Base)
+		public ListViewAndControl(IUIElement @base)
 			:
-			base(Base)
+			base(@base)
 		{
 		}
 	}
-
 }
