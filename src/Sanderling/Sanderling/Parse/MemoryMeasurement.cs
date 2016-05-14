@@ -93,15 +93,11 @@ namespace Sanderling.Parse
 				}
 
 				if (!(IsDocked ?? true))
-				{
 					IsUnDocking = false;
-				}
 
-				if (SetWindowStation?.Any(windowStationLobby => windowStationLobby?.LabelText?.Any(labelText =>
-					 labelText?.Text?.RegexMatchSuccess(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
-				{
+				if (SetWindowStation?.Any(windowStation => windowStation?.AboveServicesLabel?.Any(labelText =>
+					labelText?.Text?.RegexMatchSuccessIgnoreCase(@"abort\s*undock|undocking") ?? false) ?? false) ?? false)
 					IsUnDocking = true;
-				}
 
 				Neocom = raw?.Neocom?.Parse();
 
