@@ -46,11 +46,13 @@
                     </BotEngine.UI.ViewModel:ContentAndStatusIcon>
                 </TabItem.Header>
 
-
                 <ScrollViewer>
-                    <BotEngine.UI:SimpleInterfaceServerDispatcher
-                        x:Name="LicenseView"
-                        x:FieldModifier="public"></BotEngine.UI:SimpleInterfaceServerDispatcher>
+                    <StackPanel>
+                        <BotEngine.UI:LicenseInfoLink></BotEngine.UI:LicenseInfoLink>
+                        <BotEngine.UI:SimpleInterfaceServerDispatcher
+                            x:Name="LicenseView"
+                            x:FieldModifier="public"></BotEngine.UI:SimpleInterfaceServerDispatcher>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 

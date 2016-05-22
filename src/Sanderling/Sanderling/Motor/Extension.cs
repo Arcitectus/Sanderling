@@ -31,7 +31,7 @@ namespace Sanderling.Motor
 			}
 
 			if (motion?.WindowToForeground ?? false)
-				yield return new Motion(null, WindowToForeground: true);
+				yield return new Motion(null, windowToForeground: true);
 
 			var SetElementExcludedFromOcclusion = memoryMeasurement?.EnumerateSetElementExcludedFromOcclusion()?.ToArray();
 
@@ -113,18 +113,18 @@ namespace Sanderling.Motor
 
 			if (null != MotionKeyDown)
 			{
-				yield return new Motion(null, KeyDown: MotionKeyDown);
+				yield return new Motion(null, keyDown: MotionKeyDown);
 			}
 
 			if (null != MotionKeyUp)
 			{
-				yield return new Motion(null, KeyUp: MotionKeyUp);
+				yield return new Motion(null, keyUp: MotionKeyUp);
 			}
 
 			var MotionTextEntry = motion?.TextEntry;
 
 			if (0 < MotionTextEntry?.Length)
-				yield return new Motion(null, TextEntry: MotionTextEntry);
+				yield return new Motion(null, textEntry: MotionTextEntry);
 		}
 
 		static public Vektor2DInt? ClientToScreen(this IntPtr hWnd, Vektor2DInt locationInClient)
