@@ -454,7 +454,15 @@ void InInventoryUnloadItemsTo(string DestinationContainerName)
 
 	for (;;)
 	{
-		var OreHoldItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.FirstOrDefault();
+		var oreHoldListItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.ToArray();
+
+		var oreHoldItem = oreHoldListItem?.FirstOrDefault();
+
+		if(null == oreHoldItem)
+			break;    //    0 items in OreHold
+
+		if(1 < oreHoldListItem?.Length)
+			ClickMenuEntryOnMenuRoot(oreHoldItem, @"select\s*all");
 
 		var DestinationContainerLabelRegexPattern =
 			InventoryContainerLabelRegexPatternFromContainerName(DestinationContainerName);
@@ -466,10 +474,7 @@ void InInventoryUnloadItemsTo(string DestinationContainerName)
 		if (null == DestinationContainer)
 			Host.Log("error: Inventory entry labeled '" + DestinationContainerName + "' not found");
 
-		if(null == OreHoldItem)
-			break;    //    0 items in OreHold
-
-		Sanderling.MouseDragAndDrop(OreHoldItem, DestinationContainer);
+		Sanderling.MouseDragAndDrop(oreHoldItem, DestinationContainer);
 	}
 }
 
