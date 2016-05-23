@@ -3,7 +3,8 @@ using System.Linq;
 using System.Threading;
 using Sanderling.Interface.MemoryStruct;
 using Bib3.Geometrik;
-using BotEngine.Interface;
+using BotEngine.Client;
+using BotEngine;
 
 namespace Sanderling.Sample.Read
 {
@@ -17,7 +18,7 @@ namespace Sanderling.Sample.Read
 
 		static void SampleRun()
 		{
-			Console.WriteLine("this Programm reads the memory of the eve online client process.");
+			Console.WriteLine("this program reads the memory of the eve online client process.");
 			Console.WriteLine("start an eve online client and login to your account. Then press any key to continue.\n");
 			Console.ReadKey();
 
@@ -29,10 +30,10 @@ namespace Sanderling.Sample.Read
 				return;
 			}
 
-			var licenseClientConfig = new BotEngine.Client.LicenseClientConfig
+			var licenseClientConfig = new LicenseClientConfig
 			{
 				ApiVersionAddress = Config.LicenseServerAddress,
-				Request = new BotEngine.Client.AuthRequest
+				Request = new AuthRequest
 				{
 					ServiceId = Config.ServiceId,
 					LicenseKey = Config.LicenseKey,
@@ -45,20 +46,19 @@ namespace Sanderling.Sample.Read
 
 			var sensorServerDispatcher = new SimpleInterfaceServerDispatcher();
 
-			var licenseClient = new Func<LicenseClient>(() => sensorServerDispatcher.LicenseClient);
+			sensorServerDispatcher.Exchange(licenseClientConfig);
 
-			while (!(licenseClient()?.AuthCompleted ?? false))
+			var exchangeAuth = sensorServerDispatcher?.LicenseClient?.ExchangeAuthLast?.Value;
+
+			Console.WriteLine("Auth exchange completed ");
+
+			if (exchangeAuth.AuthSuccess() ?? false)
+				Console.WriteLine("successful");
+			else
 			{
-				sensorServerDispatcher.Exchange(licenseClientConfig);
-
-				Thread.Sleep(1111);
+				Console.WriteLine("with error: " + Environment.NewLine + exchangeAuth?.SerializeToString(Newtonsoft.Json.Formatting.Indented));
+				return;
 			}
-
-			var AuthResult = licenseClient()?.ExchangeAuthLast?.Value?.Response;
-
-			var LicenseServerSessionId = AuthResult?.SessionId;
-
-			Console.WriteLine("Auth completed, SessionId = " + (LicenseServerSessionId ?? "null"));
 
 			Console.WriteLine("\nstarting to set up the sensor and read from memory.\nthe initial measurement takes longer.");
 
