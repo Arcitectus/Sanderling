@@ -14,8 +14,8 @@
 ### Download
 Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
 
-### Bot Authors
-To get started with creating bots, read the [Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started) and continue on the [Script Engine page](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine).
+### Bot Creators
+[Bot Creator Guide](https://github.com/Arcitectus/Sanderling/wiki/Bot-Creator-Guide)
 
 ### Bot Users
 [Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started)
