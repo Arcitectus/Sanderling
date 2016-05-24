@@ -57,5 +57,10 @@ namespace Sanderling
 			int processId,
 			Int64 measurementBeginTimeMinMilli) =>
 			MeasurementTakeRequest(interfaceAppManager, processId, measurementBeginTimeMinMilli)?.MemoryMeasurement;
+
+		static public FromInterfaceResponse MeasurementTakeNewRequest(
+			this InterfaceAppManager interfaceAppManager,
+			int processId) =>
+			MeasurementTakeRequest(interfaceAppManager, processId, Bib3.Glob.StopwatchZaitMiliSictInt());
 	}
 }
