@@ -44,9 +44,12 @@ namespace Sanderling.Sample.Read
 			Console.WriteLine();
 			Console.WriteLine("connecting to " + (licenseClientConfig?.ApiOverviewAddress ?? "") + " using Key \"" + (licenseClientConfig?.Request?.LicenseKey ?? "") + "\" ....");
 
-			var sensorServerDispatcher = new SimpleInterfaceServerDispatcher();
+			var sensorServerDispatcher = new SimpleInterfaceServerDispatcher
+			{
+				LicenseClientConfig = licenseClientConfig,
+			};
 
-			sensorServerDispatcher.Exchange(licenseClientConfig);
+			sensorServerDispatcher.CyclicExchangeStart();
 
 			var exchangeAuth = sensorServerDispatcher?.LicenseClient?.ExchangeAuthLast?.Value;
 
@@ -64,8 +67,6 @@ namespace Sanderling.Sample.Read
 
 			for (;;)
 			{
-				sensorServerDispatcher?.Exchange();
-
 				var response = sensorServerDispatcher?.InterfaceAppManager?.MeasurementTakeRequest(
 					Config.EveOnlineClientProcessId,
 					Bib3.Glob.StopwatchZaitMiliSictInt());
