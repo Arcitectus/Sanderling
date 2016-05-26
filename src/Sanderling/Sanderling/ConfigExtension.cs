@@ -7,6 +7,9 @@
 		{
 			config = config ?? ExeConfig.LicenseClientDefault;
 
+			if (!(0 < config.ApiVersionAddress?.Length))
+				config.ApiVersionAddress = ExeConfig.ConfigApiVersionAddressDefault;
+
 			config.Request = config?.Request ?? ExeConfig.InterfaceLicenseClientRequestDefault;
 
 			//	force use default ServiceId to prevent problems with old config file when user exchanges executable.
