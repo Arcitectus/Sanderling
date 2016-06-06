@@ -54,6 +54,8 @@ namespace Sanderling.Accumulator
 
 		public int? ChildLastInTreeIndex => RepresentedInstant?.ChildLastInTreeIndex;
 
+		public bool? OverloadOn => RepresentedInstant?.OverloadOn;
+
 		protected override void Accumulated(PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> instant, Parse.IMemoryMeasurement shared)
 		{
 			base.Accumulated(instant, shared);

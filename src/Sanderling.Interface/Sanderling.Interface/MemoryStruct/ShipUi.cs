@@ -21,6 +21,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		bool? BusyVisible { get; }
 
+		bool? OverloadOn { get; }
 	}
 
 	public interface IShipUiTimer : IContainer
@@ -171,6 +172,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public bool? GlowVisible { set; get; }
 
 		public bool? BusyVisible { set; get; }
+
+		public bool? OverloadOn { set; get; }
 
 		public override IUIElement RegionInteraction => this.WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(16, 16));
 
