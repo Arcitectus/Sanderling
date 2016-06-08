@@ -533,7 +533,7 @@ bool InitiateDockToOrWarpToBookmark(string bookmarkOrFolder)
 
 		if (null != maneuverMenuEntry)
 		{
-			Host.Log("initiating " + maneuverMenuEntry.Text + " on entry '" + currentLevelMenuEntry?.Text + "'");
+			Host.Log("initiating '" + maneuverMenuEntry.Text + "' on entry '" + currentLevelMenuEntry?.Text + "'");
 			Sanderling.MouseClickLeft(maneuverMenuEntry);
 			return false;
 		}
