@@ -10,6 +10,8 @@
 //	+enable the info panel 'System info'. The bot will use the button in there to access bookmarks and asteroid belts.
 //	+arrange windows to not occlude modules or info panels.
 //	+in the ship UI, disable "Display Passive Modules" and disable "Display Empty Slots" and enable "Display Module Tooltips". The bot uses the module tooltips to automatically identify the properties of the modules.
+//
+//	for optional features (such as warp to safe on hostile in local) see the configuration section below.
 
 using BotSharp.ToScript.Extension;
 using Parse = Sanderling.Parse;
@@ -35,7 +37,7 @@ string RetreatBookmark = UnloadBookmark;
 //	The bot loads this preset to the active tab. 
 string OverviewPreset = null;
 
-var ActivateHardener = true;
+var ActivateHardener = true; // activate shield hardener.
 
 //	bot will start fighting (and stop mining) when hitpoints are lower. 
 var DefenseEnterHitpointThresholdPercent = 85;
@@ -47,7 +49,10 @@ var FightAllRats = false;	//	when this is set to true, the bot will attack rats 
 
 var EnterOffloadOreHoldFillPercent = 95;	//	percentage of ore hold fill level at which to enter the offload process.
 
+var RetreatOnNeutralOrHostileInLocal = false;   // warp to RetreatBookmark when a neutral or hostile is visible in local.
+
 //	<- end of configuration section
+
 
 Func<object> BotStopActivity = () => null;
 
@@ -62,7 +67,7 @@ for(;;)
 		", mining range: " + MiningRange +
 		", mining modules (inactive): " + SetModuleMiner?.Length + "(" + SetModuleMinerInactive?.Length + ")" +
 		", shield.hp: " + ShieldHpPercent + "%" +
-		", EWO: " + EmergencyWarpOutEnabled.ToString() + 
+		", retreat: " + RetreatReason + 
 		", JLA: " + JammedLastAge +
 		", overview.rats: " + ListRatOverviewEntry?.Length +
 		", overview.roids: " + ListAsteroidOverviewEntry?.Length +
@@ -70,14 +75,13 @@ for(;;)
 		", nextAct: " + NextActivity?.Method?.Name);
 
 	CloseModalUIElement();
-	
-	if(EmergencyWarpOutEnabled)
-		if(!(Measurement?.IsDocked ?? false))
-		{
-			InitiateDockToOrWarpToBookmark(RetreatBookmark);
-			continue;
-		}
-	
+
+	if(0 < RetreatReason?.Length && !(Measurement?.IsDocked ?? false))
+	{
+		InitiateDockToOrWarpToBookmark(RetreatBookmark);
+		continue;
+	}
+
 	NextActivity = NextActivity?.Invoke() as Func<object>;
 
 	if(BotStopActivity == NextActivity)
@@ -107,7 +111,9 @@ bool	DefenseEnter =>
 bool	OreHoldFilledForOffload => Math.Max(0, Math.Min(100, EnterOffloadOreHoldFillPercent)) <= OreHoldFillPercent;
 
 Int64?	JammedLastTime = null;
-bool	EmergencyWarpOutEnabled	= false;
+string RetreatReasonTemporary = null;
+string RetreatReasonPermanent = null;
+string RetreatReason => RetreatReasonPermanent ?? RetreatReasonTemporary;
 int? LastCheckOreHoldFillPercent = null;
 
 int OffloadCount = 0;
@@ -118,8 +124,11 @@ Func<object>	MainStep()
 	{
 		InInventoryUnloadItems();
 
-		if (EmergencyWarpOutEnabled)
+		if (0 < RetreatReasonPermanent?.Length)
 			return BotStopActivity;
+
+		if (0 < RetreatReason?.Length)
+			return MainStep;
 
 		Undock();
 	}
@@ -408,6 +417,13 @@ Sanderling.Accumulation.IShipUiModule[] SetModuleMinerInactive	 =>
 int?	MiningRange => SetModuleMiner?.Select(module =>
 	module?.TooltipLast?.Value?.RangeOptimal ?? module?.TooltipLast?.Value?.RangeMax ?? module?.TooltipLast?.Value?.RangeWithin ?? 0)?.DefaultIfEmpty(0)?.Min();;
 
+WindowChatChannel chatLocal =>
+	 Sanderling.MemoryMeasurementParsed?.Value?.WindowChatChannel
+	 ?.FirstOrDefault(windowChat => windowChat?.Caption?.RegexMatchSuccessIgnoreCase("local") ?? false);
+
+//    assuming that own character is always visible in local
+bool hostileOrNeutralsInLocal => 1 != chatLocal?.ParticipantView?.Entry?.Count(IsNeutralOrEnemy);
+
 //	extract the ore type from the name as seen in overview. "Asteroid (Plagioclase)"
 string OreTypeFromAsteroidName(string AsteroidName)	=>
 	AsteroidName.ValueFromRegexMatchGroupAtIndex(@"Asteroid \(([^\)]+)", 0);
@@ -625,7 +641,7 @@ void EnsureOverviewTypeSelectionLoaded()
 
 void MemoryUpdate()
 {
-	EmergencyWarpOutUpdate();
+	RetreatUpdate();
 	JammedLastTimeUpdate();
 	OffloadCountUpdate();
 }
@@ -639,8 +655,10 @@ void JammedLastTimeUpdate()
 bool MeasurementEmergencyWarpOutEnter =>
 	!(Measurement?.IsDocked ?? false) && !(EmergencyWarpOutHitpointPercent < ShieldHpPercent);
 
-void EmergencyWarpOutUpdate()
+void RetreatUpdate()
 {
+	RetreatReasonTemporary = (RetreatOnNeutralOrHostileInLocal && hostileOrNeutralsInLocal)	? "hostile or neutral in local" : null;
+
 	if (!MeasurementEmergencyWarpOutEnter)
 		return;
 
@@ -650,7 +668,7 @@ void EmergencyWarpOutUpdate()
 	if (!MeasurementEmergencyWarpOutEnter)
 		return;
 
-	EmergencyWarpOutEnabled	= true;
+	RetreatReasonPermanent = "shield hp";
 }
 
 void OffloadCountUpdate()
@@ -665,3 +683,10 @@ void OffloadCountUpdate()
 
 	LastCheckOreHoldFillPercent = OreHoldFillPercentSynced;
 }
+
+bool IsNeutralOrEnemy(IChatParticipantEntry participantEntry) =>
+   !(participantEntry?.FlagIcon?.Any(flagIcon =>
+	 new[] { "good standing", "excellent standing", "Pilot is in your (fleet|corporation)", }
+	 .Any(goodStandingText =>
+		flagIcon?.HintText?.RegexMatchSuccessIgnoreCase(goodStandingText) ?? false)) ?? false);
+
