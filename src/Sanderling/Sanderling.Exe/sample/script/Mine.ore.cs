@@ -31,6 +31,9 @@ string UnloadBookmark = "station_or_POS_bookmark_name";
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
 
+//	when this is set to true, the bot will try to unload when undocked.
+bool UnloadInSpace = false;
+
 //	Bookmark of place to retreat to to prevent ship loss.
 string RetreatBookmark = UnloadBookmark;
 
@@ -151,6 +154,13 @@ Func<object>	MainStep()
 		{
 			if(ReadyForManeuver)
 				InitiateDockToOrWarpToBookmark(UnloadBookmark);
+
+			if (UnloadInSpace)
+			{
+				Host.Delay(4444);
+				InInventoryUnloadItems();
+			}
+
 			return MainStep;
 		}
 		
