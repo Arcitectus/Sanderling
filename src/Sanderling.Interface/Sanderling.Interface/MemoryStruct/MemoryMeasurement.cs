@@ -8,6 +8,8 @@ namespace Sanderling.Interface.MemoryStruct
 	/// </summary>
 	public interface IMemoryMeasurement
 	{
+		int? SessionDurationRemaining { get; }
+
 		string UserDefaultLocaleName { get; }
 
 		string VersionString { get; }
@@ -98,6 +100,8 @@ namespace Sanderling.Interface.MemoryStruct
 
 	public class MemoryMeasurement : IMemoryMeasurement, ICloneable
 	{
+		public int? SessionDurationRemaining { set; get; }
+
 		public string UserDefaultLocaleName { set; get; }
 
 		public string VersionString { set; get; }

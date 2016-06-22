@@ -108,6 +108,8 @@ namespace Sanderling.Parse
 
 	public partial class MemoryMeasurement : IMemoryMeasurement
 	{
+		public int? SessionDurationRemaining => Raw?.SessionDurationRemaining;
+
 		public string UserDefaultLocaleName => Raw?.UserDefaultLocaleName;
 
 		public MemoryStruct.IInSpaceBracket[] InflightBracket => Raw?.InflightBracket;
