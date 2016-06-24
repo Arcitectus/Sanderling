@@ -40,9 +40,7 @@ namespace Sanderling.Exe
 				var MemoryMeasurementLastAge = GetTimeStopwatch() - MemoryMeasurementLast?.Begin;
 
 				if (!(MemoryMeasurementLastAge < 8000))
-				{
 					return StatusIcon.StatusEnum.Reject;
-				}
 
 				if (!Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(
 						MemoryMeasurementLast?.Value?.MemoryMeasurement,
@@ -50,6 +48,9 @@ namespace Sanderling.Exe
 				{
 					return StatusIcon.StatusEnum.Reject;
 				}
+
+				if (!(this.MemoryMeasurementLast?.Value?.MemoryMeasurement?.SessionDurationRemainingSufficientToStayExposed() ?? false))
+					return StatusIcon.StatusEnum.Warn;
 
 				return StatusIcon.StatusEnum.Accept;
 			}
@@ -93,7 +94,7 @@ namespace Sanderling.Exe
 
 			MainControl?.Interface?.LicenseView?.Present(SensorServerDispatcher);
 
-			InterfaceToEveControl?.Measurement?.Present(MemoryMeasurementLast?.MapValue(evaluation => evaluation?.MemoryMeasurement));
+			InterfaceToEveControl?.Present(MemoryMeasurementLast?.MapValue(evaluation => evaluation?.MemoryMeasurement));
 		}
 	}
 }

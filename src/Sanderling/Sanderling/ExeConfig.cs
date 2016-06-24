@@ -8,6 +8,8 @@
 
 		public const string EveOnlineProcessMainModuleFileName = "ExeFile.exe";
 
+		public const int StayExposedSessionDurationRemainingMin = 60 * 15;
+
 		public BotEngine.Client.LicenseClientConfig LicenseClient;
 
 		static public BotEngine.Client.AuthRequest InterfaceLicenseClientRequestDefault => new BotEngine.Client.AuthRequest

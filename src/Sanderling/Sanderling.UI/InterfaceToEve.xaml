@@ -64,14 +64,11 @@
                         Content="last measurement">
                     </BotEngine.UI.ViewModel:ContentAndStatusIcon>
                 </TabItem.Header>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                        <RowDefinition Height="1"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
-                    </Grid.RowDefinitions>
 
-                    <GroupBox>
+                <DockPanel>
+
+                    <GroupBox
+                        DockPanel.Dock="Top">
                         <GroupBox.LayoutTransform>
                             <ScaleTransform ScaleX="0.8" ScaleY="0.8"></ScaleTransform>
                         </GroupBox.LayoutTransform>
@@ -86,11 +83,26 @@
                             Text="taking the first measurement from the choosen process takes longer than subsequent measurements. on a average cpu about 15s." TextWrapping="Wrap"></TextBlock>
                     </GroupBox>
 
-                    <local:MemoryMeasurement
-                        x:Name="Measurement"
-                        x:FieldModifier="public"
-                        Grid.Row="2"></local:MemoryMeasurement>
-                </Grid>
+                    <GroupBox
+                        Name="SessionDurationRemainingTooShortGroup"
+                        DockPanel.Dock="Top">
+                        <GroupBox.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="remaining session duration too short"></TextBlock>
+                                <Bib3.FCL.UI:StatusIcon
+                                    Status="Warn"
+                                    Margin="1"></Bib3.FCL.UI:StatusIcon>
+                            </StackPanel>
+                        </GroupBox.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock>session end in</TextBlock>
+                            <TextBlock Name="SessionDurationRemainingTextBox"></TextBlock>
+                            <TextBlock>seconds</TextBlock>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <local:MemoryMeasurement x:Name="Measurement"></local:MemoryMeasurement>
+                </DockPanel>
             </TabItem>
         </TabControl>
     </Grid>
