@@ -465,7 +465,7 @@ void EnsureWindowInventoryOpenOreHold()
 	var inventoryActiveShip = WindowInventory?.ActiveShipEntry;
 
 	if(InventoryActiveShipOreHold == null && !(inventoryActiveShip?.IsExpanded ?? false))
-		Sanderling.MouseClickLeft(inventoryActiveShip.ExpandToggleButton);
+		Sanderling.MouseClickLeft(inventoryActiveShip?.ExpandToggleButton);
 
 	if(!(InventoryActiveShipOreHold?.IsSelected ?? false))
 		Sanderling.MouseClickLeft(InventoryActiveShipOreHold);
