@@ -74,6 +74,32 @@ namespace Sanderling.Script
 			IEnumerable<VirtualKeyCode> listKey) =>
 			listKey?.Select(key => sanderling?.KeyboardPressCombined(new[] { key }));
 
+		static public MotionResult KeyDown(
+			this IHostToScript sanderling,
+			IEnumerable<VirtualKeyCode> listKey) =>
+			sanderling?.MotionExecute(new Motor.MotionParam
+			{
+				KeyDown = listKey?.ToArray(),
+			});
+
+		static public MotionResult KeyUp(
+			this IHostToScript sanderling,
+			IEnumerable<VirtualKeyCode> listKey) =>
+			sanderling?.MotionExecute(new Motor.MotionParam
+			{
+				KeyUp = listKey?.ToArray(),
+			});
+
+		static public MotionResult KeyDown(
+			this IHostToScript sanderling,
+			VirtualKeyCode key) =>
+			sanderling?.KeyDown(new[] { key });
+
+		static public MotionResult KeyUp(
+			this IHostToScript sanderling,
+			VirtualKeyCode key) =>
+			sanderling?.KeyUp(new[] { key });
+
 		static public MotionResult TextEntry(
 			this IHostToScript sanderling,
 			string text) =>
