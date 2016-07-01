@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using System.Collections.Generic;
+using Bib3;
 
 namespace Sanderling.Parse
 {
@@ -15,8 +16,6 @@ namespace Sanderling.Parse
 
 		bool? IsAttackingMe { get; }
 
-		bool? IsJammingMe { get; }
-
 		bool? IsHostile { get; }
 
 		bool? MeTargeted { get; }
@@ -24,6 +23,8 @@ namespace Sanderling.Parse
 		bool? MeTargeting { get; }
 
 		bool? MeActiveTarget { get; }
+
+		EWarTypeEnum[] EWarType { get; }
 	}
 
 	public interface IWindowOverview : MemoryStruct.IWindowOverview
@@ -45,8 +46,6 @@ namespace Sanderling.Parse
 
 		public bool? IsAttackingMe { set; get; }
 
-		public bool? IsJammingMe { set; get; }
-
 		public bool? IsHostile { set; get; }
 
 		public bool? MeTargeted { set; get; }
@@ -54,6 +53,8 @@ namespace Sanderling.Parse
 		public bool? MeTargeting { set; get; }
 
 		public bool? MeActiveTarget { set; get; }
+
+		public EWarTypeEnum[] EWarType { set; get; }
 
 		public OverviewEntry()
 		{
@@ -72,16 +73,13 @@ namespace Sanderling.Parse
 			var MainIconContainsIndicatorWithNameMatchingRegexPattern = new Func<string, bool>(regexPattern =>
 				raw?.MainIconSetIndicatorName?.Any(indicatorName => indicatorName.RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
 
-			var ContainsRightIconWithHintMatchingRegexPattern = new Func<string, bool>(regexPattern =>
-				raw?.RightIcon?.Any(sprite => (sprite?.HintText).RegexMatchSuccessIgnoreCase(regexPattern)) ?? false);
-
 			IsAttackingMe = MainIconContainsIndicatorWithNameMatchingRegexPattern("attacking.*me");
 			IsHostile = MainIconContainsIndicatorWithNameMatchingRegexPattern("hostile");
 			MeTargeting = MainIconContainsIndicatorWithNameMatchingRegexPattern("targeting");
 			MeTargeted = MainIconContainsIndicatorWithNameMatchingRegexPattern("targetedByMe");
 			MeActiveTarget = MainIconContainsIndicatorWithNameMatchingRegexPattern("myActiveTarget");
 
-			IsJammingMe = ContainsRightIconWithHintMatchingRegexPattern("jamming.*me");
+			EWarType = RightIcon?.Select(OverviewExtension.EWarTypeFromOverviewEntryRightIcon)?.WhereNotNullSelectValue()?.ToArrayIfNotEmpty();
 		}
 	}
 
@@ -147,5 +145,18 @@ namespace Sanderling.Parse
 
 		static public IOverviewEntry Parse(this MemoryStruct.IOverviewEntry overviewEntry) =>
 			null == overviewEntry ? null : new OverviewEntry(overviewEntry);
+
+		static public KeyValuePair<string, EWarTypeEnum>[] SetEWarTypeFromOverviewEntryRightIconHint = new[]
+		{
+			new KeyValuePair<string, EWarTypeEnum>("jamming.*me", EWarTypeEnum.ECM),
+			new KeyValuePair<string, EWarTypeEnum>("warp.*disrupt.*me", EWarTypeEnum.WarpDisrupt),
+			new KeyValuePair<string, EWarTypeEnum>("warp.*scramble.*me", EWarTypeEnum.WarpScramble),
+			new KeyValuePair<string, EWarTypeEnum>("web.*me", EWarTypeEnum.Web),
+		};
+
+		static public EWarTypeEnum? EWarTypeFromOverviewEntryRightIcon(this MemoryStruct.ISprite icon) =>
+			null == icon ? (EWarTypeEnum?)null :
+			SetEWarTypeFromOverviewEntryRightIconHint?.CastToNullable()?.FirstOrDefault(eWarTypeFromOverviewEntryRightIconHint =>
+				icon?.HintText?.RegexMatchSuccessIgnoreCase(eWarTypeFromOverviewEntryRightIconHint?.Key) ?? false)?.Value ?? EWarTypeEnum.Other;
 	}
 }

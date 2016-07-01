@@ -155,6 +155,7 @@
     <Compile Include="Parse\Culture.cs" />
     <Compile Include="Parse\Distance.cs" />
     <Compile Include="Parse\Drone.cs" />
+    <Compile Include="Parse\EWar.cs" />
     <Compile Include="Parse\Extension.cs" />
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\ListEntry.cs" />
