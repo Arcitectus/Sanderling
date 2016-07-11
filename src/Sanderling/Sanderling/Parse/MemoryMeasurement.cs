@@ -184,6 +184,8 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.WindowTelecom[] WindowTelecom => Raw?.WindowTelecom;
 
+		public IEnumerable<MemoryStruct.IWindowProbeScanner> WindowProbeScanner => Raw?.WindowProbeScanner;
+
 		MemoryStruct.IContainer MemoryStruct.IMemoryMeasurement.ModuleButtonTooltip => ModuleButtonTooltip;
 
 		public Vektor2DInt ScreenSize => Raw?.ScreenSize ?? default(Vektor2DInt);

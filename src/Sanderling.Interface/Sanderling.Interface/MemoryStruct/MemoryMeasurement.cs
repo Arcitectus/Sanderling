@@ -1,5 +1,6 @@
 ﻿using Bib3.Geometrik;
 using System;
+using System.Collections.Generic;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -96,6 +97,7 @@ namespace Sanderling.Interface.MemoryStruct
 
 		WindowItemSell[] WindowItemSell { get; }
 
+		IEnumerable<IWindowProbeScanner> WindowProbeScanner { get; }
 	}
 
 	public class MemoryMeasurement : IMemoryMeasurement, ICloneable
@@ -181,6 +183,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public WindowMarketAction[] WindowMarketAction { set; get; }
 
 		public WindowItemSell[] WindowItemSell { set; get; }
+
+		public IEnumerable<IWindowProbeScanner> WindowProbeScanner { set; get; }
 
 		public MemoryMeasurement Copy() => this.CopyByPolicyMemoryMeasurement();
 

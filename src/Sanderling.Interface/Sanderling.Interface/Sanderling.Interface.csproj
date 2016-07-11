@@ -79,6 +79,7 @@
     <Compile Include="MemoryStruct\ShipHitpointsAndEnergy.cs" />
     <Compile Include="MemoryStruct\ShipUi.cs" />
     <Compile Include="MemoryStruct\Station.cs" />
+    <Compile Include="MemoryStruct\ProbeScanner.cs" />
     <Compile Include="MemoryStruct\SurveyScan.cs" />
     <Compile Include="MemoryStruct\TreeView.cs" />
     <Compile Include="MemoryStruct\UIElement.cs" />
