@@ -94,6 +94,7 @@
     <Compile Include="BotAPIExplorer.xaml.cs">
       <DependentUpon>BotAPIExplorer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Extension.cs" />
     <Compile Include="InterfaceToEve.xaml.cs">
       <DependentUpon>InterfaceToEve.xaml</DependentUpon>
     </Compile>

@@ -15,45 +15,10 @@ namespace Sanderling.Exe
 	{
 		Main MainControl => Window?.Main;
 
-		StatusIcon.StatusEnum InterfaceStatus =>
-			InterfaceMemoryMeasurementLastStatus;
-
-		StatusIcon.StatusEnum InterfaceProcessStatus =>
-			(MainControl?.Interface?.ProcessChoice?.ChoosenProcessAtTime.Wert?.BewertungMainModuleDataiNaamePasend ?? false) ?
-			StatusIcon.StatusEnum.Accept : StatusIcon.StatusEnum.None;
-
-		StatusIcon.StatusEnum InterfaceLicenseStatus =>
-			(SensorServerDispatcher?.AppInterfaceAvailable ?? false) ? StatusIcon.StatusEnum.Accept : StatusIcon.StatusEnum.Reject;
-
 		public IEnumerable<IEnumerable<Key>> SetKeyBotMotionDisable()
 		{
 			yield return new[] { Key.LeftCtrl, Key.LeftAlt };
 			yield return new[] { Key.RightCtrl, Key.RightAlt };
-		}
-
-		StatusIcon.StatusEnum InterfaceMemoryMeasurementLastStatus
-		{
-			get
-			{
-				var MemoryMeasurementLast = this.MemoryMeasurementLast;
-
-				var MemoryMeasurementLastAge = GetTimeStopwatch() - MemoryMeasurementLast?.Begin;
-
-				if (!(MemoryMeasurementLastAge < 8000))
-					return StatusIcon.StatusEnum.Reject;
-
-				if (!Bib3.RefNezDiferenz.Extension.EnumMengeRefAusNezAusWurzel(
-						MemoryMeasurementLast?.Value?.MemoryMeasurement,
-						Interface.FromInterfaceResponse.UITreeComponentTypeHandlePolicyCache).CountAtLeast(1))
-				{
-					return StatusIcon.StatusEnum.Reject;
-				}
-
-				if (!(this.MemoryMeasurementLast?.Value?.MemoryMeasurement?.SessionDurationRemainingSufficientToStayExposed() ?? false))
-					return StatusIcon.StatusEnum.Warn;
-
-				return StatusIcon.StatusEnum.Accept;
-			}
 		}
 
 		StatusIcon.StatusEnum BotStatus => ScriptEngineStatus;
@@ -83,18 +48,14 @@ namespace Sanderling.Exe
 
 		void UIPresent()
 		{
-			MainControl?.InterfaceHeader?.SetStatus(InterfaceStatus);
-			MainControl?.Interface?.ProcessHeader?.SetStatus(InterfaceProcessStatus);
-			MainControl?.Interface?.LicenseHeader?.SetStatus(InterfaceLicenseStatus);
-			MainControl?.Interface?.MeasurementLastHeader?.SetStatus(InterfaceMemoryMeasurementLastStatus);
 			MainControl?.BotHeader?.SetStatus(BotStatus);
 			MainControl?.Bot?.ScriptEngineHeader?.SetStatus(ScriptEngineStatus);
 
 			BotAPIExplorer?.Present(UIAPI);
 
-			MainControl?.Interface?.LicenseView?.Present(SensorServerDispatcher);
+			InterfaceToEveControl?.Present(SensorServerDispatcher, MemoryMeasurementLast?.MapValue(evaluation => evaluation?.MemoryMeasurement));
 
-			InterfaceToEveControl?.Present(MemoryMeasurementLast?.MapValue(evaluation => evaluation?.MemoryMeasurement));
+			MainControl?.InterfaceHeader?.SetStatus(InterfaceToEveControl.InterfaceStatusEnum());
 		}
 	}
 }

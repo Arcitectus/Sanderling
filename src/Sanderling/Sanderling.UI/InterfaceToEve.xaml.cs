@@ -1,5 +1,6 @@
 ﻿using BotEngine;
 using BotEngine.Interface;
+using BotEngine.UI;
 using System.Windows.Controls;
 
 namespace Sanderling.UI
@@ -16,8 +17,17 @@ namespace Sanderling.UI
 			ProcessChoice?.PreferenceWriteToUI(new ChooseWindowProcessPreference() { FilterMainModuleFileName = "ExeFile.exe" });
 		}
 
-		public void Present(FromProcessMeasurement<Interface.MemoryStruct.IMemoryMeasurement> measurement)
+		public void Present(
+			SimpleInterfaceServerDispatcher interfaceServerDispatcher,
+			FromProcessMeasurement<Interface.MemoryStruct.IMemoryMeasurement> measurement)
 		{
+			MeasurementLastHeader?.SetStatus(measurement.MemoryMeasurementLastStatusEnum());
+
+			LicenseHeader?.SetStatus(interfaceServerDispatcher.LicenseStatusEnum());
+			ProcessHeader?.SetStatus(ProcessChoice.ProcessStatusEnum());
+
+			LicenseView?.Present(interfaceServerDispatcher);
+
 			var sessionDurationRemainingTooShort = !(measurement?.Value).SessionDurationRemainingSufficientToStayExposed();
 
 			SessionDurationRemainingTextBox.Text = (measurement?.Value?.SessionDurationRemaining?.ToString() ?? "????");
