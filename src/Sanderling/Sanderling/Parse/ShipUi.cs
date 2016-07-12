@@ -164,6 +164,8 @@ namespace Sanderling.Parse
 		public long? SpeedMilli => Raw?.SpeedMilli ?? SpeedMilliParsed;
 
 		public IShipUiTimer[] Timer => Raw?.Timer;
+
+		public ISquadronsUI SquadronsUI => Raw?.SquadronsUI;
 	}
 
 	static public class ShipUiExtension

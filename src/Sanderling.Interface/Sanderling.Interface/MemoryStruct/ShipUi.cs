@@ -56,6 +56,8 @@ namespace Sanderling.Interface.MemoryStruct
 		Int64? SpeedMilli { get; }
 
 		IShipUiTimer[] Timer { get; }
+
+		ISquadronsUI SquadronsUI { get; }
 	}
 
 	public interface IShipUiTarget : IUIElement, ISelectable
@@ -93,6 +95,8 @@ namespace Sanderling.Interface.MemoryStruct
 		public Int64? SpeedMilli { set; get; }
 
 		public IShipUiTimer[] Timer { set; get; }
+
+		public ISquadronsUI SquadronsUI { set; get; }
 
 		public ShipUi()
 		{
