@@ -149,6 +149,7 @@
     <Compile Include="Interface\MemoryMeasurementEvaluation.cs" />
     <Compile Include="Motor\Extension.cs" />
     <Compile Include="Motor\Motion.cs" />
+    <Compile Include="Motor\MotionParamExtension.cs" />
     <Compile Include="Motor\WindowMotor.cs" />
     <Compile Include="Parse\AgentDialogue.cs" />
     <Compile Include="Parse\Color.cs" />

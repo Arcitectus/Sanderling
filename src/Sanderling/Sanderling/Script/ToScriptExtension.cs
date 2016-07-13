@@ -1,5 +1,6 @@
 ﻿using BotEngine.Motor;
 using Sanderling.Interface.MemoryStruct;
+using Sanderling.Motor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,28 +17,20 @@ namespace Sanderling.Script
 			this IHostToScript host,
 			IUIElement destination,
 			MouseButtonIdEnum[] mouseButton = null) =>
-			host?.MotionExecute(new Motor.MotionParam()
-			{
-				MouseListWaypoint = new[] { new Motor.MotionParamMouseRegion() { UIElement = destination }, },
-				MouseButton = mouseButton,
-			});
+			host?.MotionExecute(destination.MouseMove(mouseButton));
 
 		static public MotionResult MouseClick(
 			this IHostToScript host,
 			IUIElement destination,
 			MouseButtonIdEnum mouseButton) =>
-			MouseMove(host, destination, new[] { mouseButton });
+			host?.MotionExecute(destination.MouseClick(mouseButton));
 
 		static public MotionResult MouseDragAndDrop(
 			this IHostToScript host,
 			IUIElement elementToDrag,
 			IUIElement destination,
 			MouseButtonIdEnum mouseButton) =>
-			host?.MotionExecute(new Motor.MotionParam()
-			{
-				MouseListWaypoint = new[] { elementToDrag, destination }.Select(uIElement => new Motor.MotionParamMouseRegion() { UIElement = uIElement })?.ToArray(),
-				MouseButton = new[] { mouseButton },
-			});
+			host?.MotionExecute(elementToDrag?.MouseDragAndDropOn(destination, mouseButton));
 
 		static public MotionResult MouseClickLeft(
 			this IHostToScript host,
@@ -58,16 +51,12 @@ namespace Sanderling.Script
 		static public MotionResult KeyboardPressCombined(
 			this IHostToScript sanderling,
 			IEnumerable<VirtualKeyCode> setKey) =>
-			sanderling?.MotionExecute(new Motor.MotionParam()
-			{
-				KeyDown = setKey?.ToArray(),
-				KeyUp = setKey?.Reverse()?.ToArray(),
-			});
+			sanderling?.MotionExecute(setKey?.KeyboardPressCombined());
 
 		static public MotionResult KeyboardPress(
 			this IHostToScript sanderling,
 			VirtualKeyCode key) =>
-			sanderling?.KeyboardPressCombined(new[] { key });
+			sanderling?.MotionExecute(key.KeyboardPress());
 
 		static public IEnumerable<MotionResult> KeyboardPressSequence(
 			this IHostToScript sanderling,
@@ -77,36 +66,27 @@ namespace Sanderling.Script
 		static public MotionResult KeyDown(
 			this IHostToScript sanderling,
 			IEnumerable<VirtualKeyCode> listKey) =>
-			sanderling?.MotionExecute(new Motor.MotionParam
-			{
-				KeyDown = listKey?.ToArray(),
-			});
+			sanderling?.MotionExecute(listKey?.KeyDown());
 
 		static public MotionResult KeyUp(
 			this IHostToScript sanderling,
 			IEnumerable<VirtualKeyCode> listKey) =>
-			sanderling?.MotionExecute(new Motor.MotionParam
-			{
-				KeyUp = listKey?.ToArray(),
-			});
+			sanderling?.MotionExecute(listKey?.KeyUp());
 
 		static public MotionResult KeyDown(
 			this IHostToScript sanderling,
 			VirtualKeyCode key) =>
-			sanderling?.KeyDown(new[] { key });
+			sanderling?.MotionExecute(key.KeyDown());
 
 		static public MotionResult KeyUp(
 			this IHostToScript sanderling,
 			VirtualKeyCode key) =>
-			sanderling?.KeyUp(new[] { key });
+			sanderling?.MotionExecute(key.KeyUp());
 
 		static public MotionResult TextEntry(
 			this IHostToScript sanderling,
 			string text) =>
-			sanderling?.MotionExecute(new Motor.MotionParam()
-			{
-				TextEntry = text,
-			});
+			sanderling?.MotionExecute(text?.TextEntry());
 
 		static public MotionResult WindowToForeground(
 			this IHostToScript sanderling) =>
