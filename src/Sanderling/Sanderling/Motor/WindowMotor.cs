@@ -13,9 +13,9 @@ namespace Sanderling.Motor
 	{
 		readonly public IntPtr WindowHandle;
 
-		public int MouseMoveDelay;
+		public const int MouseEventTimeDistanceMilliDefault = 140;
 
-		public int MouseEventDelay;
+		public int MouseEventTimeDistanceMilli = MouseEventTimeDistanceMilliDefault;
 
 		public int KeyboardEventTimeDistanceMilli = 40;
 
@@ -82,7 +82,7 @@ namespace Sanderling.Motor
 					{
 						User32.SetCursorPos((int)mouseLocationOnScreen.Value.A, (int)mouseLocationOnScreen.Value.B);
 
-						Thread.Sleep(MouseEventDelay);
+						Thread.Sleep(MouseEventTimeDistanceMilli);
 					}
 
 					var mouseSetAction = new[]
@@ -96,7 +96,7 @@ namespace Sanderling.Motor
 						foreach (var mouseAction in mouseSetAction)
 							mouseActionFromButtonIdAndState?.TryGetValueOrDefault(mouseAction)?.Invoke(InputSimulator.Mouse);
 
-						Thread.Sleep(MouseEventDelay);
+						Thread.Sleep(MouseEventTimeDistanceMilli);
 					}
 
 					Motion?.KeyDown?.ForEach(keyDown =>

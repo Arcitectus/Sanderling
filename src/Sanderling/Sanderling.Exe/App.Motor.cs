@@ -80,12 +80,6 @@ namespace Sanderling.Exe
 
 				  var MotorAsWindowMotor = Motor as Motor.WindowMotor;
 
-				  if (null != MotorAsWindowMotor)
-				  {
-					  MotorAsWindowMotor.MouseMoveDelay = 140;
-					  MotorAsWindowMotor.MouseEventDelay = 140;
-				  }
-
 				  var BeginTime = GetTimeStopwatch();
 
 				  var Result = Motor.ActSequenceMotion(motion.AsSequenceMotion(MemoryMeasurementLast?.Value?.MemoryMeasurement));
