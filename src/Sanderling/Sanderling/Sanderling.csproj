@@ -158,6 +158,7 @@
     <Compile Include="Parse\Drone.cs" />
     <Compile Include="Parse\EWar.cs" />
     <Compile Include="Parse\Extension.cs" />
+    <Compile Include="Parse\InfoPanel.cs" />
     <Compile Include="Parse\Inventory.cs" />
     <Compile Include="Parse\ListEntry.cs" />
     <Compile Include="Parse\Location.cs" />

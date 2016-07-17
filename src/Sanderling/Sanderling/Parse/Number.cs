@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using BotEngine.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -194,6 +195,26 @@ namespace Sanderling.Parse
 
 		static public Int64? NumberParseDecimal(this string numberString) =>
 			NumberParseDecimalMilli(numberString) / 1000;
+
+		static public Int64? NumberParseDecimalMilliBetween(
+			this string stringContainingNumber,
+			string prefixPattern = null,
+			string suffixPattern = null,
+			RegexOptions regexOptions = RegexOptions.None)
+		{
+			var numberGroupName = "TheNumberGroup";
+
+			var pattern =
+				prefixPattern +
+				"(?<" + numberGroupName + ">" +
+				DefaultNumberFormatRegexPatternAllowLeadingAndTrailingChars +
+				")" +
+				suffixPattern;
+
+			var match = stringContainingNumber?.RegexMatchIfSuccess(pattern);
+
+			return match?.Groups[numberGroupName]?.Value?.NumberParseDecimalMilli();
+		}
 
 		private enum RomanDigitValue
 		{

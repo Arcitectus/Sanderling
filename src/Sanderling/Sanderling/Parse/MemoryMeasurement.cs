@@ -25,6 +25,8 @@ namespace Sanderling.Parse
 
 		new IEnumerable<IMenu> Menu { get; }
 
+		new IInfoPanelSystem InfoPanelCurrentSystem { get; }
+
 		bool? IsDocked { get; }
 
 		bool? IsUnDocking { get; }
@@ -49,6 +51,8 @@ namespace Sanderling.Parse
 		public INeocom Neocom { set; get; }
 
 		public IMenu[] Menu { private set; get; }
+
+		public IInfoPanelSystem InfoPanelCurrentSystem { private set; get; }
 
 		public bool? IsDocked { private set; get; }
 
@@ -102,6 +106,8 @@ namespace Sanderling.Parse
 				Neocom = raw?.Neocom?.Parse();
 
 				Menu = raw?.Menu?.Select(menu => menu?.Parse())?.ToArrayIfNotEmpty();
+
+				InfoPanelCurrentSystem = raw?.InfoPanelCurrentSystem?.Parse();
 			});
 		}
 	}
@@ -128,7 +134,7 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElement InfoPanelButtonRoute => Raw?.InfoPanelButtonRoute;
 
-		public MemoryStruct.IInfoPanelSystem InfoPanelCurrentSystem => Raw?.InfoPanelCurrentSystem;
+		MemoryStruct.IInfoPanelSystem MemoryStruct.IMemoryMeasurement.InfoPanelCurrentSystem => InfoPanelCurrentSystem;
 
 		public MemoryStruct.IInfoPanelMissions InfoPanelMissions => Raw?.InfoPanelMissions;
 
