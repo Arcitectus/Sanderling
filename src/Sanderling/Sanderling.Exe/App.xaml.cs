@@ -102,7 +102,7 @@ namespace Sanderling.Exe
 				ImportNamespace = Sanderling.Script.Impl.ToScriptImport.ImportNamespace?.ToArray(),
 				CompilationOption = new BotSharp.CodeAnalysis.CompilationOption()
 				{
-					InstrumentationOption = BotSharp.CodeAnalysis.Default.InstrumentationOption,
+					InstrumentationOption = BotSharp.CodeAnalysis.InstrumentationOption.Default,
 				},
 
 				ScriptRunClientBuildDelegate = ScriptRunClientBuild,

@@ -63,7 +63,7 @@ namespace Sanderling.Motor
 
 				if (null != MouseWaypointFirst)
 				{
-					if (MouseButton.NullOderLeer())
+					if (MouseButton.IsNullOrEmpty())
 					{
 						yield return "move";
 					}
