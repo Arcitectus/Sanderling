@@ -39,6 +39,9 @@ namespace Sanderling.Motor
 
 			var MouseListWaypoint = motion?.MouseListWaypoint;
 
+			var mouseButtonDownMotion = new Motion(null, motion?.MouseButton);
+			var mouseButtonUpMotion = new Motion(null, null, motion?.MouseButton);
+
 			for (int WaypointIndex = 0; WaypointIndex < (MouseListWaypoint?.Length ?? 0); WaypointIndex++)
 			{
 				var MouseWaypoint = MouseListWaypoint[WaypointIndex];
@@ -75,7 +78,7 @@ namespace Sanderling.Motor
 					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(
 						memoryMeasurement,
 						c => SetElementExcludedFromOcclusion?.Contains(c) ?? false)
-					//	remaining region is contracted to provide an safety margin.
+					//	remaining region is contracted to provide a safety margin.
 					?.Select(portionVisible => portionVisible.WithSizeExpandedPivotAtCenter(-MotionMouseWaypointSafetyMarginMin * 2))
 					?.Where(portionVisible => !portionVisible.IsEmpty())
 					?.ToArray();
@@ -100,13 +103,17 @@ namespace Sanderling.Motor
 
 				if (0 == WaypointIndex)
 				{
-					//	Mouse Buttons Down
-					yield return new Motion(null, motion?.MouseButton);
+					yield return mouseButtonDownMotion;
+
+					for (int repetitionIndex = 0; repetitionIndex < motion?.MouseButtonRepetitionCount; repetitionIndex++)
+					{
+						yield return mouseButtonUpMotion;
+						yield return mouseButtonDownMotion;
+					}
 				}
 			}
 
-			//	Mouse Buttons Up
-			yield return new Motion(null, null, motion?.MouseButton);
+			yield return mouseButtonUpMotion;
 
 			var MotionKeyDown = motion?.KeyDown;
 			var MotionKeyUp = motion?.KeyUp;

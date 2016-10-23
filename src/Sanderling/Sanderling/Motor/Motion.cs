@@ -32,6 +32,8 @@ namespace Sanderling.Motor
 
 		public bool? WindowToForeground;
 
+		public int MouseButtonRepetitionCount;
+
 		public MotionParam()
 		{
 		}

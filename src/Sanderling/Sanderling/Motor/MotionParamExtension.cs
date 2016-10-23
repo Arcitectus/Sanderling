@@ -22,6 +22,16 @@ namespace Sanderling.Motor
 			MouseButtonIdEnum mouseButton) =>
 			MouseMove(destination, new[] { mouseButton });
 
+		static public MotionParam MouseDoubleClick(
+			this IUIElement destination,
+			MouseButtonIdEnum mouseButton) =>
+			new MotionParam
+			{
+				MouseListWaypoint = new[] { new MotionParamMouseRegion() { UIElement = destination }, },
+				MouseButton = new[] { mouseButton },
+				MouseButtonRepetitionCount = 1,
+			};
+
 		static public MotionParam MouseDragAndDropOn(
 			this IUIElement elementToDrag,
 			IUIElement destination,
