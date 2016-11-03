@@ -67,7 +67,7 @@ namespace Sanderling.Interface.MemoryStruct
 		IShipHitpointsAndEnergy Hitpoints { get; }
 
 		/// <summary>
-		/// e.g. groups of modules or drones assigned to this target.
+		/// Each element in this set represents at least one object (e.g. drone or module) assigned to this target.
 		/// </summary>
 		ShipUiTargetAssignedGroup[] Assigned { get; }
 	}
