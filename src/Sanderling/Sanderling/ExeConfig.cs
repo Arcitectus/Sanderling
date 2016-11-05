@@ -3,7 +3,7 @@
 	public class ExeConfig
 	{
 		public const string ConfigLicenseKeyDefault = "Sanderling.Free";
-		public const string ConfigServiceId = "Sanderling.16-06-23";
+		public const string ConfigServiceId = "Sanderling.16-10-03";
 		public const string ConfigApiVersionAddressDefault = @"http://service.botengine.de:4074/api";
 
 		public const string EveOnlineProcessMainModuleFileName = "ExeFile.exe";
