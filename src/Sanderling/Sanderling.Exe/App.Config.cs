@@ -1,6 +1,4 @@
 ﻿using Bib3;
-using BotEngine;
-using BotEngine.Client;
 using BotEngine.Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +9,12 @@ namespace Sanderling.Exe
 {
 	partial class App
 	{
+		string LicenseKeyStoreFilePath => AssemblyDirectoryPath.PathToFilesysChild(@"license.key");
+
+		ISingleValueStore<string> LicenseKeyStore;
+
 		static public string ConfigFilePath =>
 			AssemblyDirectoryPath.PathToFilesysChild("config");
-
-		BotEngine.UI.WriteToOrReadFromFile ConfigFileControl =>
-			Window?.Main?.ConfigFileControl;
 
 		string ScriptDirectoryPath => AssemblyDirectoryPath.PathToFilesysChild(@"script\");
 
@@ -50,25 +49,30 @@ namespace Sanderling.Exe
 			}
 		}
 
-		public ExeConfig ConfigReadFromUI()
-		{
-			return Window?.Main?.ConfigFromViewToModel();
-		}
-
-		public void ConfigWriteToUI(ExeConfig config)
-		{
-			Window?.Main?.ConfigFromModelToView(config);
-		}
-
-		public byte[] ConfigReadFromUISerialized() => ConfigReadFromUI().SerializeToUtf8();
-
-		public void ConfigWriteToUIDeSerialized(byte[] config) => ConfigWriteToUI(config.DeserializeFromUtf8<ExeConfig>());
-
 		static public ExeConfig ConfigDefaultConstruct() =>
 			new ExeConfig
 			{
 				LicenseClient = ExeConfig.LicenseClientDefault,
 			};
 
+		void ConfigSetup()
+		{
+			LicenseKeyStore =
+				new SingleValueStoreCached<string>
+				{
+					BaseStore =
+						new SingleValueStoreRelayWithExceptionToDelegate<string>
+						{
+							BaseStore = new StringStoreToFilePath
+							{
+								FilePath = LicenseKeyStoreFilePath,
+							},
+
+							ExceptionDelegate = Bib3.FCL.GBS.Extension.MessageBoxException,
+						}
+				};
+
+			UI.Main.LicenseKeyStore = LicenseKeyStore;
+		}
 	}
 }

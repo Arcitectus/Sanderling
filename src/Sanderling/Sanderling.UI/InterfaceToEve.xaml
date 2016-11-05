@@ -8,6 +8,7 @@
              xmlns:Bib3.FCL.UI="clr-namespace:Bib3.FCL.UI;assembly=Bib3.FCL"
              xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
              xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
+			 xmlns:BotEngine.UI.View="clr-namespace:BotEngine.UI.View;assembly=BotEngine.UI"
              mc:Ignorable="d" 
              d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
@@ -47,12 +48,7 @@
                 </TabItem.Header>
 
                 <ScrollViewer>
-                    <StackPanel>
-                        <BotEngine.UI:LicenseInfoLink></BotEngine.UI:LicenseInfoLink>
-                        <BotEngine.UI:SimpleInterfaceServerDispatcher
-                            x:Name="LicenseView"
-                            x:FieldModifier="public"></BotEngine.UI:SimpleInterfaceServerDispatcher>
-                    </StackPanel>
+					<BotEngine.UI.View:License x:Name="LicenseView" x:FieldModifier="public" />
                 </ScrollViewer>
             </TabItem>
 

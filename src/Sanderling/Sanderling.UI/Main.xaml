@@ -84,14 +84,6 @@
 
             <TabItem
                 Style="{StaticResource TabItemStyleFromBotEngine}"
-                Header="Config">
-                <BotEngine.UI:WriteToOrReadFromFile
-                    x:Name="ConfigFileControl"
-                    x:FieldModifier="public"></BotEngine.UI:WriteToOrReadFromFile>
-            </TabItem>
-
-            <TabItem
-                Style="{StaticResource TabItemStyleFromBotEngine}"
                 Header="About">
                 <BotEngine.UI:AppProperty
                     DataContext="{StaticResource ResourceKey=AppProperty}">

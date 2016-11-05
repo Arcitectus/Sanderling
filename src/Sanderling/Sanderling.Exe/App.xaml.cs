@@ -9,14 +9,9 @@ using System.Windows.Threading;
 
 namespace Sanderling.Exe
 {
-	/// <summary>
-	/// Interaction logic for App.xaml
-	/// </summary>
 	public partial class App : Application
 	{
 		static public Int64 GetTimeStopwatch() => Bib3.Glob.StopwatchZaitMiliSictInt();
-
-		BotEngine.Client.LicenseClientConfig LicenseClientConfig => ConfigReadFromUI()?.LicenseClient;
 
 		public MainWindow Window => base.MainWindow as MainWindow;
 
@@ -40,7 +35,9 @@ namespace Sanderling.Exe
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-			UIAPI = new Sanderling.Script.Impl.HostToScript()
+			ConfigSetup();
+
+			UIAPI = new Sanderling.Script.Impl.HostToScript
 			{
 				MemoryMeasurementFunc = new Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>>(() => MemoryMeasurementLast),
 			};
@@ -120,13 +117,6 @@ namespace Sanderling.Exe
 
 			Window.KeyDown += Window_KeyDown;
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
-
-			Window?.Main?.ConfigFromModelToView(ConfigDefaultConstruct());
-
-			ConfigFileControl.DefaultFilePath = ConfigFilePath;
-			ConfigFileControl.CallbackGetValueToWrite = ConfigReadFromUISerialized;
-			ConfigFileControl.CallbackValueRead = ConfigWriteToUIDeSerialized;
-			ConfigFileControl.ReadFromFile();
 
 			TimerConstruct();
 		}

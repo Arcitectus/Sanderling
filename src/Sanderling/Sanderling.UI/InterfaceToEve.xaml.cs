@@ -5,16 +5,16 @@ using System.Windows.Controls;
 
 namespace Sanderling.UI
 {
-	/// <summary>
-	/// Interaction logic for InterfaceToEve.xaml
-	/// </summary>
 	public partial class InterfaceToEve : UserControl
 	{
+		readonly public BotEngine.UI.ViewModel.License LicenseDataContext = new BotEngine.UI.ViewModel.License();
+
 		public InterfaceToEve()
 		{
 			InitializeComponent();
 
-			ProcessChoice?.PreferenceWriteToUI(new ChooseWindowProcessPreference() { FilterMainModuleFileName = "ExeFile.exe" });
+			ProcessChoice?.PreferenceWriteToUI(new ChooseWindowProcessPreference { FilterMainModuleFileName = "ExeFile.exe" });
+			LicenseView.DataContext = LicenseDataContext;
 		}
 
 		public void Present(
@@ -26,7 +26,7 @@ namespace Sanderling.UI
 			LicenseHeader?.SetStatus(interfaceServerDispatcher.LicenseStatusEnum());
 			ProcessHeader?.SetStatus(ProcessChoice.ProcessStatusEnum());
 
-			LicenseView?.Present(interfaceServerDispatcher);
+			LicenseDataContext.Dispatcher = interfaceServerDispatcher;
 
 			var sessionDurationRemainingTooShort = !(measurement?.Value).SessionDurationRemainingSufficientToStayExposed();
 

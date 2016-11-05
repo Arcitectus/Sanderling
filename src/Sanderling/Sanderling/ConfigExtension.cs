@@ -16,7 +16,7 @@
 			config.Request.ServiceId = ExeConfig.ConfigServiceId;
 
 			if (!(0 < config.Request.LicenseKey?.Length))
-				config.Request.LicenseKey = ExeConfig.ConfigLicenseKeyFree;
+				config.Request.LicenseKey = ExeConfig.ConfigLicenseKeyDefault;
 
 			config.Request.Consume = true;
 

@@ -2,7 +2,7 @@
 {
 	public class ExeConfig
 	{
-		public const string ConfigLicenseKeyFree = "Sanderling.Free";
+		public const string ConfigLicenseKeyDefault = "Sanderling.Free";
 		public const string ConfigServiceId = "Sanderling.16-06-23";
 		public const string ConfigApiVersionAddressDefault = @"http://service.botengine.de:4074/api";
 
@@ -14,7 +14,7 @@
 
 		static public BotEngine.Client.AuthRequest InterfaceLicenseClientRequestDefault => new BotEngine.Client.AuthRequest
 		{
-			LicenseKey = ConfigLicenseKeyFree,
+			LicenseKey = ConfigLicenseKeyDefault,
 			ServiceId = ConfigServiceId,
 			Consume = true,
 		};
