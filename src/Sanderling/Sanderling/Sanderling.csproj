@@ -193,6 +193,8 @@
     <Compile Include="GameWorldStatic.cs" />
     <Compile Include="InterfaceServerDispatcher.cs" />
     <Compile Include="Interface\MemoryMeasurementEvaluation.cs" />
+    <Compile Include="Log\LogEntry.cs" />
+    <Compile Include="Log\LogExtension.cs" />
     <Compile Include="Motor\Extension.cs" />
     <Compile Include="Motor\Motion.cs" />
     <Compile Include="Motor\MotionParamExtension.cs" />

@@ -1,5 +1,6 @@
 ﻿using Bib3;
 using BotEngine.Common;
+using Sanderling.Log;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,7 +69,7 @@ namespace Sanderling.Exe
 								FilePath = LicenseKeyStoreFilePath,
 							},
 
-							ExceptionDelegate = Bib3.FCL.GBS.Extension.MessageBoxException,
+							ExceptionDelegate = e => LogEntryWriteNow(new LogEntry { LicenseKeyStoreException = e }),
 						}
 				};
 
