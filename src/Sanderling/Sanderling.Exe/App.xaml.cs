@@ -90,6 +90,7 @@ namespace Sanderling.Exe
 				MemoryMeasurementLastDelegate = () => MemoryMeasurementLast,
 				FromScriptRequestMemoryMeasurementEvaluation = FromScriptRequestMemoryMeasurementEvaluation,
 				FromScriptMotionExecute = FromScriptMotionExecute,
+				GetWindowHandleDelegate = () => Motor?.WindowHandle ?? IntPtr.Zero,
 			};
 		}
 

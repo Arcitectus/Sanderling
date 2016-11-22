@@ -31,9 +31,9 @@ namespace Sanderling.Exe
 
 		readonly Queue<MotionExecution> MotionExecution = new Queue<MotionExecution>();
 
-		IMotor Motor;
+		WindowMotor Motor;
 
-		IMotor GetMotor()
+		WindowMotor GetMotor()
 		{
 			var EveOnlineClientProcessId = this.EveOnlineClientProcessId;
 
