@@ -1,7 +1,5 @@
 ﻿using BotEngine.Interface;
 using System.Collections.Generic;
-using System;
-using System.Linq;
 
 namespace Sanderling.Interface.MemoryStruct
 {
@@ -28,14 +26,9 @@ namespace Sanderling.Interface.MemoryStruct
 		ISprite[] SetSprite { get; }
 	}
 
-	public interface IColumnHeader : IUIElementText
+	public interface IColumnHeader : IContainer, IUIElementText
 	{
 		int? ColumnIndex { get; }
-
-		/// <summary>
-		/// positive means ascending, negative descending.
-		/// </summary>
-		int? SortDirection { get; }
 	}
 
 	public interface IListViewAndControl
@@ -56,24 +49,23 @@ namespace Sanderling.Interface.MemoryStruct
 		new EntryT[] Entry { get; }
 	}
 
-	public class ColumnHeader : UIElementText, IColumnHeader
+	public class ColumnHeader : Container, IColumnHeader
 	{
 		public int? ColumnIndex { set; get; }
 
-		public int? SortDirection { set; get; }
+		public string Text => LabelText?.Largest()?.Text;
 
 		public ColumnHeader()
 			:
-			this((IColumnHeader)null)
+			this(null)
 		{
 		}
 
-		public ColumnHeader(IUIElementText @base)
+		public ColumnHeader(IContainer @base)
 			:
 			base(@base)
 		{
 			ColumnIndex = (@base as IColumnHeader)?.ColumnIndex;
-			SortDirection = (@base as IColumnHeader)?.SortDirection;
 		}
 	}
 
