@@ -26,6 +26,10 @@ namespace Sanderling.Interface.MemoryStruct
 		int? SquadronNumber { get; }
 
 		ISquadronHealth Health { get; }
+
+		bool? IsSelected { get; }
+
+		string Hint { get; }
 	}
 
 	public interface ISquadronHealth
@@ -38,6 +42,8 @@ namespace Sanderling.Interface.MemoryStruct
 	public interface ISquadronAbilityIcon : IUIElement
 	{
 		int? Quantity { get; }
+
+		bool? RampActive { get; }
 	}
 
 	public class SquadronsUI : Container, ISquadronsUI
@@ -84,6 +90,10 @@ namespace Sanderling.Interface.MemoryStruct
 
 		public ISquadronHealth Health { set; get; }
 
+		public bool? IsSelected { set; get; }
+
+		public string Hint { set; get; }
+
 		public SquadronContainer()
 		{
 		}
@@ -105,6 +115,8 @@ namespace Sanderling.Interface.MemoryStruct
 	public class SquadronAbilityIcon : UIElement, ISquadronAbilityIcon
 	{
 		public int? Quantity { set; get; }
+
+		public bool? RampActive { set; get; }
 
 		public SquadronAbilityIcon()
 		{
