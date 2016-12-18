@@ -24,10 +24,10 @@ Download the latest release from the [release section](https://github.com/Arcite
 The source code uses C# 6 features. It is recommended to use [Visual Studio](https://www.visualstudio.com/) version 2015 or newer for building.
 
 ### Feedback
-Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/cat/eve-online).
+Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/c/botting/eve-online).
 
 ### Need Help?
-Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/cat/eve-online](http://forum.botengine.de/cat/eve-online).
+Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/c/botting/eve-online](http://forum.botengine.de/c/botting/eve-online).
 
 <br><br><br><br>
 
