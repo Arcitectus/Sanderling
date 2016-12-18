@@ -63,7 +63,7 @@ namespace Sanderling.Sample.Read
 
 			Console.WriteLine();
 
-			var LicenseKey = ExeConfig.ConfigLicenseKeyFree.ConsoleEditString("enter license key >");
+			var LicenseKey = ExeConfig.ConfigLicenseKeyDefault.ConsoleEditString("enter license key >");
 			var ServiceId = ExeConfig.ConfigServiceId.ConsoleEditString("enter service id >");
 
 			return new config()
