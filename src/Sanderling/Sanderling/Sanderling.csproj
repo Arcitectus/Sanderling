@@ -73,6 +73,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Process.Measurement">
+      <HintPath>..\..\..\lib\Process.Measurement.dll</HintPath>
+    </Reference>
     <Reference Include="Sanderling.Interface">
       <HintPath>..\..\..\lib.intermediate\Sanderling.Interface.dll</HintPath>
     </Reference>
@@ -196,6 +199,7 @@
     <Compile Include="Log\LogEntry.cs" />
     <Compile Include="Log\LogExtension.cs" />
     <Compile Include="MemoryReading\EveOnline.cs" />
+    <Compile Include="MemoryReading\ProcessSampleMemoryReader.cs" />
     <Compile Include="MemoryReading\Static.cs" />
     <Compile Include="MemoryReading\WinApi\Kernel32.cs" />
     <Compile Include="MemoryReading\MemoryReader.cs" />
