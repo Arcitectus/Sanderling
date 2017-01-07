@@ -195,6 +195,18 @@
     <Compile Include="Interface\MemoryMeasurementEvaluation.cs" />
     <Compile Include="Log\LogEntry.cs" />
     <Compile Include="Log\LogExtension.cs" />
+    <Compile Include="MemoryReading\EveOnline.cs" />
+    <Compile Include="MemoryReading\Static.cs" />
+    <Compile Include="MemoryReading\WinApi\Kernel32.cs" />
+    <Compile Include="MemoryReading\MemoryReader.cs" />
+    <Compile Include="MemoryReading\WindowsProcessMemoryReader.cs" />
+    <Compile Include="MemoryReading\Python\PythonMemoryReader.cs" />
+    <Compile Include="MemoryReading\Python\PyDict.cs" />
+    <Compile Include="MemoryReading\Python\PyList.cs" />
+    <Compile Include="MemoryReading\Python\PyObject.cs" />
+    <Compile Include="MemoryReading\Python\PyStr.cs" />
+    <Compile Include="MemoryReading\Python\PyType.cs" />
+    <Compile Include="MemoryReading\Python\UITreeNode.cs" />
     <Compile Include="Motor\Extension.cs" />
     <Compile Include="Motor\Motion.cs" />
     <Compile Include="Motor\MotionParamExtension.cs" />
@@ -241,6 +253,7 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
