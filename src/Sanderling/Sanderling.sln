@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.Exe", "Sanderlin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.UI", "Sanderling.UI\Sanderling.UI.csproj", "{20F1C9A1-EAA9-4160-9DBD-63DB2EF0BD35}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EveClientMemoryDump.Exe", "EveClientMemoryDump.Exe\EveClientMemoryDump.Exe.csproj", "{3F6C6FC4-E011-4288-A991-60E2049661D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{20F1C9A1-EAA9-4160-9DBD-63DB2EF0BD35}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20F1C9A1-EAA9-4160-9DBD-63DB2EF0BD35}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20F1C9A1-EAA9-4160-9DBD-63DB2EF0BD35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
