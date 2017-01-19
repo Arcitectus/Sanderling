@@ -211,9 +211,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsInput, Version=1.0.4.0, Culture=neutral, PublicKeyToken=9b287f7dc5073cad">
-      <HintPath>..\packages\InputSimulator.1.0.4.0\lib\net20\WindowsInput.dll</HintPath>
-    </Reference>
     <Reference Include="WpfAutoGrid, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\WpfAutoGrid.1.4.0.0\lib\net45\WpfAutoGrid.dll</HintPath>
       <Private>True</Private>
@@ -229,8 +226,6 @@
     <EmbeddedResource Include="sample\script\Mine.ore.cs" />
     <EmbeddedResource Include="sample\script\Travel.zorro.cs" />
     <Compile Include="Script\ToScriptGlobals.cs" />
-    <!--Compile Include="Script\Travel.cs" /-->
-    <Compile Include="Script\Wrapped.cs" />
     <Compile Include="ToScriptImport.cs" />
     <EmbeddedResource Include="sample\script\Travel.simple.cs" />
     <Page Include="MainWindow.xaml">
