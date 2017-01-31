@@ -27,6 +27,7 @@ while(Measurement?.IsDocked ?? false)
 	Host.Delay(8000);
 	Sanderling.InvalidateMeasurement();
 }
+int seemsArrived = 2;
 while(true)
 {
 	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
@@ -35,7 +36,7 @@ while(true)
 	   ShipManeuverTypeEnum.Jump == ManeuverType)
 		goto loop;	//	do nothing while warping or jumping.
 
-	if(null == RouteElementMarkerNext)
+	if(null == RouteElementMarkerNext && --seemsArrived <= 0)
 	{
 		Host.Log("no route found in info panel. We're here!");
 		break;
