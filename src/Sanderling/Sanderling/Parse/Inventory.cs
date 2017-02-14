@@ -30,6 +30,10 @@ namespace Sanderling.Parse
 		ShipCargoSpaceTypeEnum? ActiveShipSelectedCargoSpaceTypeEnum { get; }
 
 		MemoryStruct.ITreeViewEntry ItemHangarEntry { get; }
+
+		int? SelectedRightItemFilteredCount { get; }
+
+		int? SelectedRightItemDisplayedCount { get; }
 	}
 
 	public class WindowInventoryTreeViewShip : IInventoryTreeViewEntryShip
@@ -137,6 +141,12 @@ namespace Sanderling.Parse
 		public MemoryStruct.ITreeViewEntry ItemHangarEntry { set; get; }
 
 		public int? ChildLastInTreeIndex => Raw?.ChildLastInTreeIndex;
+
+		public int? SelectedRightItemFilteredCount =>
+			(Raw as MemoryStruct.WindowInventory)?.SelectedRightItemFilteredCount;
+
+		public int? SelectedRightItemDisplayedCount =>
+			(Raw as MemoryStruct.WindowInventory)?.SelectedRightItemDisplayedCount;
 
 		WindowInventory()
 		{ }
