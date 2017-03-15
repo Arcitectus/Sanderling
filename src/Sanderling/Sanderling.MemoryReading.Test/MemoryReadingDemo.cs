@@ -11,6 +11,9 @@ namespace Sanderling.MemoryReading.Test
 		[Test]
 		public void Demo_memory_reading_from_process_sample()
 		{
+			//	To obtain a process sample of the eve online client to use with this reading approach,
+			//	see the guide at http://forum.botengine.de/t/collecting-samples-for-memory-reading-development/50
+
 			var sampleFilePath =
 				Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
 				.PathToFilesysChild("Sanderling.Process.Sample")

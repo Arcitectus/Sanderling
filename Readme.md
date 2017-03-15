@@ -21,7 +21,7 @@ Download the latest release from the [release section](https://github.com/Arcite
 [Getting Started Guide](https://github.com/Arcitectus/Sanderling/wiki/Getting-Started)
 
 ### Building from source
-The source code uses C# 6 features. It is recommended to use [Visual Studio](https://www.visualstudio.com/) version 2015 or newer for building.
+The source code uses C# 7 features. It is recommended to use [Visual Studio](https://www.visualstudio.com/) version 2017 or newer for building.
 
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/c/botting/eve-online).
