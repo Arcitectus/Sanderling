@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling", "Sanderling\Sanderling.csproj", "{36F1710C-532F-47FD-88E2-5FAFB381121C}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.UI", "Sanderling.UI\Sanderling.UI.csproj", "{20F1C9A1-EAA9-4160-9DBD-63DB2EF0BD35}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EveClientMemoryDump.Exe", "EveClientMemoryDump.Exe\EveClientMemoryDump.Exe.csproj", "{3F6C6FC4-E011-4288-A991-60E2049661D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.MemoryReading", "Sanderling.MemoryReading\Sanderling.MemoryReading.csproj", "{2A04E046-2908-400A-9EFA-A49884B5D691}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.MemoryReading.Test", "Sanderling.MemoryReading.Test\Sanderling.MemoryReading.Test.csproj", "{AF1A52C8-8A98-4CFF-8280-A3B8DFC83BB7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F6C6FC4-E011-4288-A991-60E2049661D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A04E046-2908-400A-9EFA-A49884B5D691}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A04E046-2908-400A-9EFA-A49884B5D691}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A04E046-2908-400A-9EFA-A49884B5D691}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A04E046-2908-400A-9EFA-A49884B5D691}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF1A52C8-8A98-4CFF-8280-A3B8DFC83BB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF1A52C8-8A98-4CFF-8280-A3B8DFC83BB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF1A52C8-8A98-4CFF-8280-A3B8DFC83BB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF1A52C8-8A98-4CFF-8280-A3B8DFC83BB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
