@@ -140,7 +140,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			MainContainerClipperContentAst =
 				AstMainContainerClipper?.SuuceFlacMengeAstFrüheste(kandidaat =>
-					kandidaat.PyObjTypNameIsContainer() ||
+					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals(ClipperContentUIElementName, kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
