@@ -14,11 +14,11 @@ namespace Sanderling
 			FromInterfaceResponse.DeserializeFromString<FromInterfaceResponse>(
 				interfaceAppManager?.ClientRequest(FromInterfaceResponse.SerializeToString(request)));
 
-		static public bool? MeasurementInProgress(this InterfaceAppManager interfaceAppManager) =>
+		static public bool? MeasurementInProgress(this Sensor interfaceAppManager) =>
 			interfaceAppManager?.ClientRequest(new ToInterfaceRequest())?.MemoryMeasurementInProgress;
 
 		static public FromInterfaceResponse MeasurementTakeRequest(
-			this InterfaceAppManager interfaceAppManager,
+			this Sensor interfaceAppManager,
 			int processId,
 			Int64 measurementBeginTimeMinMilli)
 		{
@@ -53,13 +53,13 @@ namespace Sanderling
 		}
 
 		static public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MeasurementTake(
-			this InterfaceAppManager interfaceAppManager,
+			this Sensor interfaceAppManager,
 			int processId,
 			Int64 measurementBeginTimeMinMilli) =>
 			MeasurementTakeRequest(interfaceAppManager, processId, measurementBeginTimeMinMilli)?.MemoryMeasurement;
 
 		static public FromInterfaceResponse MeasurementTakeNewRequest(
-			this InterfaceAppManager interfaceAppManager,
+			this Sensor interfaceAppManager,
 			int processId) =>
 			MeasurementTakeRequest(interfaceAppManager, processId, Bib3.Glob.StopwatchZaitMiliSictInt());
 	}

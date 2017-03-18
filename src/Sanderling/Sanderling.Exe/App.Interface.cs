@@ -28,6 +28,8 @@ namespace Sanderling.Exe
 			InterfaceAppDomainSetupTypeLoadFromMainModule = true,
 		};
 
+		readonly Sensor sensor = new Sensor();
+
 		readonly object LicenseClientLock = new object();
 
 		LicenseClient LicenseClient => SensorServerDispatcher?.LicenseClient;
@@ -144,7 +146,7 @@ namespace Sanderling.Exe
 
 		void MeasurementMemoryTake(int processId, Int64 measurementBeginTimeMinMilli)
 		{
-			var MeasurementRaw = SensorServerDispatcher.InterfaceAppManager.MeasurementTake(processId, measurementBeginTimeMinMilli);
+			var MeasurementRaw = sensor.MeasurementTake(processId, measurementBeginTimeMinMilli);
 
 			if (null == MeasurementRaw)
 				return;
