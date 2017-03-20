@@ -22,11 +22,11 @@ using Parse = Sanderling.Parse;
 
 //	Bookmarks of places to mine. Add additional bookmarks separated by comma.
 string[] SetMiningSiteBookmark = new[] {
-	"mining_site_bookmark_name",
+	"Asteroid Belts",
 	};
 
 //	Bookmark of location where ore should be unloaded.
-string UnloadBookmark = "station_or_POS_bookmark_name";
+string UnloadBookmark = "home";
 
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
@@ -38,16 +38,19 @@ bool UnloadInSpace = false;
 string RetreatBookmark = UnloadBookmark;
 
 //	The bot loads this preset to the active tab. 
-string OverviewPreset = null;
+string OverviewPreset = "b";
 
 var ActivateHardener = true; // activate shield hardener.
 
 //	bot will start fighting (and stop mining) when hitpoints are lower. 
-var DefenseEnterHitpointThresholdPercent = 85;
-var DefenseExitHitpointThresholdPercent = 90;
+var DefenseEnterHitpointThresholdPercent = 95;
+var DefenseExitHitpointThresholdPercent = 100;
 
-var EmergencyWarpOutHitpointPercent = 60;
+var EmergencyWarpOutHitpointPercent = 25;
+var EmergencyWarpOutHitpointPercentArmor = 60;
 
+var i =0;
+var te = 0;
 var FightAllRats = false;	//	when this is set to true, the bot will attack rats independent of shield hp.
 
 var EnterOffloadOreHoldFillPercent = 95;	//	percentage of ore hold fill level at which to enter the offload process.
@@ -63,13 +66,16 @@ Func<object> NextActivity = MainStep;
 
 for(;;)
 {
+loopsa:
 	MemoryUpdate();
+	
 
 	Host.Log(
 		"ore hold fill: " + OreHoldFillPercent + "%" +
 		", mining range: " + MiningRange +
 		", mining modules (inactive): " + SetModuleMiner?.Length + "(" + SetModuleMinerInactive?.Length + ")" +
 		", shield.hp: " + ShieldHpPercent + "%" +
+		", Armor.hp: " + ShieldApPercent + "%" +
 		", retreat: " + RetreatReason + 
 		", JLA: " + JammedLastAge +
 		", overview.rats: " + ListRatOverviewEntry?.Length +
@@ -81,14 +87,78 @@ for(;;)
 
 	if(0 < RetreatReason?.Length && !(Measurement?.IsDocked ?? false))
 	{
+	DroneEnsureInBay();
 		InitiateDockToOrWarpToBookmark(RetreatBookmark);
 		continue;
 	}
+	loops1:
+	MemoryUpdate();
+	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
+	if(ShipManeuverTypeEnum.Warp == ManeuverType	||
+		ShipManeuverTypeEnum.Jump == ManeuverType)
+		{
+		Host.Log("Wait Finish");
+		Host.Delay(5000);
+		te =0;
+		goto loops1;
+		}
+		
+
+	
+
+	//	from the set of route element markers in the Info Panel pick the one that represents the next Waypoint/System.
+	//	We assume this is the one which is nearest to the topleft corner of the Screen which is at (0,0)
+	
+
+var RouteElementMarkerNext =
+		Measurement?.InfoPanelRoute?.RouteElementMarker
+		?.OrderByCenterDistanceToPoint(new Vektor2DInt(0, 0))?.FirstOrDefault();
+	if(null != RouteElementMarkerNext && te < 9)
+	{
+		
+		Undock();
+	
+	
+	//	rightclick the marker to open the contextmenu.
+	Sanderling.MouseClickRight(RouteElementMarkerNext);
+
+	//	retrieve a new measurement.
+	
+	//	from the first menu, pick the first entry that contains "dock" or "jump".
+	var MenuEntry =
+		Measurement?.Menu?.FirstOrDefault()
+		?.Entry?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase("dock|jump"));
+	
+	if(null == MenuEntry)
+	{
+		Host.Log("no suitable menu entry found.");
+		te = te + 1;
+		Host.Delay(100);
+		goto loops1;
+		
+	}
+      te=0;
+	Host.Log("menu entry found. clicking to initiate warp.");
+	Sanderling.MouseClickLeft(MenuEntry);
+
+
+	//	wait for four seconds before repeating.
+	Host.Delay(1000);
+	
+	//	make sure new measurement will be taken.
+	Sanderling.InvalidateMeasurement(); 
+	goto loopsa;
+	
+	}
+	
+	
 
 	NextActivity = NextActivity?.Invoke() as Func<object>;
 
 	if(BotStopActivity == NextActivity)
 		break;
+		
+		
 	
 	if(null == NextActivity)
 		NextActivity = MainStep;
@@ -101,6 +171,7 @@ long? JammedLastAge => Jammed ? 0 : (Host.GetTimeContinuousMilli() - JammedLastT
 
 int?	ShieldHpPercent => ShipUi?.HitpointsAndEnergy?.Shield / 10;
 
+ int?ShieldApPercent =>ShipUi?.HitpointsAndEnergy?.Armor /10;
 bool	DefenseExit =>
 	(Measurement?.IsDocked ?? false) ||
 	!(0 < ListRatOverviewEntry?.Length)	||
@@ -121,6 +192,32 @@ int? LastCheckOreHoldFillPercent = null;
 
 int OffloadCount = 0;
 
+Func<object>	Heal()
+{
+
+
+var inventoryActiveShip = WindowInventory?.ActiveShipEntry;
+
+
+ClickMenuEntryOnMenuRoot(inventoryActiveShip,@"get\s*repair\s*quote");
+Host.Delay(2000);
+		
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(1000);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(1000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Log("repair finish");
+		NextActivity = MainStep;
+		RetreatReasonPermanent=null;
+return MainStep;
+}
 Func<object>	MainStep()
 {
 	if(Measurement?.IsDocked ?? false)
@@ -128,7 +225,7 @@ Func<object>	MainStep()
 		InInventoryUnloadItems();
 
 		if (0 < RetreatReasonPermanent?.Length)
-			return BotStopActivity;
+			return Heal;
 
 		if (0 < RetreatReason?.Length)
 			return MainStep;
@@ -205,7 +302,7 @@ void DroneLaunch()
 
 void DroneEnsureInBay()
 {
-	if(0 == DronesInSpaceCount)
+	if(0 < DronesInSpaceCount)
 		return;
 
 	DroneReturnToBay();
@@ -222,13 +319,46 @@ void DroneReturnToBay()
 
 Func<object>	DefenseStep()
 {
+MemoryUpdate();
+	
 	if(DefenseExit)
 	{
+	var	SubsetModuleHardenero =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsShieldBooster ?? true);
+
+
+
+	foreach (var Module in SubsetModuleHardenero.EmptyIfNull())
+		ModuleToggle(Module);
+		
+		var	SubsetModuleHardeneroa2 =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsWeapon ?? true);
+
+if(SubsetModuleHardeneroa2 != null)
+		{
+		foreach (var Module in SubsetModuleHardeneroa2.EmptyIfNull())
+		ModuleToggle(Module);
+		}
+
 		Host.Log("exit defense.");
 		return null;
 	}
+	
+	
+	var	SubsetModuleHardener =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsShieldBooster ?? true);
 
-	if (!(0 < DronesInSpaceCount))
+	var	SubsetModuleToToggle =
+		SubsetModuleHardener
+		?.Where(module => !(module?.RampActive ?? true));
+
+	foreach (var Module in SubsetModuleToToggle.EmptyIfNull())
+		ModuleToggle(Module);
+
+	if (!(0 > DronesInSpaceCount))
 		DroneLaunch();
 
 	EnsureOverviewTypeSelectionLoaded();
@@ -243,11 +373,20 @@ Func<object>	DefenseStep()
 	
 	var RatTargetNext = SetRatTarget?.OrderBy(target => target?.DistanceMax ?? int.MaxValue)?.FirstOrDefault();
 	
-	if(null == RatTargetNext)
+	if(null == RatTargetNext )
 	{
 		Host.Log("no rat targeted.");
 		Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
 		Sanderling.MouseClickLeft(MenuEntryLockTarget);
+	
+			var	SubsetModuleHardeneroa =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsWeapon ?? true);
+		if(SubsetModuleHardeneroa != null)
+		{
+			Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
+		ClickMenuEntryOnMenuRoot(RatTargetNext, "approach");
+		}
 	}
 	else
 	{
@@ -255,6 +394,19 @@ Func<object>	DefenseStep()
 		Sanderling.MouseClickLeft(RatTargetNext);
 		Sanderling.MouseClickRight(DronesInSpaceListEntry);
 		Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("engage", RegexOptions.IgnoreCase));
+		var	SubsetModuleHardeneroa =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsWeapon ?? true);
+
+	var	SubsetModuleToToggleoa =
+		SubsetModuleHardeneroa
+		?.Where(module => !(module?.RampActive ?? false));
+if(SubsetModuleHardeneroa != null)
+		{
+		foreach (var Module in SubsetModuleToToggleoa.EmptyIfNull())
+		ModuleToggle(Module);
+		}
+	
 	}
 	
 	return DefenseStep;
@@ -262,9 +414,24 @@ Func<object>	DefenseStep()
 
 Func<object> InBeltMineStep()
 {
+var loop = 0;
+
 	if (DefenseEnter)
 	{
+	
+			
+	var asteroidOverviewEntryNextNotTargeteda = ListAsteroidOverviewEntry?.FirstOrDefault(entry => !((entry?.MeTargeted ?? false) || (entry?.MeTargeting ?? false)));
+
+		var asteroidOverviewEntryNexatq = ListAsteroidOverviewEntry?.FirstOrDefault();
+		Host.Delay(1000);
+		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNexatq, "^unlock");
+		Host.Delay(1000);
+		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNextNotTargeteda, "^unlock");
+		
+		
+	
 		Host.Log("enter defense.");
+		 i = 0;
 		return DefenseStep;
 	}
 
@@ -279,10 +446,40 @@ Func<object> InBeltMineStep()
 
 	if (null == moduleMinerInactive)
 	{
+	
+	var MenuEntrya =
+		Measurement?.ShipUi?.Indication?.LabelText?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase("APPROACHING|WARP"));
+		var stop =
+		Measurement?.ShipUi?.ButtonSpeed0;
+			
+	if(null != MenuEntrya)
+	{
+	
+		var	SubsetModuleHardenerr=
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsAfterburner ?? true);
+
+
+
+	foreach (var Module in SubsetModuleHardenerr.EmptyIfNull())
+		ModuleToggle(Module);
+	Host.Delay(1000);
+	Sanderling.MouseClickLeft(stop);
+	Host.Delay(7777);
+		return InBeltMineStep;
+	}
 		Host.Delay(7777);
 		return InBeltMineStep;
 	}
-	
+	loopm1:
+	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
+if(ShipManeuverTypeEnum.Warp == ManeuverType	||
+		ShipManeuverTypeEnum.Jump == ManeuverType)
+		{
+		Host.Log("Wait Finish");
+		Host.Delay(2000);
+		goto loopm1;
+		}
 	var	setTargetAsteroidInRange	=
 		SetTargetAsteroid?.Where(target => target?.DistanceMax <= MiningRange)?.ToArray();
 
@@ -290,7 +487,7 @@ Func<object> InBeltMineStep()
 		setTargetAsteroidInRange?.Where(target => !(0 < target?.Assigned?.Length))?.ToArray();
 
 	Host.Log("targeted asteroids in range (without assignment): " + setTargetAsteroidInRange?.Length + " (" + setTargetAsteroidInRangeNotAssigned?.Length + ")");
-
+	 i = i+1 ;
 	if(0 < setTargetAsteroidInRangeNotAssigned?.Length)
 	{
 		var targetAsteroidInputFocus	=
@@ -300,7 +497,7 @@ Func<object> InBeltMineStep()
 			Sanderling.MouseClickLeft(setTargetAsteroidInRangeNotAssigned?.FirstOrDefault());
 
 		ModuleToggle(moduleMinerInactive);
-
+		
 		return InBeltMineStep;
 	}
 
@@ -312,15 +509,24 @@ Func<object> InBeltMineStep()
 
 	if(null == asteroidOverviewEntryNext)
 	{
-		Host.Log("no asteroid available");
+	
+	if(ShipManeuverTypeEnum.Warp == ManeuverType	||
+		ShipManeuverTypeEnum.Jump == ManeuverType)
+		{
+		Host.Log("Wait Finish");
+		Host.Delay(2000);
+		goto loopm1;
+		}
 		return null;
 	}
 
 	if(null == asteroidOverviewEntryNextNotTargeted)
 	{
 		Host.Log("all asteroids targeted");
+		loop= 0;
 		return null;
 	}
+	
 
 	if (!(asteroidOverviewEntryNextNotTargeted.DistanceMax < MiningRange))
 	{
@@ -329,12 +535,58 @@ Func<object> InBeltMineStep()
 			Host.Log("distance between asteroids too large");
 			return null;
 		}
-
+ 		if(loop ==0){
+ 		loop = loop +1;
 		Host.Log("out of range, approaching");
 		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNext, "approach");
+		Host.Delay(2000);
+		var	a =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsAfterburner ?? true);
+
+	var	z =
+		a
+		?.Where(module => !(module?.RampActive ?? true));
+
+	foreach (var Module in z.EmptyIfNull())
+		ModuleToggle(Module);
+		}
+		var MenuEntry =
+		Measurement?.ShipUi?.Indication?.LabelText?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase("APPROACHING|WARP"));
+		if(0 < RetreatReason?.Length && !(Measurement?.IsDocked ?? false))
+		{
+		InitiateDockToOrWarpToBookmark(RetreatBookmark);
+		MenuEntry = null;
+		}
+	if(null != MenuEntry)
+	{
+		Host.Log("Wait For Finish.");
+		Host.Delay(2000);
+		MemoryUpdate();
+		goto loopm1;
+	}
 	}
 	else
 	{
+		var MenuEntry =
+		Measurement?.ShipUi?.Indication?.LabelText?.FirstOrDefault(candidate => candidate.Text.RegexMatchSuccessIgnoreCase("APPROACHING|WARP"));
+	
+	var stop =
+		Measurement?.ShipUi?.ButtonSpeed0;
+	if(null != MenuEntry)
+	{
+		Host.Log("ActionFinish.");
+		var	SubsetModuleHardenere =
+		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
+		?.Where(module => module?.TooltipLast?.Value?.IsAfterburner ?? true);
+
+
+
+	foreach (var Module in SubsetModuleHardenere.EmptyIfNull())
+		ModuleToggle(Module);
+		Host.Delay(2000);
+			Sanderling.MouseClickLeft(stop);
+	}
 		Host.Log("initiate lock asteroid");
 		ClickMenuEntryOnMenuRoot(asteroidOverviewEntryNextNotTargeted, "^lock");
 	}
@@ -359,6 +611,9 @@ bool Jammed => ShipUi?.EWarElement?.Any(EwarElement => (EwarElement?.EWarType).R
 
 Sanderling.Interface.MemoryStruct.IMenuEntry MenuEntryLockTarget =>
 	Menu?.FirstOrDefault()?.Entry?.FirstOrDefault(entry => entry.Text.RegexMatchSuccessIgnoreCase("^lock"));
+	Sanderling.Interface.MemoryStruct.IMenuEntry MenuEntryorbitTarget =>
+	Menu?.FirstOrDefault()?.Entry?.FirstOrDefault(entry => entry.Text.RegexMatchSuccessIgnoreCase("approach"));
+
 
 Sanderling.Parse.IWindowOverview	WindowOverview	=>
 	Measurement?.WindowOverview?.FirstOrDefault();
@@ -368,9 +623,15 @@ Sanderling.Parse.IWindowInventory	WindowInventory	=>
 
 IWindowDroneView	WindowDrones	=>
 	Measurement?.WindowDroneView?.FirstOrDefault();
+IWindowStation	WindowStation	=>
+	Measurement?.WindowStation?.FirstOrDefault();
 
 ITreeViewEntry InventoryActiveShipOreHold =>
 	WindowInventory?.ActiveShipEntry?.TreeEntryFromCargoSpaceType(ShipCargoSpaceTypeEnum.OreHold);
+	
+ITreeViewEntry InventoryActiveShipgeneralHold =>
+	WindowInventory?.ActiveShipEntry?.TreeEntryFromCargoSpaceType(ShipCargoSpaceTypeEnum.General);
+	
 
 IInventoryCapacityGauge OreHoldCapacityMilli =>
 	(InventoryActiveShipOreHold?.IsSelected ?? false) ? WindowInventory?.SelectedRightInventoryCapacityMilli : null;
@@ -414,12 +675,18 @@ bool ReadyForManeuver => !ReadyForManeuverNot && !(Measurement?.IsDocked ?? true
 Sanderling.Parse.IShipUiTarget[] SetTargetAsteroid =>
 	Measurement?.Target?.Where(target =>
 		target?.TextRow?.Any(textRow => textRow.RegexMatchSuccessIgnoreCase("asteroid")) ?? false)?.ToArray();
+		
 
 Sanderling.Interface.MemoryStruct.IListEntry	WindowInventoryItem	=>
 	WindowInventory?.SelectedRightInventory?.ListView?.Entry?.FirstOrDefault();
 
 Sanderling.Accumulation.IShipUiModule[] SetModuleMiner =>
 	Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule?.Where(module => module?.TooltipLast?.Value?.IsMiner ?? false)?.ToArray();
+Sanderling.Accumulation.IShipUiModule[] SetModulebooster =>
+	Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule?.Where(module => module?.TooltipLast?.Value?.IsAfterburner ?? false)?.ToArray();
+	
+Sanderling.Accumulation.IShipUiModule[] SetModuleBoosteractif =>
+	SetModuleMiner?.Where(module => (module?.RampActive ?? false))?.ToArray();
 
 Sanderling.Accumulation.IShipUiModule[] SetModuleMinerInactive	 =>
 	SetModuleMiner?.Where(module => !(module?.RampActive ?? false))?.ToArray();
@@ -427,13 +694,16 @@ Sanderling.Accumulation.IShipUiModule[] SetModuleMinerInactive	 =>
 int?	MiningRange => SetModuleMiner?.Select(module =>
 	module?.TooltipLast?.Value?.RangeOptimal ?? module?.TooltipLast?.Value?.RangeMax ?? module?.TooltipLast?.Value?.RangeWithin ?? 0)?.DefaultIfEmpty(0)?.Min();;
 
+
+
 WindowChatChannel chatLocal =>
 	 Sanderling.MemoryMeasurementParsed?.Value?.WindowChatChannel
 	 ?.FirstOrDefault(windowChat => windowChat?.Caption?.RegexMatchSuccessIgnoreCase("local") ?? false);
+	 
 
 //    assuming that own character is always visible in local
 bool hostileOrNeutralsInLocal => 1 != chatLocal?.ParticipantView?.Entry?.Count(IsNeutralOrEnemy);
-
+var ok = false;
 //	extract the ore type from the name as seen in overview. "Asteroid (Plagioclase)"
 string OreTypeFromAsteroidName(string AsteroidName)	=>
 	AsteroidName.ValueFromRegexMatchGroupAtIndex(@"Asteroid \(([^\)]+)", 0);
@@ -471,6 +741,26 @@ void EnsureWindowInventoryOpenOreHold()
 		Sanderling.MouseClickLeft(InventoryActiveShipOreHold);
 }
 
+void EnsureWindowInventoryOpengeneraleHold(string s )
+{
+	EnsureWindowInventoryOpen();
+	var DestinationContainerLabelRegexPatterna =
+			InventoryContainerLabelRegexPatternFromContainerName(s);
+
+		var DestinationContainera =
+			WindowInventory?.LeftTreeListEntry?.SelectMany(entry => new[] { entry }.Concat(entry.EnumerateChildNodeTransitive()))
+			?.FirstOrDefault(entry => entry?.Text?.RegexMatchSuccessIgnoreCase(DestinationContainerLabelRegexPatterna) ?? false);
+
+	var inventoryActiveShip = WindowInventory?.ActiveShipEntry;
+
+	if( InventoryActiveShipgeneralHold == null && !(inventoryActiveShip?.IsExpanded ?? false))
+		Sanderling.MouseClickLeft(inventoryActiveShip?.ExpandToggleButton);
+
+	if(!(InventoryActiveShipgeneralHold?.IsSelected ?? false))
+		Sanderling.MouseClickLeft(DestinationContainera);
+		ok = true;
+}
+
 //	sample label text: Intensive Reprocessing Array <color=#66FFFFFF>1,123 m</color>
 string InventoryContainerLabelRegexPatternFromContainerName(string containerName) =>
 	@"^\s*" + Regex.Escape(containerName) + @"\s*($|\<)";
@@ -506,14 +796,91 @@ void InInventoryUnloadItemsTo(string DestinationContainerName)
 			Host.Log("error: Inventory entry labeled '" + DestinationContainerName + "' not found");
 
 		Sanderling.MouseDragAndDrop(oreHoldItem, DestinationContainer);
+		ok = true;
 	}
-}
+	EnsureWindowInventoryOpengeneraleHold(DestinationContainerName);
+	for (;;)
+	{
+		var oreHoldListItem = WindowInventory?.SelectedRightInventory?.ListView?.Entry?.ToArray();
+
+		var oreHoldItem = oreHoldListItem?.FirstOrDefault();
+
+		if(null == oreHoldItem)
+			break;    //    0 items in OreHold
+
+		if(1 < oreHoldListItem?.Length)
+			{ClickMenuEntryOnMenuRoot(oreHoldItem, @"select\s*all");
+
+		
+			Host.Log("try sell item");
+
+		ClickMenuEntryOnMenuRoot(oreHoldItem, @"sell\s*items|sell\s*this\s*item");
+		Host.Delay(5000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(2000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(1000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		ok = false;
+		}
+			if(1 == oreHoldListItem?.Length)
+			{
+
+		
+			Host.Log("try sell item");
+
+		ClickMenuEntryOnMenuRoot(oreHoldItem, @"sell\s*items|sell\s*this\s*item");
+		Host.Delay(5000);
+		
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(1000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		Host.Delay(1000);
+		Sanderling.KeyboardPress(VirtualKeyCode.TAB);
+		Host.Delay(500);
+		Sanderling.KeyboardPress(VirtualKeyCode.RETURN);
+		ok = false;
+		}
+		
+		
+		ok = false;
+	}
+	}
+
+
 
 bool InitiateWarpToRandomMiningSite()	=>
 	InitiateDockToOrWarpToBookmark(RandomElement(SetMiningSiteBookmark));
 
 bool InitiateDockToOrWarpToBookmark(string bookmarkOrFolder)
 {
+	loopr1:
+	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
+	if(ShipManeuverTypeEnum.Warp == ManeuverType	||
+		ShipManeuverTypeEnum.Jump == ManeuverType)
+		{
+		Host.Log("Wait Finish");
+		Host.Delay(3000);
+		goto loopr1;
+		}
 	Host.Log("dock to or warp to bookmark or random bookmark in folder: '" + bookmarkOrFolder + "'");
 	
 	var listSurroundingsButton = Measurement?.InfoPanelCurrentSystem?.ListSurroundingsButton;
@@ -540,6 +907,11 @@ bool InitiateDockToOrWarpToBookmark(string bookmarkOrFolder)
 		var approachEntry = menu?.EntryFirstMatchingRegexPattern(@"approach", RegexOptions.IgnoreCase);
 
 		var maneuverMenuEntry = dockMenuEntry ?? warpMenuEntry;
+	
+
+	Host.Delay(100);
+	Sanderling.InvalidateMeasurement();
+
 
 		if (null != maneuverMenuEntry)
 		{
@@ -652,6 +1024,7 @@ void EnsureOverviewTypeSelectionLoaded()
 void MemoryUpdate()
 {
 	RetreatUpdate();
+	RetreatUpdate1();
 	JammedLastTimeUpdate();
 	OffloadCountUpdate();
 }
@@ -665,22 +1038,45 @@ void JammedLastTimeUpdate()
 bool MeasurementEmergencyWarpOutEnter =>
 	!(Measurement?.IsDocked ?? false) && !(EmergencyWarpOutHitpointPercent < ShieldHpPercent);
 
+bool MeasurementEmergencyWarpOutEntera =>
+	!(Measurement?.IsDocked ?? false) && !(EmergencyWarpOutHitpointPercentArmor < ShieldApPercent);
 void RetreatUpdate()
 {
 	RetreatReasonTemporary = (RetreatOnNeutralOrHostileInLocal && hostileOrNeutralsInLocal)	? "hostile or neutral in local" : null;
-
+	
 	if (!MeasurementEmergencyWarpOutEnter)
 		return;
 
 	//	measure multiple times to avoid being scared off by noise from a single measurement. 
 	Sanderling.InvalidateMeasurement();
-
 	if (!MeasurementEmergencyWarpOutEnter)
 		return;
-
+		
 	RetreatReasonPermanent = "shield hp";
+	
+	
+
+	
 }
 
+void RetreatUpdate1()
+{
+	RetreatReasonTemporary = (RetreatOnNeutralOrHostileInLocal && hostileOrNeutralsInLocal)	? "hostile or neutral in local" : null;
+	
+	
+	
+	if (!MeasurementEmergencyWarpOutEntera)
+		return;
+
+	//	measure multiple times to avoid being scared off by noise from a single measurement. 
+	Sanderling.InvalidateMeasurement();
+	if (!MeasurementEmergencyWarpOutEntera)
+		return;
+		
+		RetreatReasonPermanent = "shield hp";
+		
+	
+}
 void OffloadCountUpdate()
 {
 	var	OreHoldFillPercentSynced	= OreHoldFillPercent;
