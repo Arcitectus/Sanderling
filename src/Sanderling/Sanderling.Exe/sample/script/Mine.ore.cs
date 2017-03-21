@@ -38,7 +38,7 @@ bool UnloadInSpace = false;
 string RetreatBookmark = UnloadBookmark;
 
 //	The bot loads this preset to the active tab. 
-string OverviewPreset = "b";
+string OverviewPreset = "c";
 
 var ActivateHardener = true; // activate shield hardener.
 
@@ -181,7 +181,9 @@ bool	DefenseExit =>
 	(Measurement?.IsDocked ?? false) ||
 	!(0 < ListRatOverviewEntry?.Length)	||
 	(DefenseExitHitpointThresholdPercent < ShieldHpPercent && !(JammedLastAge < 40) &&
-	!(FightAllRats && 0 < ListRatOverviewEntry?.Length && ListRatOverviewEntry?.Length == 0));
+	!(FightAllRats && 0 < ListRatOverviewEntry?.Length && ListRatOverviewEntry?.Length == 0 )) ||
+	(DefenseExitHitpointThresholdPercent < ShieldHpPercent && !(JammedLastAge < 40) &&
+	!(FightAllRats && 0 < ListRatOverviewEntry?.Length && ListRatOverviewEntry?.Length > 0 ));
 
 bool	DefenseEnter =>
 	!DefenseExit	||
@@ -323,8 +325,8 @@ void DroneReturnToBay()
 	Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("return.*bay", RegexOptions.IgnoreCase));
 	
 	Host.Delay(5000);
-		if(!(0== DronesInSpaceCount))
-		DroneEnsureInBay();
+		if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
+		return;
 
 }
 
