@@ -36,9 +36,9 @@ bool UnloadInSpace = false;
 
 //	Bookmark of place to retreat to to prevent ship loss.
 string RetreatBookmark = UnloadBookmark;
-
+string moneyn;
 //	The bot loads this preset to the active tab. 
-string OverviewPreset = "c";
+string OverviewPreset = "b";
 
 var ActivateHardener = true; // activate shield hardener.
 
@@ -46,10 +46,10 @@ var ActivateHardener = true; // activate shield hardener.
 var DefenseEnterHitpointThresholdPercent = 95;
 var DefenseExitHitpointThresholdPercent = 100;
 
-var EmergencyWarpOutHitpointPercent = 25;
-var EmergencyWarpOutHitpointPercentArmor = 60;
+var EmergencyWarpOutHitpointPercent = 40;
+var EmergencyWarpOutHitpointPercentArmor = 80;
 
-var i = 5;
+var i = 0;
 var te = 0;
 var FightAllRats = false;	//	when this is set to true, the bot will attack rats independent of shield hp.
 
@@ -66,10 +66,16 @@ Func<object> NextActivity = MainStep;
 
 for(;;)
 {
-loopsa:
-	MemoryUpdate();
-	
 
+	MemoryUpdate();
+	if (money !=null)
+	{
+	 moneyn = Regex.Replace(money, "[^0-9\\s]+", "");
+	
+	}
+
+
+  
 	Host.Log(
 		"ore hold fill: " + OreHoldFillPercent + "%" +
 		", mining range: " + MiningRange +
@@ -81,6 +87,7 @@ loopsa:
 		", overview.rats: " + ListRatOverviewEntry?.Length +
 		", overview.roids: " + ListAsteroidOverviewEntry?.Length +
 		", offload count: " + OffloadCount +
+		", Money : " + moneyn+		
 		", nextAct: " + NextActivity?.Method?.Name);
 
 	CloseModalUIElement();
@@ -134,6 +141,7 @@ var RouteElementMarkerNext =
 	{
 	if(null == MenuEntry)
 	{
+		
 		Host.Log("no suitable menu entry found.");
 		te = te + 1;
 		Host.Delay(100);
@@ -162,7 +170,9 @@ var RouteElementMarkerNext =
 
 	if(BotStopActivity == NextActivity)
 		break;
-		
+		if (0 < RetreatReasonPermanent?.Length)
+			NextActivity = Heal;
+			
 		
 	
 	if(null == NextActivity)
@@ -309,6 +319,7 @@ void DroneLaunch()
 
 void DroneEnsureInBay()
 {
+ i =0;
 	if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
 		return;
 
@@ -327,6 +338,8 @@ void DroneReturnToBay()
 	Host.Delay(5000);
 		if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
 		return;
+		
+		 
 
 }
 
@@ -336,7 +349,7 @@ MemoryUpdate();
 	
 	if(DefenseExit)
 	{
-	
+	 i = 0;
 	var	SubsetModuleHardenero =
 		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
 		?.Where(module => module?.TooltipLast?.Value?.IsShieldBooster ?? true);
@@ -402,8 +415,10 @@ if(SetModulewaepon?.Length != 0)
 			Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
 		ClickMenuEntryOnMenuRoot(RatTargetNext, "approach");
 		}
+		
+		Host.Delay(1000);
 	}
-	else
+if(null != RatTargetNext  )
 	{
 		Host.Log("rat targeted. sending drones.");
 		Sanderling.MouseClickLeft(RatTargetNext);
@@ -421,6 +436,7 @@ if(SetModulewaepon?.Length != 0)
 		foreach (var Module in SubsetModuleToToggleoa.EmptyIfNull())
 		ModuleToggle(Module);
 		}
+		i = 0;
 	
 	}
 	
@@ -429,6 +445,10 @@ if(SetModulewaepon?.Length != 0)
 
 Func<object> InBeltMineStep()
 {
+if (Measurement?.IsDocked ?? true)
+{
+	return MainStep;
+}
 var loop = 0;
  loopdef:
 	if (DefenseEnter)
@@ -508,7 +528,7 @@ if(ShipManeuverTypeEnum.Warp == ManeuverType	||
 		setTargetAsteroidInRange?.Where(target => !(0 < target?.Assigned?.Length))?.ToArray();
 
 	Host.Log("targeted asteroids in range (without assignment): " + setTargetAsteroidInRange?.Length + " (" + setTargetAsteroidInRangeNotAssigned?.Length + ")");
-	 i = i+1 ;
+	
 	if(0 < setTargetAsteroidInRangeNotAssigned?.Length)
 	{
 		var targetAsteroidInputFocus	=
@@ -675,9 +695,12 @@ Sanderling.Interface.MemoryStruct.IMenuEntry MenuEntryLockTarget =>
 	Sanderling.Interface.MemoryStruct.IMenuEntry MenuEntryorbitTarget =>
 	Menu?.FirstOrDefault()?.Entry?.FirstOrDefault(entry => entry.Text.RegexMatchSuccessIgnoreCase("approach"));
 
-
+IWindow WindowOther =>
+Measurement?.WindowOther?.FirstOrDefault();
 Sanderling.Parse.IWindowOverview	WindowOverview	=>
 	Measurement?.WindowOverview?.FirstOrDefault();
+	
+
 
 Sanderling.Parse.IWindowInventory	WindowInventory	=>
 	Measurement?.WindowInventory?.FirstOrDefault();
@@ -706,6 +729,14 @@ Tab OverviewPresetTabActive =>
 
 string OverviewTypeSelectionName =>
 	WindowOverview?.Caption?.RegexMatchIfSuccess(@"\(([^\)]*)\)")?.Groups?[1]?.Value;
+	
+string money =>
+	WindowOther?.LabelText?.FirstOrDefault(entry => entry.Text.RegexMatchSuccessIgnoreCase("\\d",RegexOptions.IgnoreCase))?.Text;
+
+  
+
+
+
 
 Parse.IOverviewEntry[] ListRatOverviewEntry => WindowOverview?.ListView?.Entry?.Where(entry =>
 		(entry?.MainIconIsRed ?? false)	&& (entry?.IsAttackingMe ?? false))
@@ -725,7 +756,11 @@ DroneViewEntryGroup DronesInBayListEntry =>
 DroneViewEntryGroup DronesInSpaceListEntry =>
 	WindowDrones?.ListView?.Entry?.OfType<DroneViewEntryGroup>()?.FirstOrDefault(Entry => null != Entry?.Caption?.Text?.RegexMatchIfSuccess(@"Drones in Local Space", RegexOptions.IgnoreCase));
 
+
+
 int?	DronesInSpaceCount => DronesInSpaceListEntry?.Caption?.Text?.AsDroneLabel()?.Status?.TryParseInt();
+
+
 
 bool ReadyForManeuverNot =>
 	Measurement?.ShipUi?.Indication?.LabelText?.Any(indicationLabel =>
@@ -936,6 +971,7 @@ bool InitiateWarpToRandomMiningSite()	=>
 bool InitiateDockToOrWarpToBookmark(string bookmarkOrFolder)
 {
  DroneEnsureInBay();
+
 	loopr1:
 	
 	var ManeuverType = Measurement?.ShipUi?.Indication?.ManeuverType;
