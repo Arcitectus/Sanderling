@@ -38,8 +38,9 @@ bool UnloadInSpace = false;
 string RetreatBookmark = UnloadBookmark;
 string moneyn;
 //	The bot loads this preset to the active tab. 
-string OverviewPreset = "b";
-
+string OverviewPreset = "b"; //default start overview
+string OverviewPresetDef = "def"; //def overview
+string OverviewPresetExitDef= "b"; //return to default overview
 var ActivateHardener = true; // activate shield hardener.
 
 //	bot will start fighting (and stop mining) when hitpoints are lower. 
@@ -50,7 +51,7 @@ var EmergencyWarpOutHitpointPercent = 40;
 var EmergencyWarpOutHitpointPercentArmor = 80;
 
 var i = 0;
-var te = 0;
+
 var FightAllRats = false;	//	when this is set to true, the bot will attack rats independent of shield hp.
 
 var EnterOffloadOreHoldFillPercent = 95;	//	percentage of ore hold fill level at which to enter the offload process.
@@ -106,7 +107,7 @@ for(;;)
 		{
 		Host.Log("Wait Finish");
 		Host.Delay(3000);
-		te =0;
+		
 		goto loops1;
 		}
 		
@@ -120,7 +121,7 @@ for(;;)
 var RouteElementMarkerNext =
 		Measurement?.InfoPanelRoute?.RouteElementMarker
 		?.OrderByCenterDistanceToPoint(new Vektor2DInt(0, 0))?.FirstOrDefault();
-	if(null != RouteElementMarkerNext && te < 9)
+	if(null != RouteElementMarkerNext )
 	{
 		
 		Undock();
@@ -143,13 +144,13 @@ var RouteElementMarkerNext =
 	{
 		
 		Host.Log("no suitable menu entry found.");
-		te = te + 1;
-		Host.Delay(100);
+		
+		Host.Delay(3000);
 		goto loops1;
 		
 	}
 	}
-      te=0;
+     
    
 	Host.Log("menu entry found. clicking to initiate warp.");
 	Sanderling.MouseClickLeft(MenuEntry);
@@ -346,10 +347,11 @@ void DroneReturnToBay()
 Func<object>	DefenseStep()
 {
 MemoryUpdate();
-	
+	OverviewPreset =  OverviewPresetDef;
 	if(DefenseExit)
 	{
 	 i = 0;
+	 OverviewPreset =  OverviewPresetExitDef;
 	var	SubsetModuleHardenero =
 		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
 		?.Where(module => module?.TooltipLast?.Value?.IsShieldBooster ?? true);
@@ -386,7 +388,7 @@ if(SetModulewaepon?.Length != 0)
 	foreach (var Module in SubsetModuleToToggle.EmptyIfNull())
 		ModuleToggle(Module);
 
-	if (0 == DronesInSpaceCount)
+	if (0 == DronesInSpaceCount && 0 != DronesInBayCount)
 		DroneLaunch();
 
 	EnsureOverviewTypeSelectionLoaded();
@@ -760,6 +762,8 @@ DroneViewEntryGroup DronesInSpaceListEntry =>
 
 int?	DronesInSpaceCount => DronesInSpaceListEntry?.Caption?.Text?.AsDroneLabel()?.Status?.TryParseInt();
 
+int?	DronesInBayCount => DronesInBayListEntry?.Caption?.Text?.AsDroneLabel()?.Status?.TryParseInt();
+
 
 
 bool ReadyForManeuverNot =>
@@ -1090,6 +1094,7 @@ void ActivateHardenerExecute()
 
 void ModuleToggle(Sanderling.Accumulation.IShipUiModule Module)
 {
+
 	var ToggleKey = Module?.TooltipLast?.Value?.ToggleKey;
 
 	Host.Log("toggle module using " + (null == ToggleKey ? "mouse" : Module?.TooltipLast?.Value?.ToggleKeyTextLabel?.Text));
