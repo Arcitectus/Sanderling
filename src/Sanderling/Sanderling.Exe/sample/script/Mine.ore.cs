@@ -388,7 +388,7 @@ if(SetModulewaepon?.Length != 0)
 	foreach (var Module in SubsetModuleToToggle.EmptyIfNull())
 		ModuleToggle(Module);
 
-	if (0 == DronesInSpaceCount && 0 != DronesInBayCount)
+	if (0 != DronesInBayCount)
 		DroneLaunch();
 
 	EnsureOverviewTypeSelectionLoaded();
