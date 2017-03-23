@@ -26,7 +26,7 @@ string[] SetMiningSiteBookmark = new[] {
 	};
 
 //	Bookmark of location where ore should be unloaded.
-string UnloadBookmark = "home";
+string UnloadBookmark = "home";//home is a custom save location of station in my system who called home
 
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
