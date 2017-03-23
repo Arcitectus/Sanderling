@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Bib3.Geometrik;
 using BotEngine.Common;
@@ -21,7 +21,9 @@ namespace Sanderling.Parse
 
 		MemoryStruct.IUIElement MarketButton { get; }
 
-	}
+        MemoryStruct.IUIElement WalletButton { get; }
+
+    }
 
 	public class Neocom : INeocom
 	{
@@ -39,7 +41,9 @@ namespace Sanderling.Parse
 
 		public MemoryStruct.IUIElement MarketButton { private set; get; }
 
-		public MemoryStruct.IUIElement EveMenuButton => Raw?.EveMenuButton;
+        public MemoryStruct.IUIElement WalletButton { private set; get; }
+
+        public MemoryStruct.IUIElement EveMenuButton => Raw?.EveMenuButton;
 
 		public MemoryStruct.IUIElement CharButton => Raw?.CharButton;
 
@@ -91,6 +95,8 @@ namespace Sanderling.Parse
 			InventoryButton = ButtonWithTexturePathMatch("items");
 
 			MarketButton = ButtonWithTexturePathMatch("market");
-		}
+
+            		WalletButton = ButtonWithTexturePathMatch("wallet");
+        }
 	}
 }
