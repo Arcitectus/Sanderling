@@ -26,13 +26,16 @@ string[] SetMiningSiteBookmark = new[] {
 	};
 
 //	Bookmark of location where ore should be unloaded.
-string UnloadBookmark = "home";//home is a custom save location of station in my system who called home
+string UnloadBookmark = "home";//home is a custom save location of station in my system who called home 
 
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
 
 //	when this is set to true, the bot will try to unload when undocked.
 bool UnloadInSpace = false;
+
+//view money amount in log and open walletwindow or not 
+bool viewmoney = true;
 
 //	Bookmark of place to retreat to to prevent ship loss.
 string RetreatBookmark = UnloadBookmark;
@@ -67,13 +70,16 @@ Func<object> NextActivity = MainStep;
 
 for(;;)
 {
-
-	MemoryUpdate();
+  
+    if ( viewmoney ==true)
+    {
+   MemoryUpdate();
 	if (money !=null)
 	{
 	 moneyn = Regex.Replace(money, "[^0-9\\s]+", "");
 	
 	}
+	
 EnsureWindowWalletOpen();
 
   
@@ -90,7 +96,24 @@ EnsureWindowWalletOpen();
 		", offload count: " + OffloadCount +
 		", Money : " + moneyn+		
 		", nextAct: " + NextActivity?.Method?.Name);
-
+}else
+    {
+   MemoryUpdate();
+	
+  
+	Host.Log(
+		"ore hold fill: " + OreHoldFillPercent + "%" +
+		", mining range: " + MiningRange +
+		", mining modules (inactive): " + SetModuleMiner?.Length + "(" + SetModuleMinerInactive?.Length + ")" +
+		", shield.hp: " + ShieldHpPercent + "%" +
+		", Armor.hp: " + ShieldApPercent + "%" +
+		", retreat: " + RetreatReason + 
+		", JLA: " + JammedLastAge +
+		", overview.rats: " + ListRatOverviewEntry?.Length +
+		", overview.roids: " + ListAsteroidOverviewEntry?.Length +
+		", offload count: " + OffloadCount +		
+		", nextAct: " + NextActivity?.Method?.Name);
+}
 	CloseModalUIElement();
 
 	if(0 < RetreatReason?.Length && !(Measurement?.IsDocked ?? false))
@@ -479,7 +502,7 @@ var loop = 0;
 	}
 
 	EnsureWindowInventoryOpenOreHold();
-	
+
 	EnsureOverviewTypeSelectionLoaded();
 
 	if(OreHoldFilledForOffload)
@@ -839,7 +862,7 @@ void EnsureWindowWalletOpen()
 	if (null != money)
 		return;
 
-	Host.Log("open wallet.");
+	Host.Log("open Wallet.");
 	Sanderling.MouseClickLeft(Measurement?.Neocom?.WalletButton);
 }
 
