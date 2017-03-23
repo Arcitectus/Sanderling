@@ -26,7 +26,7 @@ string[] SetMiningSiteBookmark = new[] {
 	};
 
 //	Bookmark of location where ore should be unloaded.
-string UnloadBookmark = "home";//home is a custom save location of station in my system who called home 
+string UnloadBookmark = "home";
 
 //	Name of the container to unload to as shown in inventory.
 string UnloadDestContainerName = "Item Hangar";
@@ -74,7 +74,7 @@ for(;;)
 	 moneyn = Regex.Replace(money, "[^0-9\\s]+", "");
 	
 	}
-
+EnsureWindowWalletOpen();
 
   
 	Host.Log(
@@ -479,7 +479,7 @@ var loop = 0;
 	}
 
 	EnsureWindowInventoryOpenOreHold();
-
+	
 	EnsureOverviewTypeSelectionLoaded();
 
 	if(OreHoldFilledForOffload)
@@ -706,6 +706,10 @@ Sanderling.Parse.IWindowOverview	WindowOverview	=>
 
 Sanderling.Parse.IWindowInventory	WindowInventory	=>
 	Measurement?.WindowInventory?.FirstOrDefault();
+	
+	
+	
+	
 
 IWindowDroneView	WindowDrones	=>
 	Measurement?.WindowDroneView?.FirstOrDefault();
@@ -829,6 +833,16 @@ void EnsureWindowInventoryOpen()
 	Host.Log("open Inventory.");
 	Sanderling.MouseClickLeft(Measurement?.Neocom?.InventoryButton);
 }
+
+void EnsureWindowWalletOpen()
+{
+	if (null != money)
+		return;
+
+	Host.Log("open wallet.");
+	Sanderling.MouseClickLeft(Measurement?.Neocom?.WalletButton);
+}
+
 
 void EnsureWindowInventoryOpenOreHold()
 {
