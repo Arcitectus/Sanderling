@@ -50,7 +50,7 @@ var DefenseExitHitpointThresholdPercent = 100;
 var EmergencyWarpOutHitpointPercent = 40;
 var EmergencyWarpOutHitpointPercentArmor = 80;
 
-var i = 0;
+
 
 var FightAllRats = false;	//	when this is set to true, the bot will attack rats independent of shield hp.
 
@@ -170,10 +170,7 @@ var RouteElementMarkerNext =
 	NextActivity = NextActivity?.Invoke() as Func<object>;
 
 	if(BotStopActivity == NextActivity)
-		break;
-		if (0 < RetreatReasonPermanent?.Length)
-			NextActivity = Heal;
-			
+		break;		
 		
 	
 	if(null == NextActivity)
@@ -320,10 +317,11 @@ void DroneLaunch()
 
 void DroneEnsureInBay()
 {
- i =0;
-	if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
-		return;
 
+	if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
+	{
+		return;
+      }
 	DroneReturnToBay();
 	
 
@@ -336,11 +334,13 @@ void DroneReturnToBay()
 	Sanderling.MouseClickRight(DronesInSpaceListEntry);
 	Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("return.*bay", RegexOptions.IgnoreCase));
 	
-	Host.Delay(5000);
+	Host.Delay(6000);
 		if(0 == DronesInSpaceCount && null != DronesInSpaceCount)
+	{
 		return;
-		
-		 
+      }else {
+      DroneEnsureInBay();
+      }
 
 }
 
@@ -350,7 +350,7 @@ MemoryUpdate();
 	OverviewPreset =  OverviewPresetDef;
 	if(DefenseExit)
 	{
-	 i = 0;
+	 
 	 OverviewPreset =  OverviewPresetExitDef;
 	var	SubsetModuleHardenero =
 		Sanderling.MemoryMeasurementAccu?.Value?.ShipUiModule
@@ -438,7 +438,7 @@ if(SetModulewaepon?.Length != 0)
 		foreach (var Module in SubsetModuleToToggleoa.EmptyIfNull())
 		ModuleToggle(Module);
 		}
-		i = 0;
+		
 	
 	}
 	
@@ -474,7 +474,7 @@ var loop = 0;
 			
 	
 		Host.Log("enter defense.");
-		 i = 0;
+		
 		return DefenseStep;
 	}
 
@@ -1179,7 +1179,7 @@ void RetreatUpdate1()
 	if (!MeasurementEmergencyWarpOutEntera)
 		return;
 		
-		RetreatReasonPermanent = "shield hp";
+		RetreatReasonPermanent = "armor hp";
 		
 	
 }
