@@ -11,49 +11,18 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsListColumnHeader
 	{
-		readonly public SictGbsAstInfoSictAuswert ColumnHeaderAst;
-
-		public SictGbsAstInfoSictAuswert LabelAst
+		static public IColumnHeader Read(UINodeInfoInTree ColumnHeaderAst)
 		{
-			private set;
-			get;
-		}
-
-		public string LabelText
-		{
-			private set;
-			get;
-		}
-
-		public bool? Sorted
-		{
-			private set;
-			get;
-		}
-
-		public IColumnHeader Ergeebnis
-		{
-			private set;
-			get;
-		}
-
-		public SictAuswertGbsListColumnHeader(SictGbsAstInfoSictAuswert columnHeaderAst)
-		{
-			this.ColumnHeaderAst = columnHeaderAst;
-		}
-
-		public void Berecne()
-		{
-			if (!(ColumnHeaderAst?.SictbarMitErbe ?? false))
-				return;
+			if (!(ColumnHeaderAst?.VisibleIncludingInheritance ?? false))
+				return null;
 
 			var container = ColumnHeaderAst?.AlsContainer(
 				treatIconAsSprite: true);
 
 			if (null == container)
-				return;
+				return null;
 
-			Ergeebnis = new ColumnHeader(container);
+			return new ColumnHeader(container);
 		}
 	}
 
@@ -68,7 +37,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	{
 		readonly public IColumnHeader[] ListeColumnHeader;
 
-		readonly public SictGbsAstInfoSictAuswert EntryAst;
+		readonly public UINodeInfoInTree EntryAst;
 
 		readonly public RectInt? RegionConstraint;
 
@@ -79,7 +48,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			return TrenungZeleTyp ?? ListEntryTrenungZeleTypEnum.InLabelTab;
 		}
 
-		public SictGbsAstInfoSictAuswert LabelAst
+		public UINodeInfoInTree LabelAst
 		{
 			private set;
 			get;
@@ -91,13 +60,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ExpanderAst
+		public UINodeInfoInTree ExpanderAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert FläceFürMenuAst
+		public UINodeInfoInTree FläceFürMenuAst
 		{
 			private set;
 			get;
@@ -203,7 +172,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				new KeyValuePair<string,bool>("res:/UI/Texture/Icons/38_16_229.png", true),
 		};
 
-		static bool? ExpanderSpriteIsExpanded(SictGbsAstInfoSictAuswert expanderSprite)
+		static bool? ExpanderSpriteIsExpanded(UINodeInfoInTree expanderSprite)
 		{
 			if (null == expanderSprite)
 				return null;
@@ -248,7 +217,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		public SictAuswertGbsListEntry(
-			SictGbsAstInfoSictAuswert entryAst,
+			UINodeInfoInTree entryAst,
 			IColumnHeader[] listeScrollHeader,
 			RectInt? regionConstraint,
 			ListEntryTrenungZeleTypEnum? trenungZeleTyp = null)
@@ -280,7 +249,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == Container)
 				return;
 
-			LabelAst = EntryAst.GröösteLabel();
+			LabelAst = EntryAst.LargestLabelInSubtree();
 
 			FläceFürMenuAst = LabelAst;
 
@@ -299,20 +268,20 @@ namespace Optimat.EveOnline.AuswertGbs
 					Regex.Match(Kandidaat.Name	?? "", "expander", RegexOptions.IgnoreCase).Success);
 			 * */
 			ExpanderAst =
-					EntryAst.SuuceFlacMengeAstFrüheste(
+					EntryAst.FirstMatchingNodeFromSubtreeBreadthFirst(
 					(kandidaat) =>
 						(AuswertGbs.Glob.GbsAstTypeIstEveIcon(kandidaat) ||
 						AuswertGbs.Glob.GbsAstTypeIstSprite(kandidaat)) &&
 						Regex.Match(kandidaat.Name ?? "", "expander", RegexOptions.IgnoreCase).Success);
 
-			IstGroup = ((null == ExpanderAst) ? null : ExpanderAst.SictbarMitErbe) ?? false;
+			IstGroup = ((null == ExpanderAst) ? null : ExpanderAst.VisibleIncludingInheritance) ?? false;
 
 			var MengeIconOderSpriteAst =
-				EntryAst.SuuceFlacMengeAst(
+				EntryAst.MatchingNodesFromSubtreeBreadthFirst(
 				(kandidaat) =>
 					(AuswertGbs.Glob.GbsAstTypeIstEveIcon(kandidaat) ||
 					Regex.Match(kandidaat.PyObjTypName ?? "", "sprite", RegexOptions.IgnoreCase).Success) &&
-					(kandidaat.SictbarMitErbe ?? false));
+					(kandidaat.VisibleIncludingInheritance ?? false));
 
 			IstItem =
 				(!MengeIconOderSpriteAst.IsNullOrEmpty() || null != LabelAst) &&
@@ -374,7 +343,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			var backgroundColorNode =
-				EntryAst?.SuuceFlacMengeAstFrüheste(node =>
+				EntryAst?.FirstMatchingNodeFromSubtreeBreadthFirst(node =>
 					(node?.PyObjTypNameMatchesRegexPatternIgnoreCase("fill") ?? false) &&
 					(node?.Name?.RegexMatchSuccessIgnoreCase("bgColor") ?? false));
 
@@ -395,7 +364,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 				ListColumnCellLabel = ListeZuHeaderZeleString,
 
-				GroupExpander = ExpanderAst?.AlsUIElementFalsUnglaicNullUndSictbar(),
+				GroupExpander = ExpanderAst?.AsUIElementIfVisible(),
 
 				IsGroup = IstGroup,
 				IsExpanded = ExpanderSpriteIsExpanded(ExpanderAst),
@@ -412,37 +381,25 @@ namespace Optimat.EveOnline.AuswertGbs
 	{
 		readonly public IAusGbsAstExtraktor EntryExtraktor;
 
-		readonly public SictGbsAstInfoSictAuswert ListAst;
+		readonly public UINodeInfoInTree ListViewNode;
 
-		readonly public Func<SictGbsAstInfoSictAuswert, IColumnHeader[], RectInt?, EntryT> CallbackListEntryConstruct;
+		readonly public Func<UINodeInfoInTree, IColumnHeader[], RectInt?, EntryT> CallbackListEntryConstruct;
 
 		readonly public ListEntryTrenungZeleTypEnum? InEntryTrenungZeleTyp;
 
-		public SictGbsAstInfoSictAuswert ScrollAst
+		public UINodeInfoInTree ScrollHeadersAst
 		{
 			private set;
 			get;
 		}
 
-		public SictAuswertGbsScroll ScrollAuswert
+		public UINodeInfoInTree ScrollClipperAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ScrollHeadersAst
-		{
-			private set;
-			get;
-		}
-
-		public SictGbsAstInfoSictAuswert ScrollClipperAst
-		{
-			private set;
-			get;
-		}
-
-		public SictGbsAstInfoSictAuswert ScrollClipperContentAst
+		public UINodeInfoInTree ScrollClipperContentNode
 		{
 			private set;
 			get;
@@ -454,7 +411,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] ListeColumnHeaderAst
+		public UINodeInfoInTree[] ListeColumnHeaderAst
 		{
 			private set;
 			get;
@@ -472,34 +429,34 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public ListViewAndControl<EntryT> Ergeebnis
+		public ListViewAndControl<EntryT> Result
 		{
 			private set;
 			get;
 		}
 
 		static public ListViewAndControl<EntryT> ReadListView(
-			SictGbsAstInfoSictAuswert listViewNode,
-			Func<SictGbsAstInfoSictAuswert, IColumnHeader[], RectInt?, EntryT> callbackListEntryConstruct,
+			UINodeInfoInTree listViewNode,
+			Func<UINodeInfoInTree, IColumnHeader[], RectInt?, EntryT> callbackListEntryConstruct,
 			ListEntryTrenungZeleTypEnum? inEntryTrenungZeleTyp = null)
 		{
 			var auswert = new SictAuswertGbsListViewport<EntryT>(listViewNode, callbackListEntryConstruct, inEntryTrenungZeleTyp);
 
-			auswert.Berecne();
+			auswert.Read();
 
-			return auswert.Ergeebnis;
+			return auswert.Result;
 		}
 
 		static public IListEntry ListEntryKonstruktSctandard(
-			SictGbsAstInfoSictAuswert gbsAst,
+			UINodeInfoInTree uiNode,
 			IColumnHeader[] header,
 			RectInt? regionConstraint,
 			ListEntryTrenungZeleTypEnum? trenungZeleTyp)
 		{
-			if (!(gbsAst?.SictbarMitErbe ?? false))
+			if (!(uiNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
-			var Auswert = new SictAuswertGbsListEntry(gbsAst, header, regionConstraint, trenungZeleTyp);
+			var Auswert = new SictAuswertGbsListEntry(uiNode, header, regionConstraint, trenungZeleTyp);
 
 			Auswert.Berecne();
 
@@ -507,69 +464,59 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public IListEntry ListEntryKonstruktSctandard(
-			SictGbsAstInfoSictAuswert gbsAst,
+			UINodeInfoInTree gbsAst,
 			IColumnHeader[] header,
 			RectInt? regionConstraint) =>
 			ListEntryKonstruktSctandard(gbsAst, header, regionConstraint, null);
 
 		public SictAuswertGbsListViewport(
-			SictGbsAstInfoSictAuswert listAst,
-			Func<SictGbsAstInfoSictAuswert, IColumnHeader[], RectInt?, EntryT> callbackListEntryConstruct,
+			UINodeInfoInTree listViewNode,
+			Func<UINodeInfoInTree, IColumnHeader[], RectInt?, EntryT> callbackListEntryConstruct,
 			ListEntryTrenungZeleTypEnum? inEntryTrenungZeleTyp = null)
 		{
-			this.ListAst = listAst;
+			this.ListViewNode = listViewNode;
 
 			this.CallbackListEntryConstruct = callbackListEntryConstruct;
 
 			this.InEntryTrenungZeleTyp = inEntryTrenungZeleTyp;
 		}
 
-		public void Berecne()
+		public void Read()
 		{
-			if (!(ListAst?.SictbarMitErbe ?? false))
+			if (!(ListViewNode?.VisibleIncludingInheritance ?? false))
 				return;
 
-			ScrollAuswert = new SictAuswertGbsScroll(ListAst);
-			ScrollAuswert.Berecne();
+			var scrollReader = new ScrollReader(ListViewNode);
+			scrollReader.Read();
 
-			var Scroll = ScrollAuswert.Ergeebnis;
+			var scroll = scrollReader.Result;
 
-			if (null == Scroll)
+			if (null == scroll)
 				return;
 
-			ListeHeader = Scroll.ColumnHeader;
+			ListeHeader = scroll.ColumnHeader;
 
 			var ListeHeaderInfo =
 				ListeHeader
 				?.Select((header, index) => new ColumnHeader(header) { ColumnIndex = index })
 				?.ToArray();
 
-			ScrollClipperContentAst = ScrollAuswert.MainContainerClipperContentAst;
+			ScrollClipperContentNode = scrollReader.ClipperContentNode;
 
-			var clipperRegion = ScrollClipperContentAst?.AlsUIElementFalsUnglaicNullUndSictbar()?.Region;
+			var clipperRegion = ScrollClipperContentNode?.AsUIElementIfVisible()?.Region;
 
-			var scrollClipperContentMengeKandidaatEntryAst =
-				ScrollClipperContentAst?.ListeChild;
-
-			var ScrollClipperContentMengeKandidaatEntryAstSictbar =
-				scrollClipperContentMengeKandidaatEntryAst
-				?.Where(kandidaatAst =>
-				(kandidaatAst?.SictbarMitErbe ?? false) &&
-				!Scroll.Clipper.Region.Intersection(kandidaatAst.AlsUIElementFalsUnglaicNullUndSictbar()?.Region ?? RectInt.Empty).IsEmpty())
-				?.ToArray();
-
-			var ListEntry =
-				scrollClipperContentMengeKandidaatEntryAst
+			var listEntry =
+				ScrollClipperContentNode?.ListChild
 				?.Select(kandidaatEntryAst => CallbackListEntryConstruct(kandidaatEntryAst, ListeHeaderInfo, clipperRegion))
 				?.WhereNotDefault()
 				?.OrderBy(entry => entry.Region.Center().B)
 				?.ToArray();
 
-			Ergeebnis = new ListViewAndControl<EntryT>(ListAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			Result = new ListViewAndControl<EntryT>(ListViewNode.AsUIElementIfVisible())
 			{
 				ColumnHeader = ListeHeader,
-				Entry = ListEntry,
-				Scroll = Scroll,
+				Entry = listEntry,
+				Scroll = scroll,
 			};
 		}
 	}

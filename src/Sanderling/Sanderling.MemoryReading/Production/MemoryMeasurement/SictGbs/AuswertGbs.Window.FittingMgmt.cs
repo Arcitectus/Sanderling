@@ -6,7 +6,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowFittingMgmt : SictAuswertGbsWindow
 	{
 		new static public WindowFittingMgmt BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -18,19 +18,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisWindowFittingMgmt;
 		}
 
-		public SictGbsAstInfoSictAuswert LeftSideAst
+		public UINodeInfoInTree LeftSideAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LeftMainPanelAst
+		public UINodeInfoInTree LeftMainPanelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LeftMainPanelScrollAst
+		public UINodeInfoInTree LeftMainPanelScrollAst
 		{
 			private set;
 			get;
@@ -42,7 +42,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowFittingMgmt(SictGbsAstInfoSictAuswert windowAst)
+		public SictAuswertGbsWindowFittingMgmt(UINodeInfoInTree windowAst)
 			:
 			base(windowAst)
 		{
@@ -56,32 +56,32 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			LeftSideAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					"leftside".EqualsIgnoreCase(kandidaat.Name),
 					2, 1);
 
 			LeftMainPanelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				LeftSideAst, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					"leftMainPanel".EqualsIgnoreCase(kandidaat.Name),
 					2, 1);
 
 			LeftMainPanelScrollAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				LeftMainPanelAst, (kandidaat) =>
 					"Scroll".EqualsIgnoreCase(kandidaat.PyObjTypName),
 					3, 1);
 
 			var FittingViewportAuswert = new SictAuswertGbsListViewport<IListEntry>(LeftMainPanelScrollAst, SictAuswertGbsListViewport<IListEntry>.ListEntryKonstruktSctandard);
 
-			FittingViewportAuswert.Berecne();
+			FittingViewportAuswert.Read();
 
 			ErgeebnisWindowFittingMgmt = new WindowFittingMgmt(base.Ergeebnis)
 			{
-				FittingView = FittingViewportAuswert?.Ergeebnis,
+				FittingView = FittingViewportAuswert?.Result,
 			};
 		}
 	}

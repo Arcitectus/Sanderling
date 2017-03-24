@@ -10,7 +10,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowRegionalMarket : SictAuswertGbsWindow
 	{
 		new static public WindowRegionalMarket BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -24,18 +24,18 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public WindowRegionalMarket ErgeebnisScpez;
 
-		public SictAuswertGbsWindowRegionalMarket(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsWindowRegionalMarket(UINodeInfoInTree windowNode)
 			:
 			base(windowNode)
 		{
 		}
 
 		static public MarketOrderEntry MarketOrderEntryKonstrukt(
-			SictGbsAstInfoSictAuswert entryAst,
+			UINodeInfoInTree entryAst,
 			IColumnHeader[] listeScrollHeader,
 			RectInt? regionConstraint)
 		{
-			if (!(entryAst?.SictbarMitErbe ?? false))
+			if (!(entryAst?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var ChildTransitive = entryAst.MengeChildAstTransitiiveHüle()?.ToArray();
@@ -62,20 +62,20 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			var ListePfaadZuEntryInQuickbar =
-				WindowNode.SuuceFlacMengeAstMitPfaad(k => Regex.Match(k.LabelText() ?? "", "iron charge L", RegexOptions.IgnoreCase).Success);
+				WindowNode.ListPathToNodeFromSubtreeBreadthFirst(k => Regex.Match(k.LabelText() ?? "", "iron charge L", RegexOptions.IgnoreCase).Success);
 
 			var ListePfaadZuEntryInDetailsSellers =
-				WindowNode.SuuceFlacMengeAstMitPfaad(k => Regex.Match(k.LabelText() ?? "", "motsu VII - Moon 6", RegexOptions.IgnoreCase).Success);
+				WindowNode.ListPathToNodeFromSubtreeBreadthFirst(k => Regex.Match(k.LabelText() ?? "", "motsu VII - Moon 6", RegexOptions.IgnoreCase).Success);
 
 			var ListePfaadZuEntryInDetailsBuyers =
-				WindowNode.SuuceFlacMengeAstMitPfaad(k => Regex.Match(k.LabelText() ?? "", "Moon 10 - CONCORD", RegexOptions.IgnoreCase).Success);
+				WindowNode.ListPathToNodeFromSubtreeBreadthFirst(k => Regex.Match(k.LabelText() ?? "", "Moon 10 - CONCORD", RegexOptions.IgnoreCase).Success);
 
 
 			var MengeTabControlAst =
-				WindowNode?.SuuceFlacMengeAst(k => Regex.Match(k.PyObjTypName ?? "", "TabGroup", RegexOptions.IgnoreCase).Success)?.ToArray();
+				WindowNode?.MatchingNodesFromSubtreeBreadthFirst(k => Regex.Match(k.PyObjTypName ?? "", "TabGroup", RegexOptions.IgnoreCase).Success)?.ToArray();
 
 			var MengeScrollAst =
-				WindowNode?.SuuceFlacMengeAst(k => k.PyObjTypNameIsScroll())?.ToArray();
+				WindowNode?.MatchingNodesFromSubtreeBreadthFirst(k => k.PyObjTypNameIsScroll())?.ToArray();
 
 			var LinxTabControlAst =
 				MengeTabControlAst
@@ -94,28 +94,28 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.FirstOrDefault();
 
 			var ReczDetailsContainerAst =
-				AstMainContainerMain?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsContainer() && Regex.Match(k.Name ?? "", "details", RegexOptions.IgnoreCase).Success);
+				AstMainContainerMain?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsContainer() && Regex.Match(k.Name ?? "", "details", RegexOptions.IgnoreCase).Success);
 
 			var ReczDetailsMarketDataContainerAst =
-				ReczDetailsContainerAst?.SuuceFlacMengeAstFrüheste(k => Regex.Match(k.PyObjTypName ?? "", "MarketData", RegexOptions.IgnoreCase).Success);
+				ReczDetailsContainerAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => Regex.Match(k.PyObjTypName ?? "", "MarketData", RegexOptions.IgnoreCase).Success);
 
 			var SellersViewportAst =
-				ReczDetailsMarketDataContainerAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsScroll() && Regex.Match(k.Name ?? "", "buy", RegexOptions.IgnoreCase).Success);
+				ReczDetailsMarketDataContainerAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsScroll() && Regex.Match(k.Name ?? "", "buy", RegexOptions.IgnoreCase).Success);
 
 			var BuyersViewportAst =
-				ReczDetailsMarketDataContainerAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsScroll() && Regex.Match(k.Name ?? "", "sell", RegexOptions.IgnoreCase).Success);
+				ReczDetailsMarketDataContainerAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsScroll() && Regex.Match(k.Name ?? "", "sell", RegexOptions.IgnoreCase).Success);
 
 			var setOrdersNode =
-				AstMainContainerMain?.SuuceFlacMengeAst(k => Regex.Match(k.PyObjTypName ?? "", "MarketOrder", RegexOptions.IgnoreCase).Success);
+				AstMainContainerMain?.MatchingNodesFromSubtreeBreadthFirst(k => Regex.Match(k.PyObjTypName ?? "", "MarketOrder", RegexOptions.IgnoreCase).Success);
 
 			var MyOrdersAst =
 				setOrdersNode?.FirstOrDefault(node => !(node?.Name?.RegexMatchSuccessIgnoreCase("corp") ?? false));
 
 			var MyOrdersSellingScrollNode =
-				MyOrdersAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsScroll() && k.NameMatchesRegexPatternIgnoreCase("sell"));
+				MyOrdersAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsScroll() && k.NameMatchesRegexPatternIgnoreCase("sell"));
 
 			var MyOrdersBuyingScrollNode =
-				MyOrdersAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsScroll() && k.NameMatchesRegexPatternIgnoreCase("buy"));
+				MyOrdersAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsScroll() && k.NameMatchesRegexPatternIgnoreCase("buy"));
 
 			var LinxTabGroupAuswert = new SictAuswertGbsTabGroup(LinxTabControlAst);
 			var ReczTabGroupAuswert = new SictAuswertGbsTabGroup(ReczTabControlAst);
@@ -124,36 +124,36 @@ namespace Optimat.EveOnline.AuswertGbs
 			ReczTabGroupAuswert.Berecne();
 
 			var QuickbarScrollAuswert = new SictAuswertGbsListViewport<IListEntry>(QuickbarViewportAst, SictAuswertGbsListViewport<IListEntry>.ListEntryKonstruktSctandard);
-			QuickbarScrollAuswert.Berecne();
+			QuickbarScrollAuswert.Read();
 
 			var DetailsMarketDataSellersScrollAuswert = new SictAuswertGbsListViewport<IListEntry>(SellersViewportAst, SictAuswertGbsWindowRegionalMarket.MarketOrderEntryKonstrukt);
 			var DetailsMarketDataBuyersScrollAuswert = new SictAuswertGbsListViewport<IListEntry>(BuyersViewportAst, SictAuswertGbsWindowRegionalMarket.MarketOrderEntryKonstrukt);
 
-			DetailsMarketDataSellersScrollAuswert.Berecne();
-			DetailsMarketDataBuyersScrollAuswert.Berecne();
+			DetailsMarketDataSellersScrollAuswert.Read();
+			DetailsMarketDataBuyersScrollAuswert.Read();
 
-			var DetailsUIElement = ReczDetailsContainerAst.AlsUIElementFalsUnglaicNullUndSictbar();
-			var MarketDataUIElement = ReczDetailsMarketDataContainerAst.AlsUIElementFalsUnglaicNullUndSictbar();
+			var DetailsUIElement = ReczDetailsContainerAst.AsUIElementIfVisible();
+			var MarketDataUIElement = ReczDetailsMarketDataContainerAst.AsUIElementIfVisible();
 
 			var MyOrdersContainer = MyOrdersAst.AlsContainer();
 
 			var MyOrdersSellingScrollAuswert = new SictAuswertGbsListViewport<IListEntry>(MyOrdersSellingScrollNode, SictAuswertGbsWindowRegionalMarket.MarketOrderEntryKonstrukt);
 			var MyOrdersBuyingScrollAuswert = new SictAuswertGbsListViewport<IListEntry>(MyOrdersBuyingScrollNode, SictAuswertGbsWindowRegionalMarket.MarketOrderEntryKonstrukt);
 
-			MyOrdersSellingScrollAuswert.Berecne();
-			MyOrdersBuyingScrollAuswert.Berecne();
+			MyOrdersSellingScrollAuswert.Read();
+			MyOrdersBuyingScrollAuswert.Read();
 
 			var SelectedItemTypeDetailsMarketData = null == MarketDataUIElement ? null : new MarketItemTypeDetailsMarketData(MarketDataUIElement)
 			{
-				SellerView = DetailsMarketDataSellersScrollAuswert?.Ergeebnis,
-				BuyerView = DetailsMarketDataBuyersScrollAuswert?.Ergeebnis,
+				SellerView = DetailsMarketDataSellersScrollAuswert?.Result,
+				BuyerView = DetailsMarketDataBuyersScrollAuswert?.Result,
 			};
 
 			var MyOrders = null == MyOrdersContainer ? null :
 				new MarketMyOrders(MyOrdersContainer)
 				{
-					SellOrderView = MyOrdersSellingScrollAuswert?.Ergeebnis,
-					BuyOrderView = MyOrdersBuyingScrollAuswert?.Ergeebnis,
+					SellOrderView = MyOrdersSellingScrollAuswert?.Result,
+					BuyOrderView = MyOrdersBuyingScrollAuswert?.Result,
 				};
 
 			var SelectedItemTypeDetails = null == DetailsUIElement ? null : new MarketItemTypeDetails(DetailsUIElement) { MarketData = SelectedItemTypeDetailsMarketData };
@@ -163,7 +163,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				LeftTabGroup = LinxTabGroupAuswert?.Ergeebnis,
 				RightTabGroup = ReczTabGroupAuswert?.Ergeebnis,
 
-				QuickbarView = QuickbarScrollAuswert?.Ergeebnis,
+				QuickbarView = QuickbarScrollAuswert?.Result,
 				SelectedItemTypeDetails = SelectedItemTypeDetails,
 
 				MyOrders = MyOrders,

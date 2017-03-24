@@ -29,14 +29,11 @@ namespace Optimat.EveOnline
 		/// <summary>
 		/// Adrese von welcer der Ast aus Ziil Proces geleese wurde.
 		/// </summary>
-		public Int64? HerkunftAdrese;
+		public Int64? PyObjAddress;
 
 		public string PyObjTypName;
 
-		/// <summary>
-		/// Berüksictigt auc von ale Parent wirkende Sictbarkait.
-		/// </summary>
-		public bool? SictbarMitErbe;
+		public bool? VisibleIncludingInheritance;
 
 		public string Name;
 
@@ -107,7 +104,7 @@ namespace Optimat.EveOnline
 
 		public float? StructureLevel;
 
-		public GbsAstInfo[] ListeChild;
+		public GbsAstInfo[] ListChild;
 
 		public GbsAstInfo[] BackgroundList;
 
@@ -165,12 +162,12 @@ namespace Optimat.EveOnline
 		public GbsAstInfo(
 			Int64? inProzesHerkunftAdrese)
 		{
-			this.HerkunftAdrese = inProzesHerkunftAdrese;
+			this.PyObjAddress = inProzesHerkunftAdrese;
 		}
 
-		virtual public IEnumerable<GbsAstInfo> ListeChildBerecne()
+		virtual public IEnumerable<GbsAstInfo> GetListChild()
 		{
-			return ListeChild;
+			return ListChild;
 		}
 
 		static public void ZuuwaisungNaacKomponente(
@@ -217,7 +214,7 @@ namespace Optimat.EveOnline
 		public IEnumerable<GbsAstInfo> MengeChildAstTransitiiveHüle(
 			int? tiifeScrankeMax = null)
 		{
-			var ListeChild = this.ListeChildBerecne();
+			var ListeChild = this.GetListChild();
 
 			if (tiifeScrankeMax <= 0)
 				return null;
@@ -260,12 +257,12 @@ namespace Optimat.EveOnline
 			if (null == ziilListe)
 				return;
 
-			var herkunftAdrese = this.HerkunftAdrese;
+			var herkunftAdrese = this.PyObjAddress;
 
 			if (herkunftAdrese.HasValue)
 				ziilListe.Add(herkunftAdrese.Value);
 
-			var listeChild = this.ListeChildBerecne();
+			var listeChild = this.GetListChild();
 
 			if (tiifeScrankeMax <= 0)
 				return;

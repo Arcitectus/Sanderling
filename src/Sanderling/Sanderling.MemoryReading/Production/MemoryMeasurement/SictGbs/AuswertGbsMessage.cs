@@ -15,9 +15,9 @@ namespace Optimat.EveOnline.AuswertGbs
 	/// </summary>
 	public class SictAuswertGbsMessage
 	{
-		readonly public SictGbsAstInfoSictAuswert AstMessage;
+		readonly public UINodeInfoInTree AstMessage;
 
-		public SictGbsAstInfoSictAuswert AstLabel
+		public UINodeInfoInTree AstLabel
 		{
 			private set;
 			get;
@@ -41,7 +41,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsMessage(SictGbsAstInfoSictAuswert AstMessage)
+		public SictAuswertGbsMessage(UINodeInfoInTree AstMessage)
 		{
 			this.AstMessage = AstMessage;
 		}
@@ -53,13 +53,13 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == AstMessage.SictbarMitErbe))
+			if (!(true == AstMessage.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			AstLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMessage, (Kandidaat) => string.Equals("Label", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
@@ -68,7 +68,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				AstLabelSetText = AstLabel.SetText;
 			}
 
-			this.Ergeebnis = new UIElementText(AstMessage.AlsUIElementFalsUnglaicNullUndSictbar()) { Text = AstLabelText };
+			this.Ergeebnis = new UIElementText(AstMessage.AsUIElementIfVisible()) { Text = AstLabelText };
 		}
 	}
 }

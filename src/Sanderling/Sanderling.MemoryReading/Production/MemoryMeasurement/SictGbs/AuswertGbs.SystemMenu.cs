@@ -6,15 +6,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsSystemMenu
 	{
-		readonly public SictGbsAstInfoSictAuswert SystemMenuAst;
+		readonly public UINodeInfoInTree SystemMenuAst;
 
-		public SictGbsAstInfoSictAuswert AstMainContainer
+		public UINodeInfoInTree AstMainContainer
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstHeaderButtonClose
+		public UINodeInfoInTree AstHeaderButtonClose
 		{
 			private set;
 			get;
@@ -26,7 +26,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsSystemMenu(SictGbsAstInfoSictAuswert systemMenuAst)
+		public SictAuswertGbsSystemMenu(UINodeInfoInTree systemMenuAst)
 		{
 			this.SystemMenuAst = systemMenuAst;
 		}
@@ -38,24 +38,24 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == SystemMenuAst)
 				return;
 
-			if (!(true == SystemMenuAst.SictbarMitErbe))
+			if (!(true == SystemMenuAst.VisibleIncludingInheritance))
 				return;
 
 			AstMainContainer =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				SystemMenuAst, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					"sysmenu".EqualsIgnoreCase(kandidaat.Name),
 					2, 1);
 
-			if (!(AstMainContainer?.SictbarMitErbe ?? false))
+			if (!(AstMainContainer?.VisibleIncludingInheritance ?? false))
 				return;
 
 			AstHeaderButtonClose =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainer, (kandidaat) =>
 					string.Equals("Icon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
-					true == kandidaat.SictbarMitErbe,
+					true == kandidaat.VisibleIncludingInheritance,
 					2, 1);
 
 			var HeaderButtonClose =

@@ -7,9 +7,9 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public	class SictAuswertGbsLayerTarget
 	{
-		readonly public SictGbsAstInfoSictAuswert LayerTargetNode;
+		readonly public UINodeInfoInTree LayerTargetNode;
 
-		public SictGbsAstInfoSictAuswert[] SetTargetNode
+		public UINodeInfoInTree[] SetTargetNode
 		{
 			private set;
 			get;
@@ -27,18 +27,18 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsLayerTarget(SictGbsAstInfoSictAuswert layerTargetNode)
+		public SictAuswertGbsLayerTarget(UINodeInfoInTree layerTargetNode)
 		{
 			this.LayerTargetNode = layerTargetNode;
 		}
 
 		public	void Berecne()
 		{
-			if (!(LayerTargetNode?.SictbarMitErbe ?? false))
+			if (!(LayerTargetNode?.VisibleIncludingInheritance ?? false))
 				return;
 
 			SetTargetNode =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				LayerTargetNode,
 				(kandidaat) => string.Equals("TargetInBar", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),	null,	4);
 

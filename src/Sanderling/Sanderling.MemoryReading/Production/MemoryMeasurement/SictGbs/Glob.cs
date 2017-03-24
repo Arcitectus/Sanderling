@@ -12,7 +12,7 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public interface IAusGbsAstExtraktor
 	{
-		IUIElement Extrakt(SictGbsAstInfoSictAuswert gbsAst);
+		IUIElement Extrakt(UINodeInfoInTree gbsAst);
 	}
 
 	static public class Glob
@@ -75,41 +75,41 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// <param name="uiNode"></param>
 		/// <returns></returns>
 		static public bool PyObjTypNameIsScroll(
-			this SictGbsAstInfoSictAuswert uiNode) =>
+			this UINodeInfoInTree uiNode) =>
 			string.Equals("BasicDynamicScroll".ToLowerInvariant(), uiNode?.PyObjTypName?.ToLowerInvariant()) ||
 			string.Equals("Scroll".ToLowerInvariant(), uiNode?.PyObjTypName?.ToLowerInvariant());
 
 		static public bool PyObjTypNameEqualsIgnoreCase(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			string typeName) =>
 			string.Equals(typeName, uiNode?.PyObjTypName, StringComparison.InvariantCultureIgnoreCase);
 
 		static public bool NameEqualsIgnoreCase(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			string name) =>
 			string.Equals(name, uiNode?.Name, StringComparison.InvariantCultureIgnoreCase);
 
 		static public bool NameMatchesRegex(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			Regex regex) =>
 			regex.Match(uiNode?.Name ?? "").Success;
 
 		static public bool NameMatchesRegexPattern(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			string regexPattern,
 			RegexOptions regexOptions = RegexOptions.None) =>
 			uiNode.NameMatchesRegex(new Regex(regexPattern, regexOptions));
 
 		static public bool NameMatchesRegexPatternIgnoreCase(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			string regexPattern,
 			RegexOptions regexOptions = RegexOptions.None) =>
 			uiNode.NameMatchesRegexPattern(regexPattern, RegexOptions.IgnoreCase | regexOptions);
 
-		static public bool GbsAstTypeIstEveIcon(SictGbsAstInfoSictAuswert uiNode) =>
+		static public bool GbsAstTypeIstEveIcon(UINodeInfoInTree uiNode) =>
 			string.Equals("icon", uiNode?.PyObjTypName, StringComparison.InvariantCultureIgnoreCase);
 
-		static public bool GbsAstTypeIstSprite(SictGbsAstInfoSictAuswert uiNode)
+		static public bool GbsAstTypeIstSprite(UINodeInfoInTree uiNode)
 		{
 			var PyObjTypName = uiNode?.PyObjTypName;
 
@@ -119,7 +119,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			return Regex.Match(PyObjTypName, "Sprite", RegexOptions.IgnoreCase).Success;
 		}
 
-		static public bool GbsAstTypeIstLabel(this SictGbsAstInfoSictAuswert node)
+		static public bool GbsAstTypeIstLabel(this UINodeInfoInTree node)
 		{
 			if (null == (node?.Text ?? node?.SetText ?? node?.LinkText))
 				return false;   //	2014.09.07	was kaine Text enthalt werd nit als Label klasifiziirt (in Raster wääre es in Scnapscus nit als Label erkenbar).
@@ -134,19 +134,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			return Match.Success;
 		}
 
-		static public bool GbsAstTypeIstEveLabel(this SictGbsAstInfoSictAuswert uiNode) =>
+		static public bool GbsAstTypeIstEveLabel(this UINodeInfoInTree uiNode) =>
 			uiNode?.PyObjTypName?.StartsWith("EveLabel", StringComparison.InvariantCultureIgnoreCase) ?? false;
 
-		static public bool GbsAstTypeIstEveCaption(SictGbsAstInfoSictAuswert gbsAst) =>
+		static public bool GbsAstTypeIstEveCaption(UINodeInfoInTree gbsAst) =>
 			gbsAst?.PyObjTypName?.StartsWith("EveCaption", StringComparison.InvariantCultureIgnoreCase) ?? false;
 
-		static public ObjectIdInt64 VonGbsAstObjektMitBezaicnerInt(SictGbsAstInfoSictAuswert gbsAst)
+		static public ObjectIdInt64 VonGbsAstObjektMitBezaicnerInt(UINodeInfoInTree gbsAst)
 		{
-			return new ObjectIdInt64(gbsAst?.HerkunftAdrese ?? -1);
+			return new ObjectIdInt64(gbsAst?.PyObjAddress ?? -1);
 		}
 
 		static public RectInt? FläceAusGbsAstInfoMitVonParentErbe(
-			SictGbsAstInfoSictAuswert gbsAstInfo)
+			UINodeInfoInTree gbsAstInfo)
 		{
 			if (null == gbsAstInfo)
 				return null;
@@ -162,78 +162,78 @@ namespace Optimat.EveOnline.AuswertGbs
 				Grööse.Value.AlsVektor2DInt());
 		}
 
-		static public KeyValuePair<Func<SictGbsAstInfoSictAuswert, Window>, string[]>[]
+		static public KeyValuePair<Func<UINodeInfoInTree, Window>, string[]>[]
 			MengeZuFunktioonWindowAuswertMengeStringWindowTypFilter =
-			new KeyValuePair<Func<SictGbsAstInfoSictAuswert, Window>, string[]>[]{
+			new KeyValuePair<Func<UINodeInfoInTree, Window>, string[]>[]{
 
-					new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+					new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 						SictAuswertGbsMessageBox.BerecneFürWindowAst,   new string[]{   "MessageBox"}),
 
-					new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+					new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 						SictAuswertGbsHybridWindow.BerecneFürWindowAst, new string[]{   "HybridWindow"}),
 
 				//	2014.07.27	Beobact verwexlung mit: "PyObjTypName": "SovereigntyOverviewWnd"
 				//	2014.10.26	Beobact verwexlung mit: "PyObjTypName":	"OverviewSettings"
 				//	2014.10.26	Beobact verwexlung mit: "PyObjTypName":	"ImportOverviewWindow"
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 						//	2014.10.26	SictAuswertGbsWindowOverview.BerecneFürWindowAst,	new	string[]{	"(?<!Sov.*)OverView"}),
 						SictAuswertGbsWindowOverview.BerecneFürWindowAst,   new string[]{   "(?<!Sov.*)(?<!Imp.*)OverView(?!.*Set)"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowSelectedItem.BerecneFürWindowAst,   new string[]{   "selecteditemview", "ActiveItem"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowInventoryPrimary.BerecneFürWindowAst,   new string[]{   "Inventory", "ShipCargo", "StationItem", "StationShip",}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowStation.BerecneFürWindowAst,   new string[]{   "Lobby"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowAgentDialogue.BerecneFürWindowAst,  new string[]{   "AgentDialogueWindow"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowStack.BerecneFürWindowAst,  new string[]{   "WindowStack"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowDroneView.BerecneFürWindowAst,  new string[]{   "DroneView"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowPeopleAndPlaces.BerecneFürWindowAst, new string[]{   "AddressBookWindow"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowSurveyScanView.BerecneFürWindowAst, new string[]{   "SurveyScanView"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowShipFitting.BerecneFürWindowAst,  new string[]{   "FittingWindow"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowFittingMgmt.BerecneFürWindowAst,    new string[]{   "FittingMgmt"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowTelecom.BerecneFürWindowAst,    new string[]{   "Telecom"}),
 
 				//	ChatWindow Stack
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowStack.BerecneFürWindowAst,    new string[]{   "LSCStack"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowChatChannel.BerecneFürWindowAst,    new string[]{   "Channel"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowRegionalMarket.BerecneFürWindowAst,    new string[]{   "RegionalMarket"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowMarketAction.BerecneFürWindowAst,    new string[]{   "MarketActionWindow"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowItemSell.BerecneFürWindowAst,    new string[]{   "SellItems"}),
 
-				new KeyValuePair<Func<SictGbsAstInfoSictAuswert,    Window>,    string[]>(
+				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowProbeScanner.BerecneFürWindowAst, new string[]{   "ProbeScannerWindow"}),
 		};
 
 		static public Window WindowBerecneScpezTypFürGbsAst(
-			SictGbsAstInfoSictAuswert kandidaatWindowNode)
+			UINodeInfoInTree kandidaatWindowNode)
 		{
 			var KandidaatPyObjTypName = kandidaatWindowNode?.PyObjTypName;
 

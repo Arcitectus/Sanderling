@@ -12,15 +12,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsAgentEntry
 	{
-		readonly public SictGbsAstInfoSictAuswert AstAgentEntry;
+		readonly public UINodeInfoInTree AstAgentEntry;
 
-		public SictGbsAstInfoSictAuswert TextContAst
+		public UINodeInfoInTree TextContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ButtonStartConversationAst
+		public UINodeInfoInTree ButtonStartConversationAst
 		{
 			private set;
 			get;
@@ -32,19 +32,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstTextContText
+		public UINodeInfoInTree AstTextContText
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] AstTextContTextMengeLabel
+		public UINodeInfoInTree[] AstTextContTextMengeLabel
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] AstTextContTextMengeLabelLinx
+		public UINodeInfoInTree[] AstTextContTextMengeLabelLinx
 		{
 			private set;
 			get;
@@ -57,7 +57,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsAgentEntry(SictGbsAstInfoSictAuswert AstAgentEntry)
+		public SictAuswertGbsAgentEntry(UINodeInfoInTree AstAgentEntry)
 		{
 			this.AstAgentEntry = AstAgentEntry;
 		}
@@ -107,33 +107,33 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == AstAgentEntry.SictbarMitErbe))
+			if (!(true == AstAgentEntry.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			TextContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstAgentEntry, (Kandidaat) => string.Equals("textCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			ButtonStartConversationAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstAgentEntry, (Kandidaat) =>
 					string.Equals("ButtonIcon", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					Regex.Match(Kandidaat.Hint ?? "", "Conversation", RegexOptions.IgnoreCase).Success,
 					2, 1);
 
 			AstTextContText =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TextContAst, (Kandidaat) => string.Equals("text", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			AstTextContTextMengeLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstTextContText, (Kandidaat) =>
 					string.Equals("EveLabelMedium", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					null, 2, 1);
 
-			StartConversationButton = ButtonStartConversationAst.AusGbsAstFalsUnglaicNull();
+			StartConversationButton = ButtonStartConversationAst.AsUIElementIfVisible();
 
 			if (null != AstTextContTextMengeLabel)
 			{
@@ -200,7 +200,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				AgentLevel = TypUndLevel.Value.Value;
 			}
 
-			var Ergeebnis = new LobbyAgentEntry(TextContAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			var Ergeebnis = new LobbyAgentEntry(TextContAst.AsUIElementIfVisible())
 			{
 				LabelText = AstAgentEntry?.ExtraktMengeLabelString()?.OrdnungLabel()?.ToArray(),
 				StartConversationButton = StartConversationButton,

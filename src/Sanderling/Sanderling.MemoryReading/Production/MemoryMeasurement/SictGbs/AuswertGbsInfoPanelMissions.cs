@@ -8,15 +8,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsInfoPanelMissionsMission
 	{
-		readonly public SictGbsAstInfoSictAuswert AstMission;
+		readonly public UINodeInfoInTree AstMission;
 
-		public SictGbsAstInfoSictAuswert AstLabel
+		public UINodeInfoInTree AstLabel
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeAstKandidaatMission
+		public UINodeInfoInTree[] MengeAstKandidaatMission
 		{
 			private set;
 			get;
@@ -28,7 +28,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsInfoPanelMissionsMission(SictGbsAstInfoSictAuswert astMission)
+		public SictAuswertGbsInfoPanelMissionsMission(UINodeInfoInTree astMission)
 		{
 			this.AstMission = astMission;
 		}
@@ -39,7 +39,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			AstLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMission, (kandidaat) => string.Equals("EveLabelMedium", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 3, 1);
 
 			if (null == AstLabel)
@@ -47,7 +47,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var AstLabelBescriftung = AstLabel.LabelText();
 
-			Ergeebnis = new UIElementText(AstMission.AlsUIElementFalsUnglaicNullUndSictbar(), AstLabelBescriftung);
+			Ergeebnis = new UIElementText(AstMission.AsUIElementIfVisible(), AstLabelBescriftung);
 
 			this.Ergeebnis = Ergeebnis;
 		}
@@ -55,7 +55,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 	public class SictAuswertGbsInfoPanelMissions : SictAuswertGbsInfoPanelGen
 	{
-		public SictGbsAstInfoSictAuswert[] MengeAstKandidaatMission
+		public UINodeInfoInTree[] MengeAstKandidaatMission
 		{
 			private set;
 			get;
@@ -73,7 +73,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsInfoPanelMissions(SictGbsAstInfoSictAuswert astInfoPanelMissions)
+		public SictAuswertGbsInfoPanelMissions(UINodeInfoInTree astInfoPanelMissions)
 			:
 			base(astInfoPanelMissions)
 		{
@@ -84,7 +84,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			base.Berecne();
 
 			MengeAstKandidaatMission =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				MainContAst, (kandidaat) => string.Equals("UtilMenu", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 2, 1);
 
 			MengeMissionAuswert =

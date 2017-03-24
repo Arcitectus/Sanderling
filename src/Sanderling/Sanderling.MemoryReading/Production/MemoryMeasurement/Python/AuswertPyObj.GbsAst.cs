@@ -114,12 +114,12 @@ namespace Optimat.EveOnline
 		{
 			DictListeEntryAnzaalScrankeMax = 0x1000;
 
-			AstInfo.HerkunftAdrese = HerkunftAdrese;
+			AstInfo.PyObjAddress = HerkunftAdrese;
 		}
 
 		public void ListeChildPropagiireNaacInfoObjekt()
 		{
-			AstInfo.ListeChild =
+			AstInfo.ListChild =
 				this.ListeChild
 				?.Select((ChildObj) => ChildObj?.AstInfo)
 				?.Reverse()

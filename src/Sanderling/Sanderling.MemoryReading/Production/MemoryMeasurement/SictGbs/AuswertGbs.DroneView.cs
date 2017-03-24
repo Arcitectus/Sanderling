@@ -11,7 +11,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowDroneView : SictAuswertGbsWindow
 	{
 		new static public WindowDroneView BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowNode)
+			UINodeInfoInTree windowNode)
 		{
 			if (null == windowNode)
 				return null;
@@ -23,7 +23,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		SictGbsAstInfoSictAuswert ListViewportAst;
+		UINodeInfoInTree ListViewportAst;
 
 		SictAuswertGbsListViewport<IListEntry> ListViewportAuswert;
 
@@ -33,7 +33,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowDroneView(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsWindowDroneView(UINodeInfoInTree windowNode)
 			:
 			base(windowNode)
 		{
@@ -48,11 +48,11 @@ namespace Optimat.EveOnline.AuswertGbs
 		static readonly string DroneEntryGaugeScpezAstNameRegexPattern = "gauge_(\\w+)";
 
 		static int? AusDroneEntryGaugeTreferpunkteRelMili(
-			SictGbsAstInfoSictAuswert droneEntryGaugeAst)
+			UINodeInfoInTree droneEntryGaugeAst)
 		{
 			var MengeFillAst =
-				droneEntryGaugeAst.SuuceFlacMengeAst(
-				kandidaat => true == kandidaat.SictbarMitErbe && "Fill".EqualsIgnoreCase(kandidaat.PyObjTypName),
+				droneEntryGaugeAst.MatchingNodesFromSubtreeBreadthFirst(
+				kandidaat => true == kandidaat.VisibleIncludingInheritance && "Fill".EqualsIgnoreCase(kandidaat.PyObjTypName),
 				null,
 				1, 1,
 				true);
@@ -101,11 +101,11 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// <param name="listeScrollHeader"></param>
 		/// <returns></returns>
 		static public DroneViewEntry DroneEntryKonstrukt(
-			SictGbsAstInfoSictAuswert entryAst,
+			UINodeInfoInTree entryAst,
 			IColumnHeader[] listeScrollHeader,
 			RectInt? regionConstraint)
 		{
-			if (!(entryAst?.SictbarMitErbe ?? false))
+			if (!(entryAst?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var listEntryAuswert = new SictAuswertGbsListEntry(entryAst, listeScrollHeader, regionConstraint, ListEntryTrenungZeleTypEnum.Ast);
@@ -117,7 +117,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == listEntry)
 				return null;
 
-			var LabelGröösteAst = entryAst?.GröösteLabel();
+			var LabelGröösteAst = entryAst?.LargestLabelInSubtree();
 
 			var labelGrööste = LabelGröösteAst.AsUIElementTextIfTextNotEmpty();
 
@@ -135,7 +135,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			else
 			{
 				var MengeContainerAst =
-					entryAst.SuuceFlacMengeAst(
+					entryAst.MatchingNodesFromSubtreeBreadthFirst(
 					kandidaat => kandidaat.PyObjTypNameIsContainer(),
 					null,
 					3, 1);
@@ -146,7 +146,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					1, 0);
 
 				var MengeGaugeScpezContainerAst =
-					GaugesAst.SuuceFlacMengeAst(
+					GaugesAst.MatchingNodesFromSubtreeBreadthFirst(
 					kandidaat => kandidaat.PyObjTypNameIsContainer(),
 					null,
 					1, 1,
@@ -203,15 +203,15 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			ListViewportAst =
-				AstMainContainerMain?.SuuceFlacMengeAst(kandidaat => kandidaat?.PyObjTypNameIsScroll() ?? false)?.GröösteAst();
+				AstMainContainerMain?.MatchingNodesFromSubtreeBreadthFirst(kandidaat => kandidaat?.PyObjTypNameIsScroll() ?? false)?.LargestNodeInSubtree();
 
 			ListViewportAuswert = new SictAuswertGbsListViewport<IListEntry>(ListViewportAst, DroneEntryKonstrukt);
 
-			ListViewportAuswert.Berecne();
+			ListViewportAuswert.Read();
 
 			ErgeebnisScpez = new WindowDroneView(Ergeebnis)
 			{
-				ListView = ListViewportAuswert?.Ergeebnis,
+				ListView = ListViewportAuswert?.Result,
 			};
 		}
 	}

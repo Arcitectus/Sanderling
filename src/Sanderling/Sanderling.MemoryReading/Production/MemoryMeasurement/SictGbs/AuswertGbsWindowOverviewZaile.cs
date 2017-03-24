@@ -14,7 +14,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	{
 		public const string MainIconPyTypeName = "SpaceObjectIcon";
 
-		readonly public SictGbsAstInfoSictAuswert WindowOverviewZaile;
+		readonly public UINodeInfoInTree WindowOverviewZaile;
 
 		/// <summary>
 		/// Diiser wert werd ainfac nur in das Zaileergeebnis kopiirt.
@@ -23,61 +23,61 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		readonly public IEnumerable<KeyValuePair<string, KeyValuePair<int, int>>> MengeSortHeaderTitelUndLaage;
 
-		public SictGbsAstInfoSictAuswert AstIconContainer
+		public UINodeInfoInTree AstIconContainer
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeFillAst
+		public UINodeInfoInTree[] MengeFillAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconMain
+		public UINodeInfoInTree AstIconContainerIconMain
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightAlignedIconContainerAst
+		public UINodeInfoInTree RightAlignedIconContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] RightAlignedIconContainerMengeIconAst
+		public UINodeInfoInTree[] RightAlignedIconContainerMengeIconAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconTargetingIndicator
+		public UINodeInfoInTree AstIconContainerIconTargetingIndicator
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconAttackingMe
+		public UINodeInfoInTree AstIconContainerIconAttackingMe
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconHostile
+		public UINodeInfoInTree AstIconContainerIconHostile
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconMyActiveTargetIndicator
+		public UINodeInfoInTree AstIconContainerIconMyActiveTargetIndicator
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIconContainerIconTargetedByMeIndicator
+		public UINodeInfoInTree AstIconContainerIconTargetedByMeIndicator
 		{
 			private set;
 			get;
@@ -90,7 +90,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		public SictAuswertGbsWindowOverviewZaile(
-			SictGbsAstInfoSictAuswert FensterOverviewZaile,
+			UINodeInfoInTree FensterOverviewZaile,
 			string WindowOverviewTypeSelectionName,
 			IEnumerable<KeyValuePair<string, KeyValuePair<int, int>>> MengeSortHeaderTitelUndLaage)
 		{
@@ -108,12 +108,12 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == WindowOverviewZaile.SictbarMitErbe))
+			if (!(true == WindowOverviewZaile.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
-			var ZaileMengeChild = WindowOverviewZaile.ListeChild;
+			var ZaileMengeChild = WindowOverviewZaile.ListChild;
 
 			if (null == ZaileMengeChild)
 			{
@@ -142,25 +142,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			 * Mit Patch 2013.10.20 Rubikon Änderung Kandidaat.PyObjTypName: "PyFill" -> "Fill"
 			 * */
 			MengeFillAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				WindowOverviewZaile,
 				(Kandidaat) =>
 					(string.Equals("PyFill", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("Fill", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)) &&
-					true == Kandidaat.SictbarMitErbe &&
+					true == Kandidaat.VisibleIncludingInheritance &&
 					null != Kandidaat.Color,
 				null, 2, 1);
 
 			AstIconContainer =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				WindowOverviewZaile, (Kandidaat) => string.Equals(MainIconPyTypeName, Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			RightAlignedIconContainerAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				WindowOverviewZaile, (Kandidaat) => string.Equals("rightAlignedIconContainer", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			RightAlignedIconContainerMengeIconAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				RightAlignedIconContainerAst, (Kandidaat) =>
 					(string.Equals("Icon", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
@@ -179,27 +179,27 @@ namespace Optimat.EveOnline.AuswertGbs
 			 * */
 
 			AstIconContainerIconMain =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("iconSprite", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstIconContainerIconTargetingIndicator =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("targeting", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstIconContainerIconTargetedByMeIndicator =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("targetedByMeIndicator", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstIconContainerIconMyActiveTargetIndicator =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("myActiveTargetIndicator", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstIconContainerIconAttackingMe =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("attackingMe", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstIconContainerIconHostile =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstIconContainer, (Kandidaat) => string.Equals("hostile", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			var ListeZeleGbsAstUndScpalteTitel =
@@ -237,11 +237,11 @@ namespace Optimat.EveOnline.AuswertGbs
 		const string MainIconIndicatorKeyRegexPattern = @"\w+Indicator";
 
 		static public IOverviewEntry OverviewEntryKonstrukt(
-			SictGbsAstInfoSictAuswert EntryAst,
+			UINodeInfoInTree EntryAst,
 			IColumnHeader[] ListeScrollHeader,
 			RectInt? regionConstraint)
 		{
-			if (!(EntryAst?.SictbarMitErbe ?? false))
+			if (!(EntryAst?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var ListEntryAuswert = new SictAuswertGbsListEntry(EntryAst, ListeScrollHeader, regionConstraint, ListEntryTrenungZeleTypEnum.Ast);
@@ -254,16 +254,16 @@ namespace Optimat.EveOnline.AuswertGbs
 				return null;
 
 			var MainIconAst =
-				EntryAst?.SuuceFlacMengeAstFrüheste(c => c?.PyObjTypNameMatchesRegexPatternIgnoreCase(MainIconPyTypeName) ?? false);
+				EntryAst?.FirstMatchingNodeFromSubtreeBreadthFirst(c => c?.PyObjTypNameMatchesRegexPatternIgnoreCase(MainIconPyTypeName) ?? false);
 
 			var RightIconContainer =
-				EntryAst?.SuuceFlacMengeAstFrüheste(k =>
+				EntryAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k =>
 				k.PyObjTypNameIsContainer() &&
 				//	2015.09.01:	Name = "rightAlignedIconContainer"
 				Regex.Match(k?.Name ?? "", "right.*icon", RegexOptions.IgnoreCase).Success);
 
 			var RightIcon =
-				RightIconContainer?.SuuceFlacMengeAst(AuswertGbs.Glob.PyObjTypNameIsIcon)
+				RightIconContainer?.MatchingNodesFromSubtreeBreadthFirst(AuswertGbs.Glob.PyObjTypNameIsIcon)
 				?.Select(AuswertGbs.Extension.AlsSprite)
 				?.WhereNotDefault()
 				?.OrdnungLabel()

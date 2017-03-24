@@ -13,14 +13,14 @@ namespace Sanderling.MemoryReading.Production
 			new Bib3.RefNezDiferenz.SictTypeBehandlungRictliinieMitTransportIdentScatescpaicer(
 				Bib3.RefNezDiferenz.NewtonsoftJson.SictMengeTypeBehandlungRictliinieNewtonsoftJson.KonstruktMengeTypeBehandlungRictliinie(
 				new KeyValuePair<Type, Type>[]{
-					new KeyValuePair<Type, Type>(typeof(GbsAstInfo), typeof(SictGbsAstInfoSictAuswert)),
-					new KeyValuePair<Type, Type>(typeof(GbsAstInfo[]), typeof(SictGbsAstInfoSictAuswert[])),
+					new KeyValuePair<Type, Type>(typeof(GbsAstInfo), typeof(UINodeInfoInTree)),
+					new KeyValuePair<Type, Type>(typeof(GbsAstInfo[]), typeof(UINodeInfoInTree[])),
 		}));
 
 		static public IEnumerable<T[]> SuuceFlacMengeAstMitPfaad<T>(
 			this T SuuceWurzel)
 			where T : GbsAstInfo =>
-			Bib3.Extension.EnumeratePathToNodeFromTree(SuuceWurzel, Ast => Ast.ListeChildBerecne()?.OfType<T>());
+			Bib3.Extension.EnumeratePathToNodeFromTree(SuuceWurzel, Ast => Ast.GetListChild()?.OfType<T>());
 
 		static public T[] SuuceFlacMengeAstMitPfaadFrüheste<T>(
 			this T SuuceWurzel,

@@ -9,27 +9,27 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertTreeViewEntry
 	{
-		readonly public SictGbsAstInfoSictAuswert TreeViewEntryAst;
+		readonly public UINodeInfoInTree TreeViewEntryAst;
 
-		public SictGbsAstInfoSictAuswert TopContAst
+		public UINodeInfoInTree TopContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert TopContLabelAst
+		public UINodeInfoInTree TopContLabelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ChildContAst
+		public UINodeInfoInTree ChildContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeChildAst
+		public UINodeInfoInTree[] MengeChildAst
 		{
 			private set;
 			get;
@@ -41,13 +41,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert TopContIconAst
+		public UINodeInfoInTree TopContIconAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LabelAst
+		public UINodeInfoInTree LabelAst
 		{
 			private set;
 			get;
@@ -59,7 +59,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertTreeViewEntry(SictGbsAstInfoSictAuswert TreeViewEntryAst)
+		public SictAuswertTreeViewEntry(UINodeInfoInTree TreeViewEntryAst)
 		{
 			this.TreeViewEntryAst = TreeViewEntryAst;
 		}
@@ -74,44 +74,44 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			TopContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TreeViewEntryAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("topCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			TopContLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TopContAst, (Kandidaat) => AuswertGbs.Glob.GbsAstTypeIstLabel(Kandidaat));
 
 			ChildContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TreeViewEntryAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("childCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			MengeChildAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				ChildContAst, (Kandidaat) =>
 					Regex.Match(Kandidaat.PyObjTypName ?? "", "TreeViewEntry", RegexOptions.IgnoreCase).Success,
 					null, 2, 1);
 
 			TopContIconAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TopContAst, (Kandidaat) =>
 					(string.Equals("Icon", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
 					2, 1);
 
 			var TopContSpacerAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TopContAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("spacerCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
-			var ExpandCollapseToggleFläce = TopContSpacerAst.AlsUIElementFalsUnglaicNullUndSictbar();
+			var ExpandCollapseToggleFläce = TopContSpacerAst.AsUIElementIfVisible();
 
 			LabelAst = TopContLabelAst;
 
@@ -129,11 +129,11 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			IUIElement TopContFläce =
 				(null == TopContAst) ? null : new UIElement(
-					TopContAst.AlsUIElementFalsUnglaicNullUndSictbar());
+					TopContAst.AsUIElementIfVisible());
 
 			var TopContLabel =
 				(null == TopContLabelAst) ? null : new UIElementText(
-					TopContLabelAst.AlsUIElementFalsUnglaicNullUndSictbar(), TopContLabelAst.LabelText());
+					TopContLabelAst.AsUIElementIfVisible(), TopContLabelAst.LabelText());
 
 			var TopContIconTyp =
 				(null == TopContIconAst) ? null : TopContIconAst.TextureIdent0;

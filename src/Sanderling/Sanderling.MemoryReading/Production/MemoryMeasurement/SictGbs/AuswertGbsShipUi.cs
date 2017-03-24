@@ -19,15 +19,15 @@ namespace Optimat.EveOnline.AuswertGbs
 
 	public class SictAuswertGbsShipUiEWarElement
 	{
-		readonly public SictGbsAstInfoSictAuswert EWarElementAst;
+		readonly public UINodeInfoInTree EWarElementAst;
 
-		public SictGbsAstInfoSictAuswert EWarButtonAst
+		public UINodeInfoInTree EWarButtonAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert IconAst
+		public UINodeInfoInTree IconAst
 		{
 			private set;
 			get;
@@ -39,7 +39,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsShipUiEWarElement(SictGbsAstInfoSictAuswert eWarElementNode)
+		public SictAuswertGbsShipUiEWarElement(UINodeInfoInTree eWarElementNode)
 		{
 			this.EWarElementAst = eWarElementNode;
 		}
@@ -47,16 +47,16 @@ namespace Optimat.EveOnline.AuswertGbs
 		public void Berecne()
 		{
 			EWarButtonAst =
-				EWarElementAst?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("EwarButton", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
+				EWarElementAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("EwarButton", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			IconAst =
-				EWarButtonAst?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				EWarButtonAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 					(string.Equals("Icon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
 					2, 1);
 
-			if (!(IconAst?.SictbarMitErbe ?? false))
+			if (!(IconAst?.VisibleIncludingInheritance ?? false))
 				return; //	Annaame diise EWar Anzaige isc nit aktiiv.
 
 			var EWarTypeString = EWarElementAst?.Name;
@@ -76,21 +76,21 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// </summary>
 		static Regex ReadoutContainerAstNameRegex = @"readout".AlsRegexIgnoreCaseCompiled();
 
-		readonly public SictGbsAstInfoSictAuswert LayerShipUiNode;
+		readonly public UINodeInfoInTree LayerShipUiNode;
 
-		public SictGbsAstInfoSictAuswert ShipUIContainerAst
+		public UINodeInfoInTree ShipUIContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert EwarUIContainerAst
+		public UINodeInfoInTree EwarUIContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] EwarUIContainerMengeEWarElementKandidaatAst
+		public UINodeInfoInTree[] EwarUIContainerMengeEWarElementKandidaatAst
 		{
 			private set;
 			get;
@@ -108,13 +108,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ContainerPowerCoreAst
+		public UINodeInfoInTree ContainerPowerCoreAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] ContainerPowerCoreMengeMarkAst
+		public UINodeInfoInTree[] ContainerPowerCoreMengeMarkAst
 		{
 			private set;
 			get;
@@ -132,7 +132,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstIndicationContainer
+		public UINodeInfoInTree AstIndicationContainer
 		{
 			private set;
 			get;
@@ -144,19 +144,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ButtonStopAst
+		public UINodeInfoInTree ButtonStopAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert TimersContainerAst
+		public UINodeInfoInTree TimersContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeTimerKandidaatAst
+		public UINodeInfoInTree[] MengeTimerKandidaatAst
 		{
 			private set;
 			get;
@@ -168,7 +168,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsShipUi(SictGbsAstInfoSictAuswert layerShipUiNode)
+		public SictAuswertGbsShipUi(UINodeInfoInTree layerShipUiNode)
 		{
 			this.LayerShipUiNode = layerShipUiNode;
 		}
@@ -177,7 +177,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		static public string AusShipUiGaugeHintTextTailTotalRegexPattern = "(\\d+) left of maximum (\\d+)";
 
-		static public IShipUiTimer AlsTimer(SictGbsAstInfoSictAuswert node)
+		static public IShipUiTimer AlsTimer(UINodeInfoInTree node)
 		{
 			var container = node?.AlsContainer();
 
@@ -192,35 +192,35 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public void Berecne()
 		{
-			if (!(LayerShipUiNode?.SictbarMitErbe ?? false))
+			if (!(LayerShipUiNode?.VisibleIncludingInheritance ?? false))
 				return;
 
 			ShipUIContainerAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 				string.Equals("ShipUIContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 				string.Equals("ShipHudContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),    //	2015.05.00	Singularity
 				2, 1);
 
 			EwarUIContainerAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 				string.Equals("EwarUIContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 				string.Equals("EwarContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),    //	2015.05.00	Singularity
 				2, 1);
 
 			TimersContainerAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("timers", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			var CapacitorContainerAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameEqualsIgnoreCase("CapacitorContainer"));
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameEqualsIgnoreCase("CapacitorContainer"));
 
 			MengeTimerKandidaatAst =
-				TimersContainerAst?.ListeChild;
+				TimersContainerAst?.ListChild;
 
 			EwarUIContainerMengeEWarElementKandidaatAst =
-				EwarUIContainerAst?.SuuceFlacMengeAst(kandidaat => true,
+				EwarUIContainerAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat => true,
 				null, 2, 1);
 
 			EwarUIContainerMengeEWarElementKandidaatAuswert =
@@ -239,13 +239,13 @@ namespace Optimat.EveOnline.AuswertGbs
 				.ToArray();
 
 			ContainerPowerCoreAst =
-				ShipUIContainerAst?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("powercore", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
+				ShipUIContainerAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("powercore", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			var ContainerPowerCoreHint = ContainerPowerCoreAst?.Hint;
 
 			ContainerPowerCoreMengeMarkAst =
-				ContainerPowerCoreAst?.SuuceFlacMengeAst(kandidaat =>
+				ContainerPowerCoreAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat =>
 					string.Equals("Sprite", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("pmark", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				null, 2, 1);
@@ -258,47 +258,47 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			var FensterGaugeReadout =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("gaugeReadout", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("gaugeReadout", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var UnderMainAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("underMain", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("underMain", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var SpeedNeedleAst =
-				UnderMainAst?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				UnderMainAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					string.Equals("Transform", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					Regex.Match(kandidaat.Name ?? "", "speedNeedle", RegexOptions.IgnoreCase).Success);
 
 			var HPGaugesAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(
 					k => string.Equals("HPGauges", k?.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)) ?? LayerShipUiNode;
 
 			var SpeedGaugeAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(
 					k => string.Equals("SpeedGauge", k?.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)) ?? LayerShipUiNode;
 
 			ButtonStopAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => k?.NameEqualsIgnoreCase("stopButton") ?? false) ??
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k?.NameEqualsIgnoreCase("stopButton") ?? false) ??
 				//	2015.08.26 Singularity
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => k?.PyObjTypNameEqualsIgnoreCase("StopButton") ?? false);
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k?.PyObjTypNameEqualsIgnoreCase("StopButton") ?? false);
 
 			var ReadoutContainerAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => (k?.PyObjTypNameIsContainer() ?? false) && (k?.NameMatchesRegex(ReadoutContainerAstNameRegex) ?? false));
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => (k?.PyObjTypNameIsContainer() ?? false) && (k?.NameMatchesRegex(ReadoutContainerAstNameRegex) ?? false));
 
 			var ReadoutLabel =
 				ReadoutContainerAst.ExtraktMengeLabelString()?.OrdnungLabel()?.ToArray();
 
-			var SpeedLabel = SpeedGaugeAst?.GröösteLabel();
+			var SpeedLabel = SpeedGaugeAst?.LargestLabelInSubtree();
 
 			var StructureGaugeSpriteAst =
-				HPGaugesAst?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				HPGaugesAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 					string.Equals("structureGauge", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var ArmorGaugeSpriteAst =
-				HPGaugesAst?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				HPGaugesAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 					string.Equals("armorGauge", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var ShieldGaugeSpriteAst =
-				HPGaugesAst?.SuuceFlacMengeAstFrüheste(kandidaat =>
+				HPGaugesAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 				   string.Equals("shieldGauge", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var StructureGaugeSpriteHint = StructureGaugeSpriteAst?.Hint;
@@ -306,12 +306,12 @@ namespace Optimat.EveOnline.AuswertGbs
 			var ShieldGaugeSpriteHint = ShieldGaugeSpriteAst?.Hint;
 
 			var SlotsAst =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("slotsContainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 4) ??
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("slotsContainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 4) ??
 				//	2015.08.25 Beobact Singularity
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameEqualsIgnoreCase("SlotsContainer"));
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameEqualsIgnoreCase("SlotsContainer"));
 
 			AstIndicationContainer =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("indicationContainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 4, 1);
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("indicationContainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 4, 1);
 
 			var indication = AstIndicationContainer?.AlsContainer();
 
@@ -343,22 +343,22 @@ namespace Optimat.EveOnline.AuswertGbs
 			};
 
 			var ButtonStop =
-				ButtonStopAst?.AlsUIElementFalsUnglaicNullUndSictbar();
+				ButtonStopAst?.AsUIElementIfVisible();
 
 			var ButtonSpeedMax =
-				LayerShipUiNode?.SuuceFlacMengeAstFrüheste(k => k?.PyObjTypNameEqualsIgnoreCase("MaxSpeedButton") ?? false)
-				.AlsUIElementFalsUnglaicNullUndSictbar();
+				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k?.PyObjTypNameEqualsIgnoreCase("MaxSpeedButton") ?? false)
+				.AsUIElementIfVisible();
 
 			var ListeTimer =
 				MengeTimerKandidaatAst?.Select(AlsTimer)?.OrdnungLabel()?.ToArray();
 
 			var squadronsUINode =
 				LayerShipUiNode
-				?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronsUI"));
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronsUI"));
 
 			Ergeebnis = new ShipUi(null)
 			{
-				Center = (ContainerPowerCoreAst ?? CapacitorContainerAst).AlsUIElementFalsUnglaicNullUndSictbar().WithRegionSizePivotAtCenter(new Vektor2DInt(40, 40)),
+				Center = (ContainerPowerCoreAst ?? CapacitorContainerAst).AsUIElementIfVisible().WithRegionSizePivotAtCenter(new Vektor2DInt(40, 40)),
 				Indication = indication,
 				HitpointsAndEnergy = ShipTreferpunkte,
 				SpeedLabel = SpeedLabel?.AsUIElementTextIfTextNotEmpty(),

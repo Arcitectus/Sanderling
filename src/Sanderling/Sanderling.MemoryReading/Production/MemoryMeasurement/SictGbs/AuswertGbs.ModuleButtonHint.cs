@@ -9,19 +9,19 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsModuleButtonTooltip
 	{
-		public SictGbsAstInfoSictAuswert ModuleButtonHintAst
+		public UINodeInfoInTree ModuleButtonHintAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeCellAst
+		public UINodeInfoInTree[] MengeCellAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[][] ListeZaileMengeCellAst
+		public UINodeInfoInTree[][] ListeZaileMengeCellAst
 		{
 			private set;
 			get;
@@ -33,7 +33,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsModuleButtonTooltip(SictGbsAstInfoSictAuswert moduleButtonHintNode)
+		public SictAuswertGbsModuleButtonTooltip(UINodeInfoInTree moduleButtonHintNode)
 		{
 			this.ModuleButtonHintAst = moduleButtonHintNode;
 		}
@@ -44,13 +44,13 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// </summary>
 		static readonly string CellAstNameRegexPattern = "Row(\\d+)_Col(\\d+)";
 
-		static public SictGbsAstInfoSictAuswert[][] ListeZaileMengeCellAstBerecneAusMengeAus(
-			IEnumerable<SictGbsAstInfoSictAuswert> setNode)
+		static public UINodeInfoInTree[][] ListeZaileMengeCellAstBerecneAusMengeAus(
+			IEnumerable<UINodeInfoInTree> setNode)
 		{
 			if (null == setNode)
 				return null;
 
-			var listeCellAstMitRowIndexUndColumnIndex = new List<KeyValuePair<SictGbsAstInfoSictAuswert, KeyValuePair<int, int>>>();
+			var listeCellAstMitRowIndexUndColumnIndex = new List<KeyValuePair<UINodeInfoInTree, KeyValuePair<int, int>>>();
 
 			foreach (var node in setNode)
 			{
@@ -69,7 +69,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					continue;
 
 				listeCellAstMitRowIndexUndColumnIndex.Add(
-					new KeyValuePair<SictGbsAstInfoSictAuswert, KeyValuePair<int, int>>(
+					new KeyValuePair<UINodeInfoInTree, KeyValuePair<int, int>>(
 					node, new KeyValuePair<int, int>(rowIndex.Value, colIndex.Value)));
 			}
 
@@ -86,18 +86,18 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public KeyValuePair<Int64, string>? AusGbsAstIconMitTextIconIdentUndText(
-			SictGbsAstInfoSictAuswert gbsAst)
+			UINodeInfoInTree gbsAst)
 		{
 			if (null == gbsAst)
 				return null;
 
 			var iconAst =
-				gbsAst?.SuuceFlacMengeAstFrüheste(AuswertGbs.Glob.GbsAstTypeIstEveIcon, 2, 1);
+				gbsAst?.FirstMatchingNodeFromSubtreeBreadthFirst(AuswertGbs.Glob.GbsAstTypeIstEveIcon, 2, 1);
 
 			var textAst =
-				gbsAst?.SuuceFlacMengeAstFrüheste(AuswertGbs.Glob.GbsAstTypeIstEveLabel, 2, 1);
+				gbsAst?.FirstMatchingNodeFromSubtreeBreadthFirst(AuswertGbs.Glob.GbsAstTypeIstEveLabel, 2, 1);
 
-			var iconIdentNulbar = iconAst?.HerkunftAdrese;
+			var iconIdentNulbar = iconAst?.PyObjAddress;
 
 			if (!iconIdentNulbar.HasValue)
 				return null;
@@ -109,16 +109,16 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public void Berecne()
 		{
-			if (!(ModuleButtonHintAst?.SictbarMitErbe ?? false))
+			if (!(ModuleButtonHintAst?.VisibleIncludingInheritance ?? false))
 				return;
 
 			var icon =
-				ModuleButtonHintAst.SuuceFlacMengeAst(k => k.PyObjTypNameIsIcon())
+				ModuleButtonHintAst.MatchingNodesFromSubtreeBreadthFirst(k => k.PyObjTypNameIsIcon())
 				?.Select(k => k.AlsSprite())
 				?.ToArray();
 
 			var mengePfaad =
-				ModuleButtonHintAst.SuuceFlacMengeAstMitPfaad(t => true)
+				ModuleButtonHintAst.ListPathToNodeFromSubtreeBreadthFirst(t => true)
 				?.ToArray();
 
 			var mengePfaadIcon =
@@ -135,7 +135,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.ToArrayIfNotEmpty();
 
 			MengeCellAst =
-				ModuleButtonHintAst?.SuuceFlacMengeAst((t) => true, null, 2, 1, true);
+				ModuleButtonHintAst?.MatchingNodesFromSubtreeBreadthFirst((t) => true, null, 2, 1, true);
 
 			ListeZaileMengeCellAst = ListeZaileMengeCellAstBerecneAusMengeAus(MengeCellAst);
 
@@ -143,7 +143,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var labelText = ModuleButtonHintAst.ExtraktMengeLabelString()?.OrdnungLabel()?.ToArray();
 
-			Ergeebnis = new Container(ModuleButtonHintAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			Ergeebnis = new Container(ModuleButtonHintAst.AsUIElementIfVisible())
 			{
 				LabelText = labelText,
 				Sprite = icon,

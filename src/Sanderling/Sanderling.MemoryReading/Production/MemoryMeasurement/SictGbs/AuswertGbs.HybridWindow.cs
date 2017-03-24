@@ -5,7 +5,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public	class SictAuswertGbsHybridWindow	:	SictAuswertGbsMessageBox
 	{
 		new static public HybridWindow BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert WindowAst)
+			UINodeInfoInTree WindowAst)
 		{
 			if (null == WindowAst)
 			{
@@ -25,7 +25,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsHybridWindow(SictGbsAstInfoSictAuswert WindowAst)
+		public SictAuswertGbsHybridWindow(UINodeInfoInTree WindowAst)
 			:
 			base(WindowAst)
 		{

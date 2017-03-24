@@ -11,17 +11,17 @@ namespace Optimat.EveOnline.AuswertGbs
 	{
 		public const string MenuEntryPyTypeName = "MenuEntryView";
 
-		static public Menu ReadMenu(SictGbsAstInfoSictAuswert menuNode)
+		static public Menu ReadMenu(UINodeInfoInTree menuNode)
 		{
-			if (!(menuNode?.SictbarMitErbe ?? false))
+			if (!(menuNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var setEntryNode =
-				menuNode.SuuceFlacMengeAst(
+				menuNode.MatchingNodesFromSubtreeBreadthFirst(
 				kandidaat => kandidaat?.PyObjTypNameMatchesRegexPatternIgnoreCase(MenuEntryPyTypeName) ?? false,
 				null, 3, 1);
 
-			var baseElement = menuNode.AlsUIElementFalsUnglaicNullUndSictbar();
+			var baseElement = menuNode.AsUIElementIfVisible();
 
 			var setEntry =
 				setEntryNode
@@ -36,15 +36,15 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public MenuEntry ReadMenuEntry(
-			SictGbsAstInfoSictAuswert entryNode,
+			UINodeInfoInTree entryNode,
 			RectInt regionConstraint)
 		{
-			if (!(entryNode?.SictbarMitErbe ?? false))
+			if (!(entryNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var fillAst =
-				entryNode.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals("Fill", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2, 1) ??
-				entryNode.SuuceFlacMengeAstFrüheste(kandidaat => Regex.Match(kandidaat.PyObjTypName ?? "", "Underlay", RegexOptions.IgnoreCase).Success, 2, 1);
+				entryNode.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals("Fill", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2, 1) ??
+				entryNode.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => Regex.Match(kandidaat.PyObjTypName ?? "", "Underlay", RegexOptions.IgnoreCase).Success, 2, 1);
 
 			var fillColor = fillAst == null ? null : ColorORGB.VonVal(fillAst.Color);
 

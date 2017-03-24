@@ -9,15 +9,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsShipModuleButtonRamps
 	{
-		readonly public SictGbsAstInfoSictAuswert shipModuleButtonRampsNode;
+		readonly public UINodeInfoInTree shipModuleButtonRampsNode;
 
-		public SictGbsAstInfoSictAuswert LeftRampAst
+		public UINodeInfoInTree LeftRampAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightRampAst
+		public UINodeInfoInTree RightRampAst
 		{
 			private set;
 			get;
@@ -49,7 +49,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 
 		public SictAuswertGbsShipModuleButtonRamps(
-			SictGbsAstInfoSictAuswert shipModuleButtonRampsNode)
+			UINodeInfoInTree shipModuleButtonRampsNode)
 		{
 			this.shipModuleButtonRampsNode = shipModuleButtonRampsNode;
 		}
@@ -106,11 +106,11 @@ namespace Optimat.EveOnline.AuswertGbs
 		{
 			var shipModuleButtonRampsNode = this.shipModuleButtonRampsNode;
 
-			if (!(shipModuleButtonRampsNode?.SictbarMitErbe ?? false))
+			if (!(shipModuleButtonRampsNode?.VisibleIncludingInheritance ?? false))
 				return;
 
 			var MengeTransformAst =
-				shipModuleButtonRampsNode?.SuuceFlacMengeAst(
+				shipModuleButtonRampsNode?.MatchingNodesFromSubtreeBreadthFirst(
 				(kandidaat) => string.Equals("Transform", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 4, 1, true);
 
 			LeftRampAst =
@@ -153,39 +153,39 @@ namespace Optimat.EveOnline.AuswertGbs
 		const string overloadOnHintRegexPattern = @"Turn\s*Off\s*Overload";
 		public const string ModuleButtonPyTypeName = "ModuleButton";
 
-		readonly public SictGbsAstInfoSictAuswert slotNode;
+		readonly public UINodeInfoInTree slotNode;
 
-		public SictGbsAstInfoSictAuswert ModuleButtonAst
+		public UINodeInfoInTree ModuleButtonAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ModuleButtonIconAst
+		public UINodeInfoInTree ModuleButtonIconAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ModuleButtonQuantityAst
+		public UINodeInfoInTree ModuleButtonQuantityAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ModuleButtonQuantityLabelAst
+		public UINodeInfoInTree ModuleButtonQuantityLabelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainShape
+		public UINodeInfoInTree AstMainShape
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatRampAst
+		public UINodeInfoInTree[] MengeKandidaatRampAst
 		{
 			private set;
 			get;
@@ -197,19 +197,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert SpriteHiliteAst
+		public UINodeInfoInTree SpriteHiliteAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert SpriteGlowAst
+		public UINodeInfoInTree SpriteGlowAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert SpriteBusyAst
+		public UINodeInfoInTree SpriteBusyAst
 		{
 			private set;
 			get;
@@ -221,34 +221,34 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsShipUiSlotsSlot(SictGbsAstInfoSictAuswert slotNode)
+		public SictAuswertGbsShipUiSlotsSlot(UINodeInfoInTree slotNode)
 		{
 			this.slotNode = slotNode;
 		}
 
 		public void Berecne()
 		{
-			if (!(slotNode?.SictbarMitErbe ?? false))
+			if (!(slotNode?.VisibleIncludingInheritance ?? false))
 				return;
 
 			ModuleButtonAst =
-				slotNode?.SuuceFlacMengeAstFrüheste(kandidaat => string.Equals(ModuleButtonPyTypeName, kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 1, 1);
+				slotNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat => string.Equals(ModuleButtonPyTypeName, kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 1, 1);
 
 			ModuleButtonIconAst =
-				ModuleButtonAst?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				ModuleButtonAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					(string.Equals("Icon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
 					1, 1);
 
 			ModuleButtonQuantityAst =
-				ModuleButtonAst?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("quantityParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 1, 1);
+				ModuleButtonAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("quantityParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 1, 1);
 
 			ModuleButtonQuantityLabelAst =
-				ModuleButtonQuantityAst?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("Label", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 1, 1);
+				ModuleButtonQuantityAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("Label", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 1, 1);
 
 			var MengeSpriteAst =
-				slotNode?.SuuceFlacMengeAst((kandidaat) =>
-					true == kandidaat.SictbarMitErbe &&
+				slotNode?.MatchingNodesFromSubtreeBreadthFirst((kandidaat) =>
+					true == kandidaat.VisibleIncludingInheritance &&
 					string.Equals("Sprite", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 1, 1);
 
 			SpriteHiliteAst =
@@ -264,8 +264,8 @@ namespace Optimat.EveOnline.AuswertGbs
 				MengeSpriteAst.FirstOrDefault((kandidaat) => string.Equals("busy", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			MengeKandidaatRampAst =
-				slotNode?.SuuceFlacMengeAst((kandidaat) =>
-					true == kandidaat.SictbarMitErbe &&
+				slotNode?.MatchingNodesFromSubtreeBreadthFirst((kandidaat) =>
+					true == kandidaat.VisibleIncludingInheritance &&
 					Regex.Match(kandidaat.PyObjTypName ?? "", "ramps", RegexOptions.IgnoreCase).Success, 1, 1);
 
 			MengeKandidaatRampAuswert =
@@ -281,7 +281,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.FirstOrDefault((kandidaat) => null != kandidaat.LeftRampAst || kandidaat.RampAktiiv);
 
 			AstMainShape =
-				slotNode?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("mainshape", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 1, 1);
+				slotNode?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("mainshape", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 1, 1);
 
 			if (null == AstMainShape)
 				return;
@@ -292,18 +292,18 @@ namespace Optimat.EveOnline.AuswertGbs
 			bool? SpriteBusySictbar = null;
 
 			if (null != SpriteHiliteAst)
-				SpriteHiliteSictbar = true == SpriteHiliteAst.SictbarMitErbe;
+				SpriteHiliteSictbar = true == SpriteHiliteAst.VisibleIncludingInheritance;
 
 			if (null != SpriteGlowAst)
-				SpriteGlowSictbar = true == SpriteGlowAst.SictbarMitErbe;
+				SpriteGlowSictbar = true == SpriteGlowAst.VisibleIncludingInheritance;
 
 			if (null != SpriteBusyAst)
-				SpriteBusySictbar = true == SpriteBusyAst.SictbarMitErbe;
+				SpriteBusySictbar = true == SpriteBusyAst.VisibleIncludingInheritance;
 
-			var ModuleButtonSictbar = ModuleButtonAst?.SictbarMitErbe;
+			var ModuleButtonSictbar = ModuleButtonAst?.VisibleIncludingInheritance;
 
 			var ModuleButtonFlächeToggle =
-				ModuleButtonAst.AlsUIElementFalsUnglaicNullUndSictbar().WithRegionSizePivotAtCenter(new Vektor2DInt(16, 16));
+				ModuleButtonAst.AsUIElementIfVisible().WithRegionSizePivotAtCenter(new Vektor2DInt(16, 16));
 
 			var ModuleButtonIconTextureIdent = ModuleButtonIconAst?.TextureIdent0;
 
@@ -313,7 +313,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			bool? overloadOn = null;
 
 			var overloadButton =
-				slotNode?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameIsSprite() && (node?.Name?.RegexMatchSuccessIgnoreCase("OverloadB(tn|utton)") ?? false));
+				slotNode?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameIsSprite() && (node?.Name?.RegexMatchSuccessIgnoreCase("OverloadB(tn|utton)") ?? false));
 
 			if (null != overloadButton)
 			{
@@ -324,7 +324,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					overloadOn = true;
 			}
 
-			var ModuleRepr = new ShipUiModule(slotNode.AlsUIElementFalsUnglaicNullUndSictbar())
+			var ModuleRepr = new ShipUiModule(slotNode.AsUIElementIfVisible())
 			{
 				ModuleButtonVisible = ModuleButtonSictbar,
 				ModuleButtonIconTexture = ModuleButtonIconTextureIdent?.AsObjectIdInMemory(),

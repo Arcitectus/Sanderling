@@ -6,7 +6,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowProbeScanner : SictAuswertGbsWindow
 	{
 		new static public WindowProbeScanner BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -24,7 +24,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowProbeScanner(SictGbsAstInfoSictAuswert windowAst)
+		public SictAuswertGbsWindowProbeScanner(UINodeInfoInTree windowAst)
 			:
 			base(windowAst)
 		{
@@ -39,7 +39,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var scanResultScrollAst =
 				AstMainContainerMain
-				?.SuuceFlacMengeAst(node => node?.PyObjTypNameIsScroll() ?? false)
+				?.MatchingNodesFromSubtreeBreadthFirst(node => node?.PyObjTypNameIsScroll() ?? false)
 				?.OrderBy(node => node.LaagePlusVonParentErbeLaageB() ?? int.MinValue)
 				?.LastOrDefault();
 

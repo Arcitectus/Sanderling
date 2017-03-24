@@ -7,7 +7,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowStack : SictAuswertGbsWindow
 	{
 		new static public WindowStack BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -19,19 +19,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpezStack;
 		}
 
-		public SictGbsAstInfoSictAuswert TabGroupAst
+		public UINodeInfoInTree TabGroupAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ContentAst
+		public UINodeInfoInTree ContentAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert KandidaatWindowAktiivAst
+		public UINodeInfoInTree KandidaatWindowAktiivAst
 		{
 			private set;
 			get;
@@ -49,7 +49,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowStack(SictGbsAstInfoSictAuswert windowStackAst)
+		public SictAuswertGbsWindowStack(UINodeInfoInTree windowStackAst)
 			:
 			base(windowStackAst)
 		{
@@ -64,26 +64,26 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == AstMainContainer)
 				return;
 
-			if (!(true == AstMainContainer.SictbarMitErbe))
+			if (!(true == AstMainContainer.VisibleIncludingInheritance))
 				return;
 
 			TabGroupAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainer, (kandidaat) =>
 					string.Equals("TabGroup", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					4, 1);
 
 			ContentAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainer, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					Regex.Match(kandidaat.Name ?? "", "content", RegexOptions.IgnoreCase).Success,
 					2, 1);
 
 			KandidaatWindowAktiivAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				ContentAst, (kandidaat) =>
-					true == kandidaat.SictbarMitErbe && null != kandidaat.Caption,
+					true == kandidaat.VisibleIncludingInheritance && null != kandidaat.Caption,
 				2, 1);
 
 			if (null != TabGroupAst)

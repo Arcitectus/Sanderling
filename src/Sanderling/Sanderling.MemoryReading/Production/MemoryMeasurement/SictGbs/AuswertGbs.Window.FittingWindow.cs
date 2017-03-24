@@ -9,14 +9,14 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsWindowFittingWindowDefenceStatsRowCellDamageType
 	{
-		readonly public SictGbsAstInfoSictAuswert CellAst;
+		readonly public UINodeInfoInTree CellAst;
 
-		public SictAuswertGbsWindowFittingWindowDefenceStatsRowCellDamageType(SictGbsAstInfoSictAuswert cellAst)
+		public SictAuswertGbsWindowFittingWindowDefenceStatsRowCellDamageType(UINodeInfoInTree cellAst)
 		{
 			this.CellAst = cellAst;
 		}
 
-		public SictGbsAstInfoSictAuswert LabelAst
+		public UINodeInfoInTree LabelAst
 		{
 			private set;
 			get;
@@ -45,7 +45,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		public void Berecne()
 		{
 			LabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				CellAst, (kandidaat) =>
 					string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
@@ -63,7 +63,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			var MengeFillAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				CellAst, (kandidaat) =>
 					string.Equals("PyFill", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					null, 2, 1);
@@ -88,7 +88,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowShipFitting : SictAuswertGbsWindow
 	{
 		new static public WindowShipFitting	BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -100,25 +100,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		public SictGbsAstInfoSictAuswert FittingAst
+		public UINodeInfoInTree FittingAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert SlotParentAst
+		public UINodeInfoInTree SlotParentAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightSideAst
+		public UINodeInfoInTree RightSideAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeFittingSlotAst
+		public UINodeInfoInTree[] MengeFittingSlotAst
 		{
 			private set;
 			get;
@@ -130,7 +130,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowShipFitting(SictGbsAstInfoSictAuswert windowAst)
+		public SictAuswertGbsWindowShipFitting(UINodeInfoInTree windowAst)
 			:
 			base(windowAst)
 		{
@@ -144,13 +144,13 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			FittingAst =
-			Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 			AstMainContainerMain, (kandidaat) =>
 				string.Equals("Fitting", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			SlotParentAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				FittingAst, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("slotParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
