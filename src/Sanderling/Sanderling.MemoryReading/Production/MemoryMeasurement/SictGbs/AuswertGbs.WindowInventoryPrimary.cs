@@ -11,7 +11,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowInventoryPrimary : SictAuswertGbsWindow
 	{
 		new static public WindowInventory BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -23,25 +23,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainDividerCont
+		public UINodeInfoInTree AstMainContainerMainDividerCont
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LinxScrollContainerTreeAst
+		public UINodeInfoInTree LinxScrollContainerTreeAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LinxTreeBehältnisAst
+		public UINodeInfoInTree LinxTreeBehältnisAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] LinxTreeBehältnisListeEntryAst
+		public UINodeInfoInTree[] LinxTreeBehältnisListeEntryAst
 		{
 			private set;
 			get;
@@ -53,25 +53,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainRightCont
+		public UINodeInfoInTree AstMainContainerMainRightCont
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainRightContTopRight1
+		public UINodeInfoInTree AstMainContainerMainRightContTopRight1
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainRightContTopRight1SubCaptionCont
+		public UINodeInfoInTree AstMainContainerMainRightContTopRight1SubCaptionCont
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainRightContTopRight1SubCaptionLabel
+		public UINodeInfoInTree AstMainContainerMainRightContTopRight1SubCaptionLabel
 		{
 			private set;
 			get;
@@ -83,13 +83,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczInventorySictAst
+		public UINodeInfoInTree AuswaalReczInventorySictAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] AuswaalReczInventorySictMengeButtonAst
+		public UINodeInfoInTree[] AuswaalReczInventorySictMengeButtonAst
 		{
 			private set;
 			get;
@@ -101,25 +101,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczInventoryAst
+		public UINodeInfoInTree AuswaalReczInventoryAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczTop2Ast
+		public UINodeInfoInTree AuswaalReczTop2Ast
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczCapacityGaugeAst
+		public UINodeInfoInTree AuswaalReczCapacityGaugeAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczCapacityGaugeLabelAst
+		public UINodeInfoInTree AuswaalReczCapacityGaugeLabelAst
 		{
 			private set;
 			get;
@@ -131,37 +131,37 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczFilterEditAst
+		public UINodeInfoInTree AuswaalReczFilterEditAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczFilterEditButtonClearAst
+		public UINodeInfoInTree AuswaalReczFilterEditButtonClearAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczFilterEditAingaabeTextZiilAst
+		public UINodeInfoInTree AuswaalReczFilterEditAingaabeTextZiilAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AuswaalReczFilterEditLabelAst
+		public UINodeInfoInTree AuswaalReczFilterEditLabelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightContBottomAst
+		public UINodeInfoInTree RightContBottomAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightContNumItemsLabelAst
+		public UINodeInfoInTree RightContNumItemsLabelAst
 		{
 			private set;
 			get;
@@ -197,7 +197,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowInventoryPrimary(SictGbsAstInfoSictAuswert astFensterInventoryPrimary)
+		public SictAuswertGbsWindowInventoryPrimary(UINodeInfoInTree astFensterInventoryPrimary)
 			:
 			base(astFensterInventoryPrimary)
 		{
@@ -258,7 +258,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			AstMainContainerMainDividerCont =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) => "dividerCont".EqualsIgnoreCase(kandidaat.Name), 2, 1);
 
 			/*
@@ -266,7 +266,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			 * Scainbar mit Patch 2013.10.20 Rubicon Änderung von "ScrollContainerCore" naac "ScrollContainer"
 			 * */
 			LinxScrollContainerTreeAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainDividerCont, (kandidaat) =>
 					("ScrollContainerCore".EqualsIgnoreCase(kandidaat.PyObjTypName) ||
 					"ScrollContainer".EqualsIgnoreCase(kandidaat.PyObjTypName)) &&
@@ -274,7 +274,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					3, 1);
 
 			LinxTreeBehältnisAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				LinxScrollContainerTreeAst, (kandidaat) =>
 					"ContainerAutoSize".EqualsIgnoreCase(kandidaat.PyObjTypName) &&
 					"mainCont".EqualsIgnoreCase(kandidaat.Name),
@@ -293,7 +293,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			 * */
 
 			LinxTreeBehältnisListeEntryAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				LinxTreeBehältnisAst, (kandidaat) =>
 					Regex.Match(kandidaat.PyObjTypName ?? "", "TreeViewEntry", RegexOptions.IgnoreCase).Success,
 				null, 2, 1, true);
@@ -304,27 +304,27 @@ namespace Optimat.EveOnline.AuswertGbs
 			//	2015.09.07:	Name = "clipCont"
 			var ClipperAst =
 				LinxTreeContainerScrollAst
-				?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("clip"));
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("clip"));
 
 			//	2015.09.07:	Name = "handleCont"
 			var ScrollHandleBoundAst =
 				LinxTreeContainerScrollAst
-				?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("handle"));
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("handle"));
 
 			//	2015.09.07:	PyObjTypName = "ScrollHandle"
 			var ScrollHandleAst =
 				LinxTreeContainerScrollAst
-				?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("Scrollhandle"));
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("Scrollhandle"));
 
 			var LinxTreeViewScroll =
-				((ClipperAst?.SictbarMitErbe ?? false) ||
-				(ScrollHandleBoundAst?.SictbarMitErbe ?? false) ||
-				(ScrollHandleAst?.SictbarMitErbe ?? false)) ?
-				new Scroll(LinxTreeContainerScrollAst.AlsUIElementFalsUnglaicNullUndSictbar())
+				((ClipperAst?.VisibleIncludingInheritance ?? false) ||
+				(ScrollHandleBoundAst?.VisibleIncludingInheritance ?? false) ||
+				(ScrollHandleAst?.VisibleIncludingInheritance ?? false)) ?
+				new Scroll(LinxTreeContainerScrollAst.AsUIElementIfVisible())
 				{
-					Clipper = ClipperAst?.AlsUIElementFalsUnglaicNullUndSictbar(),
-					ScrollHandleBound = ScrollHandleBoundAst?.AlsUIElementFalsUnglaicNullUndSictbar(),
-					ScrollHandle = ScrollHandleAst?.AlsUIElementFalsUnglaicNullUndSictbar(),
+					Clipper = ClipperAst?.AsUIElementIfVisible(),
+					ScrollHandleBound = ScrollHandleBoundAst?.AsUIElementIfVisible(),
+					ScrollHandle = ScrollHandleAst?.AsUIElementIfVisible(),
 				} : null;
 
 			LinxTreeBehältnisListeEntryAuswert =
@@ -337,84 +337,84 @@ namespace Optimat.EveOnline.AuswertGbs
 					}).ToArray();
 
 			AstMainContainerMainRightCont =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) => string.Equals("rightCont", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			AstMainContainerMainRightContTopRight1 =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightCont, (kandidaat) => string.Equals("topRightcont1", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			AstMainContainerMainRightContTopRight1SubCaptionCont =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightContTopRight1, (kandidaat) => string.Equals("subCaptionCont", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 3, 1);
 
 			AstMainContainerMainRightContTopRight1SubCaptionLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightContTopRight1SubCaptionCont, (kandidaat) => string.Equals("Label", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 3, 1);
 
 			AuswaalReczInventorySictAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightCont, (kandidaat) =>
 					string.Equals("InvContViewBtns", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase) ||
 					Regex.Match(kandidaat.PyObjTypName ?? "", "InvContViewBtns", RegexOptions.IgnoreCase).Success,
 					6, 1);
 
 			AuswaalReczInventorySictMengeButtonAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AuswaalReczInventorySictAst,
 				(kandidaat) => string.Equals("ButtonIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 3, 1, true);
 
 			AuswaalReczInventorySictMengeButton =
 				AuswaalReczInventorySictMengeButtonAst
-				?.Select((ast) => ast.AlsUIElementFalsUnglaicNullUndSictbar())
+				?.Select((ast) => ast.AsUIElementIfVisible())
 				?.ToArray();
 
 			var SelectedRightControlViewButton =
 				AuswaalReczInventorySictMengeButtonAst
-				?.Select(ast => ast?.MengeChildAstTransitiiveHüle()?.OfType<SictGbsAstInfoSictAuswert>().GröösteSpriteAst()?.AlsSprite())
+				?.Select(ast => ast?.MengeChildAstTransitiiveHüle()?.OfType<UINodeInfoInTree>().GröösteSpriteAst()?.AlsSprite())
 				?.WhereNotDefault()
 				?.OrdnungLabel()
 				?.ToArray();
 
 			AuswaalReczInventoryAst =
-				AstMainContainerMainRightCont?.SuuceFlacMengeAst(c =>
-				c != AstMainContainerMainRightCont && null != c?.SuuceFlacMengeAstFrüheste(candidateScroll => candidateScroll?.PyObjTypNameIsScroll() ?? false, 3))
-				?.GröösteAst();
+				AstMainContainerMainRightCont?.MatchingNodesFromSubtreeBreadthFirst(c =>
+				c != AstMainContainerMainRightCont && null != c?.FirstMatchingNodeFromSubtreeBreadthFirst(candidateScroll => candidateScroll?.PyObjTypNameIsScroll() ?? false, 3))
+				?.LargestNodeInSubtree();
 
 			AuswaalReczTop2Ast =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightCont, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("topRightCont2", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					1, 1);
 
 			AuswaalReczCapacityGaugeAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczTop2Ast, (kandidaat) =>
 					string.Equals("InvContCapacityGauge", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					1, 1);
 
 			AuswaalReczCapacityGaugeLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczCapacityGaugeAst, (kandidaat) =>
 					string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("capacityText", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					1, 1);
 
 			AuswaalReczFilterEditAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczTop2Ast, (kandidaat) =>
 					string.Equals("SinglelineEdit", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			AuswaalReczFilterEditButtonClearAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczFilterEditAst, (kandidaat) =>
 					string.Equals("ButtonIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			AuswaalReczFilterEditLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczFilterEditAst, (kandidaat) =>
 					string.Equals("edittext", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase) &&
 					AuswertGbs.Glob.GbsAstTypeIstLabel(kandidaat),
@@ -422,23 +422,23 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			AuswaalReczFilterEditAingaabeTextZiilAst =
 				(null == AuswaalReczFilterEditLabelAst) ? null :
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AuswaalReczFilterEditAst, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
-					null != Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrühesteMitHerkunftAdrese(kandidaat, AuswaalReczFilterEditLabelAst.HerkunftAdrese, 3),
+					null != Optimat.EveOnline.AuswertGbs.Extension.FirstNodeWithPyObjAddressFromSubtreeBreadthFirst(kandidaat, AuswaalReczFilterEditLabelAst.PyObjAddress, 3),
 					3, 1);
 
 			RightContBottomAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainRightCont, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("bottomRightcont", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			var RightContBottomMengeLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				RightContBottomAst,
-				(kandidaat) => AuswertGbs.Glob.GbsAstTypeIstLabel(kandidaat) && true == kandidaat.SictbarMitErbe);
+				(kandidaat) => AuswertGbs.Glob.GbsAstTypeIstLabel(kandidaat) && true == kandidaat.VisibleIncludingInheritance);
 
 			if (null != RightContBottomMengeLabelAst)
 			{
@@ -487,10 +487,10 @@ namespace Optimat.EveOnline.AuswertGbs
 			var AuswaalReczInventory = AuswaalReczInventoryAuswert?.Ergeebnis;
 
 			var AuswaalReczFilterAingaabeTextZiil =
-				AuswaalReczFilterEditAingaabeTextZiilAst.AlsUIElementFalsUnglaicNullUndSictbar();
+				AuswaalReczFilterEditAingaabeTextZiilAst.AsUIElementIfVisible();
 
 			var AuswaalReczFilterButtonClear =
-				AuswaalReczFilterEditButtonClearAst.AlsUIElementFalsUnglaicNullUndSictbar();
+				AuswaalReczFilterEditButtonClearAst.AsUIElementIfVisible();
 
 			var AuswaalReczFilterText =
 				(null == AuswaalReczFilterEditLabelAst) ? null :

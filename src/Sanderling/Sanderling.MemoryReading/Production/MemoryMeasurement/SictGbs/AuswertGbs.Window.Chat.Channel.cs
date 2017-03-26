@@ -9,7 +9,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowChatChannel : SictAuswertGbsWindow
 	{
 		new static public WindowChatChannel BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -39,14 +39,14 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowChatChannel(SictGbsAstInfoSictAuswert windowStackAst)
+		public SictAuswertGbsWindowChatChannel(UINodeInfoInTree windowStackAst)
 			:
 			base(windowStackAst)
 		{
 		}
 
 		static public ChatParticipantEntry ListEntryParticipantConstruct(
-			SictGbsAstInfoSictAuswert ast,
+			UINodeInfoInTree ast,
 			IColumnHeader[] listHeader,
 			RectInt? regionConstraint)
 		{
@@ -57,13 +57,13 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var StatusIconSprite =
 				ast.MengeChildAstTransitiiveHüle()
-				?.OfType<SictGbsAstInfoSictAuswert>()
+				?.OfType<UINodeInfoInTree>()
 				?.FirstOrDefault(k => k.PyObjTypNameIsSprite() && (k.PyObjTypName?.ToLower().Contains("status") ?? false))
 				?.AlsSprite();
 
 			var SetFlagWithStateIconNode =
 				ast?.MengeChildAstTransitiiveHüle()
-				?.OfType<SictGbsAstInfoSictAuswert>()
+				?.OfType<UINodeInfoInTree>()
 				?.Where(k => k?.PyObjTypNameMatchesRegexPatternIgnoreCase("FlagIconWithState") ?? false)
 				?.ToArray();
 
@@ -74,7 +74,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					var FlagIcon = flagNode.AlsSprite();
 
 					var childSprite =
-						flagNode?.MengeChildAstTransitiiveHüle()?.OfType<SictGbsAstInfoSictAuswert>()
+						flagNode?.MengeChildAstTransitiiveHüle()?.OfType<UINodeInfoInTree>()
 						?.Where(k => k.PyObjTypNameIsSprite())
 						?.Select(k => k?.AlsSprite())?.WhereNotDefault()?.FirstOrDefault();
 
@@ -92,7 +92,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			return new ChatParticipantEntry(ListEntry)
 			{
-				NameLabel = ast.GröösteLabel().AsUIElementTextIfTextNotEmpty(),
+				NameLabel = ast.LargestLabelInSubtree().AsUIElementTextIfTextNotEmpty(),
 				StatusIcon = StatusIconSprite,
 				FlagIcon = SetFlagWithStateIcon,
 			};
@@ -107,23 +107,23 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == AstMainContainer)
 				return;
 
-			if (!(true == AstMainContainer.SictbarMitErbe))
+			if (!(true == AstMainContainer.VisibleIncludingInheritance))
 				return;
 
 			var SetScrollAst =
-				AstMainContainer.SuuceFlacMengeAst(ast => ast.PyObjTypNameIsScroll())
+				AstMainContainer.MatchingNodesFromSubtreeBreadthFirst(ast => ast.PyObjTypNameIsScroll())
 				?.ToArray();
 
 			var ViewportSetMessageAst =
 				SetScrollAst
 				?.Where(ast => ast?.LaageInParentA < AstMainContainer?.LaageInParentA)
-				?.GröösteAst();
+				?.LargestNodeInSubtree();
 
 			//	userlist isc auf recte saite.
 			var ViewportSetParticipantAst =
 				SetScrollAst
 				?.Where(ast => AstMainContainer?.LaageInParentA < ast?.LaageInParentA)
-				?.GröösteAst();
+				?.LargestNodeInSubtree();
 
 			var FunkIsOther = new Func<IObjectIdInMemory, bool>(obj =>
 			  !(ViewportSetMessageAst?.EnthaltAstMitHerkunftAdrese(obj.Id) ?? false) &&
@@ -138,26 +138,26 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null != ViewportSetMessageAst)
 			{
 				ViewportMessageAuswert = new SictAuswertGbsListViewport<IListEntry>(ViewportSetMessageAst, SictAuswertGbsListViewport<IListEntry>.ListEntryKonstruktSctandard);
-				ViewportMessageAuswert.Berecne();
+				ViewportMessageAuswert.Read();
 			}
 
 			if (null != ViewportSetParticipantAst)
 			{
 				ViewportParticipantAuswert = new SictAuswertGbsListViewport<IChatParticipantEntry>(ViewportSetParticipantAst, ListEntryParticipantConstruct);
-				ViewportParticipantAuswert.Berecne();
+				ViewportParticipantAuswert.Read();
 			}
 
 			var MessageInputAst =
 				AstMainContainer
-				?.SuuceFlacMengeAst(node => node?.PyObjTypNameMatchesRegexPattern("EditPlainText") ?? false)
+				?.MatchingNodesFromSubtreeBreadthFirst(node => node?.PyObjTypNameMatchesRegexPattern("EditPlainText") ?? false)
 				?.OrderByDescending(node => node.Grööse?.BetraagQuadriirt ?? -1)
 				?.FirstOrDefault();
 
 			ErgeebnisScpezChatChannel = new WindowChatChannel(
 				base.Ergeebnis)
 			{
-				MessageView = ViewportMessageAuswert?.Ergeebnis,
-				ParticipantView = ViewportParticipantAuswert?.Ergeebnis,
+				MessageView = ViewportMessageAuswert?.Result,
+				ParticipantView = ViewportParticipantAuswert?.Result,
 				MessageInput = MessageInputAst?.AsUIElementInputText(),
 			};
 		}

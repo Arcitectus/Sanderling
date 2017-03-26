@@ -7,7 +7,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowPeopleAndPlaces : SictAuswertGbsWindow
 	{
 		new static public WindowPeopleAndPlaces BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -25,7 +25,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowPeopleAndPlaces(SictGbsAstInfoSictAuswert windowAst)
+		public SictAuswertGbsWindowPeopleAndPlaces(UINodeInfoInTree windowAst)
 			:
 			base(windowAst)
 		{
@@ -41,18 +41,18 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			var SetTab =
-				AstMainContainerMain?.SuuceFlacMengeAstMitPfaad(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("tab"))?.ToArray();
+				AstMainContainerMain?.ListPathToNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("tab"))?.ToArray();
 
 			var SetScrollAstPfaad =
-				AstMainContainerMain.SuuceFlacMengeAstMitPfaad(ast => ast.PyObjTypNameIsScroll())
+				AstMainContainerMain.ListPathToNodeFromSubtreeBreadthFirst(ast => ast.PyObjTypNameIsScroll())
 				?.ToArray();
 
 			var SetScrollAst =
-				AstMainContainerMain.SuuceFlacMengeAst(ast => ast.PyObjTypNameIsScroll())
+				AstMainContainerMain.MatchingNodesFromSubtreeBreadthFirst(ast => ast.PyObjTypNameIsScroll())
 				?.ToArray();
 
 			var tInspektSearchStringAst =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste(k => Regex.Match(k?.LabelText() ?? "", "search", RegexOptions.IgnoreCase).Success);
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst(k => Regex.Match(k?.LabelText() ?? "", "search", RegexOptions.IgnoreCase).Success);
 
 			var ListView = SetScrollAst?.FirstOrDefault()?.AlsListView<IListEntry>(SictAuswertGbsListViewport<IListEntry>.ListEntryKonstruktSctandard);
 

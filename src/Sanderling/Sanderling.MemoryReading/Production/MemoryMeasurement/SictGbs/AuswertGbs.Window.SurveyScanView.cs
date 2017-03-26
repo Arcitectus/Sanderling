@@ -8,7 +8,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowSurveyScanView : SictAuswertGbsWindow
 	{
 		new static public WindowSurveyScanView BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -20,13 +20,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisWindowSurveyScanView;
 		}
 
-		public SictGbsAstInfoSictAuswert ScrollAst
+		public UINodeInfoInTree ScrollAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ListAst
+		public UINodeInfoInTree ListAst
 		{
 			private set;
 			get;
@@ -38,7 +38,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ButtonGroupAst
+		public UINodeInfoInTree ButtonGroupAst
 		{
 			private set;
 			get;
@@ -50,18 +50,18 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowSurveyScanView(SictGbsAstInfoSictAuswert windowAst)
+		public SictAuswertGbsWindowSurveyScanView(UINodeInfoInTree windowAst)
 			:
 			base(windowAst)
 		{
 		}
 
 		static public IListEntry SurveyScanViewEntryKonstrukt(
-			SictGbsAstInfoSictAuswert entryAst,
+			UINodeInfoInTree entryAst,
 			IColumnHeader[] listeScrollHeader,
 			RectInt? regionConstraint)
 		{
-			if (!(entryAst?.SictbarMitErbe ?? false))
+			if (!(entryAst?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var ChildTransitive = entryAst.MengeChildAstTransitiiveHüle()?.ToArray();
@@ -83,13 +83,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			ScrollAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					string.Equals("Scroll", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			ButtonGroupAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainer, (kandidaat) =>
 					string.Equals("ButtonGroup", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
@@ -99,12 +99,12 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			ListAuswert = new SictAuswertGbsListViewport<IListEntry>(ScrollAst, SictAuswertGbsWindowSurveyScanView.SurveyScanViewEntryKonstrukt);
 
-			ListAuswert.Berecne();
+			ListAuswert.Read();
 
 			ErgeebnisWindowSurveyScanView =
 				new WindowSurveyScanView(base.Ergeebnis)
 				{
-					ListView = ListAuswert.Ergeebnis,
+					ListView = ListAuswert.Result,
 				};
 		}
 	}

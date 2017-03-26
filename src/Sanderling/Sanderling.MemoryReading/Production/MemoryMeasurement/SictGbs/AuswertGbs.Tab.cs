@@ -5,15 +5,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsTab
 	{
-		readonly public SictGbsAstInfoSictAuswert TabAst;
+		readonly public UINodeInfoInTree TabAst;
 
-		public SictGbsAstInfoSictAuswert LabelClipperAst
+		public UINodeInfoInTree LabelClipperAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LabelAst
+		public UINodeInfoInTree LabelAst
 		{
 			private set;
 			get;
@@ -37,7 +37,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsTab(SictGbsAstInfoSictAuswert tabAst)
+		public SictAuswertGbsTab(UINodeInfoInTree tabAst)
 		{
 			this.TabAst = tabAst;
 		}
@@ -47,10 +47,10 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == TabAst)
 				return;
 
-			if (!(true == TabAst.SictbarMitErbe))
+			if (!(true == TabAst.VisibleIncludingInheritance))
 				return;
 
-			LabelAst = TabAst.GröösteLabel(3);
+			LabelAst = TabAst.LargestLabelInSubtree(3);
 
 			if (null == LabelAst)
 				return;
@@ -63,9 +63,9 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var LabelColorOpazitäätMili = LabelColor.OMilli;
 
-			var Label = new UIElementText(LabelAst.AlsUIElementFalsUnglaicNullUndSictbar(), LabelText);
+			var Label = new UIElementText(LabelAst.AsUIElementIfVisible(), LabelText);
 
-			Ergeebnis = new Tab(TabAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			Ergeebnis = new Tab(TabAst.AsUIElementIfVisible())
 			{
 				Label = Label,
 				LabelColorOpacityMilli = LabelColorOpazitäätMili,

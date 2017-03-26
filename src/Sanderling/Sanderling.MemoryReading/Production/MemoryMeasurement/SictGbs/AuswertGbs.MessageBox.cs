@@ -6,7 +6,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsMessageBox : SictAuswertGbsWindow
 	{
 		new static public MessageBox BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowNode)
+			UINodeInfoInTree windowNode)
 		{
 			if (null == windowNode)
 				return null;
@@ -18,25 +18,25 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerBottom
+		public UINodeInfoInTree AstMainContainerBottom
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerTopParent
+		public UINodeInfoInTree AstMainContainerTopParent
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerTopParentCaption
+		public UINodeInfoInTree AstMainContainerTopParentCaption
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerBottomButtonGroup
+		public UINodeInfoInTree AstMainContainerBottomButtonGroup
 		{
 			private set;
 			get;
@@ -48,7 +48,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsMessageBox(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsMessageBox(UINodeInfoInTree windowNode)
 			:
 			base(windowNode)
 		{
@@ -66,19 +66,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			var AstMainContainer = base.AstMainContainer;
 
 			AstMainContainerTopParent =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("topParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("topParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstMainContainerTopParentCaption =
-				AstMainContainerTopParent?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("EveCaptionLarge", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
+				AstMainContainerTopParent?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("EveCaptionLarge", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstMainContainerBottom =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("bottom", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("bottom", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstMainContainerBottomButtonGroup =
-				AstMainContainerBottom?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				AstMainContainerBottom?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					(string.Equals("EveButtonGroup", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("ButtonGroup", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
 				2, 1);

@@ -14,18 +14,18 @@ namespace BotEngine.EveOnline.Sensor.Option.MemoryMeasurement.SictGbs
 
 		public const string AbilityIconPyTypeName = "AbilityIcon";
 
-		static public ISquadronsUI AsSquadronsUI(this SictGbsAstInfoSictAuswert squadronsNode)
+		static public ISquadronsUI AsSquadronsUI(this UINodeInfoInTree squadronsNode)
 		{
-			if (!(squadronsNode?.SictbarMitErbe ?? false))
+			if (!(squadronsNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var squadronsContainer = squadronsNode?.AlsContainer();
 
 			var setSquadronUINode =
-				squadronsNode?.SuuceFlacMengeAst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronUI"));
+				squadronsNode?.MatchingNodesFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronUI"));
 
 			var buttonFromPyTypeName = new Func<string, IUIElement>(pyTypeNameRegexPattern =>
-				squadronsNode?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(pyTypeNameRegexPattern))?.AlsUIElementFalsUnglaicNullUndSictbar());
+				squadronsNode?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(pyTypeNameRegexPattern))?.AsUIElementIfVisible());
 
 			return new SquadronsUI(squadronsContainer)
 			{
@@ -36,65 +36,65 @@ namespace BotEngine.EveOnline.Sensor.Option.MemoryMeasurement.SictGbs
 			};
 		}
 
-		static public ISquadronUI AsSquadronUI(this SictGbsAstInfoSictAuswert squadronUINode)
+		static public ISquadronUI AsSquadronUI(this UINodeInfoInTree squadronUINode)
 		{
-			if (!(squadronUINode?.SictbarMitErbe ?? false))
+			if (!(squadronUINode?.VisibleIncludingInheritance ?? false))
 				return null;
 
-			return new SquadronUI(squadronUINode?.AlsUIElementFalsUnglaicNullUndSictbar())
+			return new SquadronUI(squadronUINode?.AsUIElementIfVisible())
 			{
 				SetAbilityIcon =
-					squadronUINode?.SuuceFlacMengeAst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(AbilityIconPyTypeName))
+					squadronUINode?.MatchingNodesFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(AbilityIconPyTypeName))
 					?.Select(AsSquadronAbilityIcon)?.WhereNotDefault()?.OrderByCenterVerticalDown()?.ToArrayIfNotEmpty(),
 
 				Squadron =
-					squadronUINode?.SuuceFlacMengeAstFrüheste(node => (node?.SictbarMitErbe ?? false) && node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronCont"))?.AsSquadronContainer(),
+					squadronUINode?.FirstMatchingNodeFromSubtreeBreadthFirst(node => (node?.VisibleIncludingInheritance ?? false) && node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronCont"))?.AsSquadronContainer(),
 			};
 		}
 
-		static public ISquadronAbilityIcon AsSquadronAbilityIcon(this SictGbsAstInfoSictAuswert squadronAbilityIconNode)
+		static public ISquadronAbilityIcon AsSquadronAbilityIcon(this UINodeInfoInTree squadronAbilityIconNode)
 		{
-			if (!(squadronAbilityIconNode?.SictbarMitErbe ?? false))
+			if (!(squadronAbilityIconNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var quantityLabel =
 				squadronAbilityIconNode
-				?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameIsContainer() && (node.Name?.RegexMatchSuccessIgnoreCase("quantityParent") ?? false))
-				?.GröösteLabel();
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameIsContainer() && (node.Name?.RegexMatchSuccessIgnoreCase("quantityParent") ?? false))
+				?.LargestLabelInSubtree();
 
-			return new SquadronAbilityIcon(squadronAbilityIconNode.AlsUIElementFalsUnglaicNullUndSictbar().WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(26, 26)))
+			return new SquadronAbilityIcon(squadronAbilityIconNode.AsUIElementIfVisible().WithRegionSizeBoundedMaxPivotAtCenter(new Vektor2DInt(26, 26)))
 			{
 				Quantity = quantityLabel?.LabelText()?.Trim()?.TryParseInt(),
 				RampActive = squadronAbilityIconNode?.RampActive,
 			};
 		}
 
-		static public ISquadronContainer AsSquadronContainer(this SictGbsAstInfoSictAuswert squadronContainerNode)
+		static public ISquadronContainer AsSquadronContainer(this UINodeInfoInTree squadronContainerNode)
 		{
-			if (!(squadronContainerNode?.SictbarMitErbe ?? false))
+			if (!(squadronContainerNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var squadronNumberLabel =
-				squadronContainerNode?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronNumber"))
-				?.GröösteLabel();
+				squadronContainerNode?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase("SquadronNumber"))
+				?.LargestLabelInSubtree();
 
 			var isSelected =
 				squadronContainerNode
-				?.SuuceFlacMengeAstFrüheste(n => n?.Name?.RegexMatchSuccessIgnoreCase("SelectHilight") ?? false)
-				?.SictbarMitErbe;
+				?.FirstMatchingNodeFromSubtreeBreadthFirst(n => n?.Name?.RegexMatchSuccessIgnoreCase("SelectHilight") ?? false)
+				?.VisibleIncludingInheritance;
 
 			return new SquadronContainer(squadronContainerNode.AlsContainer())
 			{
 				SquadronNumber = squadronNumberLabel?.LabelText()?.TryParseInt(),
-				Health = squadronContainerNode?.SuuceFlacMengeAstFrüheste(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(FightersHealthGaugePyTypeName)).AsSquadronHealth(),
+				Health = squadronContainerNode?.FirstMatchingNodeFromSubtreeBreadthFirst(node => node.PyObjTypNameMatchesRegexPatternIgnoreCase(FightersHealthGaugePyTypeName)).AsSquadronHealth(),
 				IsSelected = isSelected,
 				Hint = squadronContainerNode?.Hint,
 			};
 		}
 
-		static public ISquadronHealth AsSquadronHealth(this SictGbsAstInfoSictAuswert squadronHealthNode)
+		static public ISquadronHealth AsSquadronHealth(this UINodeInfoInTree squadronHealthNode)
 		{
-			if (!(squadronHealthNode?.SictbarMitErbe ?? false))
+			if (!(squadronHealthNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			return new SquadronHealth

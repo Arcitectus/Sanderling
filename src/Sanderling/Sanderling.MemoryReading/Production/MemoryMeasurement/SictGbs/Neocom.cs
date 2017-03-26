@@ -13,21 +13,21 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertNeocom
 	{
-		readonly public SictGbsAstInfoSictAuswert NeocomAst;
+		readonly public UINodeInfoInTree NeocomAst;
 
-		public SictGbsAstInfoSictAuswert NeocomMainContAst
+		public UINodeInfoInTree NeocomMainContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert NeocomMainContButtonContAst
+		public UINodeInfoInTree NeocomMainContButtonContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert NeocomClockLabelAst
+		public UINodeInfoInTree NeocomClockLabelAst
 		{
 			private set;
 			get;
@@ -39,13 +39,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert NeocomCharContAst
+		public UINodeInfoInTree NeocomCharContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert NeocomCharPicAst
+		public UINodeInfoInTree NeocomCharPicAst
 		{
 			private set;
 			get;
@@ -57,7 +57,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertNeocom(SictGbsAstInfoSictAuswert NeocomAst)
+		public SictAuswertNeocom(UINodeInfoInTree NeocomAst)
 		{
 			this.NeocomAst = NeocomAst;
 		}
@@ -71,54 +71,54 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == NeocomAst.SictbarMitErbe))
+			if (!(true == NeocomAst.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			NeocomMainContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				NeocomAst, (Kandidaat) =>
 					string.Equals("mainCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			NeocomMainContButtonContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				NeocomMainContAst, (Kandidaat) =>
 					string.Equals("buttonCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			var EveMenuButton =
-				NeocomMainContAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameMatchesRegex(EveMenuButtonPyTypeRegex))
-				?.AlsUIElementFalsUnglaicNullUndSictbar();
+				NeocomMainContAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameMatchesRegex(EveMenuButtonPyTypeRegex))
+				?.AsUIElementIfVisible();
 
 			var CharButton =
 				//	2015.08.23 ShipFitting+FittingManagement+Lobby.AgentEntry:	Name = "charSheetBtn"
-				NeocomMainContAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsButton() && k.NameMatchesRegexPatternIgnoreCase("charSheet"))
-				?.AlsUIElementFalsUnglaicNullUndSictbar();
+				NeocomMainContAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsButton() && k.NameMatchesRegexPatternIgnoreCase("charSheet"))
+				?.AsUIElementIfVisible();
 
 			var NeocomListButtonAst =
 				NeocomMainContButtonContAst
-				.SuuceFlacMengeAst(k => k.PyObjTypNameIsButton())
+				.MatchingNodesFromSubtreeBreadthFirst(k => k.PyObjTypNameIsButton())
 				?.ToArray();
 
 			var NeocomListButton =
 				NeocomListButtonAst
-				?.Where(ButtonAst => ButtonAst?.SictbarMitErbe ?? false)
-				?.Select(ButtonAst => new UIElementText(ButtonAst.AlsUIElementFalsUnglaicNullUndSictbar(), ButtonAst?.Name))
+				?.Where(ButtonAst => ButtonAst?.VisibleIncludingInheritance ?? false)
+				?.Select(ButtonAst => new UIElementText(ButtonAst.AsUIElementIfVisible(), ButtonAst?.Name))
 				?.OrdnungLabel()
 				?.ToArray();
 
 			var Button =
 				NeocomListButtonAst
-				?.Select(ButtonAst => ButtonAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsSprite()))
+				?.Select(ButtonAst => ButtonAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsSprite()))
 				?.WhereNotDefault()
 				?.Select(Extension.AlsSprite)
 				?.OrdnungLabel()
 				?.ToArray();
 
 			NeocomClockLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				NeocomMainContAst, (Kandidaat) =>
 					string.Equals("clockLabel", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					5, 1);
@@ -126,16 +126,16 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null != NeocomClockLabelAst)
 			{
 				NeocomClockBescriftung = new UIElementText(
-					NeocomClockLabelAst.AlsUIElementFalsUnglaicNullUndSictbar(), NeocomClockLabelAst.LabelText()?.RemoveXmlTag());
+					NeocomClockLabelAst.AsUIElementIfVisible(), NeocomClockLabelAst.LabelText()?.RemoveXmlTag());
 			}
 
 			NeocomCharContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				NeocomMainContAst, (Kandidaat) =>
 					string.Equals("charCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
-			Ergeebnis = new Neocom(NeocomAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			Ergeebnis = new Neocom(NeocomAst.AsUIElementIfVisible())
 			{
 				EveMenuButton = EveMenuButton,
 				CharButton = CharButton,

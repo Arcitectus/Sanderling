@@ -11,63 +11,63 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsTarget
 	{
-		readonly public SictGbsAstInfoSictAuswert TargetAst;
+		readonly public UINodeInfoInTree TargetAst;
 
-		public SictGbsAstInfoSictAuswert AstBarAndImageCont
+		public UINodeInfoInTree AstBarAndImageCont
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLabelContainer
+		public UINodeInfoInTree AstLabelContainer
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstAssignedPar
+		public UINodeInfoInTree AstAssignedPar
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AssignedContainerAst
+		public UINodeInfoInTree AssignedContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeAssignedModuleOderDroneGrupeAst
+		public UINodeInfoInTree[] MengeAssignedModuleOderDroneGrupeAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstSymboolActive
+		public UINodeInfoInTree AstSymboolActive
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstTargetHealthBars
+		public UINodeInfoInTree AstTargetHealthBars
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstTargetHealthBarsShield
+		public UINodeInfoInTree AstTargetHealthBarsShield
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstTargetHealthBarsArmor
+		public UINodeInfoInTree AstTargetHealthBarsArmor
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstTargetHealthBarsHull
+		public UINodeInfoInTree AstTargetHealthBarsHull
 		{
 			private set;
 			get;
@@ -79,7 +79,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsTarget(SictGbsAstInfoSictAuswert targetElement)
+		public SictAuswertGbsTarget(UINodeInfoInTree targetElement)
 		{
 			this.TargetAst = targetElement;
 		}
@@ -89,7 +89,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			return stringFormiirt?.RemoveXmlTag();
 		}
 
-		static public int? AusGbsAstTargetHealthBarTreferpunkteNormiirtMili(SictGbsAstInfoSictAuswert uiElement)
+		static public int? AusGbsAstTargetHealthBarTreferpunkteNormiirtMili(UINodeInfoInTree uiElement)
 		{
 			if (null == uiElement)
 				return null;
@@ -103,7 +103,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static ShipUiTargetAssignedGroup AusAstBerecneAssignedModuleOderDroneGrupe(
-			SictGbsAstInfoSictAuswert ast)
+			UINodeInfoInTree ast)
 		{
 			if (null == ast)
 				return null;
@@ -111,14 +111,14 @@ namespace Optimat.EveOnline.AuswertGbs
 			bool? IstDrone = null;
 
 			var SpriteAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				ast,
 				(kandidaat) => string.Equals("Sprite", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				2,
 				1);
 
 			var IconAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				ast,
 				AuswertGbs.Glob.GbsAstTypeIstEveIcon,
 				2,
@@ -134,7 +134,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var IconTextureIdent = IconAst?.TextureIdent0;
 
-			var ModuleOderDroneGrupe = new ShipUiTargetAssignedGroup(ast.AlsUIElementFalsUnglaicNullUndSictbar())
+			var ModuleOderDroneGrupe = new ShipUiTargetAssignedGroup(ast.AsUIElementIfVisible())
 			{
 				IconTexture = IconTextureIdent?.AsObjectIdInMemory(),
 			};
@@ -149,44 +149,44 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == TargetAst)
 				return;
 
-			AstBarAndImageCont = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstBarAndImageCont = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TargetAst, (kandidaat) => string.Equals("barAndImageCont", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
-			AstLabelContainer = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstLabelContainer = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TargetAst, (kandidaat) => string.Equals("labelContainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
-			AstAssignedPar = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstAssignedPar = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TargetAst, (kandidaat) => string.Equals("assignedPar", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AssignedContainerAst =
-				TargetAst.SuuceFlacMengeAstFrüheste(
+				TargetAst.FirstMatchingNodeFromSubtreeBreadthFirst(
 				(kandidaat) => kandidaat.PyObjTypNameIsContainer() && string.Equals("assigned", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				3, 1);
 
 			MengeAssignedModuleOderDroneGrupeAst =
-				AssignedContainerAst.SuuceFlacMengeAst(
+				AssignedContainerAst.MatchingNodesFromSubtreeBreadthFirst(
 				c => c.PyObjTypNameIsContainer() || c.PyObjTypNameMatchesRegexPatternIgnoreCase("Weapon"),
 				null,
 				1, 1,
 				true);
 
-			AstSymboolActive = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstSymboolActive = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstBarAndImageCont, (kandidaat) => string.Equals("ActiveTargetOnBracket", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
-			AstTargetHealthBars = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstTargetHealthBars = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstBarAndImageCont, (kandidaat) => string.Equals("TargetHealthBars", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
-			AstTargetHealthBarsShield = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstTargetHealthBarsShield = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstTargetHealthBars, (kandidaat) => string.Equals("shieldBar", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
-			AstTargetHealthBarsArmor = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstTargetHealthBarsArmor = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstTargetHealthBars, (kandidaat) => string.Equals("armorBar", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
-			AstTargetHealthBarsHull = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			AstTargetHealthBarsHull = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstTargetHealthBars, (kandidaat) => string.Equals("hullBar", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			var AusLabelContainerMengeLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLabelContainer, (kandidaat) => string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 2);
 
 			if (null == AusLabelContainerMengeLabel)
@@ -201,7 +201,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var AusLabelContainerMengeLabelMitText =
 				AusLabelContainerMengeLabel
-				.Select((kandidaat) => new KeyValuePair<SictGbsAstInfoSictAuswert, string>(kandidaat, kandidaat.SetText))
+				.Select((kandidaat) => new KeyValuePair<UINodeInfoInTree, string>(kandidaat, kandidaat.SetText))
 				.Where((kandidaat) => null != kandidaat.Value && kandidaat.Key.LaagePlusVonParentErbeLaage().HasValue)
 				.ToArray();
 
@@ -228,8 +228,8 @@ namespace Optimat.EveOnline.AuswertGbs
 			bool? Active = null;
 
 			if (null != AstSymboolActive)
-				Active = null != Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
-					AstSymboolActive, (kandidaat) => true == kandidaat.SictbarMitErbe, 2, 1);
+				Active = null != Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
+					AstSymboolActive, (kandidaat) => true == kandidaat.VisibleIncludingInheritance, 2, 1);
 
 			var mengeAssignedModuleOderDroneGrupe =
 				MengeAssignedModuleOderDroneGrupeAst
@@ -238,12 +238,12 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.ToArrayIfNotEmpty();
 
 			var RegioonInputFookusSeze =
-				AstBarAndImageCont?.AlsUIElementFalsUnglaicNullUndSictbar();
+				AstBarAndImageCont?.AsUIElementIfVisible();
 
 			RegioonInputFookusSeze = RegioonInputFookusSeze?.WithRegionSizePivotAtCenter((RegioonInputFookusSeze.Region.Size() * 7) / 10);
 
 			Ergeebnis = new ShipUiTarget(
-				TargetAst.AlsUIElementFalsUnglaicNullUndSictbar())
+				TargetAst.AsUIElementIfVisible())
 			{
 				LabelText = TargetAst?.ExtraktMengeLabelString()?.OrdnungLabel()?.ToArray(),
 				IsSelected = Active,

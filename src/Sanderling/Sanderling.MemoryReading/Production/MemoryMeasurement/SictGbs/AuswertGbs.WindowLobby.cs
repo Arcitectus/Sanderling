@@ -12,7 +12,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowStation : SictAuswertGbsWindow
 	{
 		new static public WindowStation BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -30,31 +30,31 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AgentsPanelAst
+		public UINodeInfoInTree AgentsPanelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AgentsPanelScrollAst
+		public UINodeInfoInTree AgentsPanelScrollAst
 		{
 			private set;
 			get;
 		}
 
-		public SictAuswertGbsScroll AgentsPanelScrollAuswert
+		public ScrollReader AgentsPanelScrollAuswert
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AgentsPanelScrollContentAst
+		public UINodeInfoInTree AgentsPanelScrollContentAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeAgentEntryHeaderKandidaatAst
+		public UINodeInfoInTree[] MengeAgentEntryHeaderKandidaatAst
 		{
 			private set;
 			get;
@@ -66,7 +66,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeAgentEntryKandidaatAst
+		public UINodeInfoInTree[] MengeAgentEntryKandidaatAst
 		{
 			private set;
 			get;
@@ -84,7 +84,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowStation(SictGbsAstInfoSictAuswert astFensterStationLobby)
+		public SictAuswertGbsWindowStation(UINodeInfoInTree astFensterStationLobby)
 			:
 			base(astFensterStationLobby)
 		{
@@ -95,51 +95,51 @@ namespace Optimat.EveOnline.AuswertGbs
 			base.Berecne();
 
 			var undockButtonNode =
-				AstMainContainerMain?.SuuceFlacMengeAstFrüheste(c =>
+				AstMainContainerMain?.FirstMatchingNodeFromSubtreeBreadthFirst(c =>
 				(c?.PyObjTypName?.RegexMatchSuccessIgnoreCase("UndockBtn") ?? false));
 
-			var undockButtonLabelNode = undockButtonNode?.GröösteLabel();
+			var undockButtonLabelNode = undockButtonNode?.LargestLabelInSubtree();
 
-			var undockButtonActionNode = undockButtonNode?.SuuceFlacMengeAst(c =>
-				c?.HerkunftAdrese != undockButtonNode?.HerkunftAdrese && (c?.PyObjTypNameIsContainer() ?? false))?.GröösteAst();
+			var undockButtonActionNode = undockButtonNode?.MatchingNodesFromSubtreeBreadthFirst(c =>
+				c?.PyObjAddress != undockButtonNode?.PyObjAddress && (c?.PyObjTypNameIsContainer() ?? false))?.LargestNodeInSubtree();
 
 			var serviceButtonContainerAst =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste(k =>
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst(k =>
 				k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("service.*Button"));
 
 			var serviceButton =
-				serviceButtonContainerAst?.SuuceFlacMengeAst(k => k.PyObjTypNameIsButton())
-				?.Select(buttonAst => buttonAst?.SuuceFlacMengeAstFrüheste(spriteAst => spriteAst.PyObjTypNameIsSprite()))
+				serviceButtonContainerAst?.MatchingNodesFromSubtreeBreadthFirst(k => k.PyObjTypNameIsButton())
+				?.Select(buttonAst => buttonAst?.FirstMatchingNodeFromSubtreeBreadthFirst(spriteAst => spriteAst.PyObjTypNameIsSprite()))
 				?.WhereNotDefault()
 				?.Select(Extension.AlsSprite)
 				?.OrdnungLabel()
 				?.ToArray();
 
 			AgentsPanelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("agentsPanel", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			AgentsPanelScrollAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AgentsPanelAst, (kandidaat) =>
 					string.Equals("Scroll", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
-			AgentsPanelScrollAuswert = new SictAuswertGbsScroll(AgentsPanelScrollAst);
+			AgentsPanelScrollAuswert = new ScrollReader(AgentsPanelScrollAst);
 
-			AgentsPanelScrollAuswert.Berecne();
+			AgentsPanelScrollAuswert.Read();
 
-			AgentsPanelScrollContentAst = AgentsPanelScrollAuswert.MainContainerClipperContentAst;
+			AgentsPanelScrollContentAst = AgentsPanelScrollAuswert.ClipperContentNode;
 
 			MengeAgentEntryHeaderKandidaatAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AgentsPanelScrollContentAst, (kandidaat) =>
 					string.Equals("Header", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					null, 2, 1);
 
 			MengeAgentEntryKandidaatAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AgentsPanelScrollContentAst, (kandidaat) =>
 					string.Equals("AgentEntry", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					null, 2, 1);
@@ -158,7 +158,7 @@ namespace Optimat.EveOnline.AuswertGbs
 							if (null != GbsAstFläce?.Center())
 								Laage = (int)GbsAstFläce.Value.Center().B;
 
-							var Label = Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+							var Label = Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 								gbsAst,
 								(kandidaat) => string.Equals("EveLabelMedium", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 								2, 1);
@@ -215,13 +215,13 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var agentEntryHeader =
 				MengeAgentEntryHeaderKandidaatAst
-				?.Select(headerAst => headerAst?.GröösteLabel()?.AsUIElementTextIfTextNotEmpty())
+				?.Select(headerAst => headerAst?.LargestLabelInSubtree()?.AsUIElementTextIfTextNotEmpty())
 				?.WhereNotDefault()
 				?.OrdnungLabel()
 				?.ToArray();
 
 			var undockButton =
-				undockButtonActionNode?.AlsUIElementFalsUnglaicNullUndSictbar();
+				undockButtonActionNode?.AsUIElementIfVisible();
 
 			var unDocking =
 				(null == ButtonUndockLabelText) ? (bool?)null :

@@ -99,7 +99,7 @@
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbs.WindowMarketAction.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbs.WindowRegionalMarket.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbs.WindowSelectedItem.cs" />
-    <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsBasicDynamicScroll.cs" />
+    <Compile Include="Production\MemoryMeasurement\SictGbs\ScrollReader.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsInfoPanelLocationInfo.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsInfoPanelMissions.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsInfoPanelRoute.cs" />
@@ -119,7 +119,7 @@
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsWindowOverview.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\AuswertGbsWindowOverviewZaile.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\Extension.cs" />
-    <Compile Include="Production\MemoryMeasurement\SictGbs\GbsAstInfo.cs" />
+    <Compile Include="Production\MemoryMeasurement\SictGbs\UINodeInfoInTree.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\Glob.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\Neocom.cs" />
     <Compile Include="Production\MemoryMeasurement\SictGbs\SquadronUI.cs" />

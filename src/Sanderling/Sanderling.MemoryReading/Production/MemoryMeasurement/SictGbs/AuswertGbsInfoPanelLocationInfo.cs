@@ -5,19 +5,19 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsInfoPanelCurrentSystem : SictAuswertGbsInfoPanelGen
 	{
-		public SictGbsAstInfoSictAuswert AstInfoPanelContainer
+		public UINodeInfoInTree AstInfoPanelContainer
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstListSurroundingsBtn
+		public UINodeInfoInTree AstListSurroundingsBtn
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstHeaderContLabelHeader
+		public UINodeInfoInTree AstHeaderContLabelHeader
 		{
 			private set;
 			get;
@@ -29,7 +29,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContLabelNearestLocationInfo
+		public UINodeInfoInTree AstMainContLabelNearestLocationInfo
 		{
 			private set;
 			get;
@@ -41,7 +41,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsInfoPanelCurrentSystem(SictGbsAstInfoSictAuswert astInfoPanelLocationInfo)
+		public SictAuswertGbsInfoPanelCurrentSystem(UINodeInfoInTree astInfoPanelLocationInfo)
 			:
 			base(astInfoPanelLocationInfo)
 		{
@@ -57,17 +57,17 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			AstListSurroundingsBtn =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				HeaderBtnContAst, (kandidaat) => string.Equals("ListSurroundingsBtn", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 5);
 
 			AstHeaderContLabelHeader =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				HeaderContAst, (kandidaat) => string.Equals("header", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 4);
 
 			AstMainContLabelNearestLocationInfo =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				MainContAst, (kandidaat) =>
-					(true == kandidaat.SictbarMitErbe) &&
+					(true == kandidaat.VisibleIncludingInheritance) &&
 					string.Equals("nearestLocationInfo", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			if (null != AstHeaderContLabelHeader)
@@ -76,7 +76,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			IUIElement ButtonListSurroundings = null;
 
 			if (null != AstListSurroundingsBtn)
-				ButtonListSurroundings = AstListSurroundingsBtn.AlsUIElementFalsUnglaicNullUndSictbar();
+				ButtonListSurroundings = AstListSurroundingsBtn.AsUIElementIfVisible();
 
 			ErgeebnisScpez = new InfoPanelSystem(BaseErgeebnis)
 			{

@@ -12,7 +12,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	/// </summary>
 	public class SictAuswertGbsPanelEveMenu : SictAuswertGbsPanelGroup
 	{
-		public SictAuswertGbsPanelEveMenu(SictGbsAstInfoSictAuswert PanelGroupAst)
+		public SictAuswertGbsPanelEveMenu(UINodeInfoInTree PanelGroupAst)
 			:
 			base(PanelGroupAst,
 			"main")

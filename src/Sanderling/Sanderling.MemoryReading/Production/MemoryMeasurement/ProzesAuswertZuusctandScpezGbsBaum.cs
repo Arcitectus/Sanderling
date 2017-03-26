@@ -574,7 +574,7 @@ namespace Optimat.EveOnline
 										{
 											//	Berecnung Sictbarkait
 
-											AstInfo.SictbarMitErbe = true;
+											AstInfo.VisibleIncludingInheritance = true;
 
 											if (null != GbsAst.Parent)
 											{
@@ -592,7 +592,7 @@ namespace Optimat.EveOnline
 
 												if (!(1 == RenderObjectMemBlokOktetSictbarkait))
 												{
-													AstInfo.SictbarMitErbe = false;
+													AstInfo.VisibleIncludingInheritance = false;
 												}
 
 												var ParentInfo = GbsAst.Parent.Info;
@@ -606,10 +606,10 @@ namespace Optimat.EveOnline
 													AstInfo.VonParentErbeLaage = ParentInfo.LaagePlusVonParentErbeLaage;
 													 * */
 
-													if (!(true == ParentInfo.SictbarMitErbe) ||
+													if (!(true == ParentInfo.VisibleIncludingInheritance) ||
 														true == ParentInfo.Minimized)
 													{
-														AstInfo.SictbarMitErbe = false;
+														AstInfo.VisibleIncludingInheritance = false;
 													}
 
 													/*
@@ -624,18 +624,18 @@ namespace Optimat.EveOnline
 													}
 													 * */
 
-													if (!(true == ParentInfo.SictbarMitErbe))
+													if (!(true == ParentInfo.VisibleIncludingInheritance))
 													{
-														AstInfo.SictbarMitErbe = false;
+														AstInfo.VisibleIncludingInheritance = false;
 													}
 												}
 											}
 										}
 
-										if (!(true == AstInfo.SictbarMitErbe))
+										if (!(true == AstInfo.VisibleIncludingInheritance))
 										{
 											//	Nict sictbaare Ast werde ignoriirt.
-											AstInfo.ListeChild = null;
+											AstInfo.ListChild = null;
 											continue;
 										}
 
@@ -1880,7 +1880,7 @@ namespace Optimat.EveOnline
 					var PfaadBlatAdrese = ListeAstAdrese.LastOrDefault();
 
 					PfaadListeAst =
-						PfaadWurzel.SuuceFlacMengeAstMitPfaadFrüheste(KandidaatBlat => KandidaatBlat.HerkunftAdrese == PfaadBlatAdrese);
+						PfaadWurzel.SuuceFlacMengeAstMitPfaadFrüheste(KandidaatBlat => KandidaatBlat.PyObjAddress == PfaadBlatAdrese);
 				}
 				finally
 				{

@@ -7,13 +7,13 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsTabGroup
 	{
-		public SictGbsAstInfoSictAuswert TabGroupAst
+		public UINodeInfoInTree TabGroupAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeTabAst
+		public UINodeInfoInTree[] MengeTabAst
 		{
 			private set;
 			get;
@@ -43,7 +43,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsTabGroup(SictGbsAstInfoSictAuswert tabGroupAst)
+		public SictAuswertGbsTabGroup(UINodeInfoInTree tabGroupAst)
 		{
 			this.TabGroupAst = tabGroupAst;
 		}
@@ -55,11 +55,11 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (null == TabGroupAst)
 				return;
 
-			if (!(true == TabGroupAst.SictbarMitErbe))
+			if (!(true == TabGroupAst.VisibleIncludingInheritance))
 				return;
 
 			MengeTabAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				TabGroupAst, (kandidaat) =>
 					"Tab".EqualsIgnoreCase(kandidaat.PyObjTypName),
 					null, 2, 1, true);
@@ -91,7 +91,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					MengeTab.All((kandidaatKonkurent) => kandidaatKonkurent == kandidaatTab ||
 						(kandidaatKonkurent.LabelColorOpacityMilli ?? 0) < kandidaatTab.LabelColorOpacityMilli - 100));
 
-			var Ergeebnis = new TabGroup(TabGroupAst.AlsUIElementFalsUnglaicNullUndSictbar()) { ListTab = ListeTab };
+			var Ergeebnis = new TabGroup(TabGroupAst.AsUIElementIfVisible()) { ListTab = ListeTab };
 
 			this.Ergeebnis = Ergeebnis;
 		}

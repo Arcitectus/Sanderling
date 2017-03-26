@@ -8,7 +8,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	/// </summary>
 	public	class SictAuswertGbsPanelGroup
 	{
-		readonly public SictGbsAstInfoSictAuswert PanelGroupAst;
+		readonly public UINodeInfoInTree PanelGroupAst;
 
 		/// <summary>
 		/// Naame des Ast welcer Menge der Entry enthalt.
@@ -18,7 +18,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// </summary>
 		readonly public string ContainerMengeEntryName;
 
-		public SictGbsAstInfoSictAuswert ContainerMengeEntryAst
+		public UINodeInfoInTree ContainerMengeEntryAst
 		{
 			private set;
 			get;
@@ -31,7 +31,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		public SictAuswertGbsPanelGroup(
-			SictGbsAstInfoSictAuswert PanelGroupAst,
+			UINodeInfoInTree PanelGroupAst,
 			string ContainerMengeEntryName = "Container")
 		{
 			this.PanelGroupAst = PanelGroupAst;
@@ -45,7 +45,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == PanelGroupAst.SictbarMitErbe))
+			if (!(true == PanelGroupAst.VisibleIncludingInheritance))
 			{
 				return;
 			}
@@ -53,7 +53,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			var ContainerMengeEntryName = this.ContainerMengeEntryName;
 
 			ContainerMengeEntryAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				PanelGroupAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals(ContainerMengeEntryName, Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
