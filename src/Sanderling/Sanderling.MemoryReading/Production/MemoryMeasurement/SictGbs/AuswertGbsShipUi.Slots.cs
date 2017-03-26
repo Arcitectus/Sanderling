@@ -7,9 +7,9 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsShipUiSlots
 	{
-		readonly public SictGbsAstInfoSictAuswert shipUiSlotsNode;
+		readonly public UINodeInfoInTree shipUiSlotsNode;
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatSlotFenster
+		public UINodeInfoInTree[] MengeKandidaatSlotFenster
 		{
 			private set;
 			get;
@@ -27,18 +27,18 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsShipUiSlots(SictGbsAstInfoSictAuswert shipUiSlotsNode)
+		public SictAuswertGbsShipUiSlots(UINodeInfoInTree shipUiSlotsNode)
 		{
 			this.shipUiSlotsNode = shipUiSlotsNode;
 		}
 
 		public void Berecne()
 		{
-			if (!(shipUiSlotsNode?.SictbarMitErbe ?? false))
+			if (!(shipUiSlotsNode?.VisibleIncludingInheritance ?? false))
 				return;
 
 			MengeKandidaatSlotFenster =
-				shipUiSlotsNode?.SuuceFlacMengeAst(node => string.Equals("ShipSlot", node.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 2, 1, true);
+				shipUiSlotsNode?.MatchingNodesFromSubtreeBreadthFirst(node => string.Equals("ShipSlot", node.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 2, 1, true);
 
 			MengeKandidaatSlotAuswert =
 				MengeKandidaatSlotFenster

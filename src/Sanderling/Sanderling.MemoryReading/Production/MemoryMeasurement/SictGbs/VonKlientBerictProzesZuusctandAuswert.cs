@@ -15,45 +15,45 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// </summary>
 		static readonly string VersionLabelRegexPattern = Regex.Escape("Version:") + "\\s*([\\s\\d\\.]+)";
 
-		readonly public SictGbsAstInfoSictAuswert GbsBaumWurzel;
+		readonly public UINodeInfoInTree GbsBaumWurzel;
 
-		public SictGbsAstInfoSictAuswert AstLayerMenu
+		public UINodeInfoInTree AstLayerMenu
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLayerMain
+		public UINodeInfoInTree AstLayerMain
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLayerModal
+		public UINodeInfoInTree AstLayerModal
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LayerSystemmenuAst
+		public UINodeInfoInTree LayerSystemmenuAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LayerLoginAst
+		public UINodeInfoInTree LayerLoginAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LayerSystemmenuSysmenuAst
+		public UINodeInfoInTree LayerSystemmenuSysmenuAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLayerModalModal
+		public UINodeInfoInTree AstLayerModalModal
 		{
 			private set;
 			get;
@@ -71,19 +71,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] AstLayerModalMengeKandidaatWindow
+		public UINodeInfoInTree[] AstLayerModalMengeKandidaatWindow
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LayerHintAst
+		public UINodeInfoInTree LayerHintAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ModuleButtonHintAst
+		public UINodeInfoInTree ModuleButtonHintAst
 		{
 			private set;
 			get;
@@ -95,43 +95,43 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLayerUtilmenu
+		public UINodeInfoInTree AstLayerUtilmenu
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstLayerAbovemain
+		public UINodeInfoInTree AstLayerAbovemain
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstSidePanels
+		public UINodeInfoInTree AstSidePanels
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatMenuAst
+		public UINodeInfoInTree[] MengeKandidaatMenuAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatAbovemainMessageAst
+		public UINodeInfoInTree[] MengeKandidaatAbovemainMessageAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatAbovemainPanelEveMenuAst
+		public UINodeInfoInTree[] MengeKandidaatAbovemainPanelEveMenuAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatAbovemainPanelGroupAst
+		public UINodeInfoInTree[] MengeKandidaatAbovemainPanelGroupAst
 		{
 			private set;
 			get;
@@ -149,13 +149,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] LayerMainMengeKandidaatWindowAst
+		public UINodeInfoInTree[] LayerMainMengeKandidaatWindowAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] MengeKandidaatWindowAst
+		public UINodeInfoInTree[] MengeKandidaatWindowAst
 		{
 			private set;
 			get;
@@ -173,7 +173,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert LayerShipUiAst
+		public UINodeInfoInTree LayerShipUiAst
 		{
 			private set;
 			get;
@@ -204,7 +204,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		public SictAuswertGbsAgr(
-			SictGbsAstInfoSictAuswert GbsBaumWurzel)
+			UINodeInfoInTree GbsBaumWurzel)
 		{
 			this.GbsBaumWurzel = GbsBaumWurzel;
 		}
@@ -217,88 +217,88 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstSidePanels =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel,
 				(Kandidaat) => string.Equals("SidePanels", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase));
 
 			LayerShipUiAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel,
 				(Kandidaat) => string.Equals("ShipUI", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 				5, 1);
 
 			var FensterLayerTarget =
 				Optimat.EveOnline.AuswertGbs.Extension
-				.SuuceFlacMengeAstFrüheste(GbsBaumWurzel, (Kandidaat) => string.Equals("l_target", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
+				.FirstMatchingNodeFromSubtreeBreadthFirst(GbsBaumWurzel, (Kandidaat) => string.Equals("l_target", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase));
 
 			var WindowOverviewAst =
 				Optimat.EveOnline.AuswertGbs.Extension
-				.SuuceFlacMengeAstFrüheste(GbsBaumWurzel, (Kandidaat) => string.Equals("OverView", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase));
+				.FirstMatchingNodeFromSubtreeBreadthFirst(GbsBaumWurzel, (Kandidaat) => string.Equals("OverView", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase));
 
 			AstLayerMenu =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_menu", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstLayerMain =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_main", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstLayerModal =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_modal", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			LayerSystemmenuAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("SystemMenu", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_systemmenu", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			LayerSystemmenuSysmenuAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				LayerSystemmenuAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("sysmenu", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			LayerLoginAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("Login", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_login", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			var InflightLayer =
-				GbsBaumWurzel?.SuuceFlacMengeAstFrüheste(c =>
+				GbsBaumWurzel?.FirstMatchingNodeFromSubtreeBreadthFirst(c =>
 					(c?.PyObjTypName?.RegexMatchSuccessIgnoreCase("Layer") ?? false) &&
 					(c?.Name?.RegexMatchSuccessIgnoreCase("inflight") ?? false));
 
 			var InflightBracketLayer =
-				InflightLayer?.SuuceFlacMengeAstFrüheste(c =>
+				InflightLayer?.FirstMatchingNodeFromSubtreeBreadthFirst(c =>
 					(c?.PyObjTypName?.RegexMatchSuccessIgnoreCase("Layer") ?? false) &&
 					(c?.Name?.RegexMatchSuccessIgnoreCase("bracket") ?? false));
 
 			var setInflightBracket =
 				InflightBracketLayer
-				?.SuuceFlacMengeAst(c => c?.PyObjTypName?.RegexMatchSuccessIgnoreCase("InSpaceBracket") ?? false, null, null, null, true)
+				?.MatchingNodesFromSubtreeBreadthFirst(c => c?.PyObjTypName?.RegexMatchSuccessIgnoreCase("InSpaceBracket") ?? false, null, null, null, true)
 				?.Select(bracketNode => bracketNode?.AsInSpaceBracket())
 				?.ToArrayIfNotEmpty();
 
 			var LayerSystemmenuAstMengeKandidaatLabelVersionAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				LayerSystemmenuAst, (Kandidaat) =>
 					Optimat.EveOnline.AuswertGbs.Glob.GbsAstTypeIstLabel(Kandidaat), null, 3, 1)
 				.ConcatNullable(
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				LayerLoginAst, (Kandidaat) =>
 					Optimat.EveOnline.AuswertGbs.Glob.GbsAstTypeIstLabel(Kandidaat), null, 3, 1))
 				?.ToArray();
@@ -334,7 +334,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstLayerModalMengeKandidaatWindow =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLayerModal, (Kandidaat) =>
 					Regex.Match(Kandidaat.PyObjTypName ?? "", "MessageBox", RegexOptions.IgnoreCase).Success ||
 					Regex.Match(Kandidaat.PyObjTypName ?? "", "HybridWindow", RegexOptions.IgnoreCase).Success ||
@@ -342,57 +342,57 @@ namespace Optimat.EveOnline.AuswertGbs
 					null, 3, 1);
 
 			LayerHintAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_hint", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			var SetTooltipNode =
-				LayerHintAst?.SuuceFlacMengeAst(k => k?.PyObjTypNameMatchesRegexPattern("TooltipGeneric") ?? false);
+				LayerHintAst?.MatchingNodesFromSubtreeBreadthFirst(k => k?.PyObjTypNameMatchesRegexPattern("TooltipGeneric") ?? false);
 
 			var SetTooltip =
 				SetTooltipNode?.Select(TooltipNode => TooltipNode?.AlsContainer())?.WhereNotDefault()?.ToArrayIfNotEmpty();
 
 			ModuleButtonHintAst =
-			   Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+			   Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 			   GbsBaumWurzel, (Kandidaat) =>
 				   string.Equals("ModuleButtonTooltip", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
-				   (true == Kandidaat.SictbarMitErbe),
+				   (true == Kandidaat.VisibleIncludingInheritance),
 			   2, 1);
 
 			AstLayerUtilmenu =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_utilmenu", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstLayerAbovemain =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
 					string.Equals("LayerCore", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("l_abovemain", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			MengeKandidaatAbovemainMessageAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLayerAbovemain, (Kandidaat) =>
 					string.Equals("Message", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 3, 1);
 
 			MengeKandidaatAbovemainPanelEveMenuAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLayerAbovemain, (Kandidaat) =>
 					string.Equals("PanelEveMenu", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 3, 1);
 
 			MengeKandidaatAbovemainPanelGroupAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLayerAbovemain, (Kandidaat) =>
 					string.Equals("PanelGroup", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 3, 1);
 
 			LayerMainMengeKandidaatWindowAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
-				AstLayerMain, (Kandidaat) => true == Kandidaat.SictbarMitErbe &&
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
+				AstLayerMain, (Kandidaat) => true == Kandidaat.VisibleIncludingInheritance &&
 					(null != Kandidaat.Caption || null != Kandidaat.WindowID),
 				null,
 				2,
@@ -401,7 +401,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			MengeKandidaatWindowAst =
 				Bib3.Glob.ListeEnumerableAgregiirt(
-				new SictGbsAstInfoSictAuswert[][]{
+				new UINodeInfoInTree[][]{
 					LayerMainMengeKandidaatWindowAst,
 					AstLayerModalMengeKandidaatWindow,
 				})
@@ -415,7 +415,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.ToArray();
 
 			MengeKandidaatMenuAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				AstLayerMenu, (Kandidaat) =>
 					Regex.Match(Kandidaat.PyObjTypName ?? "", "DropDownMenu", RegexOptions.IgnoreCase).Success,
 					null, 2, 1);
@@ -452,9 +452,9 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var MengeKandidaatUtilmenu =
 				(null == AstLayerUtilmenu) ? null :
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				GbsBaumWurzel, (Kandidaat) =>
-					(true == Kandidaat.SictbarMitErbe) &&
+					(true == Kandidaat.VisibleIncludingInheritance) &&
 					string.Equals("UtilMenu", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, null, 1);
 
 			Utilmenu = new[] { AstLayerUtilmenu.AlsUtilmenu() }.WhereNotDefault()?.ToArrayIfNotEmpty();
@@ -501,7 +501,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			Ergeebnis.AbovemainMessage =
 				MengeKandidaatAbovemainMessageAst
-				?.Select((GbsAst) => GbsAst?.GröösteLabel()?.AsUIElementTextIfTextNotEmpty())
+				?.Select((GbsAst) => GbsAst?.LargestLabelInSubtree()?.AsUIElementTextIfTextNotEmpty())
 				?.Where(Label => 0 < Label?.Text?.Length)
 				?.ToArrayIfNotEmpty();
 
@@ -656,14 +656,14 @@ namespace Optimat.EveOnline.AuswertGbs
 			Ergeebnis.InfoPanelRoute = AuswertSidePanelsAuswertPanelRoute?.ErgeebnisScpez;
 			Ergeebnis.InfoPanelMissions = AuswertSidePanelsAstInfoPanelMissions?.ErgeebnisScpez;
 
-			var InfoPanelButtonCurrentSystem = AuswertSidePanels.InfoPanelButtonLocationInfoAst.AlsUIElementFalsUnglaicNullUndSictbar();
-			var InfoPanelButtonRoute = AuswertSidePanels.InfoPanelButtonRouteAst.AlsUIElementFalsUnglaicNullUndSictbar();
-			var InfoPanelButtonMissions = AuswertSidePanels.InfoPanelButtonMissionAst.AlsUIElementFalsUnglaicNullUndSictbar();
+			var InfoPanelButtonCurrentSystem = AuswertSidePanels.InfoPanelButtonLocationInfoAst.AsUIElementIfVisible();
+			var InfoPanelButtonRoute = AuswertSidePanels.InfoPanelButtonRouteAst.AsUIElementIfVisible();
+			var InfoPanelButtonMissions = AuswertSidePanels.InfoPanelButtonMissionAst.AsUIElementIfVisible();
 
 			Ergeebnis.InfoPanelButtonCurrentSystem = InfoPanelButtonCurrentSystem;
 			Ergeebnis.InfoPanelButtonRoute = InfoPanelButtonRoute;
 			Ergeebnis.InfoPanelButtonMissions = InfoPanelButtonMissions;
-			Ergeebnis.InfoPanelButtonIncursions = AuswertSidePanels?.InfoPanelButtonIncursionsAst?.AlsUIElementFalsUnglaicNullUndSictbar();
+			Ergeebnis.InfoPanelButtonIncursions = AuswertSidePanels?.InfoPanelButtonIncursionsAst?.AsUIElementIfVisible();
 
 			Ergeebnis.Utilmenu = Utilmenu;
 

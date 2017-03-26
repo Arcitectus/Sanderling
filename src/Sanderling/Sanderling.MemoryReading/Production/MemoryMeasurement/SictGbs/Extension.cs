@@ -21,11 +21,11 @@ namespace Optimat.EveOnline.AuswertGbs
 			new Bib3.RefNezDiferenz.SictTypeBehandlungRictliinieMitTransportIdentScatescpaicer(
 				Bib3.RefNezDiferenz.NewtonsoftJson.SictMengeTypeBehandlungRictliinieNewtonsoftJson.KonstruktMengeTypeBehandlungRictliinie(
 				new KeyValuePair<Type, Type>[]{
-					new KeyValuePair<Type, Type>(typeof(GbsAstInfo), typeof(SictGbsAstInfoSictAuswert)),
-					new KeyValuePair<Type, Type>(typeof(GbsAstInfo[]), typeof(SictGbsAstInfoSictAuswert[])),
+					new KeyValuePair<Type, Type>(typeof(GbsAstInfo), typeof(UINodeInfoInTree)),
+					new KeyValuePair<Type, Type>(typeof(GbsAstInfo[]), typeof(UINodeInfoInTree[])),
 				}));
 
-		static public SictGbsAstInfoSictAuswert SictAuswert(
+		static public UINodeInfoInTree SictAuswert(
 			this GbsAstInfo gbsBaum)
 		{
 			if (null == gbsBaum)
@@ -38,7 +38,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				new Bib3.RefBaumKopii.Param(null, KonvertGbsAstInfoRictliinieMitScatescpaicer),
 				null,
 				null)
-				as SictGbsAstInfoSictAuswert;
+				as UINodeInfoInTree;
 
 			if (null == GbsBaumScpez)
 				return null;
@@ -64,22 +64,22 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 
-		static public IEnumerable<SictGbsAstInfoSictAuswert> BaumEnumFlacListeKnoote(
-			this SictGbsAstInfoSictAuswert suuceWurzel,
+		static public IEnumerable<UINodeInfoInTree> BaumEnumFlacListeKnoote(
+			this UINodeInfoInTree suuceWurzel,
 			int? tiifeMax = null,
 			int? tiifeMin = null)
 		{
 			return
 				suuceWurzel.EnumerateNodeFromTreeBFirst(
-				node => node?.ListeChildBerecne()?.OfType<SictGbsAstInfoSictAuswert>(),
+				node => node?.GetListChild()?.OfType<UINodeInfoInTree>(),
 				tiifeMax,
 				tiifeMin);
 		}
 
 		static public Vektor2DSingle? LaagePlusVonParentErbeLaage(
-			this SictGbsAstInfoSictAuswert node)
+			this UINodeInfoInTree node)
 		{
-			var VonParentErbeLaage = node?.VonParentErbeLaage;
+			var VonParentErbeLaage = node?.FromParentLocation;
 
 			if (!VonParentErbeLaage.HasValue)
 				return node.LaageInParent;
@@ -88,10 +88,10 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public string LabelText(
-			this SictGbsAstInfoSictAuswert node) => node?.SetText;
+			this UINodeInfoInTree node) => node?.SetText;
 
 		static public void AbgelaiteteAigescafteBerecne(
-			this SictGbsAstInfoSictAuswert node,
+			this UINodeInfoInTree node,
 			ref int inBaumAstIndexZääler,
 			int? tiifeMax = null,
 			Vektor2DSingle? vonParentErbeLaage = null,
@@ -106,8 +106,8 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (tiifeMax < 0)
 				return;
 
-			node.InBaumAstIndex = ++inBaumAstIndexZääler;
-			node.VonParentErbeLaage = vonParentErbeLaage;
+			node.InTreeIndex = ++inBaumAstIndexZääler;
+			node.FromParentLocation = vonParentErbeLaage;
 
 			var FürChildVonParentErbeLaage = node.LaageInParent;
 
@@ -139,7 +139,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				}
 			}
 
-			var ListeChild = node.ListeChild;
+			var ListeChild = node.ListChild;
 
 			for (int ChildIndex = 0; ChildIndex < ListeChild?.Length; ChildIndex++)
 			{
@@ -148,7 +148,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				if (null == Child)
 					continue;
 
-				Child.InParentListeChildIndex = ChildIndex;
+				Child.InParentListChildIndex = ChildIndex;
 				Child.AbgelaiteteAigescafteBerecne(
 					ref inBaumAstIndexZääler,
 					tiifeMax - 1,
@@ -161,25 +161,25 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var MengeChildInBaumAstIndex =
 				ListeChild
-				?.Select(child => child?.ChildLezteInBaumAstIndex ?? child?.InBaumAstIndex)
+				?.Select(child => child?.ChildLastInTreeIndex ?? child?.InTreeIndex)
 				?.WhereNotDefault()
 				?.ToArray();
 
 			if (0 < MengeChildInBaumAstIndex?.Length)
 			{
-				node.ChildLezteInBaumAstIndex = MengeChildInBaumAstIndex.Max();
+				node.ChildLastInTreeIndex = MengeChildInBaumAstIndex.Max();
 			}
 		}
 
-		static public SictGbsAstInfoSictAuswert SuuceFlacMengeAstFrüheste(
-			this SictGbsAstInfoSictAuswert[] suuceMengeWurzel,
-			Func<SictGbsAstInfoSictAuswert, bool> prädikaat,
+		static public UINodeInfoInTree SuuceFlacMengeAstFrüheste(
+			this UINodeInfoInTree[] suuceMengeWurzel,
+			Func<UINodeInfoInTree, bool> prädikaat,
 			int? tiifeMax = null,
 			int? tiifeMin = null)
 		{
 			foreach (var Wurzel in suuceMengeWurzel.EmptyIfNull())
 			{
-				var Fund = Wurzel.SuuceFlacMengeAstFrüheste(prädikaat, tiifeMax, tiifeMin);
+				var Fund = Wurzel.FirstMatchingNodeFromSubtreeBreadthFirst(prädikaat, tiifeMax, tiifeMin);
 
 				if (null != Fund)
 					return Fund;
@@ -193,7 +193,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			where T : class, IUIElement =>
 			source?.OrderByDescending(element => element.Region.Area())?.FirstOrDefault();
 
-		static public T GröösteAst<T>(
+		static public T LargestNodeInSubtree<T>(
 			this IEnumerable<T> source)
 			where T : GbsAstInfo =>
 			source?.OrderByDescending(element => (element.GrööseA * element.GrööseB) ?? int.MinValue)?.FirstOrDefault();
@@ -202,16 +202,16 @@ namespace Optimat.EveOnline.AuswertGbs
 			this IEnumerable<T> source)
 			where T : GbsAstInfo =>
 			source?.Where(k => k.PyObjTypNameIsSprite())
-			?.GröösteAst();
+			?.LargestNodeInSubtree();
 
-		static public SictGbsAstInfoSictAuswert GröösteLabel(
-			this SictGbsAstInfoSictAuswert suuceWurzel,
+		static public UINodeInfoInTree LargestLabelInSubtree(
+			this UINodeInfoInTree rootNode,
 			int? tiifeMax = null)
 		{
 			var mengeLabelSictbar =
-				suuceWurzel.SuuceFlacMengeAst(kandidaat => kandidaat.GbsAstTypeIstLabel(), null, tiifeMax);
+				rootNode.MatchingNodesFromSubtreeBreadthFirst(kandidaat => kandidaat.GbsAstTypeIstLabel(), null, tiifeMax);
 
-			SictGbsAstInfoSictAuswert bisherBeste = null;
+			UINodeInfoInTree bisherBeste = null;
 
 			foreach (var LabelAst in mengeLabelSictbar.EmptyIfNull())
 			{
@@ -227,97 +227,62 @@ namespace Optimat.EveOnline.AuswertGbs
 			return bisherBeste;
 		}
 
-		static public SictGbsAstInfoSictAuswert[] SuuceFlacMengeAst(
-			this SictGbsAstInfoSictAuswert ast,
-			Func<SictGbsAstInfoSictAuswert, bool> prädikaat,
-			int? listeFundAnzaalScrankeMax = null,
-			int? tiifeScrankeMax = null,
-			int? tiifeScrankeMin = null,
-			bool laseAusMengeChildUnterhalbTrefer = false)
-		{
-			var MengeAstMitPfaad = ast.SuuceFlacMengeAstMitPfaad(
-				prädikaat,
-				listeFundAnzaalScrankeMax, tiifeScrankeMax, tiifeScrankeMin, laseAusMengeChildUnterhalbTrefer);
+		static public UINodeInfoInTree[] MatchingNodesFromSubtreeBreadthFirst(
+			this UINodeInfoInTree rootNode,
+			Func<UINodeInfoInTree, bool> predicate,
+			int? resultCountMax = null,
+			int? depthBoundMax = null,
+			int? depthBoundMin = null,
+			bool omitNodesBelowNodesMatchingPredicate = false)	=>
+			rootNode.ListPathToNodeFromSubtreeBreadthFirst(
+				predicate,
+				resultCountMax,
+				depthBoundMax,
+				depthBoundMin,
+				omitNodesBelowNodesMatchingPredicate)
+				?.Select(astMitPfaad => astMitPfaad.LastOrDefault()).ToArray();
 
-			if (null == MengeAstMitPfaad)
-				return null;
+		static public UINodeInfoInTree FirstNodeWithPyObjAddressFromSubtreeBreadthFirst(
+			this UINodeInfoInTree node,
+			Int64? pyObjAddress,
+			int? depthBoundMax = null,
+			int? depthBoundMin = null) =>
+			node.FirstMatchingNodeFromSubtreeBreadthFirst(
+				kandidaat => kandidaat.PyObjAddress == pyObjAddress,
+				depthBoundMax,
+				depthBoundMin);
 
-			var MengeAst = MengeAstMitPfaad.Select(astMitPfaad => astMitPfaad.LastOrDefault()).ToArray();
+		static public UINodeInfoInTree FirstMatchingNodeFromSubtreeBreadthFirst(
+			this UINodeInfoInTree rootNode,
+			Func<UINodeInfoInTree, bool> predicate,
+			int? depthBoundMax = null,
+			int? depthBoundMin = null) =>
+			rootNode?.MatchingNodesFromSubtreeBreadthFirst(predicate, 1, depthBoundMax, depthBoundMin, true)
+			?.FirstOrDefault();
 
-			return MengeAst;
-		}
-
-		static public SictGbsAstInfoSictAuswert SuuceFlacMengeAstFrühesteMitHerkunftAdrese(
-			this SictGbsAstInfoSictAuswert node,
-			Int64? herkunftAdrese,
-			int? tiifeMax = null,
-			int? tiifeMin = null) =>
-			node.SuuceFlacMengeAstFrüheste(
-				kandidaat => kandidaat.HerkunftAdrese == herkunftAdrese,
-				tiifeMax,
-				tiifeMin);
-
-		static public SictGbsAstInfoSictAuswert SuuceFlacMengeAstFrüheste(
-			this SictGbsAstInfoSictAuswert Ast,
-			Func<SictGbsAstInfoSictAuswert, bool> Prädikaat,
-			int? TiifeScrankeMax = null,
-			int? TiifeScrankeMin = null)
-		{
-			var MengeAst = Ast.SuuceFlacMengeAst(Prädikaat, 1, TiifeScrankeMax, TiifeScrankeMin, true);
-
-			if (null == MengeAst)
-			{
-				return null;
-			}
-
-			var FundAst = MengeAst.FirstOrDefault();
-
-			return FundAst;
-		}
-
-		static public SictGbsAstInfoSictAuswert[] SuuceFlacMengeAstMitPfaadFrüheste(
-			this SictGbsAstInfoSictAuswert Ast,
-			Func<SictGbsAstInfoSictAuswert, bool> Prädikaat,
-			int? TiifeScrankeMax = null,
-			int? TiifeScrankeMin = null)
-		{
-			var MengeAstMitPfaad = Ast.SuuceFlacMengeAstMitPfaad(Prädikaat, 1, TiifeScrankeMax, TiifeScrankeMin, true);
-
-			if (null == MengeAstMitPfaad)
-			{
-				return null;
-			}
-
-			var AstMitPfaad = MengeAstMitPfaad.FirstOrDefault();
-
-			return AstMitPfaad;
-		}
-
-		static public SictGbsAstInfoSictAuswert[][] SuuceFlacMengeAstMitPfaad(
-			this SictGbsAstInfoSictAuswert Ast,
-			Func<SictGbsAstInfoSictAuswert, bool> Prädikaat,
+		static public UINodeInfoInTree[][] ListPathToNodeFromSubtreeBreadthFirst(
+			this UINodeInfoInTree rootNode,
+			Func<UINodeInfoInTree, bool> predicate,
 			int? ListeFundAnzaalScrankeMax = null,
-			int? TiifeScrankeMax = null,
-			int? TiifeScrankeMin = null,
-			bool LaseAusMengeChildUnterhalbTrefer = false)
+			int? depthBoundMax = null,
+			int? depthBoundMin = null,
+			bool omitNodesBelowNodesMatchingPredicate = false)
 		{
-			if (null == Ast)
-			{
+			if (null == rootNode)
 				return null;
-			}
 
 			return Bib3.Glob.SuuceFlacMengeAstMitPfaad(
-				Ast,
-				Prädikaat,
-				(Kandidaat) => Kandidaat.ListeChild,
+				rootNode,
+				predicate,
+				node => node.ListChild,
 				ListeFundAnzaalScrankeMax,
-				TiifeScrankeMax,
-				TiifeScrankeMin,
-				LaseAusMengeChildUnterhalbTrefer);
+				depthBoundMax,
+				depthBoundMin,
+				omitNodesBelowNodesMatchingPredicate);
 		}
 
 		static public Vektor2DSingle? GrööseMaxAusListeChild(
-			this SictGbsAstInfoSictAuswert Ast)
+			this UINodeInfoInTree Ast)
 		{
 			if (null == Ast)
 			{
@@ -333,7 +298,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				GrööseMax = ThisGrööse;
 			}
 
-			var ListeChild = Ast.ListeChild;
+			var ListeChild = Ast.ListChild;
 
 			if (null != ListeChild)
 			{
@@ -363,14 +328,14 @@ namespace Optimat.EveOnline.AuswertGbs
 		static string[] UIRootVorgaabeGrööseListeName = new string[] { "l_main", "l_viewstate" };
 
 		static public Vektor2DSingle? GrööseAusListeChildFürScpezUIRootBerecne(
-			this SictGbsAstInfoSictAuswert Ast)
+			this UINodeInfoInTree Ast)
 		{
 			if (null == Ast)
 			{
 				return null;
 			}
 
-			var ListeChild = Ast.ListeChild;
+			var ListeChild = Ast.ListChild;
 
 			if (null != ListeChild)
 			{
@@ -391,34 +356,10 @@ namespace Optimat.EveOnline.AuswertGbs
 			return null;
 		}
 
-		static public SictGbsAstInfoSictAuswert[] MengePfaadScnitmenge(
-			this SictGbsAstInfoSictAuswert AstPfaadUurscprung,
-			IEnumerable<SictGbsAstInfoSictAuswert> MengePfaadBlat)
-		{
-			if (null == AstPfaadUurscprung || null == MengePfaadBlat)
-				return null;
+		static public IUIElementText AsUIElementText(this UINodeInfoInTree GbsAst) =>
+			(GbsAst?.VisibleIncludingInheritance ?? false) ? new UIElementText(GbsAst.AsUIElementIfVisible(), GbsAst.LabelText() ?? GbsAst.Text) : null;
 
-			var MengePfaad =
-				MengePfaadBlat.Select((PfaadBlat) =>
-					Extension.SuuceFlacMengeAstMitPfaadFrüheste(AstPfaadUurscprung, (t) => t == PfaadBlat)).ToArray();
-
-			if (MengePfaad.IsNullOrEmpty())
-				return null;
-
-			var Pfaad0 = MengePfaad.FirstOrDefault();
-
-			var TailPfaadÜberscnaidung =
-				Pfaad0.TakeWhile((PfaadZwisceAst, InPfaadAstIndex) =>
-					MengePfaad.All((AnderePfaad) => (null == AnderePfaad) ? false : (AnderePfaad.ElementAtOrDefault(InPfaadAstIndex) == PfaadZwisceAst)))
-				.ToArray();
-
-			return TailPfaadÜberscnaidung;
-		}
-
-		static public IUIElementText AsUIElementText(this SictGbsAstInfoSictAuswert GbsAst) =>
-			(GbsAst?.SictbarMitErbe ?? false) ? new UIElementText(GbsAst.AlsUIElementFalsUnglaicNullUndSictbar(), GbsAst.LabelText() ?? GbsAst.Text) : null;
-
-		static public IUIElementInputText AsUIElementInputText(this SictGbsAstInfoSictAuswert GbsAst)
+		static public IUIElementInputText AsUIElementInputText(this UINodeInfoInTree GbsAst)
 		{
 			var UIElementText = GbsAst?.AsUIElementText();
 
@@ -426,7 +367,7 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public IUIElementText AsUIElementTextIfTextNotEmpty(
-			this SictGbsAstInfoSictAuswert GbsAst)
+			this UINodeInfoInTree GbsAst)
 		{
 			var UIElementText = GbsAst?.AsUIElementText();
 
@@ -437,23 +378,23 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public IEnumerable<IUIElementText> ExtraktMengeLabelString(
-			this SictGbsAstInfoSictAuswert GbsAst) =>
-			GbsAst?.SuuceFlacMengeAst(kandidaat => kandidaat?.SictbarMitErbe ?? false)
+			this UINodeInfoInTree GbsAst) =>
+			GbsAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat => kandidaat?.VisibleIncludingInheritance ?? false)
 			?.Select(AsUIElementTextIfTextNotEmpty)
 			?.WhereNotDefault();
 
 		static public IEnumerable<IUIElementText> ExtraktMengeButtonLabelString(
-			this SictGbsAstInfoSictAuswert GbsAst) =>
-			GbsAst?.SuuceFlacMengeAst(kandidaat => (kandidaat?.SictbarMitErbe ?? false) &&
+			this UINodeInfoInTree GbsAst) =>
+			GbsAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat => (kandidaat?.VisibleIncludingInheritance ?? false) &&
 			Regex.Match(kandidaat?.PyObjTypName ?? "", "button", RegexOptions.IgnoreCase).Success)
-			?.Select(kandidaatButtonAst => new { ButtonAst = kandidaatButtonAst, LabelAst = kandidaatButtonAst.GröösteLabel() })
+			?.Select(kandidaatButtonAst => new { ButtonAst = kandidaatButtonAst, LabelAst = kandidaatButtonAst.LargestLabelInSubtree() })
 			?.GroupBy(buttonAstUndLabelAst => buttonAstUndLabelAst.LabelAst)
 			?.Select(GroupLabelAst => new
 			{
-				ButtonAst = GroupLabelAst.Select(buttonAstUndLabelAst => buttonAstUndLabelAst.ButtonAst).OrderBy(kandidaatButtonAst => kandidaatButtonAst.InBaumAstIndex).LastOrDefault(),
+				ButtonAst = GroupLabelAst.Select(buttonAstUndLabelAst => buttonAstUndLabelAst.ButtonAst).OrderBy(kandidaatButtonAst => kandidaatButtonAst.InTreeIndex).LastOrDefault(),
 				LabelAst = GroupLabelAst.Key
 			})
-			?.Select(buttonAstUndLabelAst => new UIElementText(buttonAstUndLabelAst.ButtonAst.AlsUIElementFalsUnglaicNullUndSictbar(),
+			?.Select(buttonAstUndLabelAst => new UIElementText(buttonAstUndLabelAst.ButtonAst.AsUIElementIfVisible(),
 				buttonAstUndLabelAst?.LabelAst?.LabelText()))
 			?.Where(kandidaat => !(kandidaat?.Text).IsNullOrEmpty());
 
@@ -465,9 +406,9 @@ namespace Optimat.EveOnline.AuswertGbs
 			?.ThenBy(element => ((element?.Region)?.Center())?.A ?? int.MaxValue);
 
 		static public Sprite AlsSprite(
-			this SictGbsAstInfoSictAuswert GbsAst) =>
-			!(GbsAst?.SictbarMitErbe ?? false) ? null :
-			new Sprite(GbsAst.AusGbsAstFalsUnglaicNull())
+			this UINodeInfoInTree GbsAst) =>
+			!(GbsAst?.VisibleIncludingInheritance ?? false) ? null :
+			new Sprite(GbsAst.AsUIElementIfVisible())
 			{
 				Name = GbsAst?.Name,
 				Color = GbsAst?.Color.AsColorORGBIfAnyHasValue(),
@@ -477,8 +418,8 @@ namespace Optimat.EveOnline.AuswertGbs
 			};
 
 		static public ListViewAndControl<EntryT> AlsListView<EntryT>(
-			this SictGbsAstInfoSictAuswert ListViewportAst,
-			Func<SictGbsAstInfoSictAuswert, IColumnHeader[], RectInt?, EntryT> CallbackListEntryConstruct = null,
+			this UINodeInfoInTree ListViewportAst,
+			Func<UINodeInfoInTree, IColumnHeader[], RectInt?, EntryT> CallbackListEntryConstruct = null,
 			ListEntryTrenungZeleTypEnum? InEntryTrenungZeleTyp = null)
 			where EntryT : class, IListEntry
 		{
@@ -487,9 +428,9 @@ namespace Optimat.EveOnline.AuswertGbs
 				CallbackListEntryConstruct,
 				InEntryTrenungZeleTyp);
 
-			Auswert.Berecne();
+			Auswert.Read();
 
-			return Auswert?.Ergeebnis;
+			return Auswert?.Result;
 		}
 
 		static public IUIElement WithRegionConstrainedToIntersection(
@@ -498,29 +439,29 @@ namespace Optimat.EveOnline.AuswertGbs
 			original?.WithRegion(original.Region.Intersection(constraint));
 
 		static public Container AlsContainer(
-			this SictGbsAstInfoSictAuswert containerNode,
+			this UINodeInfoInTree containerNode,
 			bool treatIconAsSprite = false,
 			RectInt? regionConstraint = null)
 		{
-			if (!(containerNode?.SictbarMitErbe ?? false))
+			if (!(containerNode?.VisibleIncludingInheritance ?? false))
 				return null;
 
 			var MengeKandidaatInputTextAst =
-				containerNode?.SuuceFlacMengeAst(k =>
+				containerNode?.MatchingNodesFromSubtreeBreadthFirst(k =>
 					k.PyObjTypNameMatchesRegexPatternIgnoreCase("SinglelineEdit|QuickFilterEdit"));
 
 			var ListeInputText =
 				MengeKandidaatInputTextAst
 				?.Select(textBoxAst =>
 				{
-					var LabelAst = textBoxAst.GröösteLabel();
+					var LabelAst = textBoxAst.LargestLabelInSubtree();
 
 					if (null == LabelAst)
 						return null;
 
 					var LabelText = LabelAst?.LabelText();
 
-					return new UIElementInputText(textBoxAst.AlsUIElementFalsUnglaicNullUndSictbar(), LabelText);
+					return new UIElementInputText(textBoxAst.AsUIElementIfVisible(), LabelText);
 				})
 				?.WhereNotDefault()
 				?.OrdnungLabel()
@@ -530,9 +471,9 @@ namespace Optimat.EveOnline.AuswertGbs
 				containerNode?.ExtraktMengeButtonLabelString()?.OrdnungLabel()
 				?.ToArrayIfNotEmpty();
 
-			var ListeButtonAst = ListeButton?.Select(button => containerNode.SuuceFlacMengeAstFrühesteMitHerkunftAdrese(button.Id))?.ToArray();
+			var ListeButtonAst = ListeButton?.Select(button => containerNode.FirstNodeWithPyObjAddressFromSubtreeBreadthFirst(button.Id))?.ToArray();
 
-			var ListeTextBoxAst = ListeInputText?.Select(textBox => containerNode.SuuceFlacMengeAstFrühesteMitHerkunftAdrese(textBox.Id))?.ToArray();
+			var ListeTextBoxAst = ListeInputText?.Select(textBox => containerNode.FirstNodeWithPyObjAddressFromSubtreeBreadthFirst(textBox.Id))?.ToArray();
 
 			var LabelContainerAussclus = new[] { ListeButtonAst, ListeTextBoxAst }.ConcatNullable().ToArray();
 
@@ -547,7 +488,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				?.OrdnungLabel()
 				?.ToArrayIfNotEmpty();
 
-			var baseElement = containerNode.AlsUIElementFalsUnglaicNullUndSictbar();
+			var baseElement = containerNode.AsUIElementIfVisible();
 
 			if (regionConstraint.HasValue)
 				baseElement = baseElement.WithRegionConstrainedToIntersection(regionConstraint.Value);
@@ -562,15 +503,15 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		static public IEnumerable<ISprite> SetSpriteFromChildren(
-			this SictGbsAstInfoSictAuswert uiNode,
+			this UINodeInfoInTree uiNode,
 			bool treatIconAsSprite = false) =>
-			uiNode?.SuuceFlacMengeAst(c =>
+			uiNode?.MatchingNodesFromSubtreeBreadthFirst(c =>
 				(c?.PyObjTypNameIsSprite() ?? false) ||
 				(treatIconAsSprite && (c?.PyObjTypNameIsIcon() ?? false)), null, null, null, true)
 				?.Select(spriteNode => spriteNode?.AlsSprite())
 				?.WhereNotDefault();
 
-		static public IInSpaceBracket AsInSpaceBracket(this SictGbsAstInfoSictAuswert node)
+		static public IInSpaceBracket AsInSpaceBracket(this UINodeInfoInTree node)
 		{
 			var container = node?.AlsContainer();
 
@@ -588,12 +529,12 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// </summary>
 		/// <param name="GbsAst"></param>
 		/// <returns></returns>
-		static public IContainer AlsUtilmenu(this SictGbsAstInfoSictAuswert GbsAst)
+		static public IContainer AlsUtilmenu(this UINodeInfoInTree GbsAst)
 		{
 			//	2015.09.08:	PyObjTypName	= "ExpandedUtilMenu"
 
 			var AstExpanded =
-				GbsAst?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("ExpandedUtilMenu"));
+				GbsAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameMatchesRegexPatternIgnoreCase("ExpandedUtilMenu"));
 
 			return AstExpanded?.AlsContainer();
 		}
@@ -606,7 +547,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			where T : IObjectIdInMemory
 			where AstT : GbsAstInfo =>
 			MengeKandidaat?.Where(Kandidaat => !(MengeContainerZuMaide?.Any(ContainerZuMaide =>
-			new AstT[] { ContainerZuMaide }.ConcatNullable(ContainerZuMaide.MengeChildAstTransitiiveHüle()).Any(ContainerZuMaideChild => ContainerZuMaideChild.HerkunftAdrese == Kandidaat.Id)) ?? false));
+			new AstT[] { ContainerZuMaide }.ConcatNullable(ContainerZuMaide.MengeChildAstTransitiiveHüle()).Any(ContainerZuMaideChild => ContainerZuMaideChild.PyObjAddress == Kandidaat.Id)) ?? false));
 
 		static public ColorORGB AlsColorORGB(this ColorORGBVal? Color) =>
 			Color.HasValue ? new ColorORGB(Color) : null;

@@ -7,7 +7,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowSelectedItem : SictAuswertGbsWindow
 	{
 		new static public WindowSelectedItemView BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -19,13 +19,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainToparea
+		public UINodeInfoInTree AstMainContainerMainToparea
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMainTopareaLabelNameUndDistance
+		public UINodeInfoInTree AstMainContainerMainTopareaLabelNameUndDistance
 		{
 			private set;
 			get;
@@ -73,7 +73,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowSelectedItem(SictGbsAstInfoSictAuswert windowSelectedItem)
+		public SictAuswertGbsWindowSelectedItem(UINodeInfoInTree windowSelectedItem)
 			:
 			base(windowSelectedItem)
 		{
@@ -91,11 +91,11 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstMainContainerMainToparea =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) => string.Equals("toparea", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			AstMainContainerMainTopareaLabelNameUndDistance =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMainToparea, (kandidaat) => string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2);
 
 			if (null != AstMainContainerMainTopareaLabelNameUndDistance)
@@ -105,12 +105,12 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var ActionContainer =
 				//	2015.09.07:	Name = "actions"
-				AstMainContainerMain?.SuuceFlacMengeAstFrüheste(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("action"));
+				AstMainContainerMain?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsContainer() && k.NameMatchesRegexPatternIgnoreCase("action"));
 
 
 			var tInspektSpritePfaad =
 				AstMainContainerMain
-				?.SuuceFlacMengeAstMitPfaad(k => k.PyObjTypNameIsSprite())
+				?.ListPathToNodeFromSubtreeBreadthFirst(k => k.PyObjTypNameIsSprite())
 				?.ToArray();
 
             if (null != SelectedItemTextNameUndDistance)

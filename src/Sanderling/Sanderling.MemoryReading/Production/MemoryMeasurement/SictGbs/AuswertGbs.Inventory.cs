@@ -6,9 +6,9 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsInventory
 	{
-		readonly public SictGbsAstInfoSictAuswert InventoryAst;
+		readonly public UINodeInfoInTree InventoryAst;
 
-		public SictGbsAstInfoSictAuswert ListAst
+		public UINodeInfoInTree ListAst
 		{
 			private set;
 			get;
@@ -32,7 +32,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsInventory(SictGbsAstInfoSictAuswert InventoryAst)
+		public SictAuswertGbsInventory(UINodeInfoInTree InventoryAst)
 		{
 			this.InventoryAst = InventoryAst;
 		}
@@ -40,14 +40,14 @@ namespace Optimat.EveOnline.AuswertGbs
 		public void Berecne()
 		{
 			ListAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InventoryAst, (Kandidaat) => "Scroll".EqualsIgnoreCase(Kandidaat.PyObjTypName),
 				1, 1);
 
 			var MengeInvItemAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				InventoryAst,
-				(Kandidaat) => true == Kandidaat.SictbarMitErbe && "InvItem".EqualsIgnoreCase(Kandidaat.PyObjTypName), null, null, null);
+				(Kandidaat) => true == Kandidaat.VisibleIncludingInheritance && "InvItem".EqualsIgnoreCase(Kandidaat.PyObjTypName), null, null, null);
 
 			if (null != MengeInvItemAst)
 			{
@@ -79,16 +79,16 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			ListAuswert = new SictAuswertGbsListViewport<IListEntry>(ListAst, SictAuswertGbsListViewport<IListEntry>.ListEntryKonstruktSctandard);
-			ListAuswert.Berecne();
+			ListAuswert.Read();
 
-			var ListAuswertErgeebnis = ListAuswert.Ergeebnis;
+			var ListAuswertErgeebnis = ListAuswert.Result;
 
 			if (null == ListAuswertErgeebnis)
 			{
 				return;
 			}
 
-			var Ergeebnis = new Inventory(InventoryAst.AlsUIElementFalsUnglaicNullUndSictbar())
+			var Ergeebnis = new Inventory(InventoryAst.AsUIElementIfVisible())
 			{
 				ListView = ListAuswertErgeebnis,
 			};

@@ -11,7 +11,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowOverview : SictAuswertGbsWindow
 	{
 		new static public WindowOverView BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowNode)
+			UINodeInfoInTree windowNode)
 		{
 			if (null == windowNode)
 				return null;
@@ -29,7 +29,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert TabGroupAst
+		public UINodeInfoInTree TabGroupAst
 		{
 			private set;
 			get;
@@ -41,13 +41,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ScrollAst
+		public UINodeInfoInTree ScrollAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert ViewportOverallLabelAst
+		public UINodeInfoInTree ViewportOverallLabelAst
 		{
 			private set;
 			get;
@@ -59,7 +59,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowOverview(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsWindowOverview(UINodeInfoInTree windowNode)
 			:
 			base(windowNode)
 		{
@@ -83,10 +83,10 @@ namespace Optimat.EveOnline.AuswertGbs
 			return FormatInfo;
 		}
 
-		static public KeyValuePair<SictGbsAstInfoSictAuswert, T>[]
+		static public KeyValuePair<UINodeInfoInTree, T>[]
 			MengeGbsAstZuScpalteIdentBerecneAusMengeGbsAstLaageUndMengeScpalteTitelUndLaage<T>(
 			IEnumerable<KeyValuePair<T, KeyValuePair<int, int>>> mengeScpalteIdentUndLaage,
-			IEnumerable<SictGbsAstInfoSictAuswert> mengeLabelAst)
+			IEnumerable<UINodeInfoInTree> mengeLabelAst)
 		{
 			if (null == mengeLabelAst ||
 				null == mengeScpalteIdentUndLaage)
@@ -94,7 +94,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				return null;
 			}
 
-			var Liste = new List<KeyValuePair<SictGbsAstInfoSictAuswert, T>>();
+			var Liste = new List<KeyValuePair<UINodeInfoInTree, T>>();
 
 			foreach (var LabelAst in mengeLabelAst)
 			{
@@ -136,7 +136,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					continue;
 				}
 
-				Liste.Add(new KeyValuePair<SictGbsAstInfoSictAuswert, T>(LabelAst, ÜberlapungGrööste.Value.Key));
+				Liste.Add(new KeyValuePair<UINodeInfoInTree, T>(LabelAst, ÜberlapungGrööste.Value.Key));
 			}
 
 			return Liste.ToArray();
@@ -144,7 +144,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		static public KeyValuePair<string, KeyValuePair<int, int>>[]
 			MengeSortHeaderTitelUndLaageBerecneAusSortHeaderAst(
-			SictGbsAstInfoSictAuswert inTabSortHeadersAst)
+			UINodeInfoInTree inTabSortHeadersAst)
 		{
 			if (null == inTabSortHeadersAst)
 			{
@@ -154,7 +154,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			var Liste = new List<KeyValuePair<string, KeyValuePair<int, int>>>();
 
 			var MengeKandidaatSortHeaderAst =
-				inTabSortHeadersAst.SuuceFlacMengeAst(
+				inTabSortHeadersAst.MatchingNodesFromSubtreeBreadthFirst(
 				(kandidaat) => kandidaat.PyObjTypNameIsContainer(),
 				null,
 				3,
@@ -177,8 +177,8 @@ namespace Optimat.EveOnline.AuswertGbs
 				var KandidaatSortHeaderAstLaageBraite = KandidaatSortHeaderAstLaageRecz - KandidaatSortHeaderAstLaageLinx;
 
 				var LabelAst =
-					KandidaatSortHeaderAst.SuuceFlacMengeAstFrüheste(
-					(kandidaatLabelAst) => AuswertGbs.Glob.GbsAstTypeIstLabel(kandidaatLabelAst) && true == kandidaatLabelAst.SictbarMitErbe,
+					KandidaatSortHeaderAst.FirstMatchingNodeFromSubtreeBreadthFirst(
+					(kandidaatLabelAst) => AuswertGbs.Glob.GbsAstTypeIstLabel(kandidaatLabelAst) && true == kandidaatLabelAst.VisibleIncludingInheritance,
 					1);
 
 				var ScpalteTitel = LabelAst?.LabelText();
@@ -253,7 +253,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			TabGroupAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					string.Equals("TabGroup", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("tabparent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
@@ -268,7 +268,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			var TabGroup = (null == TabGroupAuswert) ? null : TabGroupAuswert.Ergeebnis;
 
 			ScrollAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					string.Equals("BasicDynamicScroll", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("overviewscroll2", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
@@ -276,19 +276,19 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			var ListAuswert = new SictAuswertGbsListViewport<IOverviewEntry>(ScrollAst, SictAuswertGbsWindowOverviewZaile.OverviewEntryKonstrukt);
 
-			ListAuswert.Berecne();
+			ListAuswert.Read();
 
 			ViewportOverallLabelAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
-				ListAuswert.ScrollClipperContentAst, (kandidaat) => AuswertGbs.Glob.GbsAstTypeIstEveCaption(kandidaat));
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
+				ListAuswert.ScrollClipperContentNode, (kandidaat) => AuswertGbs.Glob.GbsAstTypeIstEveCaption(kandidaat));
 
 			var ViewportOverallLabelString =
-				(ViewportOverallLabelAst?.SictbarMitErbe ?? false) ? ViewportOverallLabelAst?.LabelText() : null;
+				(ViewportOverallLabelAst?.VisibleIncludingInheritance ?? false) ? ViewportOverallLabelAst?.LabelText() : null;
 
 			var Ergeebnis = new WindowOverView(base.Ergeebnis)
 			{
 				PresetTab = TabGroup?.ListTab,
-				ListView = ListAuswert?.Ergeebnis,
+				ListView = ListAuswert?.Result,
 				ViewportOverallLabelString = ViewportOverallLabelString,
 			};
 

@@ -6,7 +6,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowAgentDialogue : SictAuswertGbsWindow
 	{
 		new static public WindowAgentDialogue BerecneFürWindowAst(
-		SictGbsAstInfoSictAuswert windowAst)
+		UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -18,27 +18,27 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisWindowAgentDialogue;
 		}
 
-		static public WindowAgentPane PaneAuswert(SictGbsAstInfoSictAuswert paneAst)
+		static public WindowAgentPane PaneAuswert(UINodeInfoInTree paneAst)
 		{
-			if (!(paneAst?.SictbarMitErbe ?? false))
+			if (!(paneAst?.VisibleIncludingInheritance ?? false))
 				return null;
 
-			var EditAst = paneAst?.SuuceFlacMengeAstFrüheste(k => k?.PyObjTypNameEqualsIgnoreCase("Edit") ?? false);
+			var EditAst = paneAst?.FirstMatchingNodeFromSubtreeBreadthFirst(k => k?.PyObjTypNameEqualsIgnoreCase("Edit") ?? false);
 
 			return
-				new WindowAgentPane(paneAst?.AlsUIElementFalsUnglaicNullUndSictbar())
+				new WindowAgentPane(paneAst?.AsUIElementIfVisible())
 				{
 					Html = EditAst?.SrHtmlstr,
 				};
 		}
 
-		public SictGbsAstInfoSictAuswert LeftPaneAst
+		public UINodeInfoInTree LeftPaneAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightPaneAst
+		public UINodeInfoInTree RightPaneAst
 		{
 			private set;
 			get;
@@ -48,19 +48,19 @@ namespace Optimat.EveOnline.AuswertGbs
 		/// 2014.00.09 Beobactung ("2014.00.09.16 AgentDialogue Request")
 		/// "rightPaneBottom" komt in Dialog vor in welcem nur aine "Pane" mit Knöpfe "Request Mission", "Locate Character" und "Close" enthalte sin.
 		/// </summary>
-		public SictGbsAstInfoSictAuswert RightPaneBottomAst
+		public UINodeInfoInTree RightPaneBottomAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert RightPaneButtonGroupAst
+		public UINodeInfoInTree RightPaneButtonGroupAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstRightPaneTop
+		public UINodeInfoInTree AstRightPaneTop
 		{
 			private set;
 			get;
@@ -72,7 +72,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowAgentDialogue(SictGbsAstInfoSictAuswert astFensterAgentDialogueWindow)
+		public SictAuswertGbsWindowAgentDialogue(UINodeInfoInTree astFensterAgentDialogueWindow)
 			:
 			base(astFensterAgentDialogueWindow)
 		{
@@ -86,27 +86,27 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			LeftPaneAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("leftPane", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			RightPaneAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("rightPane", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			AstRightPaneTop =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				RightPaneAst, (kandidaat) =>
 					string.Equals("rightPaneTop", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			RightPaneBottomAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerMain, (kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("rightPaneBottom", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),

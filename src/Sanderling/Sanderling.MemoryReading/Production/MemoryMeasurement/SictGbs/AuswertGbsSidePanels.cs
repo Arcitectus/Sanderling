@@ -12,33 +12,33 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public class SictAuswertGbsInfoPanelGen
 	{
-		readonly public SictGbsAstInfoSictAuswert InfoPanelAst;
+		readonly public UINodeInfoInTree InfoPanelAst;
 
-		public SictGbsAstInfoSictAuswert TopContAst
+		public UINodeInfoInTree TopContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert HeaderBtnContAst
+		public UINodeInfoInTree HeaderBtnContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert HeaderBtnContExpandButtonAst
+		public UINodeInfoInTree HeaderBtnContExpandButtonAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert HeaderContAst
+		public UINodeInfoInTree HeaderContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert MainContAst
+		public UINodeInfoInTree MainContAst
 		{
 			private set;
 			get;
@@ -50,7 +50,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsInfoPanelGen(SictGbsAstInfoSictAuswert InfoPanelAst)
+		public SictAuswertGbsInfoPanelGen(UINodeInfoInTree InfoPanelAst)
 		{
 			this.InfoPanelAst = InfoPanelAst;
 		}
@@ -62,40 +62,40 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == InfoPanelAst.SictbarMitErbe))
+			if (!(true == InfoPanelAst.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			TopContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("topCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				3, 1);
 
 			HeaderBtnContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TopContAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("headerBtnCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				3, 1);
 
 			HeaderBtnContExpandButtonAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				HeaderBtnContAst, (Kandidaat) =>
 					string.Equals("Sprite", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					3, 1);
 
 			HeaderContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				TopContAst, (Kandidaat) =>
 					Kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("headerCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				3, 1);
 
 			MainContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelAst, (Kandidaat) =>
 					string.Equals("ContainerAutoSize", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) &&
 					string.Equals("mainCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
@@ -111,7 +111,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			if (null != MainContAst)
 			{
-				MainContSictbar = MainContAst.SictbarMitErbe;
+				MainContSictbar = MainContAst.VisibleIncludingInheritance;
 			}
 
 			if (null != HeaderBtnContExpandButtonAst)
@@ -138,9 +138,9 @@ namespace Optimat.EveOnline.AuswertGbs
 
 	public class SictAuswertGbsSidePanels
 	{
-		readonly public SictGbsAstInfoSictAuswert AstSidePanels;
+		readonly public UINodeInfoInTree AstSidePanels;
 
-		public SictGbsAstInfoSictAuswert NeocomAst
+		public UINodeInfoInTree NeocomAst
 		{
 			private set;
 			get;
@@ -150,61 +150,61 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public Neocom Neocom => NeocomAuswert?.Ergeebnis;
 
-		public SictGbsAstInfoSictAuswert InfoPanelContainerAst
+		public UINodeInfoInTree InfoPanelContainerAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert InfoPanelContainerTopContAst
+		public UINodeInfoInTree InfoPanelContainerTopContAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] InfoPanelContainerTopContMengeButtonAst
+		public UINodeInfoInTree[] InfoPanelContainerTopContMengeButtonAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert InfoPanelButtonIncursionsAst
+		public UINodeInfoInTree InfoPanelButtonIncursionsAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert InfoPanelButtonLocationInfoAst
+		public UINodeInfoInTree InfoPanelButtonLocationInfoAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert InfoPanelButtonRouteAst
+		public UINodeInfoInTree InfoPanelButtonRouteAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert InfoPanelButtonMissionAst
+		public UINodeInfoInTree InfoPanelButtonMissionAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstInfoPanelLocationInfo
+		public UINodeInfoInTree AstInfoPanelLocationInfo
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstInfoPanelRoute
+		public UINodeInfoInTree AstInfoPanelRoute
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstInfoPanelMissions
+		public UINodeInfoInTree AstInfoPanelMissions
 		{
 			private set;
 			get;
@@ -228,7 +228,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsSidePanels(SictGbsAstInfoSictAuswert AstSidePanels)
+		public SictAuswertGbsSidePanels(UINodeInfoInTree AstSidePanels)
 		{
 			this.AstSidePanels = AstSidePanels;
 		}
@@ -240,13 +240,13 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			if (!(true == AstSidePanels.SictbarMitErbe))
+			if (!(true == AstSidePanels.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			NeocomAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstSidePanels, (Kandidaat) =>
 					string.Equals("Neocom", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
@@ -255,17 +255,17 @@ namespace Optimat.EveOnline.AuswertGbs
 			NeocomAuswert.Berecne();
 
 			InfoPanelContainerAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstSidePanels, (Kandidaat) => string.Equals("InfoPanelContainer", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
 			InfoPanelContainerTopContAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelContainerAst, (Kandidaat) => string.Equals("topCont", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 1, 1);
 
 			InfoPanelContainerTopContMengeButtonAst =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(
+				Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(
 				InfoPanelContainerTopContAst, (Kandidaat) =>
-					true == Kandidaat.SictbarMitErbe &&
+					true == Kandidaat.VisibleIncludingInheritance &&
 					string.Equals("ButtonIconInfoPanel", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), null, 3, 1);
 
 			if (null != InfoPanelContainerTopContMengeButtonAst)
@@ -292,13 +292,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstInfoPanelLocationInfo =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelContainerAst, (Kandidaat) => string.Equals("InfoPanelLocationInfo", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
 			if (null == AstInfoPanelLocationInfo)
 			{
 				var MengeKandidaatAst =
-					Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAst(InfoPanelContainerAst, (Kandidaat) => true, null, 2);
+					Optimat.EveOnline.AuswertGbs.Extension.MatchingNodesFromSubtreeBreadthFirst(InfoPanelContainerAst, (Kandidaat) => true, null, 2);
 
 				if (null != MengeKandidaatAst)
 				{
@@ -318,11 +318,11 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstInfoPanelRoute =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelContainerAst, (Kandidaat) => string.Equals("InfoPanelRoute", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
 			AstInfoPanelMissions =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				InfoPanelContainerAst, (Kandidaat) => string.Equals("InfoPanelMissions", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
 
 			AuswertPanelCurrentSystem = new SictAuswertGbsInfoPanelCurrentSystem(AstInfoPanelLocationInfo);

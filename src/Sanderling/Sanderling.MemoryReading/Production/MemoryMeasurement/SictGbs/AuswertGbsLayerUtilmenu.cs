@@ -12,15 +12,15 @@ namespace Optimat.EveOnline.AuswertGbs
 {
 	public	class SictAuswertGbsLayerUtilmenu
 	{
-		readonly public SictGbsAstInfoSictAuswert AstLayerUtilmenu;
+		readonly public UINodeInfoInTree AstLayerUtilmenu;
 
-		public SictGbsAstInfoSictAuswert AstHeader
+		public UINodeInfoInTree AstHeader
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstHeaderLabel
+		public UINodeInfoInTree AstHeaderLabel
 		{
 			private set;
 			get;
@@ -38,20 +38,20 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstExpandedUtilMenu
+		public UINodeInfoInTree AstExpandedUtilMenu
 		{
 			private set;
 			get;
 		}
 
-		public SictAuswertGbsLayerUtilmenu(SictGbsAstInfoSictAuswert AstLayerUtilmenu)
+		public SictAuswertGbsLayerUtilmenu(UINodeInfoInTree AstLayerUtilmenu)
 		{
 			this.AstLayerUtilmenu = AstLayerUtilmenu;
 		}
 
 		static public bool KandidaatUtilmenuLaagePasendZuExpandedUtilmenu(
-			SictGbsAstInfoSictAuswert ExpandedUtilMenuAst,
-			SictGbsAstInfoSictAuswert KandidaatUtilmenuAst)
+			UINodeInfoInTree ExpandedUtilMenuAst,
+			UINodeInfoInTree KandidaatUtilmenuAst)
 		{
 			if (null == ExpandedUtilMenuAst || null == KandidaatUtilmenuAst)
 			{
@@ -98,25 +98,25 @@ namespace Optimat.EveOnline.AuswertGbs
 		}
 
 		virtual	public	void Berecne(
-			SictGbsAstInfoSictAuswert[]	MengeKandidaatUtilmenuAst)
+			UINodeInfoInTree[]	MengeKandidaatUtilmenuAst)
 		{
 			if (null == AstLayerUtilmenu)
 			{
 				return;
 			}
 
-			if (!(true == AstLayerUtilmenu.SictbarMitErbe))
+			if (!(true == AstLayerUtilmenu.VisibleIncludingInheritance))
 			{
 				return;
 			}
 
 			AstHeader =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstLayerUtilmenu,
 				(Kandidaat) => Kandidaat.PyObjTypNameIsContainer(), 2, 1);
 
 			AstExpandedUtilMenu =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstLayerUtilmenu,
 				(Kandidaat) => string.Equals("ExpandedUtilMenu", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
@@ -132,7 +132,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 			}
 
-			SictGbsAstInfoSictAuswert	UtilmenuGbsAst	= null;
+			UINodeInfoInTree	UtilmenuGbsAst	= null;
 
 			if (null != MengeKandidaatUtilmenuAst)
 			{
@@ -140,13 +140,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstHeaderLabel =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				UtilmenuGbsAst,
 				(Kandidaat) => string.Equals("EveLabelMedium", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			if (null != AstHeaderLabel)
 			{
-				Header = new UIElementText(AstHeaderLabel.AlsUIElementFalsUnglaicNullUndSictbar(), AstHeaderLabel.LabelText());
+				Header = new UIElementText(AstHeaderLabel.AsUIElementIfVisible(), AstHeaderLabel.LabelText());
 			}
 
 			if (null != Header)

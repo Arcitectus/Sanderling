@@ -9,7 +9,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindow
 	{
 		static public Window BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowNode)
+			UINodeInfoInTree windowNode)
 		{
 			if (null == windowNode)
 				return null;
@@ -21,63 +21,63 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.Ergeebnis;
 		}
 
-		readonly public SictGbsAstInfoSictAuswert WindowNode;
+		readonly public UINodeInfoInTree WindowNode;
 
-		public SictGbsAstInfoSictAuswert AstMainContainer
+		public UINodeInfoInTree AstMainContainer
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerHeaderButtons
+		public UINodeInfoInTree AstMainContainerHeaderButtons
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert[] AstMainContainerHeaderButtonsMengeKandidaatButton
+		public UINodeInfoInTree[] AstMainContainerHeaderButtonsMengeKandidaatButton
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstHeaderButtonClose
+		public UINodeInfoInTree AstHeaderButtonClose
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstHeaderButtonMinimize
+		public UINodeInfoInTree AstHeaderButtonMinimize
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerMain
+		public UINodeInfoInTree AstMainContainerMain
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerHeaderParent
+		public UINodeInfoInTree AstMainContainerHeaderParent
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerHeaderParentCaptionParent
+		public UINodeInfoInTree AstMainContainerHeaderParentCaptionParent
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert MainContainerHeaderParentCaptionParentLabelAst
+		public UINodeInfoInTree MainContainerHeaderParentCaptionParentLabelAst
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert MainContainerHeaderParentCaptionParentIcon
+		public UINodeInfoInTree MainContainerHeaderParentCaptionParentIcon
 		{
 			private set;
 			get;
@@ -95,7 +95,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindow(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsWindow(UINodeInfoInTree windowNode)
 		{
 			this.WindowNode = windowNode;
 		}
@@ -106,10 +106,10 @@ namespace Optimat.EveOnline.AuswertGbs
 		{
 			var AstWindow = this.WindowNode;
 
-			if (!(AstWindow?.SictbarMitErbe ?? false))
+			if (!(AstWindow?.VisibleIncludingInheritance ?? false))
 				return;
 
-			if (!(true == AstWindow.ListeChild?.Any((kandidaat) => (null == kandidaat ? null : kandidaat.SictbarMitErbe) ?? false)))
+			if (!(true == AstWindow.ListChild?.Any((kandidaat) => (null == kandidaat ? null : kandidaat.VisibleIncludingInheritance) ?? false)))
 			{
 				/*
 				 * B:\Berict\Berict.Nuzer\[ZAK=2014.09.17.13.27.59,NB=25].Anwendung.Berict:
@@ -120,19 +120,19 @@ namespace Optimat.EveOnline.AuswertGbs
 			}
 
 			AstMainContainer =
-				AstWindow?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				AstWindow?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("__maincontainer", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase)
 					, 2, 1);
 
 			AstMainContainerHeaderButtons =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("headerButtons", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
 
 			AstMainContainerHeaderButtonsMengeKandidaatButton =
-				AstMainContainerHeaderButtons?.SuuceFlacMengeAst((kandidaat) => kandidaat.PyObjTypNameIsButton(),
+				AstMainContainerHeaderButtons?.MatchingNodesFromSubtreeBreadthFirst((kandidaat) => kandidaat.PyObjTypNameIsButton(),
 				null, 2, 1);
 
 			AstHeaderButtonClose =
@@ -146,7 +146,7 @@ namespace Optimat.EveOnline.AuswertGbs
 					2, 0);
 
 			AstMainContainerMain =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					kandidaat.PyObjTypNameIsContainer() &&
 					string.Equals("main", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 					2, 1);
@@ -157,28 +157,28 @@ namespace Optimat.EveOnline.AuswertGbs
 				return;
 
 			AstMainContainerHeaderParent =
-				AstMainContainer?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("headerParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
+				AstMainContainer?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("headerParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 2, 1);
 
 			AstMainContainerHeaderParentCaptionParent =
-				AstMainContainerHeaderParent?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("captionParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 3, 1);
+				AstMainContainerHeaderParent?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("captionParent", kandidaat.Name, StringComparison.InvariantCultureIgnoreCase), 3, 1);
 
 			MainContainerHeaderParentCaptionParentLabelAst =
-				AstMainContainerHeaderParentCaptionParent?.SuuceFlacMengeAstFrüheste((kandidaat) => string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 3, 1);
+				AstMainContainerHeaderParentCaptionParent?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("EveLabelSmall", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 3, 1);
 
 			MainContainerHeaderParentCaptionParentIcon =
-				AstMainContainerHeaderParentCaptionParent?.SuuceFlacMengeAstFrüheste((kandidaat) =>
+				AstMainContainerHeaderParentCaptionParent?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) =>
 					(string.Equals("Icon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
 					3, 1);
 
 			HeaderCaptionText = MainContainerHeaderParentCaptionParentLabelAst?.SetText	?? AstWindow?.Caption;
 
-			var HeaderButtonsVisible = AstMainContainerHeaderButtons?.SictbarMitErbe;
+			var HeaderButtonsVisible = AstMainContainerHeaderButtons?.VisibleIncludingInheritance;
 
 			var HeaderButton =
 				AstMainContainerHeaderButtons
-				?.SuuceFlacMengeAst(k =>
-				(k?.SictbarMitErbe ?? false) &&
+				?.MatchingNodesFromSubtreeBreadthFirst(k =>
+				(k?.VisibleIncludingInheritance ?? false) &&
 				k.PyObjTypNameMatchesRegex(HeaderButtonTypeRegex))
 				?.Select(k => k.AlsSprite())
 				?.WhereNotDefault()

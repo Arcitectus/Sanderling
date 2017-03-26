@@ -12,7 +12,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public	class SictAuswertGbsWindowTelecom	:	SictAuswertGbsWindow
 	{
 		new	static public WindowTelecom BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert WindowAst)
+			UINodeInfoInTree WindowAst)
 		{
 			if (null == WindowAst)
 			{
@@ -26,13 +26,13 @@ namespace Optimat.EveOnline.AuswertGbs
 			return WindowAuswert.ErgeebnisScpez;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerBottom
+		public UINodeInfoInTree AstMainContainerBottom
 		{
 			private set;
 			get;
 		}
 
-		public SictGbsAstInfoSictAuswert AstMainContainerBottomButtons
+		public UINodeInfoInTree AstMainContainerBottomButtons
 		{
 			private set;
 			get;
@@ -44,7 +44,7 @@ namespace Optimat.EveOnline.AuswertGbs
 			get;
 		}
 
-		public SictAuswertGbsWindowTelecom(SictGbsAstInfoSictAuswert AstWindow)
+		public SictAuswertGbsWindowTelecom(UINodeInfoInTree AstWindow)
 			:
 			base(AstWindow)
 		{
@@ -55,12 +55,12 @@ namespace Optimat.EveOnline.AuswertGbs
 			base.Berecne();
 
 			AstMainContainerBottom =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainer, (Kandidaat) => string.Equals("bottom", Kandidaat.Name, StringComparison.InvariantCultureIgnoreCase),
 				2, 1);
 
 			AstMainContainerBottomButtons =
-				Optimat.EveOnline.AuswertGbs.Extension.SuuceFlacMengeAstFrüheste(
+				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
 				AstMainContainerBottom,
 				(Kandidaat) =>
 					(string.Equals("EveButtonGroup", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||

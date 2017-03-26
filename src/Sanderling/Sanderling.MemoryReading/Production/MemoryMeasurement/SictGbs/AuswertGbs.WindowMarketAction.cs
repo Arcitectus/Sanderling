@@ -9,7 +9,7 @@ namespace Optimat.EveOnline.AuswertGbs
 	public class SictAuswertGbsWindowMarketAction : SictAuswertGbsWindow
 	{
 		new static public WindowMarketAction BerecneFürWindowAst(
-			SictGbsAstInfoSictAuswert windowAst)
+			UINodeInfoInTree windowAst)
 		{
 			if (null == windowAst)
 				return null;
@@ -23,7 +23,7 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public WindowMarketAction ErgeebnisScpez;
 
-		public SictAuswertGbsWindowMarketAction(SictGbsAstInfoSictAuswert windowNode)
+		public SictAuswertGbsWindowMarketAction(UINodeInfoInTree windowNode)
 			:
 			base(windowNode)
 		{
