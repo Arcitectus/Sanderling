@@ -1,10 +1,8 @@
-﻿using System;
+﻿using Bib3.Geometrik;
+using Sanderling.Interface.MemoryStruct;
+using System;
 using System.Linq;
 using System.Threading;
-using Sanderling.Interface.MemoryStruct;
-using Bib3.Geometrik;
-using BotEngine.Client;
-using BotEngine;
 
 namespace Sanderling.Sample.Read
 {
@@ -22,52 +20,21 @@ namespace Sanderling.Sample.Read
 			Console.WriteLine("start an eve online client and login to your account. Then press any key to continue.\n");
 			Console.ReadKey();
 
-			var Config = Extension.ConfigReadFromConsole();
+			var eveOnlineClientProcessId = Extension.ReadEveOnlineClientProcessIdFromConsole();
 
-			if (null == Config)
+			if (null == eveOnlineClientProcessId)
 			{
-				Console.WriteLine("reading config failed.");
-				return;
-			}
-
-			var licenseClientConfig = new LicenseClientConfig
-			{
-				ApiVersionAddress = Config.LicenseServerAddress,
-				Request = new AuthRequest
-				{
-					ServiceId = Config.ServiceId,
-					LicenseKey = Config.LicenseKey,
-					Consume = true,
-				},
-			};
-
-			Console.WriteLine();
-			Console.WriteLine("connecting to " + (licenseClientConfig?.ApiOverviewAddress ?? "") + " using Key \"" + (licenseClientConfig?.Request?.LicenseKey ?? "") + "\" ....");
-
-			var sensorServerDispatcher = new SimpleInterfaceServerDispatcher
-			{
-				LicenseClientConfig = licenseClientConfig,
-			};
-
-			sensorServerDispatcher.CyclicExchangeStart();
-
-			var exchangeAuth = sensorServerDispatcher?.LicenseClient?.ExchangeAuthLast?.Value;
-
-			Console.WriteLine("Auth exchange completed ");
-
-			if (exchangeAuth.AuthSuccess() ?? false)
-				Console.WriteLine("successful");
-			else
-			{
-				Console.WriteLine("with error: " + Environment.NewLine + exchangeAuth?.SerializeToString(Newtonsoft.Json.Formatting.Indented));
+				Console.WriteLine("reading eve online client process id failed.");
 				return;
 			}
 
 			Console.WriteLine("\nstarting to set up the sensor and read from memory.\nthe initial measurement takes longer.");
 
+			var sensor = new Sensor();
+
 			for (;;)
 			{
-				var response = sensorServerDispatcher?.InterfaceAppManager?.MeasurementTakeNewRequest(Config.EveOnlineClientProcessId);
+				var response = sensor?.MeasurementTakeNewRequest(eveOnlineClientProcessId.Value);
 
 				if (null == response)
 					Console.WriteLine("Sensor Interface not yet ready.");
@@ -78,8 +45,6 @@ namespace Sanderling.Sample.Read
 			}
 		}
 
-		/// <summary>
-		/// </summary>
 		/// <param name="measurement">contains the structures read from the eve online client process memory.</param>
 		static public void MeasurementReceived(BotEngine.Interface.FromProcessMeasurement<IMemoryMeasurement> measurement)
 		{
