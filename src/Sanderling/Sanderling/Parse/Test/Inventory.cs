@@ -37,6 +37,16 @@ namespace Sanderling.Parse.Test
 						Max = 8500L * 1000,
 					},
 				},
+			
+				new TestCaseMapCompareByRefNezDif<string, IInventoryCapacityGauge>()
+				{
+					In = "3 921,5/5 000,0 м³",
+					Out = new   InventoryCapacityGauge()
+					{
+						Used = 3921500L,
+						Max = 5000L * 1000
+					},
+				},
 			};
 
 	}
