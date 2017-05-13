@@ -193,7 +193,7 @@ namespace Sanderling.Parse
 
 	static public class InventoryExtension
 	{
-		static readonly string CapacityGaugeUnitPattern = Regex.Escape("m³");
+		static readonly string CapacityGaugeUnitPattern = "(m|м)³";
 
 		/// <summary>
 		/// //	،: "Pashto" (ps)
