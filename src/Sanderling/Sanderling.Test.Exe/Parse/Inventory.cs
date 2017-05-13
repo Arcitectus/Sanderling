@@ -1,6 +1,5 @@
 ﻿using Sanderling.Parse;
 using NUnit.Framework;
-using System.Collections.Generic;
 using Bib3.Test;
 
 namespace Sanderling.Test.Exe.Parse
@@ -9,7 +8,9 @@ namespace Sanderling.Test.Exe.Parse
 	{
 		[Test]
 		public void Parse_Inventory_CapacityGaugeParse() =>
-			Sanderling.Parse.Test.Inventory.CapacityGaugeTestCase.AssertSuccess(gaugeString => gaugeString.ParseAsInventoryCapacityGaugeMilli());
+			Sanderling.Parse.Test.Inventory.CapacityGaugeTestCase.AssertMapEquals(
+				InventoryExtension.ParseAsInventoryCapacityGaugeMilli,
+				new ComparerRefNezDif<IInventoryCapacityGauge>());
 
 		[Test]
 		public void Parse_Inventory_TreeEntry_ShipLabel()
