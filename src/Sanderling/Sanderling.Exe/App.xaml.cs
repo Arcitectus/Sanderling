@@ -1,5 +1,4 @@
 ﻿using Bib3;
-using BotEngine.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +40,7 @@ namespace Sanderling.Exe
 
 			UIAPI = new Sanderling.Script.Impl.HostToScript
 			{
-				MemoryMeasurementFunc = new Func<FromProcessMeasurement<Interface.MemoryMeasurementEvaluation>>(() => MemoryMeasurementLast),
+				MemoryMeasurementFunc = () => MemoryMeasurementLast,
 			};
 		}
 
@@ -91,6 +90,7 @@ namespace Sanderling.Exe
 				FromScriptRequestMemoryMeasurementEvaluation = FromScriptRequestMemoryMeasurementEvaluation,
 				FromScriptMotionExecute = FromScriptMotionExecute,
 				GetWindowHandleDelegate = () => Motor?.WindowHandle ?? IntPtr.Zero,
+                GetKillEveProcessAction = KillEveProcessAction
 			};
 		}
 
@@ -143,12 +143,12 @@ namespace Sanderling.Exe
 
 			if (null != OriginalSource)
 			{
-				if (OriginalSource == ToggleButtonMotionEnable?.ButtonLinx)
+				if (Equals(OriginalSource, ToggleButtonMotionEnable?.ButtonLinx))
 				{
 					ScriptRunPause();
 				}
 
-				if (OriginalSource == ToggleButtonMotionEnable?.ButtonRecz)
+				if (Equals(OriginalSource, ToggleButtonMotionEnable?.ButtonRecz))
 				{
 					ScriptRunPlay();
 				}
@@ -169,7 +169,20 @@ namespace Sanderling.Exe
 			UIPresentScript();
 		}
 
-		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        private void KillEveProcessAction()
+        {
+            Current.Dispatcher.Invoke(() =>
+            {
+                if (!EveOnlineClientProcessId.HasValue)
+                    return;
+
+                var process = System.Diagnostics.Process.GetProcessById(EveOnlineClientProcessId.Value);
+
+                process.Kill();
+            });
+        }
+
+        private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 		{
 			try
 			{
