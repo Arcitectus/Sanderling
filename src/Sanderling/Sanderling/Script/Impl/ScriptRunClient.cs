@@ -20,6 +20,8 @@ namespace Sanderling.Script.Impl
 
 		public Action<int> InvalidateMeasurementAction;
 
+		public Action GetKillEveProcessAction;
+
 		public Func<IntPtr> GetWindowHandleDelegate;
 
 		public Func<MotionParam, MotionResult> FromScriptMotionExecute;
@@ -44,6 +46,8 @@ namespace Sanderling.Script.Impl
 					InvalidateMeasurementAction = InvalidateMeasurementAction,
 
 					WindowHandleFunc = () => GetWindowHandleDelegate?.Invoke() ?? IntPtr.Zero,
+
+                    KillEveProcessAction = () => GetKillEveProcessAction?.Invoke(),
 				}
 			};
 

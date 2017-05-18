@@ -16,7 +16,9 @@ namespace Sanderling.Script.Impl
 
 		public Action<int> InvalidateMeasurementAction;
 
-		public Func<IntPtr> WindowHandleFunc;
+        public Action KillEveProcessAction;
+
+        public Func<IntPtr> WindowHandleFunc;
 
 		public FromProcessMeasurement<MemoryStruct.IMemoryMeasurement> MemoryMeasurement =>
 			MemoryMeasurementFunc?.Invoke()?.MapValue(evaluation => evaluation?.MemoryMeasurement);
@@ -32,5 +34,7 @@ namespace Sanderling.Script.Impl
 		public void InvalidateMeasurement(Int32 delayToMeasurementMilli) => InvalidateMeasurementAction?.Invoke(delayToMeasurementMilli);
 
 		public IntPtr WindowHandle => WindowHandleFunc?.Invoke() ?? IntPtr.Zero;
+
+	    public void KillEveProcess() => KillEveProcessAction?.Invoke();
 	}
 }

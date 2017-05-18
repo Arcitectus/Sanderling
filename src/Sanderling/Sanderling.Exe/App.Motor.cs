@@ -46,11 +46,6 @@ namespace Sanderling.Exe
 			{
 				var Process = System.Diagnostics.Process.GetProcessById(EveOnlineClientProcessId.Value);
 
-				if (null == Process)
-				{
-					return null;
-				}
-
 				return new Motor.WindowMotor(Process.MainWindowHandle);
 			}
 			catch (ArgumentException)
@@ -78,8 +73,6 @@ namespace Sanderling.Exe
 					  return null;
 				  }
 
-				  var MotorAsWindowMotor = Motor as Motor.WindowMotor;
-
 				  var BeginTime = GetTimeStopwatch();
 
 				  var Result = Motor.ActSequenceMotion(motion.AsSequenceMotion(MemoryMeasurementLast?.Value?.MemoryMeasurement));
@@ -99,5 +92,5 @@ namespace Sanderling.Exe
 		}
 
 		MotionResult FromScriptMotionExecute(MotionParam motionParam) => ActMotionAsync(motionParam).Result;
-	}
+    }
 }
