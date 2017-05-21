@@ -7,7 +7,7 @@
         xmlns:Sanderling.UI="clr-namespace:Sanderling.UI;assembly=Sanderling.UI"
         mc:Ignorable="d"
         Title="{Binding RelativeSource={RelativeSource Self}, Path=TitleComputed, FallbackValue=Sanderling vXXXX}"
-        Height="350" Width="525">
+        >
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/Sanderling.Exe;component/resource.xaml"></ResourceDictionary>
     </Window.Resources>
