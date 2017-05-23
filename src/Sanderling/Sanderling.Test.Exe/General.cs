@@ -34,6 +34,26 @@ namespace Sanderling.Test.Exe
 			}
 		}
 
+		static public void AssertMapEquals<InT, OutT>(
+			this IEnumerable<(InT, OutT)> testCases,
+			Func<InT, OutT> map,
+			IEqualityComparer<OutT> comparer)
+		{
+			foreach (var (input, expected) in testCases.EmptyIfNull())
+			{
+				try
+				{
+					var output = map(input);
+
+					Assert.That(comparer.Equals(output, expected));
+				}
+				catch (Exception Exception)
+				{
+					throw new ApplicationException($"failed for test case with input = { input } and expected output = { expected }", Exception);
+				}
+			}
+		}
+
 		static public void AssertObjectEquals<InT, OutT>(
 			this IEnumerable<KeyValuePair<InT, OutT>> setTestCase,
 			Func<InT, OutT> map)

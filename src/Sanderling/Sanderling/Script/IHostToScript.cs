@@ -42,6 +42,11 @@ namespace Sanderling.Script
 		void InvalidateMeasurement(int delayToMeasurementMilli);
 
 		IntPtr WindowHandle { get; }
+
+        /// <summary>
+        /// Instantly kill currently monitored EVE Online process
+        /// </summary>
+	    void KillEveProcess();
 	}
 
 	public class ToScriptGlobals : BotSharp.ScriptRun.ScriptRun.ToScriptGlobals
