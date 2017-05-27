@@ -9,6 +9,7 @@ namespace Sanderling.MemoryReading.Test
 	public class MemoryReadingDemo
 	{
 		[Test]
+		[Explicit("Do not include this method when running all tests. The only reason this is marked as test is to simplify execution from Visual Studio UI.")]
 		public void Demo_memory_reading_from_process_sample()
 		{
 			//	To obtain a process sample of the eve online client to use with this reading approach,
