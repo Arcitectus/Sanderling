@@ -441,7 +441,7 @@ if(SetModulewaepon?.Length != 0)
 		ClickMenuEntryOnMenuRoot(RatTargetNext, "approach");
 		}
 		
-		Host.Delay(1000);
+		Host.Delay(1500);
 	}
 if(null != RatTargetNext  )
 	{
