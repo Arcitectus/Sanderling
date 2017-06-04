@@ -12,19 +12,18 @@
             <BotEngine.UI.ViewModel:AppProperty
                 x:Key="AppProperty">
                 <BotEngine.UI.ViewModel:AppProperty.CompileTime>
-                    <BotEngine.UI.ViewModel:AppPropertyCompileTime
+										<BotEngine.UI.ViewModel:AppPropertyCompileTime
                         WebsiteUrl="https://github.com/Arcitectus/Sanderling"
-                        VersionId="{StaticResource AppVersionId}"></BotEngine.UI.ViewModel:AppPropertyCompileTime>
-                </BotEngine.UI.ViewModel:AppProperty.CompileTime>
+                        VersionId="{StaticResource AppVersionId}"/>
+								</BotEngine.UI.ViewModel:AppProperty.CompileTime>
 
                 <BotEngine.UI.ViewModel:AppProperty.RunTime>
-                    <BotEngine.UI.ViewModel:AppPropertyRunTimeConstructFromCurrentProcess></BotEngine.UI.ViewModel:AppPropertyRunTimeConstructFromCurrentProcess>
-                </BotEngine.UI.ViewModel:AppProperty.RunTime>
+										<BotEngine.UI.ViewModel:AppPropertyRunTimeConstructFromCurrentProcess />
+								</BotEngine.UI.ViewModel:AppProperty.RunTime>
 
                 <BotEngine.UI.ViewModel:AppProperty.View>
-                    <BotEngine.UI.ViewModel:AppPropertyView
-                        ArgumentsVisible="True"></BotEngine.UI.ViewModel:AppPropertyView>
-                </BotEngine.UI.ViewModel:AppProperty.View>
+										<BotEngine.UI.ViewModel:AppPropertyView ArgumentsVisible="True" />
+								</BotEngine.UI.ViewModel:AppProperty.View>
             </BotEngine.UI.ViewModel:AppProperty>
 
         </ResourceDictionary>
