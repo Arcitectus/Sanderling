@@ -26,6 +26,9 @@ The source code uses C# 7 features. It is recommended to use [Visual Studio](htt
 ### Feedback
 Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/c/botting/eve-online).
 
+### Contributing
+See the [Contributing Guide](Contributing.md)
+
 ### Need Help?
 Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/c/botting/eve-online](http://forum.botengine.de/c/botting/eve-online).
 
