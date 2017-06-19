@@ -12,7 +12,7 @@
 * the application requires Microsoft .NET Framework 4.6.1 which can be downloaded from [https://www.microsoft.com/download/details.aspx?id=49982](https://www.microsoft.com/download/details.aspx?id=49982).
 
 ### Download
-Download the latest release from the [release section](https://github.com/Arcitectus/Sanderling/releases).
+Download the latest release from the [release section](https://github.com/bozoweed/Sanderling/releases).
 
 ### Bot Creators
 [Bot Creator Guide](https://github.com/Arcitectus/Sanderling/wiki/Bot-Creator-Guide)
@@ -24,7 +24,7 @@ Download the latest release from the [release section](https://github.com/Arcite
 The source code uses C# 7 features. It is recommended to use [Visual Studio](https://www.visualstudio.com/) version 2017 or newer for building.
 
 ### Feedback
-Spotted a bug or have a feature request? File an issue [here](https://github.com/Arcitectus/Sanderling/issues) or at the [forum](http://forum.botengine.de/c/botting/eve-online).
+Spotted a bug or have a feature request? File an issue [here](https://github.com/bozoweed/Sanderling/issues) or at the [forum](http://forum.botengine.de/t/worst-mining-bot/230).
 
 ### Contributing
 See the [Contributing Guide](Contributing.md)
