@@ -246,38 +246,38 @@ Func<object>	DefenseStep()
 	var RatTargetNext = SetRatTarget?.OrderBy(target => target?.DistanceMax ?? int.MaxValue)?.FirstOrDefault();
 
 	//Populating array to check if drones are fighting or not
-    Sanderling.Interface.MemoryStruct.IUIElementText[] droneArray = Sanderling.MemoryMeasurementParsed?.Value?.WindowDroneView?.FirstOrDefault()?.LabelText.ToArray();
+	Sanderling.Interface.MemoryStruct.IUIElementText[] droneArray = Sanderling.MemoryMeasurementParsed?.Value?.WindowDroneView?.FirstOrDefault()?.LabelText.ToArray();
 
-    droneFightingCounter = 0; //Reset drone fighting counter before each check. 
+	droneFightingCounter = 0; //Reset drone fighting counter before each check. 
 
-    //Checking if every drone is fighting.
-    foreach (Sanderling.Interface.MemoryStruct.IUIElementText item in droneArray)
-    {
-        if (item.Text.ToString().Contains("Fighting")) //May be improved in adding drone names to be 100% sure.
-        {
-            droneFightingCounter = droneFightingCounter + 1;
-        }
-    }
+	//Checking if every drone is fighting.
+	foreach (Sanderling.Interface.MemoryStruct.IUIElementText item in droneArray)
+	{
+		if (item.Text.ToString().Contains("Fighting")) //May be improved in adding drone names to be 100% sure.
+		{
+			droneFightingCounter = droneFightingCounter + 1;
+		}
+	}
 
-    if (null == RatTargetNext)
+	if (null == RatTargetNext)
 	{
 		Host.Log("no rat targeted.");
 		Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
 		Sanderling.MouseClickLeft(MenuEntryLockTarget);
 	}
-    else if (DronesInSpaceCount != droneFightingCounter || droneFightingCounter == 0) //Target only if not all drone are already fighting
-    {
+	else if (DronesInSpaceCount != droneFightingCounter || droneFightingCounter == 0) //Target only if not all drone are already fighting
+	{
 		Host.Log("rat targeted. sending drones.");
 		Sanderling.MouseClickLeft(RatTargetNext);
 		Sanderling.MouseClickRight(DronesInSpaceListEntry);
 		Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("engage", RegexOptions.IgnoreCase));
 	}
-    else //Here for debugging purpose, could be deleted in the future.
-    {
-        Host.Log("Every drone is fighting, no need to send them to a new target"); //furthermore, drones are automatically attacking rats which are firing at you.
-    }
+	else //Here for debugging purpose, could be deleted in the future.
+	{
+		Host.Log("Every drone is fighting, no need to send them to a new target"); //furthermore, drones are automatically attacking rats which are firing at you.
+	}
 
-    return DefenseStep;
+	return DefenseStep;
 }
 
 Func<object> InBeltMineStep()
