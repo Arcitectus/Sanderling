@@ -100,8 +100,10 @@ for(;;)
 long? JammedLastAge => Jammed ? 0 : (Host.GetTimeContinuousMilli() - JammedLastTime) / 1000;
 
 int?	ShieldHpPercent => ShipUi?.HitpointsAndEnergy?.Shield / 10;
+int droneFightingCounter = 0;
 
-bool	DefenseExit =>
+
+bool DefenseExit =>
 	(Measurement?.IsDocked ?? false) ||
 	!(0 < ListRatOverviewEntry?.Length)	||
 	(DefenseExitHitpointThresholdPercent < ShieldHpPercent && !(JammedLastAge < 40) &&
@@ -242,22 +244,40 @@ Func<object>	DefenseStep()
 		SetRatName?.Any(ratName => target?.TextRow?.Any(row => row.RegexMatchSuccessIgnoreCase(ratName)) ?? false) ?? false);
 	
 	var RatTargetNext = SetRatTarget?.OrderBy(target => target?.DistanceMax ?? int.MaxValue)?.FirstOrDefault();
-	
-	if(null == RatTargetNext)
+
+	//Populating array to check if drones are fighting or not
+    Sanderling.Interface.MemoryStruct.IUIElementText[] droneArray = Sanderling.MemoryMeasurementParsed?.Value?.WindowDroneView?.FirstOrDefault()?.LabelText.ToArray();
+
+    droneFightingCounter = 0; //Reset drone fighting counter before each check. 
+
+    //Checking if every drone is fighting.
+    foreach (Sanderling.Interface.MemoryStruct.IUIElementText item in droneArray)
+    {
+        if (item.Text.ToString().Contains("Fighting")) //May be improved in adding drone names to be 100% sure.
+        {
+            droneFightingCounter = droneFightingCounter + 1;
+        }
+    }
+
+    if (null == RatTargetNext)
 	{
 		Host.Log("no rat targeted.");
 		Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
 		Sanderling.MouseClickLeft(MenuEntryLockTarget);
 	}
-	else
-	{
+    else if (DronesInSpaceCount != droneFightingCounter || droneFightingCounter == 0) //Target only if not all drone are already fighting
+    {
 		Host.Log("rat targeted. sending drones.");
 		Sanderling.MouseClickLeft(RatTargetNext);
 		Sanderling.MouseClickRight(DronesInSpaceListEntry);
 		Sanderling.MouseClickLeft(Menu?.FirstOrDefault()?.EntryFirstMatchingRegexPattern("engage", RegexOptions.IgnoreCase));
 	}
-	
-	return DefenseStep;
+    else //Here for debugging purpose, could be deleted in the future.
+    {
+        Host.Log("Every drone is fighting, no need to send them to a new target"); //furthermore, drones are automatically attacking rats which are firing at you.
+    }
+
+    return DefenseStep;
 }
 
 Func<object> InBeltMineStep()
