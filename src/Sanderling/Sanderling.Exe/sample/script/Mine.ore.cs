@@ -150,7 +150,7 @@ Func<object>	MainStep()
 	{
 		DroneEnsureInBay();
 
-		if(OreHoldFilledForOffload)
+		if(OreHoldFilledForOffload && 0 == DronesInSpaceCount)
 		{
 			if(ReadyForManeuver)
 				InitiateDockToOrWarpToBookmark(UnloadBookmark);
