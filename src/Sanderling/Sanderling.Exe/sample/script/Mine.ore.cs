@@ -243,13 +243,27 @@ Func<object>	DefenseStep()
 	
 	var RatTargetNext = SetRatTarget?.OrderBy(target => target?.DistanceMax ?? int.MaxValue)?.FirstOrDefault();
 	
+	//Populating array to check if drones are fighting or not
+	Sanderling.Interface.MemoryStruct.IUIElementText[] droneArray = Sanderling.MemoryMeasurementParsed?.Value?.WindowDroneView?.FirstOrDefault()?.LabelText.ToArray();
+
+	int droneFightingCounter = 0; //Reset drone fighting counter before each check.
+
+	//Checking if every drone is fighting.
+	foreach (Sanderling.Interface.MemoryStruct.IUIElementText item in droneArray)
+	{
+		if (item.Text.ToString().Contains("Fighting")) //May be improved in adding drone names to be 100% sure.
+		{
+			droneFightingCounter = droneFightingCounter + 1;
+		}
+	}
+	
 	if(null == RatTargetNext)
 	{
 		Host.Log("no rat targeted.");
 		Sanderling.MouseClickRight(ListRatOverviewEntry?.FirstOrDefault());
 		Sanderling.MouseClickLeft(MenuEntryLockTarget);
 	}
-	else
+	else if (DronesInSpaceCount != droneFightingCounter || droneFightingCounter == 0) //Target only if not all drone are already fighting
 	{
 		Host.Log("rat targeted. sending drones.");
 		Sanderling.MouseClickLeft(RatTargetNext);
