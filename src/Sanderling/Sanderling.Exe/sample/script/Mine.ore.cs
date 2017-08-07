@@ -54,6 +54,8 @@ var EnterOffloadOreHoldFillPercent = 95;	//	percentage of ore hold fill level at
 
 var RetreatOnNeutralOrHostileInLocal = false;   // warp to RetreatBookmark when a neutral or hostile is visible in local.
 
+bool returnDronesToBayOnRetreat = false; // when set to true, bot will attempt to dock back the drones before retreating
+
 //	<- end of configuration section
 
 
@@ -81,6 +83,10 @@ for(;;)
 
 	if(0 < RetreatReason?.Length && !(Measurement?.IsDocked ?? false))
 	{
+		if (returnDronesToBayOnRetreat) {
+			DroneEnsureInBay();
+		}
+
 		InitiateDockToOrWarpToBookmark(RetreatBookmark);
 		continue;
 	}
