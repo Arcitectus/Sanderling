@@ -253,7 +253,7 @@ Func<object>	DefenseStep()
 	{
 		if (item.Text.ToString().Contains("Fighting")) //May be improved in adding drone names to be 100% sure.
 		{
-			droneFightingCounter = droneFightingCounter + 1;
+			droneFightingCounter++;
 		}
 	}
 	
