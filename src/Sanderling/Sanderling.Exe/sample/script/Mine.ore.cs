@@ -87,7 +87,9 @@ for(;;)
 			DroneEnsureInBay();
 		}
 
-		InitiateDockToOrWarpToBookmark(RetreatBookmark);
+		if (!returnDronesToBayOnRetreat || (returnDronesToBayOnRetreat && 0 == DronesInSpaceCount)) {
+			InitiateDockToOrWarpToBookmark(RetreatBookmark);
+		}
 		continue;
 	}
 
