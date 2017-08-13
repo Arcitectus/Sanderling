@@ -669,6 +669,8 @@ void MemoryUpdate()
 
 void ParseAbovemainMessage()
 {
+	if (Measurement?.AbovemainMessage == null) {return;}
+	
 	string mainMessage = Measurement?.AbovemainMessage.ToString();
 
 	if(mainMessage.Contains("Cluster Shutdown") && OnClusterShutdownRetreat) {
