@@ -349,7 +349,7 @@ namespace Optimat.EveOnline.AuswertGbs
 				2, 1);
 
 			var SetTooltipNode =
-				LayerHintAst?.MatchingNodesFromSubtreeBreadthFirst(k => k?.PyObjTypNameMatchesRegexPattern("TooltipGeneric") ?? false);
+				GbsBaumWurzel.MatchingNodesFromSubtreeBreadthFirst(k => k?.PyObjTypNameMatchesRegexPattern("TooltipGeneric|TooltipPanel") ?? false);
 
 			var SetTooltip =
 				SetTooltipNode?.Select(TooltipNode => TooltipNode?.AlsContainer())?.WhereNotDefault()?.ToArrayIfNotEmpty();
