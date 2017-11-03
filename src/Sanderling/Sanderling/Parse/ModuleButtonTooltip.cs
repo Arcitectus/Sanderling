@@ -74,7 +74,8 @@ namespace Sanderling.Parse
 
 		static readonly string[] IsMinerSetIndicatorLabelRegexPattern = new string[]{
 			@"Miner",
-			@"Mining\s*Laser",
+			@"Mining\sLaser$",
+			@"Mining\sLaser\s(?!Upgrade)",
 		};
 
 		MemoryStruct.IContainer Raw;
