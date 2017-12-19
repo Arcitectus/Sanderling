@@ -52,6 +52,10 @@ namespace Sanderling.Parse
 			"Cannon",
 			"Artillery",
 			"Howitzer",
+			"Gauss Gun",
+			"Coil Gun",
+			"Torpedo Launcher",
+			"Missile Bay",
 		};
 
 		static readonly string[] IsTargetPainterSetIndicatorLabelRegexPattern = new string[]{
