@@ -46,22 +46,25 @@ namespace Optimat.EveOnline.AuswertGbs
 
 		public void Berecne()
 		{
-			EWarButtonAst =
-				EWarElementAst?.FirstMatchingNodeFromSubtreeBreadthFirst((kandidaat) => string.Equals("EwarButton", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
-				2, 1);
+			var uiElementBase = EWarElementAst?.AsUIElementIfVisible();
+
+			if (uiElementBase == null)
+				return;
+
+			EWarButtonAst = EWarElementAst;
 
 			IconAst =
-				EWarButtonAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
+				EWarElementAst?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 					(string.Equals("Icon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
 					string.Equals("EveIcon", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase)),
-					2, 1);
+					3, 1);
 
 			if (!(IconAst?.VisibleIncludingInheritance ?? false))
 				return; //	Annaame diise EWar Anzaige isc nit aktiiv.
 
 			var EWarTypeString = EWarElementAst?.Name;
 
-			this.Ergeebnis = new ShipUiEWarElement()
+			this.Ergeebnis = new ShipUiEWarElement(uiElementBase)
 			{
 				EWarType = EWarTypeString,
 				IconTexture = IconAst?.TextureIdent0?.AsObjectIdInMemory(),
@@ -204,7 +207,8 @@ namespace Optimat.EveOnline.AuswertGbs
 			EwarUIContainerAst =
 				LayerShipUiNode?.FirstMatchingNodeFromSubtreeBreadthFirst(kandidaat =>
 				string.Equals("EwarUIContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
-				string.Equals("EwarContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),    //	2015.05.00	Singularity
+				string.Equals("EwarContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||    //	2015.05.00	Singularity
+				string.Equals("BuffBarContainer", kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),    //	2017-12-20 Process Measurement 0E078DF56834065378574C9319212CF6D01A114E
 				2, 1);
 
 			TimersContainerAst =
@@ -220,7 +224,8 @@ namespace Optimat.EveOnline.AuswertGbs
 				TimersContainerAst?.ListChild;
 
 			EwarUIContainerMengeEWarElementKandidaatAst =
-				EwarUIContainerAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat => true,
+				EwarUIContainerAst?.MatchingNodesFromSubtreeBreadthFirst(kandidaat =>
+				(kandidaat?.VisibleIncludingInheritance ?? false) && (kandidaat?.PyObjTypNameEqualsIgnoreCase("BuffSlotParent") ?? false),
 				null, 2, 1);
 
 			EwarUIContainerMengeEWarElementKandidaatAuswert =
