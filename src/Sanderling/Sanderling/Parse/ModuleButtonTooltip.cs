@@ -160,6 +160,8 @@ namespace Sanderling.Parse
 			IsHardener = LabelAnyRegexMatchSuccessIgnoreCase(IsHardenerSetIndicatorLabelRegexPattern);
 
 			IsAfterburner = LabelRegexMatchSuccessIgnoreCase("Afterburner");
+			
+			IsMicroWarpDrive = LabelRegexMatchSuccessIgnoreCase("Microwarpdrive");
 
 			IsShieldBooster = LabelAnyRegexMatchSuccessIgnoreCase(IsShieldBoosterSetIndicatorLabelRegexPattern);
 			IsArmorRepairer = LabelAnyRegexMatchSuccessIgnoreCase(IsArmorRepairerSetIndicatorLabelRegexPattern);
