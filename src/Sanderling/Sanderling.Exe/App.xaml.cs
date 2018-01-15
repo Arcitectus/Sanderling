@@ -16,7 +16,7 @@ namespace Sanderling.Exe
 
 		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
 
-		BotSharp.UI.Wpf.IDE ScriptIDE => Window?.Main?.Bot?.IDE;
+		BotSharp.UI.Wpf.OldIDE ScriptIDE => Window?.Main?.Bot?.IDE?.OldIDE;
 
 		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.Bot?.APIExplorer;
 
@@ -100,10 +100,6 @@ namespace Sanderling.Exe
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
 				ImportNamespace = Sanderling.Script.Impl.ToScriptImport.ImportNamespace?.ToArray(),
-				CompilationOption = new BotSharp.CodeAnalysis.CompilationOption()
-				{
-					InstrumentationOption = BotSharp.CodeAnalysis.InstrumentationOption.Default,
-				},
 
 				ScriptRunClientBuildDelegate = ScriptRunClientBuild,
 
