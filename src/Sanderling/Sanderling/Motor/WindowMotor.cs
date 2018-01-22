@@ -13,7 +13,7 @@ namespace Sanderling.Motor
 	{
 		readonly public IntPtr WindowHandle;
 
-		public const int MouseEventTimeDistanceMilliDefault = 140;
+		public const int MouseEventTimeDistanceMilliDefault = 120;
 
 		public int MouseEventTimeDistanceMilli = MouseEventTimeDistanceMilliDefault;
 
