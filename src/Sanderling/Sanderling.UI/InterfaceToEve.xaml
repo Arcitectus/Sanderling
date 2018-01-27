@@ -41,20 +41,6 @@
             <TabItem>
                 <TabItem.Header>
                     <BotEngine.UI.ViewModel:ContentAndStatusIcon
-                        x:Name="LicenseHeader"
-                        x:FieldModifier="public"
-                        Content="license">
-                    </BotEngine.UI.ViewModel:ContentAndStatusIcon>
-                </TabItem.Header>
-
-                <ScrollViewer>
-					<BotEngine.UI.View:License x:Name="LicenseView" x:FieldModifier="public" />
-                </ScrollViewer>
-            </TabItem>
-
-            <TabItem>
-                <TabItem.Header>
-                    <BotEngine.UI.ViewModel:ContentAndStatusIcon
                         x:Name="MeasurementLastHeader"
                         x:FieldModifier="public"
                         Content="last measurement">

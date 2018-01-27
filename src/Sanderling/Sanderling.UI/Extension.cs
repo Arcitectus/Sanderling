@@ -39,7 +39,6 @@ namespace Sanderling.UI
 		static public StatusIcon.StatusEnum InterfaceStatusEnum(this InterfaceToEve view) =>
 			new[]
 			{
-				view?.LicenseHeader?.Status ?? StatusIcon.StatusEnum.Reject,
 				view?.ProcessHeader?.Status ?? StatusIcon.StatusEnum.Reject,
 				view?.MeasurementLastHeader?.Status ?? StatusIcon.StatusEnum.Reject,
 			}.AggregateStatus().FirstOrNull() ?? StatusIcon.StatusEnum.Reject;

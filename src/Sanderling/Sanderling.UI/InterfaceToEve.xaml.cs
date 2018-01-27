@@ -14,7 +14,6 @@ namespace Sanderling.UI
 			InitializeComponent();
 
 			ProcessChoice?.PreferenceWriteToUI(new ChooseWindowProcessPreference { FilterMainModuleFileName = "ExeFile.exe" });
-			LicenseView.DataContext = LicenseDataContext;
 		}
 
 		public void Present(
@@ -23,7 +22,6 @@ namespace Sanderling.UI
 		{
 			MeasurementLastHeader?.SetStatus(measurement.MemoryMeasurementLastStatusEnum());
 
-			LicenseHeader?.SetStatus(interfaceServerDispatcher.LicenseStatusEnum());
 			ProcessHeader?.SetStatus(ProcessChoice.ProcessStatusEnum());
 
 			LicenseDataContext.Dispatcher = interfaceServerDispatcher;

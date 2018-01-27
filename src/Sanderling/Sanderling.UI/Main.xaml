@@ -25,7 +25,7 @@
                     <BotEngine.UI.ViewModel:ContentAndStatusIcon
                         x:Name="InterfaceHeader"
                         x:FieldModifier="public"
-                        Content="Interface">
+                        Content="EVE Online Client">
                     </BotEngine.UI.ViewModel:ContentAndStatusIcon>
                 </TabItem.Header>
                 <local:InterfaceToEve
