@@ -15,6 +15,8 @@ namespace Sanderling.UI
 			Interface.LicenseDataContext.LicenseKeyStore = LicenseKeyStore;
 		}
 
+		public BotSharp.UI.Wpf.IDE DevelopmentEnvironment => BotsNavigation?.DevelopmentEnvironment;
+
 		public void BotMotionDisable() => ToggleButtonMotionEnable?.LeftButtonDown();
 
 		public void BotMotionEnable() => ToggleButtonMotionEnable?.RightButtonDown();
