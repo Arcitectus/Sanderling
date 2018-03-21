@@ -8,6 +8,8 @@ using BotSharp.UI.Wpf;
 using System.Collections.Generic;
 using System.Windows.Input;
 using System.Windows.Controls.Primitives;
+using System.Windows;
+using System;
 
 namespace Sanderling.Exe
 {
@@ -31,25 +33,40 @@ namespace Sanderling.Exe
 			ProcessInput();
 		}
 
-		public void ProcessInput()
+		IEnumerable<(UIElement button, Action action)> ButtonsActions => new(UIElement button, Action action)[]
 		{
-			if (SetKeyBotMotionDisable()?.Any(setKey => setKey?.All(key => System.Windows.Input.Keyboard.IsKeyDown(key)) ?? false) ?? false)
+			(BotOperationPauseContinueToggleButton?.ButtonLinx, PauseBotOperation),
+			(BotOperationPauseContinueToggleButton?.ButtonRecz, ContinueOrStartBotOperation),
+		}
+		.Where(buttonAction => buttonAction.button != null);
+
+		void ButtonClicked(object sender, RoutedEventArgs e)
+		{
+			foreach (var buttonAction in ButtonsActions)
 			{
-				ScriptRun?.Break();
+				if (buttonAction.button == e?.OriginalSource)
+					buttonAction.action();
 			}
 		}
 
-		void UIPresentScript()
+		public void ProcessInput()
 		{
-			ToggleButtonMotionEnable?.ButtonRecz?.SetValue(ToggleButton.IsCheckedProperty, ScriptRun?.IsRunning ?? false);
+			if (SetKeyBotMotionDisable()?.Any(setKey => setKey?.All(key => Keyboard.IsKeyDown(key)) ?? false) ?? false)
+				PauseBotOperation();
+		}
 
-			ScriptIDE?.Present();
+		void UpdateBotOperationPauseContinueToggleButton()
+		{
+			BotOperationPauseContinueToggleButton.Visibility =
+				(ScriptRun?.HasStarted ?? false) ? System.Windows.Visibility.Visible : System.Windows.Visibility.Hidden;
+
+			BotOperationPauseContinueToggleButton?.ButtonRecz?.SetValue(ToggleButton.IsCheckedProperty, ScriptRun?.IsRunning ?? false);
 		}
 
 		void UIPresent()
 		{
 			MainControl?.BotHeader?.SetStatus(BotStatus);
-			MainControl?.Bot?.ScriptEngineHeader?.SetStatus(ScriptEngineStatus);
+			MainControl?.BotsNavigation?.UpdateViewComponentsWithState();
 
 			BotAPIExplorer?.Present(UIAPI);
 
