@@ -8,6 +8,7 @@
              xmlns:Bib3.FCL.UI="clr-namespace:Bib3.FCL.UI;assembly=Bib3.FCL"
              xmlns:BotEngine.UI="clr-namespace:BotEngine.UI;assembly=BotEngine.UI"
              xmlns:BotEngine.UI.ViewModel="clr-namespace:BotEngine.UI.ViewModel;assembly=BotEngine.UI"
+			 xmlns:BotSharp.UI.Wpf="clr-namespace:BotSharp.UI.Wpf;assembly=BotSharp.UI"
              mc:Ignorable="d" 
              d:DesignHeight="333" d:DesignWidth="444">
     <UserControl.Resources>
@@ -76,11 +77,22 @@
                 </TabItem.Header>
 
                 <TabItem.Content>
-                    <local:Bot
-                        x:Name="Bot"
-                        x:FieldModifier="public"></local:Bot>
-                </TabItem.Content>
+					<Grid>
+						<Grid.Resources>
+							<Style TargetType="TabItem" BasedOn="{StaticResource TabItemStyleFromBotEngine}" />
+						</Grid.Resources>
+						<BotSharp.UI.Wpf:BotsNavigation x:Name="BotsNavigation" x:FieldModifier="public" />
+					</Grid>
+				</TabItem.Content>
             </TabItem>
+
+			<TabItem Style="{StaticResource TabItemStyleFromBotEngine}" Header="Development Tools">
+				<TabControl>
+					<TabItem Style="{StaticResource TabItemStyleFromBotEngine}" Header="API Explorer">
+						<local:BotAPIExplorer x:Name="DevToolsAPIExplorer" x:FieldModifier="public" />
+					</TabItem>
+				</TabControl>
+			</TabItem>
 
             <TabItem
                 Style="{StaticResource TabItemStyleFromBotEngine}"
