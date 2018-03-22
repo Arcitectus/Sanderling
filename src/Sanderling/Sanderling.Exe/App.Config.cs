@@ -1,5 +1,6 @@
 ﻿using Bib3;
 using BotEngine.Common;
+using BotSharp.UI.Wpf;
 using Sanderling.Log;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Sanderling.Exe
 
 		string DefaultScriptPath => ScriptDirectoryPath.PathToFilesysChild("default.cs");
 
-		KeyValuePair<string, string>[] ListScriptIncluded =
+		static KeyValuePair<string, string>[] ListScriptIncluded =
 			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)
 			?.OrderBy(scriptNameAndContent => !scriptNameAndContent.Key.RegexMatchSuccessIgnoreCase("travel"))
 			?.ToArray();
@@ -48,6 +49,28 @@ namespace Sanderling.Exe
 
 				yield return new KeyValuePair<string, string>(ScriptIdMatch?.Groups?[1]?.Value, Encoding.UTF8.GetString(ScriptUTF8));
 			}
+		}
+
+		static BotsNavigationConfiguration BotsNavigationConfiguration()
+		{
+			string includedScriptFromNameRegexPattern(string regexPattern) =>
+				ListScriptIncluded
+				.FirstOrDefault(includedScript => Regex.Match(includedScript.Key, regexPattern, RegexOptions.IgnoreCase).Success)
+				.Value;
+
+			var botsOfferedAtRoot = new[]
+			{
+				("Automate Mining Ore From Asteroids", includedScriptFromNameRegexPattern(@"beginners-ore-asteroid-miner")),
+				("Automate Travel (Faster Autopilot)", includedScriptFromNameRegexPattern(@"beginners-autopilot")),
+			}
+			.Where(descriptionAndBot => 0 < descriptionAndBot.Item2?.Length)
+			.ToList();
+
+			return new BotsNavigationConfiguration
+			{
+				RootContentFromDefaultBot = defaultBot => UI.BotsNavigation.NavigationRoot(botsOfferedAtRoot, defaultBot),
+				OfferedDemoScripts = ListScriptIncluded,
+			};
 		}
 
 		static public ExeConfig ConfigDefaultConstruct() =>

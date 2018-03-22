@@ -194,6 +194,9 @@
       <HintPath>..\packages\System.Threading.Thread.4.0.0\lib\net46\System.Threading.Thread.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -229,12 +232,12 @@
     </ApplicationDefinition>
     <Compile Include="App.Log.cs" />
     <Compile Include="App.UI.cs" />
-    <EmbeddedResource Include="sample\script\Mine.ore.cs" />
-    <EmbeddedResource Include="sample\script\beginners-ore-asteroid-miner.cs" />
-    <Compile Include="Script\ToScriptGlobals.cs" />
+	<EmbeddedResource Include="sample\script\beginners-autopilot.cs" />
+	<EmbeddedResource Include="sample\script\beginners-ore-asteroid-miner.cs" />
+	<EmbeddedResource Include="sample\script\Mine.ore.cs" />
+	<Compile Include="Script\ToScriptGlobals.cs" />
     <Compile Include="State.cs" />
     <Compile Include="ToScriptImport.cs" />
-    <EmbeddedResource Include="sample\script\Travel.simple.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

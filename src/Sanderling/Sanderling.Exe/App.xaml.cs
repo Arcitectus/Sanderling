@@ -1,6 +1,5 @@
 ﻿using Bib3;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -14,13 +13,11 @@ namespace Sanderling.Exe
 
 		public MainWindow Window => base.MainWindow as MainWindow;
 
-		Bib3.FCL.GBS.ToggleButtonHorizBinär ToggleButtonMotionEnable => Window?.Main?.ToggleButtonMotionEnable;
+		Bib3.FCL.GBS.ToggleButtonHorizBinär BotOperationPauseContinueToggleButton => Window?.Main?.ToggleButtonMotionEnable;
 
-		BotSharp.UI.Wpf.OldIDE ScriptIDE => Window?.Main?.Bot?.IDE?.OldIDE;
+		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.DevToolsAPIExplorer;
 
-		UI.BotAPIExplorer BotAPIExplorer => Window?.Main?.Bot?.APIExplorer;
-
-		BotSharp.ScriptRun.ScriptRun ScriptRun => ScriptIDE?.ScriptRun;
+		BotSharp.ScriptRun.ScriptRun ScriptRun => MainControl?.BotsNavigation?.ScriptRun;
 
 		bool WasActivated = false;
 
@@ -90,13 +87,13 @@ namespace Sanderling.Exe
 				FromScriptRequestMemoryMeasurementEvaluation = FromScriptRequestMemoryMeasurementEvaluation,
 				FromScriptMotionExecute = FromScriptMotionExecute,
 				GetWindowHandleDelegate = () => Motor?.WindowHandle ?? IntPtr.Zero,
-                GetKillEveProcessAction = KillEveProcessAction
+				GetKillEveProcessAction = KillEveProcessAction
 			};
 		}
 
 		void ActivatedFirstTime()
 		{
-			ScriptIDE.ScriptParamBase = new BotSharp.ScriptParam()
+			MainControl.BotsNavigation.ScriptParamBase = new BotSharp.ScriptParam
 			{
 				ImportAssembly = Script.ToScriptImport.ImportAssembly?.ToArray(),
 				ImportNamespace = Sanderling.Script.Impl.ToScriptImport.ImportNamespace?.ToArray(),
@@ -106,13 +103,7 @@ namespace Sanderling.Exe
 				CompilationGlobalsType = typeof(Sanderling.Script.ToScriptGlobals),
 			};
 
-			ScriptIDE.ChooseScriptFromIncludedScripts.SetScript =
-				ListScriptIncluded?.Select(scriptIdAndContent => new KeyValuePair<string, Func<string>>(scriptIdAndContent.Key, () => scriptIdAndContent.Value))?.ToArray();
-
-			ScriptIDE.ScriptWriteToOrReadFromFile.DefaultFilePath = DefaultScriptPath;
-			ScriptIDE.ScriptWriteToOrReadFromFile?.ReadFromFile();
-			if (!(0 < ScriptIDE.Editor.Document.Text?.Length))
-				ScriptIDE.Editor.Document.Text = ListScriptIncluded?.FirstOrDefault().Value ?? "";
+			MainControl.BotsNavigation.Configuration = BotsNavigationConfiguration();
 
 			Window.KeyDown += Window_KeyDown;
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
@@ -128,57 +119,37 @@ namespace Sanderling.Exe
 
 			InterfaceExchange();
 
-			UIPresentScript();
+			UpdateBotOperationPauseContinueToggleButton();
 
 			UIPresent();
 		}
 
-		void ButtonClicked(object sender, RoutedEventArgs e)
+		void ContinueOrStartBotOperation()
 		{
-			var OriginalSource = e?.OriginalSource;
+			MainControl?.BotsNavigation?.ContinueOrStartBotOperation();
+			UpdateBotOperationPauseContinueToggleButton();
+		}
 
-			if (null != OriginalSource)
+		void PauseBotOperation()
+		{
+			MainControl?.BotsNavigation?.PauseBotOperation();
+			UpdateBotOperationPauseContinueToggleButton();
+		}
+
+		private void KillEveProcessAction()
+		{
+			Current.Dispatcher.Invoke(() =>
 			{
-				if (Equals(OriginalSource, ToggleButtonMotionEnable?.ButtonLinx))
-				{
-					ScriptRunPause();
-				}
+				if (!EveOnlineClientProcessId.HasValue)
+					return;
 
-				if (Equals(OriginalSource, ToggleButtonMotionEnable?.ButtonRecz))
-				{
-					ScriptRunPlay();
-				}
-			}
+				var process = System.Diagnostics.Process.GetProcessById(EveOnlineClientProcessId.Value);
+
+				process.Kill();
+			});
 		}
 
-		void ScriptRunPlay()
-		{
-			ScriptIDE.ScriptRunContinueOrStart();
-
-			UIPresentScript();
-		}
-
-		void ScriptRunPause()
-		{
-			ScriptIDE.ScriptPause();
-
-			UIPresentScript();
-		}
-
-        private void KillEveProcessAction()
-        {
-            Current.Dispatcher.Invoke(() =>
-            {
-                if (!EveOnlineClientProcessId.HasValue)
-                    return;
-
-                var process = System.Diagnostics.Process.GetProcessById(EveOnlineClientProcessId.Value);
-
-                process.Kill();
-            });
-        }
-
-        private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 		{
 			try
 			{
