@@ -1,6 +1,7 @@
 /*
 This script mines ore from asteroids and offloads the ore in a station.
-before running this script, prepare the EVE online client as follows:
+
+Before running this script, prepare the EVE online client as follows:
 
 + Set the UI language to english.
 + Move your mining ship to a solar system which has asteroid belts and at least one station in which you can dock.
@@ -11,7 +12,6 @@ before running this script, prepare the EVE online client as follows:
 + Arrange windows to not occlude ship modules or info panels.
 + In the ship UI, disable "Display Passive Modules" and disable "Display Empty Slots" and enable "Display Module Tooltips". The bot uses the module tooltips to automatically identify the properties of the modules.
 
-For optional features (such as using your ship's ore hold) see the configuration section below.
 */
 
 using BotSharp.ToScript.Extension;
@@ -19,9 +19,6 @@ using MemoryStruct = Sanderling.Interface.MemoryStruct;
 using Parse = Sanderling.Parse;
 
 //	Begin of configuration section ->
-
-//	If your ship has an ore hold, set this to true to make the bot use that. Otherwise, the bot uses the general purpose cargo hold.
-var UseShipOreHold = false;
 
 //	The bot loads this preset to the active tab in the Overview window.
 string OverviewPreset = null;
@@ -89,6 +86,21 @@ for(;;)
 	
 	Host.Delay(1111);
 }
+
+bool? ShipHasOreHold
+{
+	get
+	{
+		var	inventoryActiveShipEntry = WindowInventory?.ActiveShipEntry;
+
+		//	If the tree entry for the ship is not expanded....
+		if(!(IsExpanded(inventoryActiveShipEntry) ?? false))
+			return null;	// Then I do not know if there is an ore hold.
+
+		return inventoryActiveShipEntry?.TreeEntryFromCargoSpaceType(ShipCargoSpaceTypeEnum.OreHold) != null;
+	}
+}
+	
 
 //	seconds since ship was jammed.
 long? JammedLastAge => Jammed ? 0 : (Host.GetTimeContinuousMilli() - JammedLastTime) / 1000;
@@ -280,9 +292,20 @@ Sanderling.Parse.IWindowOverview	WindowOverview	=>
 Sanderling.Parse.IWindowInventory	WindowInventory	=>
 	Measurement?.WindowInventory?.FirstOrDefault();
 
-ITreeViewEntry InventoryActiveShipOreContainer =>
-	WindowInventory?.ActiveShipEntry?.TreeEntryFromCargoSpaceType(
-		UseShipOreHold ? ShipCargoSpaceTypeEnum.OreHold : ShipCargoSpaceTypeEnum.General);
+ITreeViewEntry InventoryActiveShipOreContainer
+{
+	get
+	{
+		var	hasOreHold = ShipHasOreHold;
+
+		if(hasOreHold == null)
+			return null;
+
+		return
+			WindowInventory?.ActiveShipEntry?.TreeEntryFromCargoSpaceType(
+				hasOreHold.Value ? ShipCargoSpaceTypeEnum.OreHold : ShipCargoSpaceTypeEnum.General);
+	}
+}
 
 IInventoryCapacityGauge OreContainerCapacityMilli =>
 	(InventoryActiveShipOreContainer?.IsSelected ?? false) ? WindowInventory?.SelectedRightInventoryCapacityMilli : null;
@@ -368,8 +391,11 @@ void EnsureWindowInventoryOreContainerIsOpen()
 
 	var inventoryActiveShip = WindowInventory?.ActiveShipEntry;
 
-	if(InventoryActiveShipOreContainer == null && !(inventoryActiveShip?.IsExpanded ?? false))
+	if(InventoryActiveShipOreContainer == null && !(IsExpanded(inventoryActiveShip) ?? false))
+	{
+		Host.Log("It looks like the active ships entry in the inventory is not expanded. I try to expand it to see if the ship has an ore hold.");
 		Sanderling.MouseClickLeft(inventoryActiveShip?.ExpandToggleButton);
+	}
 
 	if(!(InventoryActiveShipOreContainer?.IsSelected ?? false))
 		Sanderling.MouseClickLeft(InventoryActiveShipOreContainer);
@@ -711,4 +737,8 @@ bool IsNeutralOrEnemy(IChatParticipantEntry participantEntry) =>
 	 new[] { "good standing", "excellent standing", "Pilot is in your (fleet|corporation)", }
 	 .Any(goodStandingText =>
 		flagIcon?.HintText?.RegexMatchSuccessIgnoreCase(goodStandingText) ?? false)) ?? false);
+
+bool? IsExpanded(IInventoryTreeViewEntryShip shipEntryInInventory) =>
+	shipEntryInInventory == null ? null :
+	(bool?)((shipEntryInInventory.IsExpanded ?? false) || 0 < (shipEntryInInventory.Child?.Count() ?? 0));
 
