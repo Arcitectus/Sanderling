@@ -217,7 +217,17 @@ namespace Optimat.EveOnline.AuswertGbs
 					SictAuswertGbsWindowStack.BerecneFürWindowAst,    new string[]{   "LSCStack"}),
 
 				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
-					SictAuswertGbsWindowChatChannel.BerecneFürWindowAst,    new string[]{   "Channel"}),
+					SictAuswertGbsWindowChatChannel.BerecneFürWindowAst,
+					new string[]
+					{
+						"Channel",
+
+						/*
+						 * Adapt to observation in sample D55E6B278DF275851A879E18AC6D96EC04698E31:
+						 * That sample contained a node with PyObjTypName = "XmppChatWindow" with children which seemed a good fit for existing parsing code in SictAuswertGbsWindowChatChannel.
+						 * */
+						"ChatWindow",
+					}),
 
 				new KeyValuePair<Func<UINodeInfoInTree,    Window>,    string[]>(
 					SictAuswertGbsWindowRegionalMarket.BerecneFürWindowAst,    new string[]{   "RegionalMarket"}),

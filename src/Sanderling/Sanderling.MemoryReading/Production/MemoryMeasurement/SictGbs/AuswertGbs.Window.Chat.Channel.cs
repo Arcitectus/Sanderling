@@ -110,20 +110,22 @@ namespace Optimat.EveOnline.AuswertGbs
 			if (!(true == AstMainContainer.VisibleIncludingInheritance))
 				return;
 
-			var SetScrollAst =
-				AstMainContainer.MatchingNodesFromSubtreeBreadthFirst(ast => ast.PyObjTypNameIsScroll())
-				?.ToArray();
+			var mainContainerCenter = AstMainContainer.AsUIElementIfVisible().RegionCenter();
 
+			var scrollNodesWithRegionCenter =
+				AstMainContainer.MatchingNodesFromSubtreeBreadthFirst(node => node.PyObjTypNameIsScroll())
+				?.Select(node => (node, regionCenter: node.AsUIElementIfVisible().RegionCenter()))
+				?.ToList();
+
+			//	Assume we find the container of the messages on the left from the center of the window.
 			var ViewportSetMessageAst =
-				SetScrollAst
-				?.Where(ast => ast?.LaageInParentA < AstMainContainer?.LaageInParentA)
-				?.LargestNodeInSubtree();
+				scrollNodesWithRegionCenter
+				?.FirstOrDefault(nodeWithCenter => nodeWithCenter.regionCenter?.A < mainContainerCenter?.A).node;
 
-			//	userlist isc auf recte saite.
+			//	Assume we find the container of the participants on the right from the center of the window.
 			var ViewportSetParticipantAst =
-				SetScrollAst
-				?.Where(ast => AstMainContainer?.LaageInParentA < ast?.LaageInParentA)
-				?.LargestNodeInSubtree();
+				scrollNodesWithRegionCenter
+				?.FirstOrDefault(nodeWithCenter => mainContainerCenter?.A < nodeWithCenter.regionCenter?.A).node;
 
 			var FunkIsOther = new Func<IObjectIdInMemory, bool>(obj =>
 			  !(ViewportSetMessageAst?.EnthaltAstMitHerkunftAdrese(obj.Id) ?? false) &&
