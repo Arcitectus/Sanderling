@@ -61,7 +61,7 @@ namespace Sanderling.Exe
 			var botsOfferedAtRoot = new[]
 			{
 				("Automate Mining Ore From Asteroids", includedScriptFromNameRegexPattern(@"beginners-ore-asteroid-miner")),
-				("Automate Travel (Faster Autopilot)", includedScriptFromNameRegexPattern(@"Travel\.simple")),
+				("Automate Travel (Faster Autopilot)", includedScriptFromNameRegexPattern(@"beginners-autopilot")),
 			}
 			.Where(descriptionAndBot => 0 < descriptionAndBot.Item2?.Length)
 			.ToList();

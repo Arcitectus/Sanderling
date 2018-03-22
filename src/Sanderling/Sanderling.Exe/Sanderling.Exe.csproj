@@ -232,12 +232,12 @@
     </ApplicationDefinition>
     <Compile Include="App.Log.cs" />
     <Compile Include="App.UI.cs" />
-    <EmbeddedResource Include="sample\script\Mine.ore.cs" />
-    <EmbeddedResource Include="sample\script\beginners-ore-asteroid-miner.cs" />
-    <Compile Include="Script\ToScriptGlobals.cs" />
+	<EmbeddedResource Include="sample\script\beginners-autopilot.cs" />
+	<EmbeddedResource Include="sample\script\beginners-ore-asteroid-miner.cs" />
+	<EmbeddedResource Include="sample\script\Mine.ore.cs" />
+	<Compile Include="Script\ToScriptGlobals.cs" />
     <Compile Include="State.cs" />
     <Compile Include="ToScriptImport.cs" />
-    <EmbeddedResource Include="sample\script\Travel.simple.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
