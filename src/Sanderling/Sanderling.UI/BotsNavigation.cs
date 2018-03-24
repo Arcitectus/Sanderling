@@ -16,16 +16,16 @@ namespace Sanderling.UI
 		static string FindTheRightBotLink => "http://forum.botengine.de/t/how-to-automate-anything-in-eve-online/774";
 
 		static public BotSharpBotsNavigation.NavigationContent NavigationRoot(
-			IEnumerable<(string, string)> BotsOfferedAtRoot,
+			IEnumerable<(string, byte[])> botsOfferedAtRoot,
 			BotSharpBotsNavigation.Bot defaultBotForDevelopmentEnvironment)
 		{
 			var optionsFromBotsOfferedAtRoot =
-				BotsOfferedAtRoot.EmptyIfNull()
+				botsOfferedAtRoot.EmptyIfNull()
 				.Select(botOfferedAtRoot =>
 					(botOfferedAtRoot.Item1,
 						new BotSharpBotsNavigation.NavigationContent
 						{
-							PreviewBot = new BotSharpBotsNavigation.Bot { BotSourceCode = botOfferedAtRoot.Item2 },
+							PreviewBot = new BotSharpBotsNavigation.Bot { SerializedBot = botOfferedAtRoot.Item2 },
 						}))
 				.ToList();
 
@@ -55,6 +55,11 @@ namespace Sanderling.UI
 										{
 											SingleChoiceOptions = new[]
 											{
+												("📂 Load Bot From File",
+												new BotSharpBotsNavigation.NavigationContent
+												{
+													LoadBotFromFileToPreview = true,
+												}),
 												("Open Development Environment",
 												new BotSharpBotsNavigation.NavigationContent
 												{
@@ -94,14 +99,24 @@ namespace Sanderling.UI
 					},
 					hyperlinkClickHandler);
 
+			var navigateIntoLoadBotFromFile =
+				new BotSharpBotsNavigation.EventHandling
+				{
+					NavigateInto = new BotSharpBotsNavigation.NavigationContent
+					{
+						LoadBotFromFileToPreview = true,
+					}
+				};
+
 			findBotParagraph.Inlines.AddRange(new Inline[]
 			{
 					new Run("To find the right bot for your use case, see the guide at "),
 					BotSharpBotsNavigation.LinkToUrlInline(("", FindTheRightBotLink), hyperlinkClickHandler),
 					new LineBreak(),
-					new Run("When you have chosen a bot, insert the bot code in the "),
-					linkToDevelopmentEnvironment("development environment"),
-					new Run(" to run it."),
+					new Run("When you have chosen a bot, use the "),
+					BotSharpBotsNavigation.LinkFromDisplayTextAndEventHandling(
+						"📂 Load Bot From File", navigateIntoLoadBotFromFile, hyperlinkClickHandler),
+					new Run(" button to run it."),
 					new LineBreak(),
 					new Run("You can also use the "),
 					linkToDevelopmentEnvironment("development environment"),
