@@ -22,12 +22,12 @@ namespace Sanderling.Exe
 
 		string DefaultScriptPath => ScriptDirectoryPath.PathToFilesysChild("default.cs");
 
-		static KeyValuePair<string, string>[] ListScriptIncluded =
+		static KeyValuePair<string, byte[]>[] IncludedDemoBots =
 			SetScriptIncludedConstruct()?.ExceptionCatch(Bib3.FCL.GBS.Extension.MessageBoxException)
 			?.OrderBy(scriptNameAndContent => !scriptNameAndContent.Key.RegexMatchSuccessIgnoreCase("travel"))
 			?.ToArray();
 
-		static IEnumerable<KeyValuePair<string, string>> SetScriptIncludedConstruct()
+		static IEnumerable<KeyValuePair<string, byte[]>> SetScriptIncludedConstruct()
 		{
 			var Assembly = typeof(App).Assembly;
 
@@ -42,26 +42,23 @@ namespace Sanderling.Exe
 				if (null == ScriptIdMatch)
 					continue;
 
-				var ScriptUTF8 = Assembly.GetManifestResourceStream(ResourceName)?.LeeseGesamt();
-
-				if (null == ScriptUTF8)
-					continue;
-
-				yield return new KeyValuePair<string, string>(ScriptIdMatch?.Groups?[1]?.Value, Encoding.UTF8.GetString(ScriptUTF8));
+				yield return new KeyValuePair<string, byte[]>(
+					ScriptIdMatch?.Groups?[1]?.Value,
+					Assembly.GetManifestResourceStream(ResourceName)?.LeeseGesamt());
 			}
 		}
 
 		static BotsNavigationConfiguration BotsNavigationConfiguration()
 		{
-			string includedScriptFromNameRegexPattern(string regexPattern) =>
-				ListScriptIncluded
+			byte[] includedBotFromNameRegexPattern(string regexPattern) =>
+				IncludedDemoBots
 				.FirstOrDefault(includedScript => Regex.Match(includedScript.Key, regexPattern, RegexOptions.IgnoreCase).Success)
 				.Value;
 
 			var botsOfferedAtRoot = new[]
 			{
-				("Automate Mining Ore From Asteroids", includedScriptFromNameRegexPattern(@"beginners-ore-asteroid-miner")),
-				("Automate Travel (Faster Autopilot)", includedScriptFromNameRegexPattern(@"beginners-autopilot")),
+				("Automate Mining Ore From Asteroids", includedBotFromNameRegexPattern(@"beginners-ore-asteroid-miner")),
+				("Automate Travel (Faster Autopilot)", includedBotFromNameRegexPattern(@"beginners-autopilot")),
 			}
 			.Where(descriptionAndBot => 0 < descriptionAndBot.Item2?.Length)
 			.ToList();
@@ -69,7 +66,7 @@ namespace Sanderling.Exe
 			return new BotsNavigationConfiguration
 			{
 				RootContentFromDefaultBot = defaultBot => UI.BotsNavigation.NavigationRoot(botsOfferedAtRoot, defaultBot),
-				OfferedDemoScripts = ListScriptIncluded,
+				OfferedDemoBots = IncludedDemoBots,
 			};
 		}
 
