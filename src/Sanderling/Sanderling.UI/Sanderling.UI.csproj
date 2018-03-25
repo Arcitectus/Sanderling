@@ -90,6 +90,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="ApiTreeView.cs" />
     <Compile Include="BotAPIExplorer.xaml.cs">
       <DependentUpon>BotAPIExplorer.xaml</DependentUpon>

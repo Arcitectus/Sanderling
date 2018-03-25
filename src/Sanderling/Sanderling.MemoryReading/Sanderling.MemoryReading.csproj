@@ -63,6 +63,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Production\Extension.cs" />
     <Compile Include="Production\MemoryMeasurement\GbsAstInfo.cs" />
     <Compile Include="Production\MemoryMeasurement\MemToUITree\_16_Erwaiterung_Manuel.cs" />
