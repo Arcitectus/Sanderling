@@ -56,6 +56,8 @@ var RetreatOnNeutralOrHostileInLocal = false;   // warp to RetreatBookmark when 
 
 bool returnDronesToBayOnRetreat = false; // when set to true, bot will attempt to dock back the drones before retreating
 
+bool OnClusterShutdownRetreat = true;  // if server is shutting down, dock ship
+
 //	<- end of configuration section
 
 
@@ -659,9 +661,22 @@ void EnsureOverviewTypeSelectionLoaded()
 
 void MemoryUpdate()
 {
+	ParseAbovemainMessage()
 	RetreatUpdate();
 	JammedLastTimeUpdate();
 	OffloadCountUpdate();
+}
+
+void ParseAbovemainMessage()
+{
+	if (Measurement?.AbovemainMessage == null) {return;}
+	
+	string mainMessage = Measurement?.AbovemainMessage.ToString();
+
+	if(mainMessage.Contains("Cluster Shutdown") && OnClusterShutdownRetreat) {
+		RetreatReasonPermanent = "cluster shutdown";
+		return;
+	}
 }
 
 void JammedLastTimeUpdate()
