@@ -9,11 +9,11 @@ namespace Sanderling.Exe
 	{
 		Stream logStream;
 
-		Exception logCreateException;
+		Exception createLogException;
 
-		Exception logEntryWriteException;
+		Exception writeLogEntryException;
 
-		void LogEntryWrite(LogEntry entry)
+		void WriteLogEntry(LogEntry entry)
 		{
 			try
 			{
@@ -25,24 +25,25 @@ namespace Sanderling.Exe
 			}
 			catch (Exception e)
 			{
-				logEntryWriteException = e;
+				writeLogEntryException = e;
 			}
 		}
 
-		void LogEntryWriteNow(LogEntry entry)
+		void WriteLogEntryWithTimeNow(LogEntry entry)
 		{
 			entry.EntryTime = DateTime.Now;
 
-			LogEntryWrite(entry);
+			WriteLogEntry(entry);
 		}
 
-		void LogCreate()
+		void CreateLogFile()
 		{
 			try
 			{
-				var logFileName = Bib3.Glob.SictwaiseKalenderString(DateTime.Now, ".", 0) + ".Sanderling.log";
+				var logFileName = DateTimeOffset.Now.ToString("yyyy-MM-ddThh-mm-ss") + ".Sanderling.log";
 
-				var logFilePath = Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().PathToFilesysChild("log").PathToFilesysChild(logFileName);
+				var logFilePath =
+					Path.Combine(Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne(), "log", logFileName);
 
 				var directory = new FileInfo(logFilePath).Directory;
 
@@ -50,10 +51,12 @@ namespace Sanderling.Exe
 					directory.Create();
 
 				logStream = new FileStream(logFilePath, FileMode.CreateNew, FileAccess.Write);
+
+				WriteLogEntryWithTimeNow(new LogEntry { Text = "Sanderling App Started." });
 			}
 			catch (Exception e)
 			{
-				logCreateException = e;
+				createLogException = e;
 			}
 		}
 	}

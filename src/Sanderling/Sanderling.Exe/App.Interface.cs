@@ -139,7 +139,7 @@ namespace Sanderling.Exe
 
 		void LicenseClientExchange()
 		{
-			var licenseClientConfig = (ConfigDefaultConstruct()?.LicenseClient).CompletedWithDefault().WithRequestLicenseKey(LicenseKeyStore?.Load() ?? ExeConfig.ConfigLicenseKeyDefault);
+			var licenseClientConfig = (ConfigDefaultConstruct()?.LicenseClient).CompletedWithDefault().WithRequestLicenseKey(ExeConfig.ConfigLicenseKeyDefault);
 
 			Task.Run(() => SensorServerDispatcher?.Exchange(licenseClientConfig, SensorServerDispatcher.AppInterfaceAvailable ? 1000 : (int?)null));
 		}

@@ -31,9 +31,7 @@ namespace Sanderling.Exe
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-			LogCreate();
-
-			ConfigSetup();
+			CreateLogFile();
 
 			UIAPI = new Sanderling.Script.Impl.HostToScript
 			{

@@ -1,10 +1,8 @@
 ﻿using Bib3;
 using BotEngine.Common;
 using BotSharp.UI.Wpf;
-using Sanderling.Log;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Sanderling.Exe
@@ -12,8 +10,6 @@ namespace Sanderling.Exe
 	partial class App
 	{
 		string LicenseKeyStoreFilePath => AssemblyDirectoryPath.PathToFilesysChild(@"license.key");
-
-		ISingleValueStore<string> LicenseKeyStore;
 
 		static public string ConfigFilePath =>
 			AssemblyDirectoryPath.PathToFilesysChild("config");
@@ -75,25 +71,5 @@ namespace Sanderling.Exe
 			{
 				LicenseClient = ExeConfig.LicenseClientDefault,
 			};
-
-		void ConfigSetup()
-		{
-			LicenseKeyStore =
-				new SingleValueStoreCached<string>
-				{
-					BaseStore =
-						new SingleValueStoreRelayWithExceptionToDelegate<string>
-						{
-							BaseStore = new StringStoreToFilePath
-							{
-								FilePath = LicenseKeyStoreFilePath,
-							},
-
-							ExceptionDelegate = e => LogEntryWriteNow(new LogEntry { LicenseKeyStoreException = e }),
-						}
-				};
-
-			UI.Main.LicenseKeyStore = LicenseKeyStore;
-		}
 	}
 }
