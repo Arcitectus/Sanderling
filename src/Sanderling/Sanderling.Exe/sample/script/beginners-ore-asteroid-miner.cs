@@ -1,7 +1,7 @@
 /*
-This script mines ore from asteroids and offloads the ore in a station.
+This bot mines ore from asteroids and offloads the ore in a station.
 
-Before running this script, prepare the EVE online client as follows:
+Before running this bot, prepare the EVE online client as follows:
 
 + Set the UI language to english.
 + Move your mining ship to a solar system which has asteroid belts and at least one station in which you can dock.
@@ -12,6 +12,7 @@ Before running this script, prepare the EVE online client as follows:
 + Arrange windows to not occlude ship modules or info panels.
 + In the ship UI, disable "Display Passive Modules" and disable "Display Empty Slots" and enable "Display Module Tooltips". The bot uses the module tooltips to automatically identify the properties of the modules.
 
+This bot tracks the total mined amount of ore by watching inventory volume while mining modules are active.
 */
 
 using BotSharp.ToScript.Extension;
@@ -52,8 +53,22 @@ Func<object> NextActivity = MainStep;
 
 Queue<string> visitedLocations = new Queue<string>();
 
+// State used to track total mined ore. -->
+struct StatisticsMeasurementSnapshot
+{
+	public Int64 timeMilli;
+	public Int64 volumeMilli;
+}
+readonly Queue<StatisticsMeasurementSnapshot> efficiencyRawMeasurements = new Queue<StatisticsMeasurementSnapshot>(); 
+readonly Queue<StatisticsMeasurementSnapshot> efficiencyDebouncedMeasurements = new Queue<StatisticsMeasurementSnapshot>(); 
+Int64 miningModuleLastActiveTime = 0;
+Int64 totalMinedOreVolumeMilli = 0;
+// <-- State used to track total mined ore.
+
 for(;;)
 {
+	var stepBeginTimeMilli = Host.GetTimeContinuousMilli();
+
 	MemoryUpdate();
 
 	Host.Log(
@@ -80,11 +95,11 @@ for(;;)
 
 	if(BotStopActivity == NextActivity)
 		break;
-	
+
 	if(null == NextActivity)
 		NextActivity = MainStep;
-	
-	Host.Delay(1111);
+
+	Host.Delay((int)Math.Max(0, 1000 - (Host.GetTimeContinuousMilli() - stepBeginTimeMilli)));
 }
 
 bool? ShipHasOreHold
@@ -205,10 +220,10 @@ Func<object> InBeltMineStep()
 
 	if (null == moduleMinerInactive)
 	{
-		Host.Delay(7777);
+		DelayWhileUpdatingMemory(6000);
 		return InBeltMineStep;
 	}
-	
+
 	var	setTargetAsteroidInRange	=
 		SetTargetAsteroid?.Where(target => target?.DistanceMax <= MiningRange)?.ToArray();
 
@@ -632,12 +647,29 @@ void EnsureOverviewTypeSelectionLoaded()
 	Sanderling.MouseClickLeft(PresetMenuEntry);
 }
 
+void DelayWhileUpdatingMemory(int delayAmountMilli)
+{
+	var beginTimeMilli = Host.GetTimeContinuousMilli();
+
+	while(true)
+	{
+		var remainingTimeMilli = beginTimeMilli + delayAmountMilli - Host.GetTimeContinuousMilli();
+		if(remainingTimeMilli < 0)
+			break;
+
+		Host.Delay(Math.Min(1000, (int)remainingTimeMilli));
+		Sanderling.InvalidateMeasurement();
+		MemoryUpdate();
+	}
+}
+
 void MemoryUpdate()
 {
 	RetreatUpdate();
 	JammedLastTimeUpdate();
 	OffloadCountUpdate();
 	UpdateLocationRecord();
+	TrackTotalMinedOre();
 }
 
 void UpdateLocationRecord()
@@ -741,4 +773,71 @@ bool IsNeutralOrEnemy(IChatParticipantEntry participantEntry) =>
 bool? IsExpanded(IInventoryTreeViewEntryShip shipEntryInInventory) =>
 	shipEntryInInventory == null ? null :
 	(bool?)((shipEntryInInventory.IsExpanded ?? false) || 0 < (shipEntryInInventory.Child?.Count() ?? 0));
+
+void TrackTotalMinedOre()
+{
+	var currentTimeMilli = Sanderling.MemoryMeasurement?.End;
+
+	// Host.Log("TrackTotalMinedOre called at " + currentTimeMilli);
+
+	if(!currentTimeMilli.HasValue)
+		return;
+
+	if(Sanderling.MemoryMeasurementParsed?.Value?.IsDocked ?? false)
+		return;
+
+	if(SetModuleMiner?.Any(module => module?.RampActive ?? false) ?? false)
+		miningModuleLastActiveTime = currentTimeMilli.Value;
+
+	var containerCurrentUsedVolumeMilli = OreContainerCapacityMilli?.Used;
+
+	if(!containerCurrentUsedVolumeMilli.HasValue)
+		return;
+
+	var lastRecordingAgeMilli = currentTimeMilli - efficiencyRawMeasurements.LastOrDefault().timeMilli;
+
+	if(lastRecordingAgeMilli < 500)
+		return;
+
+	efficiencyRawMeasurements.Enqueue(
+		new StatisticsMeasurementSnapshot{ timeMilli = currentTimeMilli.Value, volumeMilli = containerCurrentUsedVolumeMilli.Value });
+
+	while(2 < efficiencyRawMeasurements.Count)
+		efficiencyRawMeasurements.Dequeue();
+
+	if(efficiencyRawMeasurements.Select(measurement => measurement.volumeMilli).Distinct().Count() == 1)
+		efficiencyDebouncedMeasurements.Enqueue(efficiencyRawMeasurements.Last());
+
+	while(2 < efficiencyDebouncedMeasurements.Count)
+		efficiencyDebouncedMeasurements.Dequeue();
+
+	if(1 < efficiencyDebouncedMeasurements.Count)
+	{
+		var lastMeasurement = efficiencyDebouncedMeasurements.Last(); 
+		var secondLastMeasurement = efficiencyDebouncedMeasurements.Reverse().ElementAt(1);
+
+		var usedVolumeIncreaseMilli = lastMeasurement.volumeMilli - secondLastMeasurement.volumeMilli;
+		var secondLastMeasurementAgeMilli = currentTimeMilli - secondLastMeasurement.timeMilli;
+
+		if(0 < usedVolumeIncreaseMilli)
+		{
+			Host.Log("Inventory used volume increased by " + (usedVolumeIncreaseMilli / 1000) + " m³");
+
+			var miningModuleActiveLastAge = (currentTimeMilli.Value - miningModuleLastActiveTime) / 1000;
+
+			if(10 * 1000 < miningModuleActiveLastAge)
+				Host.Log("Measuring Statistics: Ignored volume increase because miningModuleActiveLastAge was " + miningModuleActiveLastAge + " s.");
+			else
+			{
+				if(10 * 1000 < secondLastMeasurementAgeMilli)
+					Host.Log("Measuring Statistics: Ignored volume increase because timespan was " + secondLastMeasurementAgeMilli + " ms.");
+				else
+				{
+					totalMinedOreVolumeMilli += usedVolumeIncreaseMilli;
+					Host.Log("Total_mined_ore_in_cubic_meters: " + (totalMinedOreVolumeMilli / 1000));
+				}
+			}
+		}
+	}
+}
 
