@@ -23,9 +23,12 @@ namespace Sanderling.UI
 				botsOfferedAtRoot.EmptyIfNull()
 				.Select(botOfferedAtRoot =>
 					(botOfferedAtRoot.Item1,
-						new BotSharpBotsNavigation.NavigationContent
+						new BotSharpBotsNavigation.EventHandling
 						{
-							PreviewBot = new BotSharpBotsNavigation.Bot { SerializedBot = botOfferedAtRoot.Item2 },
+							NavigateInto = new BotSharpBotsNavigation.NavigationContent
+							{
+								PreviewBot = new BotSharpBotsNavigation.Bot { SerializedBot = botOfferedAtRoot.Item2 },
+							},
 						}))
 				.ToList();
 
@@ -42,39 +45,44 @@ namespace Sanderling.UI
 							//	TODO: Add shortcut to last used bot.
 
 							("Automate Something Else",
-								new BotSharpBotsNavigation.NavigationContent
+								new BotSharpBotsNavigation.EventHandling
 								{
-									Caption = "Automate Anything",
-									Children = new[]
+									NavigateInto = new BotSharpBotsNavigation.NavigationContent
 									{
-										new BotSharpBotsNavigation.NavigationContent
+										Caption = "Automate Anything",
+										Children = new[]
 										{
-											FlowDocument = hyperlinkClickHandler => AutomateSomethingElseGuide(defaultBotForDevelopmentEnvironment, hyperlinkClickHandler),
-										},
-										new BotSharpBotsNavigation.NavigationContent
-										{
-											SingleChoiceOptions = new[]
+											new BotSharpBotsNavigation.NavigationContent
 											{
-												("📂 Load Bot From File",
-												new BotSharpBotsNavigation.NavigationContent
+												FlowDocument = hyperlinkClickHandler => AutomateSomethingElseGuide(defaultBotForDevelopmentEnvironment, hyperlinkClickHandler),
+											},
+											new BotSharpBotsNavigation.NavigationContent
+											{
+												SingleChoiceOptions = new[]
 												{
-													LoadBotFromFileToPreview = true,
-												}),
-												("Open Development Environment",
-												new BotSharpBotsNavigation.NavigationContent
-												{
-													BotToInitDevelopmentEnvironment = defaultBotForDevelopmentEnvironment,
-												}),
-											}
+													("📂 Load Bot From File", EventHandlingLoadBotFromFile),
+													("Open Development Environment",
+													new BotSharpBotsNavigation.EventHandling
+													{
+														NavigateInto = new BotSharpBotsNavigation.NavigationContent
+														{
+															BotToInitDevelopmentEnvironment = defaultBotForDevelopmentEnvironment,
+														},
+													}),
+												},
+											},
 										},
 									},
 								}),
 
 							("Something Else",
-								new BotSharpBotsNavigation.NavigationContent
+								new BotSharpBotsNavigation.EventHandling
 								{
-									Caption = "General Support",
-									FlowDocument = SomethingElseDocument
+									NavigateInto = new BotSharpBotsNavigation.NavigationContent
+									{
+										Caption = "General Support",
+										FlowDocument = SomethingElseDocument
+									},
 								}),
 						})
 						.ToArray(),
@@ -99,15 +107,6 @@ namespace Sanderling.UI
 					},
 					hyperlinkClickHandler);
 
-			var navigateIntoLoadBotFromFile =
-				new BotSharpBotsNavigation.EventHandling
-				{
-					NavigateInto = new BotSharpBotsNavigation.NavigationContent
-					{
-						LoadBotFromFileToPreview = true,
-					}
-				};
-
 			findBotParagraph.Inlines.AddRange(new Inline[]
 			{
 					new Run("To find the right bot for your use case, see the guide at "),
@@ -115,7 +114,7 @@ namespace Sanderling.UI
 					new LineBreak(),
 					new Run("When you have chosen a bot, use the "),
 					BotSharpBotsNavigation.LinkFromDisplayTextAndEventHandling(
-						"📂 Load Bot From File", navigateIntoLoadBotFromFile, hyperlinkClickHandler),
+						"📂 Load Bot From File", EventHandlingLoadBotFromFile, hyperlinkClickHandler),
 					new Run(" button to run it."),
 					new LineBreak(),
 					new Run("You can also use the "),
@@ -125,6 +124,23 @@ namespace Sanderling.UI
 
 			return new FlowDocument(findBotParagraph);
 		}
+
+		static public BotSharpBotsNavigation.EventHandling EventHandlingLoadBotFromFile =>
+			new BotSharpBotsNavigation.EventHandling
+			{
+				NavigateInto = new BotSharpBotsNavigation.NavigationContent
+				{
+					LoadBotFromDialogToPreview = true,
+				},
+
+				DropHandling = new BotSharpBotsNavigation.EventHandling
+				{
+					NavigateInto = new BotSharpBotsNavigation.NavigationContent
+					{
+						LoadBotFromDropToPreview = true,
+					},
+				},
+			};
 
 		static public FlowDocument SomethingElseDocument(RoutedEventHandler hyperlinkClickHandler)
 		{
