@@ -148,7 +148,7 @@ namespace Sanderling.Parse
 			}
 
 			var LabelRegexMatchSuccessIgnoreCase = new Func<string, bool>(
-				pattern => raw?.LabelText?.Any(label => label?.Text?.RegexMatchSuccess(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false) ?? false);
+				pattern => raw?.LabelText?.Any(label => label?.Text?.RemoveXmlTag()?.RegexMatchSuccess(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase) ?? false) ?? false);
 
 			var LabelAnyRegexMatchSuccessIgnoreCase = new Func<string[], bool>(
 				setPattern => setPattern?.Any(LabelRegexMatchSuccessIgnoreCase) ?? false);
