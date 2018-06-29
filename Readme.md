@@ -1,6 +1,6 @@
 # Sanderling
 
-**Sanderling is a framework that helps you create and run [eve online](https://www.eveonline.com) bots.**
+**Sanderling helps you automate tasks in [eve online](https://www.eveonline.com) and read information from the game client.**
 
 ## Features
 
