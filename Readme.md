@@ -15,15 +15,15 @@
 
 ## Getting Started
 
-To start with automation in EVE online, see the [List Of EVE Online Bots For Beginners](http://forum.botengine.de/t/list-of-eve-online-bots-for-beginners/629)
+To start with automation in EVE online, see the [List Of EVE Online Bots For Beginners](http://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
 ## Feedback
 
-Spotted a bug or have a feature request? Post on the [forum](http://forum.botengine.de/c/botting/eve-online) of file an issue [on github](https://github.com/Arcitectus/Sanderling/issues).
+Spotted a bug or have a feature request? Post on the [forum](http://forum.botengine.org/c/botting/eve-online) of file an issue [on github](https://github.com/Arcitectus/Sanderling/issues).
 
 ## Need Help?
 
-Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.de/c/botting/eve-online](http://forum.botengine.de/c/botting/eve-online).
+Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.org/c/botting/eve-online](http://forum.botengine.org/c/botting/eve-online).
 
 ## Information For Developers
 

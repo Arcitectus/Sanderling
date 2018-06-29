@@ -11,9 +11,9 @@ namespace Sanderling.UI
 	{
 		static (string, string) SupportEmailAddress => ("mailto:", "support@botengine.org");
 
-		static (string, string) ForumAddress => ("http://", "forum.botengine.de");
+		static (string, string) ForumAddress => ("http://", "forum.botengine.org");
 
-		static string FindTheRightBotLink => "http://forum.botengine.de/t/how-to-automate-anything-in-eve-online/774";
+		static string FindTheRightBotLink => "http://forum.botengine.org/t/how-to-automate-anything-in-eve-online/774";
 
 		static public BotSharpBotsNavigation.NavigationContent NavigationRoot(
 			IEnumerable<(string, byte[])> botsOfferedAtRoot,
