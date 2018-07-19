@@ -47,8 +47,9 @@
     <Reference Include="Fasterflect, Version=2.1.3.0, Culture=neutral, PublicKeyToken=38d18473284c1ca7, processorArchitecture=MSIL">
       <HintPath>..\packages\fasterflect.2.1.3\lib\net40\Fasterflect.dll</HintPath>
     </Reference>
-    <Reference Include="Sanderling.Interface">
-      <HintPath>..\..\..\lib.intermediate\Sanderling.Interface.dll</HintPath>
+    <Reference Include="Sanderling.Interface, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Sanderling.Interface\Sanderling.Interface\bin\Debug\Sanderling.Interface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

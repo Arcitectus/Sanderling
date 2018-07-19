@@ -109,7 +109,7 @@
     </Reference>
     <Reference Include="Sanderling.Interface, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\lib.intermediate\Sanderling.Interface.dll</HintPath>
+      <HintPath>..\..\Sanderling.Interface\Sanderling.Interface\bin\Debug\Sanderling.Interface.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
