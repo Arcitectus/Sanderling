@@ -1,8 +1,11 @@
 ﻿using Bib3;
 using System.Linq;
 
-namespace Sanderling.MemoryReading.Test
+namespace Sanderling.ExploreProcessMeasurement
 {
+	/// <summary>
+	/// Copied from the Sanderling.MemoryReading.Test project.
+	/// </summary>
 	static public class Extension
 	{
 		static public Interface.MemoryStruct.IMemoryMeasurement MemoryMeasurement(

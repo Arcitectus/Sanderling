@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Sanderling.MemoryReading.Test</RootNamespace>
     <AssemblyName>Sanderling.MemoryReading.Test</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,7 +64,6 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Extension.cs" />
     <Compile Include="MemoryReadingDemo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -72,6 +72,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Sanderling.ExploreProcessMeasurement\Sanderling.ExploreProcessMeasurement.csproj">
+      <Project>{32bd203f-dd99-4732-bae1-8ee376fed6c9}</Project>
+      <Name>Sanderling.ExploreProcessMeasurement</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Sanderling.MemoryReading\Sanderling.MemoryReading.csproj">
       <Project>{2a04e046-2908-400a-9efa-a49884b5d691}</Project>
       <Name>Sanderling.MemoryReading</Name>

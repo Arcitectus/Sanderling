@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.ExploreProcessMeasurement", "Sanderling.ExploreProcessMeasurement\Sanderling.ExploreProcessMeasurement.csproj", "{32BD203F-DD99-4732-BAE1-8EE376FED6C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,8 +64,15 @@ Global
 		{0F0270BE-4C44-4E56-8ACE-C37F33F3745E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F0270BE-4C44-4E56-8ACE-C37F33F3745E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F0270BE-4C44-4E56-8ACE-C37F33F3745E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C3A1804-4E7C-465E-9B31-8A6370A06829}
 	EndGlobalSection
 EndGlobal
