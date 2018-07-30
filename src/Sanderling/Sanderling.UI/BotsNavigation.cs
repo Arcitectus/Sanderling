@@ -15,6 +15,10 @@ namespace Sanderling.UI
 
 		static string FindTheRightBotLink => "http://forum.botengine.org/t/how-to-automate-anything-in-eve-online/774";
 
+		static string LoadBotFromLocalFileLabel => "📂 Load Bot From Local File";
+
+		static string LoadBotFromWebLabel => "📂🌐 Load Bot From Web";
+
 		static public BotSharpBotsNavigation.NavigationContent NavigationRoot(
 			IEnumerable<(string, byte[])> botsOfferedAtRoot,
 			BotSharpBotsNavigation.Bot defaultBotForDevelopmentEnvironment)
@@ -60,7 +64,8 @@ namespace Sanderling.UI
 											{
 												SingleChoiceOptions = new[]
 												{
-													("📂 Load Bot From File", EventHandlingLoadBotFromFile),
+													(LoadBotFromWebLabel, EventHandlingLoadBotFromWeb),
+													(LoadBotFromLocalFileLabel, EventHandlingLoadBotFromLocalFile),
 													("Open Development Environment",
 													new BotSharpBotsNavigation.EventHandling
 													{
@@ -112,10 +117,10 @@ namespace Sanderling.UI
 					new Run("To find the right bot for your use case, see the guide at "),
 					BotSharpBotsNavigation.LinkToUrlInline(("", FindTheRightBotLink), hyperlinkClickHandler),
 					new LineBreak(),
-					new Run("When you have chosen a bot, use the "),
+					new Run("To load a bot from the bot catalog, from GitHub or from Pastebin, use the "),
 					BotSharpBotsNavigation.LinkFromDisplayTextAndEventHandling(
-						"📂 Load Bot From File", EventHandlingLoadBotFromFile, hyperlinkClickHandler),
-					new Run(" button to run it."),
+						LoadBotFromWebLabel, EventHandlingLoadBotFromWeb, hyperlinkClickHandler),
+					new Run(" button."),
 					new LineBreak(),
 					new Run("You can also use the "),
 					linkToDevelopmentEnvironment("development environment"),
@@ -125,19 +130,28 @@ namespace Sanderling.UI
 			return new FlowDocument(findBotParagraph);
 		}
 
-		static public BotSharpBotsNavigation.EventHandling EventHandlingLoadBotFromFile =>
+		static public BotSharpBotsNavigation.EventHandling EventHandlingLoadBotFromWeb =>
 			new BotSharpBotsNavigation.EventHandling
 			{
 				NavigateInto = new BotSharpBotsNavigation.NavigationContent
 				{
-					LoadBotFromDialogToPreview = true,
+					LoadBotFromWebToPreview = true,
+				},
+			};
+
+		static public BotSharpBotsNavigation.EventHandling EventHandlingLoadBotFromLocalFile =>
+			new BotSharpBotsNavigation.EventHandling
+			{
+				NavigateInto = new BotSharpBotsNavigation.NavigationContent
+				{
+					LoadBotFromLocalFileDialogToPreview = true,
 				},
 
 				DropHandling = new BotSharpBotsNavigation.EventHandling
 				{
 					NavigateInto = new BotSharpBotsNavigation.NavigationContent
 					{
-						LoadBotFromDropToPreview = true,
+						LoadBotFromLocalFileDropToPreview = true,
 					},
 				},
 			};
