@@ -58,9 +58,6 @@
     <Reference Include="Process.Measurement">
       <HintPath>..\..\..\lib\Process.Measurement.dll</HintPath>
     </Reference>
-    <Reference Include="Sanderling.Interface">
-      <HintPath>..\..\Sanderling.Interface\Sanderling.Interface\bin\Debug\Sanderling.Interface.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.AppContext.4.3.0\lib\net463\System.AppContext.dll</HintPath>
@@ -187,6 +184,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Sanderling.Interface\Sanderling.Interface.csproj">
+      <Project>{41ece926-3577-4774-8902-e7ba721dcc09}</Project>
+      <Name>Sanderling.Interface</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Sanderling.MemoryReading\Sanderling.MemoryReading.csproj">
       <Project>{2a04e046-2908-400a-9efa-a49884b5d691}</Project>
       <Name>Sanderling.MemoryReading</Name>

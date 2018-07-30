@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.ExploreProcessMeasurement", "Sanderling.ExploreProcessMeasurement\Sanderling.ExploreProcessMeasurement.csproj", "{32BD203F-DD99-4732-BAE1-8EE376FED6C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanderling.Interface", "Sanderling.Interface\Sanderling.Interface.csproj", "{41ECE926-3577-4774-8902-E7BA721DCC09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32BD203F-DD99-4732-BAE1-8EE376FED6C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41ECE926-3577-4774-8902-E7BA721DCC09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41ECE926-3577-4774-8902-E7BA721DCC09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41ECE926-3577-4774-8902-E7BA721DCC09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41ECE926-3577-4774-8902-E7BA721DCC09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

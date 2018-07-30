@@ -47,10 +47,6 @@
     <Reference Include="nunit.framework, Version=3.6.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.6.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Sanderling.Interface, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Sanderling.Interface\Sanderling.Interface\bin\Debug\Sanderling.Interface.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -75,6 +71,10 @@
     <ProjectReference Include="..\Sanderling.ExploreProcessMeasurement\Sanderling.ExploreProcessMeasurement.csproj">
       <Project>{32bd203f-dd99-4732-bae1-8ee376fed6c9}</Project>
       <Name>Sanderling.ExploreProcessMeasurement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sanderling.Interface\Sanderling.Interface.csproj">
+      <Project>{41ece926-3577-4774-8902-e7ba721dcc09}</Project>
+      <Name>Sanderling.Interface</Name>
     </ProjectReference>
     <ProjectReference Include="..\Sanderling.MemoryReading\Sanderling.MemoryReading.csproj">
       <Project>{2a04e046-2908-400a-9efa-a49884b5d691}</Project>

@@ -68,10 +68,6 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Sanderling.Interface, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Sanderling.Interface\Sanderling.Interface\bin\Debug\Sanderling.Interface.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -134,18 +130,22 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sanderling\Sanderling.csproj">
-      <Project>{36f1710c-532f-47fd-88e2-5fafb381121c}</Project>
-      <Name>Sanderling</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sanderling.Interface\Sanderling.Interface.csproj">
+      <Project>{41ece926-3577-4774-8902-e7ba721dcc09}</Project>
+      <Name>Sanderling.Interface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sanderling\Sanderling.csproj">
+      <Project>{36f1710c-532f-47fd-88e2-5fafb381121c}</Project>
+      <Name>Sanderling</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
