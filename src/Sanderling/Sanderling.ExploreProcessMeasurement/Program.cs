@@ -193,14 +193,14 @@ namespace Sanderling.ExploreProcessMeasurement
 
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Welcome to the Sanderling process measurement explorer.");
+			Console.WriteLine("Welcome to the Sanderling Process Measurement Explorer.");
 			Console.WriteLine(CommandsOverview);
 
 			AppState appState = initAppState;
 
 			while (true)
 			{
-				Console.Write(">");
+				Console.Write("> ");
 
 				var commandLine = Console.ReadLine();
 
