@@ -1,7 +1,6 @@
 ﻿using Bib3;
 using System;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -30,6 +29,9 @@ namespace Sanderling.Exe
 		public App()
 		{
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
+			AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
+				UnhandledException(sender, e.ExceptionObject as Exception);
 
 			CreateLogFile();
 
@@ -149,24 +151,29 @@ namespace Sanderling.Exe
 
 		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 		{
+			UnhandledException(sender, e.Exception);
+			e.Handled = true;
+		}
+
+		static int UnhandledExceptionCount = 0;
+
+		void UnhandledException(object sender, Exception exception)
+		{
 			try
 			{
-				var FilePath = AssemblyDirectoryPath.PathToFilesysChild(DateTime.Now.SictwaiseKalenderString(".", 0) + " Exception");
+				var exceptionIndex = System.Threading.Interlocked.Increment(ref UnhandledExceptionCount);
 
-				FilePath.WriteToFileAndCreateDirectoryIfNotExisting(Encoding.UTF8.GetBytes(e.Exception.SictString()));
+				var filePath = AssemblyDirectoryPath.PathToFilesysChild(
+					"[" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss.fff") + "][" + exceptionIndex + "].Exception");
 
-				var Message = "exception written to file: " + FilePath;
-
-				MessageBox.Show(Message, Message, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+				filePath.WriteToFileAndCreateDirectoryIfNotExisting(System.Text.Encoding.UTF8.GetBytes(exception.SictString()));
 			}
-			catch (Exception PersistException)
+			catch (Exception persistException)
 			{
-				Bib3.FCL.GBS.Extension.MessageBoxException(PersistException);
+				Bib3.FCL.GBS.Extension.MessageBoxException(persistException);
 			}
 
-			Bib3.FCL.GBS.Extension.MessageBoxException(e.Exception);
-
-			e.Handled = true;
+			Bib3.FCL.GBS.Extension.MessageBoxException(exception);
 		}
 	}
 }
