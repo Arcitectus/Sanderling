@@ -23,7 +23,7 @@ Spotted a bug or have a feature request? Post on the [forum](http://forum.boteng
 
 ## Need Help?
 
-Got a question or need help with the development of your bot? Leave a message at [http://forum.botengine.org/c/botting/eve-online](http://forum.botengine.org/c/botting/eve-online).
+Do you have a question or need help with the development of your bot? Get in contact with other developers on the [BotEngine Forum](https://forum.botengine.org).
 
 ## Information For Developers
 
