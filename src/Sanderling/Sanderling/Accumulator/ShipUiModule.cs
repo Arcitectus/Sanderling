@@ -56,40 +56,39 @@ namespace Sanderling.Accumulator
 
 		public bool? OverloadOn => RepresentedInstant?.OverloadOn;
 
-		protected override void Accumulated(PropertyGenTimespanInt64<Accumulation.IShipUiModuleAndContext> instant, Parse.IMemoryMeasurement shared)
+		protected override void Accumulated(PropertyGenTimespanInt64<IShipUiModuleAndContext> instant, Parse.IMemoryMeasurement otherUIElements)
 		{
-			base.Accumulated(instant, shared);
+			base.Accumulated(instant, otherUIElements);
 
-			var ModuleButtonTooltip = shared?.ModuleButtonTooltip;
+			var moduleButtonTooltip = otherUIElements?.ModuleButtonTooltip;
 
 			if ((instant?.Value?.Module?.HiliteVisible ?? false) &&
 				(instant?.Value?.Location).HasValue &&
-				null != ModuleButtonTooltip)
+				(moduleButtonTooltip?.LabelText?.Any() ?? false))
 			{
-				var TooltipWithTimespan = ModuleButtonTooltip.WithTimespanInt64(instant);
+				var tooltipWithTimespan = moduleButtonTooltip.WithTimespanInt64(instant);
 
-				var PreviousTooltip = ListTooltip?.LastOrDefault();
+				var previousTooltip = ListTooltip?.LastOrDefault();
 
-				ListTooltip.Enqueue(TooltipWithTimespan);
+				ListTooltip.Enqueue(tooltipWithTimespan);
 				ListTooltip.ListeKürzeBegin(4);
 
-				var TooltipLast = TooltipWithTimespan;
+				var tooltipLast = tooltipWithTimespan;
 
-				var PreviousInstant = InstantWithAgeStepCount(1);
+				var previousInstant = InstantWithAgeStepCount(1);
 
-				if ((PreviousInstant?.Value?.Module?.HiliteVisible ?? false) &&
-					PreviousInstant?.Value?.Module?.ModuleButtonIconTexture?.Id == instant?.Value?.Module?.ModuleButtonIconTexture?.Id &&
-					PreviousTooltip?.Begin == PreviousInstant?.Begin)
+				if ((previousInstant?.Value?.Module?.HiliteVisible ?? false) &&
+					previousInstant?.Value?.Module?.ModuleButtonIconTexture?.Id == instant?.Value?.Module?.ModuleButtonIconTexture?.Id &&
+					previousTooltip?.Begin == previousInstant?.Begin)
 				{
 					//	It seems that data read from module tooltips is corrupted frequently.
 					//	To alleviate this problem, tooltips in consecutive measurements are compared and a heuristic is applied to guess which one is the best to pick to be kept.
 					//	To benefit from this, a script generates multiple measurements while a tooltip is open for the module.
-					TooltipLast = new[] { TooltipLast, PreviousTooltip }.BestRead(inst => inst?.Value);
+					tooltipLast = new[] { tooltipLast, previousTooltip }.BestRead(inst => inst?.Value);
 				}
 
-				this.TooltipLast = TooltipLast;
+				TooltipLast = tooltipLast;
 			}
-
 		}
 
 		/// <summary>
