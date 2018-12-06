@@ -1,4 +1,5 @@
 ﻿using Bib3;
+using McMaster.Extensions.CommandLineUtils;
 using System;
 using System.Linq;
 using System.Windows;
@@ -8,6 +9,22 @@ namespace Sanderling.Exe
 {
 	public partial class App : Application
 	{
+		class CLI
+		{
+			static public CLI LastInstance;
+
+			[Option(Description = "Path to a file to load a bot from when the application starts.", ShortName = "")]
+			public string LoadBotFromFile { get; }
+
+			[Option(Description = "Start the loaded bot directly.", ShortName = "")]
+			public bool StartBot { get; }
+
+			private void OnExecute()
+			{
+				LastInstance = this;
+			}
+		}
+
 		static public Int64 GetTimeStopwatch() => Bib3.Glob.StopwatchZaitMiliSictInt();
 
 		public MainWindow Window => base.MainWindow as MainWindow;
@@ -25,6 +42,15 @@ namespace Sanderling.Exe
 		static string AssemblyDirectoryPath => Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne().EnsureEndsWith(@"\");
 
 		Sanderling.Script.Impl.HostToScript UIAPI;
+
+		protected override void OnStartup(StartupEventArgs e)
+		{
+			base.OnStartup(e);
+
+			WriteLogEntryWithTimeNow(new Log.LogEntry { Startup = new Log.StartupLogEntry { Args = e.Args } });
+
+			CommandLineApplication.Execute<CLI>(e.Args);
+		}
 
 		public App()
 		{
@@ -109,6 +135,42 @@ namespace Sanderling.Exe
 			Window?.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent, new RoutedEventHandler(ButtonClicked));
 
 			TimerConstruct();
+
+			Dispatcher.Invoke(ExecuteCommandsFromArguments);
+		}
+
+		void ExecuteCommandsFromArguments()
+		{
+			Exception exception = null;
+
+			try
+			{
+				var botsNavigation = MainControl.BotsNavigation;
+
+				var botFileName = CLI.LastInstance?.LoadBotFromFile;
+
+				var bot = 0 < botFileName?.Length ? System.IO.File.ReadAllBytes(botFileName) : null;
+
+				if (bot != null)
+				{
+					if (CLI.LastInstance.StartBot)
+						botsNavigation.NavigateIntoOperateBot(bot, true);
+					else
+						botsNavigation.NavigateIntoPreviewBot(bot);
+				}
+			}
+			catch (Exception e)
+			{
+				exception = e;
+			}
+
+			WriteLogEntryWithTimeNow(new Log.LogEntry
+			{
+				ExecuteCommandsFromArguments = new Log.ExecuteCommandsFromArgumentsEntry
+				{
+					Exception = exception,
+				},
+			});
 		}
 
 		void Timer_Tick(object sender, object e)
