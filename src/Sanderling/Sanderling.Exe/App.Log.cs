@@ -40,7 +40,7 @@ namespace Sanderling.Exe
 		{
 			try
 			{
-				var logFileName = DateTimeOffset.Now.ToString("yyyy-MM-ddThh-mm-ss") + ".Sanderling.log";
+				var logFileName = DateTimeOffset.Now.ToString("yyyy-MM-ddThh-mm-ss") + ".Sanderling.log.jsonl";
 
 				var logFilePath =
 					Path.Combine(Bib3.FCL.Glob.ZuProcessSelbsctMainModuleDirectoryPfaadBerecne(), "log", logFileName);

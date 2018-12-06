@@ -13,7 +13,7 @@ namespace Sanderling.Log
 			if (null == entrySerial)
 				return;
 
-			var entrySerialAndDelimiter = entrySerial.Concat(new byte[4]).ToArray();
+			var entrySerialAndDelimiter = entrySerial.Concat(new byte[] { 13, 10 }).ToArray();
 
 			destination?.Write(entrySerialAndDelimiter, 0, entrySerialAndDelimiter.Length);
 		}
