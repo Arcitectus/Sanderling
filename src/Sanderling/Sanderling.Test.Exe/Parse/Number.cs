@@ -26,14 +26,13 @@ namespace Sanderling.Test.Exe.Parse
 		[Test]
 		static public void Parse_Number_Throws()
 		{
-			Assert.That(() => Test(new ParseNumberTestCase()
+			Assert.That(() => Test(new ParseNumberTestCase
 			{
 				In = "not a number",
 				Out = 0,
-				Culture = CultureInfo.CurrentCulture,
+				Culture = CultureInfo.InvariantCulture,
 			}.Yield()),
-			Throws.Exception);
+			Throws.InstanceOf<ApplicationException>());
 		}
-
 	}
 }
