@@ -17,28 +17,39 @@ namespace Sanderling.ExploreProcessMeasurement
 		}
 
 		static public Optimat.EveOnline.GbsAstInfo GbsWurzelHaupt(
-			this BotEngine.Interface.IMemoryReader MemoryReader)
+			this BotEngine.Interface.IMemoryReader memoryReader)
 		{
-			if (null == MemoryReader)
-			{
+			if (null == memoryReader)
 				return null;
-			}
 
-			var WurzelSuuce = new Optimat.EveOnline.MemoryAuswertWurzelSuuce(MemoryReader);
+			return ReadUITreeFromRoot(memoryReader, memoryReader.SearchForUITreeRoot());
+		}
 
-			WurzelSuuce.Berecne();
-
-			var MemoryMeasurementTask = new Optimat.EveOnline.SictProzesAuswertZuusctandScpezGbsBaum(
-				MemoryReader,
-				WurzelSuuce,
+		static public Optimat.EveOnline.GbsAstInfo ReadUITreeFromRoot(
+			this BotEngine.Interface.IMemoryReader memoryReader,
+			Optimat.EveOnline.MemoryAuswertWurzelSuuce searchForRoot)
+		{
+			var memoryMeasurementTask = new Optimat.EveOnline.SictProzesAuswertZuusctandScpezGbsBaum(
+				memoryReader,
+				searchForRoot,
 				0x400,
 				0x4000,
 				0x40,
-				WurzelSuuce?.GbsMengeWurzelObj?.Select(Wurzel => Wurzel?.HerkunftAdrese)?.WhereNotNullSelectValue()?.ToArray());
+				searchForRoot?.GbsMengeWurzelObj?.Select(Wurzel => Wurzel?.HerkunftAdrese)?.WhereNotNullSelectValue()?.ToArray());
 
-			MemoryMeasurementTask.BerecneScrit();
+			memoryMeasurementTask.BerecneScrit();
 
-			return MemoryMeasurementTask.GbsWurzelHauptInfo;
+			return memoryMeasurementTask.GbsWurzelHauptInfo;
+		}
+
+		static public Optimat.EveOnline.MemoryAuswertWurzelSuuce SearchForUITreeRoot(
+			this BotEngine.Interface.IMemoryReader memoryReader)
+		{
+			var searchForRoot = new Optimat.EveOnline.MemoryAuswertWurzelSuuce(memoryReader);
+
+			searchForRoot.Berecne();
+
+			return searchForRoot;
 		}
 	}
 }
