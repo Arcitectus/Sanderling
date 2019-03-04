@@ -27,11 +27,21 @@ namespace Sanderling.MemoryReading.Test
 
 			var memoryReader = new BotEngine.Interface.Process.Snapshot.SnapshotReader(windowsProcessMeasurement?.ProcessSnapshot?.MemoryBaseAddressAndListOctet);
 
+			Console.WriteLine("I begin to search for the root of the UI tree...");
+
 			//	The address of the root of the UI tree usually does not change in an EVE Online client process.
 			//	Therefore the UI tree root search result is reused when reading the UI tree from the same process later.
 			var searchForUITreeRoot = memoryReader.SearchForUITreeRoot();
 
+			Console.WriteLine("I read the partial python model of the UI tree...");
+
 			var memoryMeasurementPartialPythonModel = memoryReader?.ReadUITreeFromRoot(searchForUITreeRoot);
+
+			var allNodesFromMemoryMeasurementPartialPythonModel =
+				memoryMeasurementPartialPythonModel.EnumerateNodeFromTreeDFirst(node => node.GetListChild())
+				.ToList();
+
+			Console.WriteLine($"The tree in memoryMeasurementPartialPythonModel contains { allNodesFromMemoryMeasurementPartialPythonModel.Count } nodes");
 
 			var sanderlingMemoryMeasurement = Optimat.EveOnline.AuswertGbs.Extension.SensorikScnapscusKonstrukt(memoryMeasurementPartialPythonModel, null);
 
