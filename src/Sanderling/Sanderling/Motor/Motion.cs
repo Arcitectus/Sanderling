@@ -2,6 +2,7 @@
 using Bib3.Geometrik;
 using BotEngine.Motor;
 using Sanderling.Interface.MemoryStruct;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,7 +12,10 @@ namespace Sanderling.Motor
 	{
 		public IUIElement UIElement;
 
+		[Obsolete("We recommend using the property RegionReplacementAbsolute instead.", false)]
 		public RectInt? RegionReplacement;
+
+		public RectInt? RegionReplacementAbsolute;
 
 		public MotionParamMouseRegion()
 		{

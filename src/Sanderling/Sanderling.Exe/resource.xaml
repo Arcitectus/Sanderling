@@ -7,7 +7,7 @@
         <ResourceDictionary Source="pack://application:,,,/Sanderling.UI;component/resource.xaml"></ResourceDictionary>
 
         <ResourceDictionary>
-			<system:String x:Key="AppVersionId">2018-12-06</system:String>
+			<system:String x:Key="AppVersionId">2019-03-30</system:String>
 
 			<BotEngine.UI.ViewModel:AppProperty
                 x:Key="AppProperty">

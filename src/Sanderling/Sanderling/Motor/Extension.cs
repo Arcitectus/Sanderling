@@ -44,38 +44,34 @@ namespace Sanderling.Motor
 
 			for (int WaypointIndex = 0; WaypointIndex < (MouseListWaypoint?.Length ?? 0); WaypointIndex++)
 			{
-				var MouseWaypoint = MouseListWaypoint[WaypointIndex];
+				var mouseWaypoint = MouseListWaypoint[WaypointIndex];
 
-				var WaypointUIElement = MouseWaypoint?.UIElement;
+				var waypointUIElement = mouseWaypoint?.UIElement;
 
-				WaypointUIElement = (WaypointUIElement as Accumulation.IRepresentingMemoryObject)?.RepresentedMemoryObject as UIElement ?? WaypointUIElement;
+				waypointUIElement = (waypointUIElement as Accumulation.IRepresentingMemoryObject)?.RepresentedMemoryObject as UIElement ?? waypointUIElement;
 
-				var WaypointRegionReplacement = MouseWaypoint.RegionReplacement;
+				var waypointUIElementCurrent =
+					waypointUIElement.GetInstanceWithIdFromCLRGraph(memoryMeasurement, Interface.FromInterfaceResponse.SerialisPolicyCache);
 
-				var WaypointUIElementCurrent =
-					WaypointUIElement.GetInstanceWithIdFromCLRGraph(memoryMeasurement, Interface.FromInterfaceResponse.SerialisPolicyCache);
-
-				if (null == WaypointUIElementCurrent)
-				{
+				if (null == waypointUIElementCurrent)
 					throw new ApplicationException("mouse waypoint not anymore contained in UITree");
-				}
 
-				var WaypointUIElementRegion = WaypointUIElementCurrent.RegionInteraction?.Region;
+				var waypointRegion = waypointUIElementCurrent.RegionInteraction?.Region;
 
-				if (!WaypointUIElementRegion.HasValue)
-				{
-					throw new ArgumentException("Waypoint UIElement has no Region to interact with");
-				}
+				var waypointRegionReplacement = mouseWaypoint.RegionReplacement;
 
-				if (WaypointRegionReplacement.HasValue)
-				{
-					WaypointUIElementRegion = WaypointRegionReplacement.Value + WaypointUIElementRegion.Value.Center();
-				}
+				if (waypointRegionReplacement.HasValue)
+					waypointRegion = waypointRegionReplacement.Value + waypointRegion.Value.Center();
 
-				WaypointUIElementCurrent = WaypointUIElementCurrent.WithRegion(WaypointUIElementRegion.Value);
+				waypointRegion = mouseWaypoint.RegionReplacementAbsolute ?? waypointRegion;
+
+				if (!waypointRegion.HasValue)
+					throw new ArgumentException("Did not find a region for the waypoint.");
+
+				waypointUIElementCurrent = waypointUIElementCurrent.WithRegion(waypointRegion.Value);
 
 				var WaypointRegionPortionVisible =
-					WaypointUIElementCurrent.GetOccludedUIElementRemainingRegion(
+					waypointUIElementCurrent.GetOccludedUIElementRemainingRegion(
 						memoryMeasurement,
 						c => SetElementExcludedFromOcclusion?.Contains(c) ?? false)
 					//	remaining region is contracted to provide a safety margin.
