@@ -323,7 +323,11 @@ namespace Optimat.EveOnline.AuswertGbs
 
 			AstInfoPanelMissions =
 				Optimat.EveOnline.AuswertGbs.Extension.FirstMatchingNodeFromSubtreeBreadthFirst(
-				InfoPanelContainerAst, (Kandidaat) => string.Equals("InfoPanelMissions", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase), 4);
+				InfoPanelContainerAst, (Kandidaat) =>
+					string.Equals("InfoPanelMissions", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase) ||
+					//	Observation shared by Kaboonus. This symbol was also observed in sample BE2F4669E01416099CA9EFCEB1028E1192B86F6C0ECE04BDE0E2EE1CB66EA7E9.
+					string.Equals("InfoPanelAgentMissions", Kandidaat.PyObjTypName, StringComparison.InvariantCultureIgnoreCase),
+				4);
 
 			AuswertPanelCurrentSystem = new SictAuswertGbsInfoPanelCurrentSystem(AstInfoPanelLocationInfo);
 			AuswertPanelCurrentSystem.Berecne();
