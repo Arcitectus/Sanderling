@@ -1,6 +1,6 @@
 # Sanderling
 
-**Sanderling helps you automate tasks in [EVE Online](https://www.eveonline.com) and read information from the game client.**
+**Sanderling helps you read information from the [EVE Online](https://www.eveonline.com) game client and automate in-game tasks.**
 
 ## Features
 
@@ -31,6 +31,7 @@ Do you have a question or need help with the development of your bot? Get in con
 
 This is a list of guides and resources for bot developers:
 
++ An easy way to explore the Sanderling framework, test memory reading and sending input to the game is the [BotEngine Windows Console](https://to.botengine.org/guide/windows-console).
 + [Bot Creator Guide](https://github.com/Arcitectus/Sanderling/wiki/Bot-Creator-Guide)
 + Terplas [beginners guide for botting in EVE Online](https://forum.botengine.org/t/terpla-adventures-or-blog-style-guide-for-begginers/953)
 + [Explaining the different types of memory readings](https://forum.botengine.org/t/sanderling-framework-differences-between-memorymeasurement-memorymeasurementparsed-and-memorymeasurementaccu/1256)
