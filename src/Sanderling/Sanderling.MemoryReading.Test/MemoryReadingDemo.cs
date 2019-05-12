@@ -9,6 +9,14 @@ namespace Sanderling.MemoryReading.Test
 {
 	public class MemoryReadingDemo
 	{
+		static string StringIdentifierFromValue(byte[] value)
+		{
+			using (var sha = new System.Security.Cryptography.SHA256Managed())
+			{
+				return BitConverter.ToString(sha.ComputeHash(value)).Replace("-", "");
+			}
+		}
+
 		[Test]
 		[Explicit("Do not include this method when running all tests. The only reason this is marked as a `Test` is to simplify execution from Visual Studio UI.")]
 		public void Demo_memory_reading_from_process_sample()
@@ -17,11 +25,15 @@ namespace Sanderling.MemoryReading.Test
 			//	see the guide at https://forum.botengine.org/t/how-to-collect-samples-for-memory-reading-development/50
 
 			var windowsProcessMeasurementFilePath =
-				Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
-				.PathToFilesysChild("Sanderling.Process.Sample")
-				.PathToFilesysChild("my-eve-online-client-process-sample.zip");
+				System.IO.Path.Combine(
+					Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+					"BotEngine", "Sanderling.Process.Sample", "my-eve-online-client-process-sample.zip");
 
 			var windowsProcessMeasurementZipArchive = System.IO.File.ReadAllBytes(windowsProcessMeasurementFilePath);
+
+			var measurementId = StringIdentifierFromValue(windowsProcessMeasurementZipArchive);
+
+			Console.WriteLine("Loaded sample " + measurementId + " from '" + windowsProcessMeasurementFilePath + "'");
 
 			var windowsProcessMeasurement = BotEngine.Interface.Process.Snapshot.Extension.SnapshotFromZipArchive(windowsProcessMeasurementZipArchive);
 
@@ -50,6 +62,48 @@ namespace Sanderling.MemoryReading.Test
 			//	At this point, you will find in the "parsedMemoryMeasurement" variable the contents read from the process measurement as they would appear in the Sanderling API Explorer.
 
 			Console.WriteLine("Overview window read: " + (parsedMemoryMeasurement.WindowOverview?.Any() ?? false));
+
+			{
+				//	TODO: Improve accessibility: Move this derivation section into an artifact which can be easily referenced and executed from the Windows Console App.
+
+				var destinationDirectoryPath =
+					System.IO.Path.Combine(
+						System.IO.Path.GetDirectoryName(windowsProcessMeasurementFilePath),
+						"derivation",
+						"from-" + measurementId);
+
+				Console.WriteLine("I serialize the values from the different stages of memory reading and write those into files.");
+
+				var stagesNamedValues = new[]
+				{
+					("partial-python", (object)memoryMeasurementPartialPythonModel),
+					("sanderling-memory-measurement", (object)sanderlingMemoryMeasurement),
+					("sanderling-memory-measurement-parsed", (object)parsedMemoryMeasurement),
+				};
+
+				foreach (var (stageName, stageValue) in stagesNamedValues)
+				{
+					var stageSerializedValue = System.Text.Encoding.UTF8.GetBytes(
+							Newtonsoft.Json.JsonConvert.SerializeObject(
+								stageValue,
+								new Newtonsoft.Json.JsonSerializerSettings
+								{
+									NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+
+									//	See https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type/18223985#18223985
+									ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
+								}));
+
+					Console.WriteLine(stageName + " serialized to " + StringIdentifierFromValue(stageSerializedValue));
+
+					var destinationFilePath = System.IO.Path.Combine(destinationDirectoryPath, stageName + ".json");
+
+					System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(destinationFilePath));
+					System.IO.File.WriteAllBytes(destinationFilePath, stageSerializedValue);
+
+					Console.WriteLine(StringIdentifierFromValue(stageSerializedValue) + " written to '" + destinationFilePath + "'.");
+				}
+			}
 		}
 	}
 }
