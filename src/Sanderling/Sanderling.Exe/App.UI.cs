@@ -33,10 +33,10 @@ namespace Sanderling.Exe
 			ProcessInput();
 		}
 
-		IEnumerable<(UIElement button, Action action)> ButtonsActions => new(UIElement button, Action action)[]
+		IEnumerable<(UIElement button, Action action)> ButtonsActions => new (UIElement button, Action action)[]
 		{
 			(BotOperationPauseContinueToggleButton?.ButtonLinx, PauseBotOperation),
-			(BotOperationPauseContinueToggleButton?.ButtonRecz, ContinueOrStartBotOperation),
+			(BotOperationPauseContinueToggleButton?.ButtonRecz, () => ContinueOrStartBotOperation(StartOrContinueBotTrigger.UserInterface)),
 		}
 		.Where(buttonAction => buttonAction.button != null);
 

@@ -1,5 +1,4 @@
-﻿using Bib3;
-using Sanderling.Log;
+﻿using Sanderling.Log;
 using System;
 using System.IO;
 

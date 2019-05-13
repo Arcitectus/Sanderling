@@ -26,6 +26,8 @@ namespace Sanderling.Script.Impl
 
 		public Func<MotionParam, MotionResult> FromScriptMotionExecute;
 
+		public Action<ScriptRunClient, ScriptRun> ExecutionStatusChangedDelegate;
+
 		public ScriptRun.ToScriptGlobals ToScriptGlobals =>
 			new ToScriptGlobals()
 			{
@@ -47,7 +49,7 @@ namespace Sanderling.Script.Impl
 
 					WindowHandleFunc = () => GetWindowHandleDelegate?.Invoke() ?? IntPtr.Zero,
 
-                    KillEveProcessAction = () => GetKillEveProcessAction?.Invoke(),
+					KillEveProcessAction = () => GetKillEveProcessAction?.Invoke(),
 				}
 			};
 
@@ -59,6 +61,8 @@ namespace Sanderling.Script.Impl
 
 			if (ScriptRunExecutionStatus.Failed == run.Status)
 				System.Media.SystemSounds.Beep.Play();
+
+			ExecutionStatusChangedDelegate(this, run);
 		}
 
 		public void RunThreadEnterBefore(ScriptRun run)

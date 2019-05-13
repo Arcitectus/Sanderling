@@ -19,8 +19,15 @@ namespace Sanderling.Exe
 			[Option(Description = "Start the loaded bot directly.", ShortName = "")]
 			public bool StartBot { get; }
 
+			[Option(Description = "How many times a bot should be restarted if it crashes.", ShortName = "")]
+			public int BotCrashRetryCountMax { get; }
+
+			public string ReportAllArguments() => Newtonsoft.Json.JsonConvert.SerializeObject(this);
+
 			private void OnExecute()
 			{
+				Console.WriteLine("CLI.OnExecute");
+
 				LastInstance = this;
 			}
 		}
@@ -47,9 +54,33 @@ namespace Sanderling.Exe
 		{
 			base.OnStartup(e);
 
-			WriteLogEntryWithTimeNow(new Log.LogEntry { Startup = new Log.StartupLogEntry { Args = e.Args } });
+			WriteLogEntryWithTimeNow(new Log.LogEntry
+			{
+				Startup = new Log.StartupLogEntry
+				{
+					Args = e.Args,
+				}
+			});
 
-			CommandLineApplication.Execute<CLI>(e.Args);
+			Exception parseCommandsFromArgumentsException = null;
+
+			try
+			{
+				CommandLineApplication.Execute<CLI>(e.Args);
+			}
+			catch (Exception exception)
+			{
+				parseCommandsFromArgumentsException = exception;
+			}
+
+			WriteLogEntryWithTimeNow(new Log.LogEntry
+			{
+				ParseCommandsFromArguments = new Log.ParseCommandsFromArgumentsEntry
+				{
+					Arguments = CLI.LastInstance?.ReportAllArguments(),
+					Exception = parseCommandsFromArgumentsException,
+				}
+			});
 		}
 
 		public App()
@@ -113,7 +144,8 @@ namespace Sanderling.Exe
 				FromScriptRequestMemoryMeasurementEvaluation = FromScriptRequestMemoryMeasurementEvaluation,
 				FromScriptMotionExecute = FromScriptMotionExecute,
 				GetWindowHandleDelegate = () => Motor?.WindowHandle ?? IntPtr.Zero,
-				GetKillEveProcessAction = KillEveProcessAction
+				GetKillEveProcessAction = KillEveProcessAction,
+				ExecutionStatusChangedDelegate = ScriptExecutionStatusChanged,
 			};
 		}
 
@@ -143,17 +175,23 @@ namespace Sanderling.Exe
 		{
 			Exception exception = null;
 
+			string argumentsReport = null;
+
 			try
 			{
+				var arguments = CLI.LastInstance;
+
+				argumentsReport = arguments?.ReportAllArguments();
+
 				var botsNavigation = MainControl.BotsNavigation;
 
-				var botFileName = CLI.LastInstance?.LoadBotFromFile;
+				var botFileName = arguments?.LoadBotFromFile;
 
 				var bot = 0 < botFileName?.Length ? System.IO.File.ReadAllBytes(botFileName) : null;
 
 				if (bot != null)
 				{
-					if (CLI.LastInstance.StartBot)
+					if (arguments.StartBot)
 						botsNavigation.NavigateIntoOperateBot(bot, true);
 					else
 						botsNavigation.NavigateIntoPreviewBot(bot);
@@ -168,6 +206,7 @@ namespace Sanderling.Exe
 			{
 				ExecuteCommandsFromArguments = new Log.ExecuteCommandsFromArgumentsEntry
 				{
+					Arguments = argumentsReport,
 					Exception = exception,
 				},
 			});
@@ -186,8 +225,30 @@ namespace Sanderling.Exe
 			UIPresent();
 		}
 
-		void ContinueOrStartBotOperation()
+		enum StartOrContinueBotTrigger
 		{
+			UserInterface,
+			RetryAfterFail,
+		}
+
+		int RetryAfterBotFailCount = 0;
+
+		void ContinueOrStartBotOperation(StartOrContinueBotTrigger trigger)
+		{
+			if (trigger == StartOrContinueBotTrigger.UserInterface)
+				RetryAfterBotFailCount = 0;
+			else
+				++RetryAfterBotFailCount;
+
+			WriteLogEntryWithTimeNow(
+				new Log.LogEntry
+				{
+					ContinueOrStartBotOperation = new Log.ContinueOrStartBotOperationLogEntry
+					{
+						Trigger = trigger.ToString(),
+					}
+				});
+
 			MainControl?.BotsNavigation?.ContinueOrStartBotOperation();
 			UpdateBotOperationPauseContinueToggleButton();
 		}
@@ -209,6 +270,25 @@ namespace Sanderling.Exe
 
 				process.Kill();
 			});
+		}
+
+		void ScriptExecutionStatusChanged(
+			Sanderling.Script.Impl.ScriptRunClient scriptRunClient,
+			BotSharp.ScriptRun.ScriptRun scriptRun)
+		{
+			if (scriptRun.Status == BotSharp.ScriptRun.ScriptRunExecutionStatus.Failed)
+			{
+				if (RetryAfterBotFailCount < CLI.LastInstance.BotCrashRetryCountMax)
+				{
+					System.Threading.Tasks.Task.Run(() =>
+					{
+						System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+
+						Dispatcher.BeginInvoke(
+							new Action(() => ContinueOrStartBotOperation(StartOrContinueBotTrigger.RetryAfterFail)));
+					});
+				}
+			}
 		}
 
 		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
