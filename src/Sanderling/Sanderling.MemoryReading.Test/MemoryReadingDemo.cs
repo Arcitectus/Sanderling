@@ -55,13 +55,15 @@ namespace Sanderling.MemoryReading.Test
 
 			Console.WriteLine($"The tree in memoryMeasurementPartialPythonModel contains { allNodesFromMemoryMeasurementPartialPythonModel.Count } nodes");
 
-			var sanderlingMemoryMeasurement = Optimat.EveOnline.AuswertGbs.Extension.SensorikScnapscusKonstrukt(memoryMeasurementPartialPythonModel, null);
+			var memoryMeasurementReducedWithNamedNodes =
+				Optimat.EveOnline.AuswertGbs.Extension.SensorikScnapscusKonstrukt(memoryMeasurementPartialPythonModel, null);
 
-			var parsedMemoryMeasurement = sanderlingMemoryMeasurement.Parse();
+			var memoryMeasurementReducedWithNamedNodesParsedFurther =
+				memoryMeasurementReducedWithNamedNodes.Parse();
 
 			//	At this point, you will find in the "parsedMemoryMeasurement" variable the contents read from the process measurement as they would appear in the Sanderling API Explorer.
 
-			Console.WriteLine("Overview window read: " + (parsedMemoryMeasurement.WindowOverview?.Any() ?? false));
+			Console.WriteLine("Overview window read: " + (memoryMeasurementReducedWithNamedNodesParsedFurther.WindowOverview?.Any() ?? false));
 
 			{
 				//	TODO: Improve accessibility: Move this derivation section into an artifact which can be easily referenced and executed from the Windows Console App.
@@ -77,8 +79,8 @@ namespace Sanderling.MemoryReading.Test
 				var stagesNamedValues = new[]
 				{
 					("partial-python", (object)memoryMeasurementPartialPythonModel),
-					("sanderling-memory-measurement", (object)sanderlingMemoryMeasurement),
-					("sanderling-memory-measurement-parsed", (object)parsedMemoryMeasurement),
+					("reduced-with-named-nodes", (object)memoryMeasurementReducedWithNamedNodes),
+					("reduced-with-named-nodes-parsed-further", (object)memoryMeasurementReducedWithNamedNodesParsedFurther),
 				};
 
 				foreach (var (stageName, stageValue) in stagesNamedValues)
