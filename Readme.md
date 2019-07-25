@@ -32,7 +32,6 @@ Do you have a question or need help with the development of your bot? Get in con
 This is a list of guides and resources for bot developers:
 
 + An easy way to explore the Sanderling framework, test memory reading and sending input to the game is the [BotEngine Windows Console](https://to.botengine.org/guide/windows-console).
-+ [Bot Creator Guide](https://github.com/Arcitectus/Sanderling/wiki/Bot-Creator-Guide)
 + Terplas [beginners guide for botting in EVE Online](https://forum.botengine.org/t/terpla-adventures-or-blog-style-guide-for-begginers/953)
 + [Explaining the different types of memory readings](https://forum.botengine.org/t/sanderling-framework-differences-between-memorymeasurement-memorymeasurementparsed-and-memorymeasurementaccu/1256)
 + [How to Select a Target](https://forum.botengine.org/t/how-to-select-a-target/600)
