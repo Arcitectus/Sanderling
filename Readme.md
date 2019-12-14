@@ -1,21 +1,30 @@
 # Sanderling
 
-**Sanderling helps you read information from the [EVE Online](https://www.eveonline.com) game client and automate in-game tasks.**
+**Sanderling helps you read information from the [EVE Online](https://www.eveonline.com) game client.**
+
+Sanderling is the *eyes* of bots and monitoring tools. It helps programs *see* the game client in a structured way, detecting objects and reading information about the game world. It also reads the locations of elements in the game clients' graphical user interface (e.g., in-game windows, overview entries, buttons, etc.). You can use this information to interact with the game client using mouse input.
 
 ## Features
 
 + **safe**: does not inject into or write to the EVE Online client. That is why using it with EVE Online is not detectable.
 + **accurate & robust**: Sanderling uses memory reading to retrieve information about the game state. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-+ **easy to use**: You will achieve quick results with the [integrated script engine](https://github.com/Arcitectus/Sanderling/wiki/Script-Engine) and API explorer.
-+ **comprehensive**: Sanderling is used to build mining, trading, mission running and [anomaly ratting](https://github.com/botengine-de/A-Bot) bots.
++ **comprehensive**: Sanderling is used to build [mining](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md), trading, mission running and [anomaly ratting](https://github.com/botengine-de/A-Bot) bots.
 
 ## Requirements
 
-+ the application requires Microsoft .NET Framework 4.6.1 which can be downloaded from [https://www.microsoft.com/download/details.aspx?id=49982](https://www.microsoft.com/download/details.aspx?id=49982).
++ The application requires Microsoft .NET Framework 4.6.1 which can be downloaded from [https://www.microsoft.com/download/details.aspx?id=49982](https://www.microsoft.com/download/details.aspx?id=49982).
 
-## Getting Started
+## Where are the Bots?
 
-To start with automation in EVE Online, see the [List of EVE Online Bots for Beginners](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
+Some bots using Sanderling:
+
++ Warp-To-0 Autopilot: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md)
+
++ Mining asteroids: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md)
+
++ [List of EVE Online Bots for Beginners](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
+
++ Most up-to-date: [https://botcatalog.org/](https://botcatalog.org/)
 
 ## Feedback
 
@@ -45,11 +54,6 @@ The source code uses C# 7 features. It is recommended to use [Visual Studio](htt
 ### Tutorials and Guides
 
 People share their tutorials and guides in the [*Show and Tell* section on the BotEngine Forum](https://forum.botengine.org/c/show-and-tell). Add the [`guide`](https://forum.botengine.org/tags/guide) tag to your post for best visibility.
-
-### Adapted and Custom Bots
-
-If you want more visibility or feedback for your creation, you can post a link to your bot at [https://forum.botengine.org/c/show-and-tell](https://forum.botengine.org/c/show-and-tell).
-You can also have your bot added to the [bot catalog](https://forum.botengine.org/c/bot-catalog) by posting a link to the bot code on GitHub.
 
 ### Issues
 
