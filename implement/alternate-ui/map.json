@@ -1,0 +1,8 @@
+{
+    "mapsFromRequestUrlToStaticFileName": [
+        {
+            "matchingRegexPattern": "^.*//[^/]+(|/(?!(api/|elm-fullstack-admin/)).*)$",
+            "resultString": "FrontendWeb.html"
+        }
+    ]
+}
