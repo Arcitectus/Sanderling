@@ -4,6 +4,12 @@ This is an alternate user interface for the EVE Online game client. It is based 
 
 It gets information from the EVE Online client via memory reading.
 
+This tool also shows the UI tree from the game client and presents the properties of the UI nodes in text form.
+
+There can be more than a thousand nodes in the UI tree, even in simple scenarios. And each of the nodes, in turn, can have many properties. So we have tens of thousands of properties in the UI tree when more objects are on the screen.
+
+This quantity might make for a confusing impression, so I introduced a way to better focus on what is of interest to you in a given moment: You can expand and collapse individual nodes of the UI tree. For a collapsed node, it only shows a small summary, not all properties. When you get the first memory reading, all nodes are displayed collapsed, so only the summary of the root node is shown. You can expand that, and then the children of the root node. This way, you can descend into the part you are interested in.
+
 There are two ways to get a memory reading into this interface:
 
 + Load from a live EVE Online client process. (TODO, Not implemented yet: This user interface offers you input elements to interact with input elements in the EVE Online client. Note: When you send an input to the EVE Online client this way, the tool will switch the input focus to the EVE Online window and bring to the foreground. In case you run this user interface on the same desktop as the EVE Online client: To avoid interference between web browser window and game client window, place them side-by-side, so that they don't overlap.)
