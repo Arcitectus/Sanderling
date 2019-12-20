@@ -69,4 +69,4 @@ In case you propose a change to a script in the master branch, it is recommended
 
 <br><br><br><br>
 
-![Visualization of data read from the EVE Online client memory.](image/uitree.extract.png)
+![Visualization of data read from the EVE Online client memory.](guide/image/2015-12-13.uitree.extract.png)
