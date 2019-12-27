@@ -17,6 +17,7 @@
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
             "elm-community/json-extra": "4.2.0",
+            "elm-community/list-extra": "8.2.2",
             "elm-community/result-extra": "2.3.0",
             "elm-community/string-extra": "4.0.1"
         },

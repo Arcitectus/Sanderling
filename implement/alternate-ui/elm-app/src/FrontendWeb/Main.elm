@@ -2,6 +2,7 @@ module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
 
 import Browser
 import Browser.Navigation as Navigation
+import Dict
 import File
 import File.Download
 import File.Select
@@ -34,7 +35,7 @@ main =
 type alias State =
     { navigationKey : Navigation.Key
     , selectedSource : MemoryReadingSource
-    , readFromFileResult : Maybe (Result Json.Decode.Error MemoryReadingUITreeNode)
+    , readFromFileResult : Maybe ParseMemoryReadingCompleted
     , readFromLiveProcess : ReadFromLiveProcessState
     , treeView : TreeViewState
     }
@@ -42,14 +43,25 @@ type alias State =
 
 type alias ReadFromLiveProcessState =
     { readEveOnlineClientProcessesIdsResult : Maybe (Result String (Set.Set Int))
-    , readMemoryResult : Maybe (Result String ParsedMemoryReadingCompleted)
+    , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
     }
 
 
-type alias ParsedMemoryReadingCompleted =
+type alias ReadFromLiveProcessCompleted =
     { mainWindowId : String
-    , partialPythonJson : String
-    , parseResult : Result Json.Decode.Error MemoryReadingUITreeNode
+    , memoryReading : ParseMemoryReadingCompleted
+    }
+
+
+type alias ParseMemoryReadingCompleted =
+    { partialPythonJson : String
+    , parseResult : Result Json.Decode.Error ParseMemoryReadingSuccess
+    }
+
+
+type alias ParseMemoryReadingSuccess =
+    { uiTree : MemoryReadingUITreeNode
+    , overviewWindow : MaybeVisible OverviewWindow
     }
 
 
@@ -70,11 +82,21 @@ type Event
     | UserInputDownloadJsonFile String
 
 
-type MemoryReadingUITreeNode
-    = MemoryReadingUITreeNode
+type alias MemoryReadingUITreeNode =
+    { originalJson : Json.Encode.Value
+    , pythonObjAddress : Int
+    , pythonObjTypeName : String
+    , children : Maybe (List MemoryReadingUITreeNodeChild)
+    , otherProperties : List ( String, Json.Encode.Value )
+    }
+
+
+type MemoryReadingUITreeNodeChild
+    = MemoryReadingUITreeNodeChild
         { originalJson : Json.Encode.Value
         , pythonObjAddress : Int
-        , children : Maybe (List MemoryReadingUITreeNode)
+        , pythonObjTypeName : String
+        , children : Maybe (List MemoryReadingUITreeNodeChild)
         , otherProperties : List ( String, Json.Encode.Value )
         }
 
@@ -96,6 +118,23 @@ type alias UITreeNodeIdentity =
 type ResponseFromServer
     = RunInVolatileHostResponse InterfaceToFrontendClient.RunInVolatileHostResponseStructure
     | ReadLogResponse (List String)
+
+
+type alias OverviewWindow =
+    { headers : List String
+    , entries : List OverviewEntry
+    }
+
+
+type alias OverviewEntry =
+    { uiTreeNode : MemoryReadingUITreeNode
+    , cellsContents : Dict.Dict String String
+    }
+
+
+type MaybeVisible feature
+    = CanNotSeeIt
+    | CanSee feature
 
 
 subscriptions : State -> Sub Event
@@ -168,10 +207,12 @@ update event stateBefore =
         UserInputSelectMemoryReadingFile (Just file) ->
             ( stateBefore, Task.perform ReadMemoryReadingFile (File.toString file) )
 
-        ReadMemoryReadingFile memoryReadingFromFile ->
+        ReadMemoryReadingFile partialPythonJson ->
             let
                 memoryReading =
-                    memoryReadingFromFile |> Json.Decode.decodeString memoryReadingUITreeNodeDecoder
+                    { partialPythonJson = partialPythonJson
+                    , parseResult = partialPythonJson |> parseMemoryReadingFromPartialPythonJson
+                    }
             in
             ( { stateBefore | readFromFileResult = Just memoryReading }, Cmd.none )
 
@@ -294,8 +335,10 @@ integrateBackendResponse { request, result } stateBefore =
                                     Just partialPythonJson ->
                                         Ok
                                             { mainWindowId = memoryReadingCompleted.mainWindowId
-                                            , partialPythonJson = partialPythonJson
-                                            , parseResult = partialPythonJson |> decodeMemoryReadingFromString
+                                            , memoryReading =
+                                                { partialPythonJson = partialPythonJson
+                                                , parseResult = partialPythonJson |> parseMemoryReadingFromPartialPythonJson
+                                                }
                                             }
                             )
 
@@ -312,7 +355,7 @@ decideNextStepToReadFromLiveProcess :
     State
     ->
         { describeState : String
-        , lastMemoryReading : Maybe ParsedMemoryReadingCompleted
+        , lastMemoryReading : Maybe ReadFromLiveProcessCompleted
         , nextCmd : Cmd.Cmd Event
         }
 decideNextStepToReadFromLiveProcess state =
@@ -391,10 +434,10 @@ view state =
 
         body =
             [ globalStylesHtmlElement
-            , [ "Select a source for the memory reading" |> Html.text ] |> Html.h3 []
+            , [ "Select a source for the memory reading" |> Html.text ] |> Html.h2 []
             , selectSourceHtml state
             , verticalSpacerFromHeightInEm 1
-            , [ ("Reading from " ++ selectedSourceText) |> Html.text ] |> Html.h3 []
+            , [ ("Reading from " ++ selectedSourceText) |> Html.text ] |> Html.h2 []
             , sourceSpecificHtml
             ]
     in
@@ -413,15 +456,17 @@ viewSourceFromFile state =
                 Nothing ->
                     "No memory reading loaded" |> Html.text
 
-                Just (Err error) ->
-                    ("Failed to decode memory reading loaded from file: " ++ (error |> Json.Decode.errorToString)) |> Html.text
+                Just memoryReadingCompleted ->
+                    case memoryReadingCompleted.parseResult of
+                        Err error ->
+                            ("Failed to decode memory reading loaded from file: " ++ (error |> Json.Decode.errorToString)) |> Html.text
 
-                Just (Ok memoryReading) ->
-                    [ "Successfully read the memory reading from the file. Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-                    , viewTreeMemoryReadingUITreeNode state.treeView memoryReading
-                    ]
-                        |> List.map (List.singleton >> Html.div [])
-                        |> Html.div []
+                        Ok parseSuccess ->
+                            [ "Successfully read the memory reading from the file." |> Html.text
+                            , presentParsedMemoryReading parseSuccess state
+                            ]
+                                |> List.map (List.singleton >> Html.div [])
+                                |> Html.div []
     in
     [ buttonLoadFromFileHtml
     , verticalSpacerFromHeightInEm 1
@@ -445,19 +490,15 @@ viewSourceFromLiveProcess state =
                     let
                         downloadButton =
                             [ "Click here to download this memory measurement to a JSON file." |> Html.text ]
-                                |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.partialPythonJson) ]
+                                |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.partialPythonJson) ]
 
                         parsedHtml =
-                            case parsedReadMemoryResult.parseResult of
+                            case parsedReadMemoryResult.memoryReading.parseResult of
                                 Err parseError ->
                                     ("Failed to parse this memory reading: " ++ (parseError |> Json.Decode.errorToString)) |> Html.text
 
-                                Ok uiTreeRoot ->
-                                    [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-                                    , viewTreeMemoryReadingUITreeNode state.treeView uiTreeRoot
-                                    ]
-                                        |> List.map (List.singleton >> Html.div [])
-                                        |> Html.div []
+                                Ok parseSuccess ->
+                                    presentParsedMemoryReading parseSuccess state
                     in
                     [ "Successfully read from the memory of the live process." |> Html.text
                     , downloadButton
@@ -472,6 +513,56 @@ viewSourceFromLiveProcess state =
     , memoryReadingHtml
     ]
         |> Html.div []
+
+
+presentParsedMemoryReading : ParseMemoryReadingSuccess -> State -> Html.Html Event
+presentParsedMemoryReading memoryReading state =
+    [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
+    , viewTreeMemoryReadingUITreeNode state.treeView memoryReading.uiTree
+    , verticalSpacerFromHeightInEm 0.5
+    , [ "Overview" |> Html.text ] |> Html.h3 []
+    , displayReadOverviewWindowResult memoryReading.overviewWindow
+    ]
+        |> List.map (List.singleton >> Html.div [])
+        |> Html.div []
+
+
+displayReadOverviewWindowResult : MaybeVisible OverviewWindow -> Html.Html Event
+displayReadOverviewWindowResult maybeOverviewWindow =
+    case maybeOverviewWindow of
+        CanNotSeeIt ->
+            "Can not see the overview window" |> Html.text
+
+        CanSee overviewWindow ->
+            let
+                columns =
+                    overviewWindow.headers
+
+                headersHtml =
+                    columns
+                        |> List.map (Html.text >> List.singleton >> Html.td [])
+                        |> Html.tr []
+
+                entriesHtml =
+                    overviewWindow.entries
+                        |> List.map
+                            (\overviewEntry ->
+                                columns
+                                    |> List.map
+                                        (\column ->
+                                            [ overviewEntry.cellsContents
+                                                |> Dict.get column
+                                                |> Maybe.withDefault ""
+                                                |> Html.text
+                                            ]
+                                                |> Html.td []
+                                        )
+                                    |> Html.tr []
+                            )
+            in
+            headersHtml
+                :: entriesHtml
+                |> Html.table []
 
 
 selectSourceHtml : State -> Html.Html Event
@@ -496,125 +587,335 @@ radioButtonHtml labelText isChecked msg =
 
 
 viewTreeMemoryReadingUITreeNode : TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
-viewTreeMemoryReadingUITreeNode viewState wrappedTreeNode =
-    case wrappedTreeNode of
-        MemoryReadingUITreeNode treeNode ->
+viewTreeMemoryReadingUITreeNode viewState treeNode =
+    let
+        nodeIdentityInView =
+            { pythonObjAddress = treeNode.pythonObjAddress }
+
+        expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
             let
-                nodeIdentityInView =
-                    { pythonObjAddress = treeNode.pythonObjAddress }
+                ( contentHtml, offeredNewExpensionState ) =
+                    if viewState.expandedNodes |> List.member viewNode then
+                        ( getExpandedContentHtml (), False )
 
-                expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
-                    let
-                        ( contentHtml, offeredNewExpensionState ) =
-                            if viewState.expandedNodes |> List.member viewNode then
-                                ( getExpandedContentHtml (), False )
+                    else
+                        ( getCollapsedContentHtml (), True )
 
-                            else
-                                ( getCollapsedContentHtml (), True )
+                buttonLabel =
+                    if offeredNewExpensionState then
+                        "Expand"
 
-                        buttonLabel =
-                            if offeredNewExpensionState then
-                                "Expand"
+                    else
+                        "Collapse"
 
-                            else
-                                "Collapse"
+                buttonHtml =
+                    [ buttonLabel |> Html.text ]
+                        |> Html.button
+                            [ HE.onClick (UserInputSetTreeViewNodeIsExpanded viewNode offeredNewExpensionState)
+                            ]
+            in
+            [ [ buttonHtml, contentHtml ]
+                |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
+                |> Html.tr []
+            ]
+                |> Html.table []
 
-                        buttonHtml =
-                            [ buttonLabel |> Html.text ]
-                                |> Html.button
-                                    [ HE.onClick (UserInputSetTreeViewNodeIsExpanded viewNode offeredNewExpensionState)
-                                    ]
-                    in
-                    [ [ buttonHtml, contentHtml ]
-                        |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
-                        |> Html.tr []
-                    ]
-                        |> Html.table []
-
-                popularPropertiesDescription =
-                    [ "PyObjTypName", "Name" ]
+        popularPropertiesDescription =
+            treeNode.pythonObjTypeName
+                :: ([ "Name" ]
                         |> List.filterMap
                             (\popularProperty ->
                                 treeNode.otherProperties |> List.filter (Tuple.first >> (==) popularProperty) |> List.head
                             )
-                        |> List.map (Tuple.second >> Json.Encode.encode 0 >> String.Extra.ellipsis 20)
+                        |> List.map (Tuple.second >> Json.Encode.encode 0)
+                   )
+                |> List.map (String.Extra.ellipsis 20)
 
-                commonSummaryText =
-                    ((countDescendantsInUITreeNode wrappedTreeNode |> String.fromInt)
-                        ++ " descendants"
-                    )
-                        :: popularPropertiesDescription
-                        |> String.join ", "
+        commonSummaryText =
+            ((countDescendantsInUITreeNode treeNode |> String.fromInt)
+                ++ " descendants"
+            )
+                :: popularPropertiesDescription
+                |> String.join ", "
 
-                commonSummaryHtml =
-                    commonSummaryText |> Html.text
+        commonSummaryHtml =
+            commonSummaryText |> Html.text
+    in
+    expandableHtml
+        (ExpandableUITreeNode nodeIdentityInView)
+        (always commonSummaryHtml)
+        (\() ->
+            let
+                otherPropertiesHtml =
+                    treeNode.otherProperties
+                        |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
+
+                childrenHtml =
+                    case treeNode.children |> Maybe.withDefault [] of
+                        [] ->
+                            "No children" |> Html.text
+
+                        children ->
+                            expandableHtml
+                                (ExpandableUITreeNodeChildren nodeIdentityInView)
+                                (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
+                                (\() -> children |> List.map unwrapMemoryReadingUITreeNodeChild |> List.map (viewTreeMemoryReadingUITreeNode viewState) |> Html.div [])
+
+                allProperties =
+                    ( "summary", commonSummaryHtml )
+                        :: ( "pythonObjAddress", treeNode.pythonObjAddress |> String.fromInt |> Html.text )
+                        :: ( "pythonObjTypeName", treeNode.pythonObjTypeName |> Html.text )
+                        :: otherPropertiesHtml
+                        ++ [ ( "children", childrenHtml ) ]
+
+                allPropertiesHtml =
+                    allProperties
+                        |> List.map
+                            (\( propertyName, propertyValueHtml ) ->
+                                [ [ propertyName |> Html.text ] |> Html.span []
+                                , propertyValueHtml
+                                ]
+                                    |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
+                                    |> Html.tr []
+                            )
             in
-            expandableHtml
-                (ExpandableUITreeNode nodeIdentityInView)
-                (always commonSummaryHtml)
-                (\() ->
+            allPropertiesHtml |> Html.table []
+        )
+
+
+parseMemoryReadingFromPartialPythonJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
+parseMemoryReadingFromPartialPythonJson =
+    decodeMemoryReadingFromString
+        >> Result.map
+            (\uiTree ->
+                { uiTree = uiTree
+                , overviewWindow = parseOverviewWindowFromUiRoot uiTree
+                }
+            )
+
+
+parseOverviewWindowFromUiRoot : MemoryReadingUITreeNode -> MaybeVisible OverviewWindow
+parseOverviewWindowFromUiRoot uiTreeRoot =
+    case uiTreeRoot |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> (==) "OverView") of
+        Nothing ->
+            CanNotSeeIt
+
+        Just overviewWindowNode ->
+            CanSee (overviewWindowNode |> parseOverviewWindow)
+
+
+parseOverviewWindow : MemoryReadingUITreeNode -> OverviewWindow
+parseOverviewWindow overviewWindowNode =
+    let
+        ( tableHeaders, overviewEntries ) =
+            case overviewWindowNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> String.toLower >> String.contains "scroll") of
+                Nothing ->
+                    ( [], [] )
+
+                Just scrollNode ->
                     let
-                        otherPropertiesHtml =
-                            treeNode.otherProperties
-                                |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
+                        -- TODO: Reduce risk of wrong link of entry contents to columns: Use the global/absolute offset instead of a local one.
+                        headers =
+                            case scrollNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> String.toLower >> String.contains "headers") of
+                                Nothing ->
+                                    []
 
-                        childrenHtml =
-                            case treeNode.children |> Maybe.withDefault [] of
-                                [] ->
-                                    "No children" |> Html.text
+                                Just headersContainerNode ->
+                                    headersContainerNode
+                                        |> listDescendantsInUITreeNode
+                                        |> List.filterMap
+                                            (\headerContainerCandidate ->
+                                                if (headerContainerCandidate.pythonObjTypeName |> String.toLower) /= "container" then
+                                                    Nothing
 
-                                children ->
-                                    expandableHtml
-                                        (ExpandableUITreeNodeChildren nodeIdentityInView)
-                                        (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                        (\() -> children |> List.map (viewTreeMemoryReadingUITreeNode viewState) |> Html.div [])
+                                                else
+                                                    let
+                                                        maybeText =
+                                                            headerContainerCandidate.children
+                                                                |> Maybe.withDefault []
+                                                                |> List.map unwrapMemoryReadingUITreeNodeChild
+                                                                |> List.filterMap getDisplayText
+                                                                |> List.head
 
-                        allProperties =
-                            ( "summary", commonSummaryHtml )
-                                :: ( "pythonObjAddress", treeNode.pythonObjAddress |> String.fromInt |> Html.text )
-                                :: otherPropertiesHtml
-                                ++ [ ( "children", childrenHtml ) ]
+                                                        maybeOffset =
+                                                            headerContainerCandidate
+                                                                |> getHorizontalOffsetFromParentAndWidth
+                                                                |> Maybe.map (\offsetAndWidth -> offsetAndWidth.offset + offsetAndWidth.width // 2)
+                                                    in
+                                                    case ( maybeText, maybeOffset ) of
+                                                        ( Just text, Just offset ) ->
+                                                            Just { text = text, offset = offset }
 
-                        allPropertiesHtml =
-                            allProperties
-                                |> List.map
-                                    (\( propertyName, propertyValueHtml ) ->
-                                        [ [ propertyName |> Html.text ] |> Html.span []
-                                        , propertyValueHtml
-                                        ]
-                                            |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
-                                            |> Html.tr []
+                                                        _ ->
+                                                            Nothing
+                                            )
+
+                        headersFromLeftToRight =
+                            headers |> List.sortBy .offset
+
+                        entries =
+                            overviewWindowNode
+                                |> listDescendantsInUITreeNode
+                                |> List.filter (.pythonObjTypeName >> (==) "OverviewScrollEntry")
+                                |> List.filterMap
+                                    (\overviewEntryNode ->
+                                        if (overviewEntryNode |> countDescendantsInUITreeNode) < 1 then
+                                            Nothing
+
+                                        else
+                                            let
+                                                childrenWithOffset =
+                                                    overviewEntryNode.children
+                                                        |> Maybe.withDefault []
+                                                        |> List.map unwrapMemoryReadingUITreeNodeChild
+                                                        |> List.filterMap
+                                                            (\child ->
+                                                                child
+                                                                    |> getHorizontalOffsetFromParentAndWidth
+                                                                    |> Maybe.map (\offsetAndWidth -> { uiNode = child, offset = offsetAndWidth.offset + offsetAndWidth.width // 2 })
+                                                            )
+
+                                                cellsContents =
+                                                    headersFromLeftToRight
+                                                        |> List.map
+                                                            (\header ->
+                                                                let
+                                                                    childrenWithOffsetNotCloserToAnotherHeader =
+                                                                        childrenWithOffset
+                                                                            |> List.filter
+                                                                                (\childWithOffset ->
+                                                                                    let
+                                                                                        closestHeader =
+                                                                                            headersFromLeftToRight
+                                                                                                |> List.sortBy (\otherHeader -> abs (otherHeader.offset - childWithOffset.offset))
+                                                                                                |> List.head
+                                                                                    in
+                                                                                    closestHeader == Just header
+                                                                                )
+
+                                                                    maybeClosestChild =
+                                                                        childrenWithOffsetNotCloserToAnotherHeader
+                                                                            |> List.sortBy (\childNode -> abs (childNode.offset - header.offset))
+                                                                            |> List.head
+                                                                            |> Maybe.map .uiNode
+
+                                                                    cellText =
+                                                                        maybeClosestChild
+                                                                            |> Maybe.andThen
+                                                                                (\closestChild ->
+                                                                                    (closestChild :: (closestChild |> listDescendantsInUITreeNode))
+                                                                                        |> List.filterMap getDisplayText
+                                                                                        |> List.sortBy (String.length >> negate)
+                                                                                        |> List.head
+                                                                                )
+                                                                            |> Maybe.withDefault ""
+                                                                in
+                                                                ( header.text, cellText )
+                                                            )
+                                                        |> Dict.fromList
+                                            in
+                                            Just
+                                                { uiTreeNode = overviewEntryNode
+                                                , cellsContents = cellsContents
+                                                }
                                     )
+                                |> List.sortBy (.uiTreeNode >> getVerticalOffsetFromParent >> Maybe.withDefault 9999)
                     in
-                    allPropertiesHtml |> Html.table []
-                )
+                    ( headersFromLeftToRight |> List.map .text, entries )
+    in
+    { headers = tableHeaders, entries = overviewEntries }
+
+
+getDisplayText : MemoryReadingUITreeNode -> Maybe String
+getDisplayText uiElement =
+    [ "SetText", "Text" ]
+        |> List.filterMap
+            (\displayTextPropertyName ->
+                uiElement.otherProperties
+                    |> Dict.fromList
+                    |> Dict.get displayTextPropertyName
+                    |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
+            )
+        |> List.sortBy (String.length >> negate)
+        |> List.head
+
+
+getHorizontalOffsetFromParentAndWidth : MemoryReadingUITreeNode -> Maybe { offset : Int, width : Int }
+getHorizontalOffsetFromParentAndWidth uiElement =
+    let
+        roundedNumberFromPropertyName propertyName =
+            uiElement.otherProperties
+                |> List.filter (Tuple.first >> (==) propertyName)
+                |> List.head
+                |> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
+                |> Maybe.map round
+    in
+    case ( roundedNumberFromPropertyName "LaageInParentA", roundedNumberFromPropertyName "GrööseA" ) of
+        ( Just offset, Just width ) ->
+            Just { offset = offset, width = width }
+
+        _ ->
+            Nothing
+
+
+getVerticalOffsetFromParent : MemoryReadingUITreeNode -> Maybe Int
+getVerticalOffsetFromParent =
+    .otherProperties
+        >> List.filter (Tuple.first >> (==) "LaageInParentB")
+        >> List.head
+        >> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
+        >> Maybe.map round
+
+
+getMostPopulousDescendantMatchingPredicate : (MemoryReadingUITreeNode -> Bool) -> MemoryReadingUITreeNode -> Maybe MemoryReadingUITreeNode
+getMostPopulousDescendantMatchingPredicate predicate parent =
+    listDescendantsInUITreeNode parent
+        |> List.filter predicate
+        |> List.sortBy countDescendantsInUITreeNode
+        |> List.reverse
+        |> List.head
+
+
+unwrapMemoryReadingUITreeNodeChild : MemoryReadingUITreeNodeChild -> MemoryReadingUITreeNode
+unwrapMemoryReadingUITreeNodeChild wrappedNode =
+    case wrappedNode of
+        MemoryReadingUITreeNodeChild unwrapped ->
+            unwrapped
 
 
 countDescendantsInUITreeNode : MemoryReadingUITreeNode -> Int
-countDescendantsInUITreeNode wrappedNode =
-    case wrappedNode of
-        MemoryReadingUITreeNode node ->
-            node.children
-                |> Maybe.withDefault []
-                |> List.map (countDescendantsInUITreeNode >> (+) 1)
-                |> List.sum
+countDescendantsInUITreeNode parent =
+    parent.children
+        |> Maybe.withDefault []
+        |> List.map unwrapMemoryReadingUITreeNodeChild
+        |> List.map (countDescendantsInUITreeNode >> (+) 1)
+        |> List.sum
+
+
+listDescendantsInUITreeNode : MemoryReadingUITreeNode -> List MemoryReadingUITreeNode
+listDescendantsInUITreeNode parent =
+    parent.children
+        |> Maybe.withDefault []
+        |> List.map unwrapMemoryReadingUITreeNodeChild
+        |> List.concatMap (\child -> child :: listDescendantsInUITreeNode child)
 
 
 decodeMemoryReadingFromString : String -> Result Json.Decode.Error MemoryReadingUITreeNode
 decodeMemoryReadingFromString =
-    Json.Decode.decodeString memoryReadingUITreeNodeDecoder
+    Json.Decode.decodeString memoryReadingUITreeNodeDecoder >> Result.map unwrapMemoryReadingUITreeNodeChild
 
 
-memoryReadingUITreeNodeDecoder : Json.Decode.Decoder MemoryReadingUITreeNode
+memoryReadingUITreeNodeDecoder : Json.Decode.Decoder MemoryReadingUITreeNodeChild
 memoryReadingUITreeNodeDecoder =
-    Json.Decode.map4
-        (\originalJson pythonObjAddress children otherProperties ->
-            { originalJson = originalJson, pythonObjAddress = pythonObjAddress, children = children, otherProperties = otherProperties } |> MemoryReadingUITreeNode
+    Json.Decode.map5
+        (\originalJson pythonObjAddress pythonObjTypeName children otherProperties ->
+            { originalJson = originalJson, pythonObjAddress = pythonObjAddress, pythonObjTypeName = pythonObjTypeName, children = children, otherProperties = otherProperties } |> MemoryReadingUITreeNodeChild
         )
         Json.Decode.value
         (Json.Decode.field "PyObjAddress" Json.Decode.int)
+        (decodeOptionalField "PyObjTypName" Json.Decode.string |> Json.Decode.map (Maybe.withDefault ""))
         (decodeOptionalField "ListChild" (Json.Decode.list (Json.Decode.lazy (\_ -> memoryReadingUITreeNodeDecoder))))
-        (Json.Decode.keyValuePairs Json.Decode.value |> Json.Decode.map (List.filter (\( property, _ ) -> [ "PyObjAddress", "ListChild" ] |> List.member property |> not)))
+        (Json.Decode.keyValuePairs Json.Decode.value |> Json.Decode.map (List.filter (\( property, _ ) -> [ "PyObjAddress", "PyObjTypName", "ListChild" ] |> List.member property |> not)))
 
 
 decodeOptionalField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
@@ -632,11 +933,6 @@ decodeOptionalField fieldName decoder =
     in
     Json.Decode.value
         |> Json.Decode.andThen finishDecoding
-
-
-describeMemoryReading : Sanderling.Sanderling.MemoryMeasurementCompleted -> String
-describeMemoryReading memoryReadingCompleted =
-    "reducedWithNamedNodesJson: " ++ (memoryReadingCompleted.reducedWithNamedNodesJson |> Maybe.withDefault "Nothing")
 
 
 globalStylesHtmlElement : Html.Html a
