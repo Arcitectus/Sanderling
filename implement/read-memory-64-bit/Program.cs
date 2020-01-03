@@ -206,11 +206,126 @@ namespace read_memory_64_bit
 
         static byte[] GetProcessSampleFileFromProcessId(int processId)
         {
+            var process = System.Diagnostics.Process.GetProcessById(processId);
+
+            var beginMainWindowClientAreaScreenshotBmp = BMPFileFromBitmap(GetScreenshotOfWindowClientAreaAsBitmap(process.MainWindowHandle));
+
             var (committedRegions, logEntries) = EveOnline64.ReadCommittedMemoryRegionsFromProcessId(processId);
 
-            return ProcessSample.ZipArchiveFromProcessSample(committedRegions, logEntries);
+            var endMainWindowClientAreaScreenshotBmp = BMPFileFromBitmap(GetScreenshotOfWindowClientAreaAsBitmap(process.MainWindowHandle));
+
+            return ProcessSample.ZipArchiveFromProcessSample(
+                committedRegions,
+                logEntries,
+                beginMainWindowClientAreaScreenshotBmp: beginMainWindowClientAreaScreenshotBmp,
+                endMainWindowClientAreaScreenshotBmp: endMainWindowClientAreaScreenshotBmp);
         }
 
+        //  Screenshot implementation found at https://github.com/Viir/bots/blob/225c680115328d9ba0223760cec85d56f2ea9a87/implement/templates/locate-object-in-window/src/BotEngine/VolatileHostWindowsApi.elm#L479-L557
+
+        static public byte[] BMPFileFromBitmap(System.Drawing.Bitmap bitmap)
+        {
+            using (var stream = new System.IO.MemoryStream())
+            {
+                bitmap.Save(stream, format: System.Drawing.Imaging.ImageFormat.Bmp);
+                return stream.ToArray();
+            }
+        }
+
+        public int[][] GetScreenshotOfWindowAsPixelsValuesR8G8B8(IntPtr windowHandle)
+        {
+            var screenshotAsBitmap = GetScreenshotOfWindowAsBitmap(windowHandle);
+            if (screenshotAsBitmap == null)
+                return null;
+            var bitmapData = screenshotAsBitmap.LockBits(
+                new System.Drawing.Rectangle(0, 0, screenshotAsBitmap.Width, screenshotAsBitmap.Height),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            int byteCount = bitmapData.Stride * screenshotAsBitmap.Height;
+            byte[] pixelsArray = new byte[byteCount];
+            IntPtr ptrFirstPixel = bitmapData.Scan0;
+            Marshal.Copy(ptrFirstPixel, pixelsArray, 0, pixelsArray.Length);
+            screenshotAsBitmap.UnlockBits(bitmapData);
+            var pixels = new int[screenshotAsBitmap.Height][];
+            for (var rowIndex = 0; rowIndex < screenshotAsBitmap.Height; ++rowIndex)
+            {
+                var rowPixelValues = new int[screenshotAsBitmap.Width];
+                for (var columnIndex = 0; columnIndex < screenshotAsBitmap.Width; ++columnIndex)
+                {
+                    var pixelBeginInArray = bitmapData.Stride * rowIndex + columnIndex * 3;
+                    var red = pixelsArray[pixelBeginInArray + 2];
+                    var green = pixelsArray[pixelBeginInArray + 1];
+                    var blue = pixelsArray[pixelBeginInArray + 0];
+                    rowPixelValues[columnIndex] = (red << 16) | (green << 8) | blue;
+                }
+                pixels[rowIndex] = rowPixelValues;
+            }
+            return pixels;
+        }
+
+        //  https://github.com/Viir/bots/blob/225c680115328d9ba0223760cec85d56f2ea9a87/implement/templates/locate-object-in-window/src/BotEngine/VolatileHostWindowsApi.elm#L535-L557
+        static public System.Drawing.Bitmap GetScreenshotOfWindowAsBitmap(IntPtr windowHandle)
+        {
+            SetProcessDPIAware();
+            var windowRect = new WinApi.Rect();
+            if (WinApi.GetWindowRect(windowHandle, ref windowRect) == IntPtr.Zero)
+                return null;
+            int width = windowRect.right - windowRect.left;
+            int height = windowRect.bottom - windowRect.top;
+            var asBitmap = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            System.Drawing.Graphics.FromImage(asBitmap).CopyFromScreen(
+                windowRect.left,
+                windowRect.top,
+                0,
+                0,
+                new System.Drawing.Size(width, height),
+                System.Drawing.CopyPixelOperation.SourceCopy);
+            return asBitmap;
+        }
+
+        static public System.Drawing.Bitmap GetScreenshotOfWindowClientAreaAsBitmap(IntPtr windowHandle)
+        {
+            SetProcessDPIAware();
+
+            var clientRect = new WinApi.Rect();
+
+            if (WinApi.GetClientRect(windowHandle, ref clientRect) == IntPtr.Zero)
+                return null;
+
+            var clientRectLeftTop = new WinApi.Point { x = clientRect.left, y = clientRect.top };
+            var clientRectRightBottom = new WinApi.Point { x = clientRect.right, y = clientRect.bottom };
+
+            WinApi.ClientToScreen(windowHandle, ref clientRectLeftTop);
+            WinApi.ClientToScreen(windowHandle, ref clientRectRightBottom);
+
+            clientRect = new WinApi.Rect
+            {
+                left = clientRectLeftTop.x,
+                top = clientRectLeftTop.y,
+                right = clientRectRightBottom.x,
+                bottom = clientRectRightBottom.y
+            };
+
+            int width = clientRect.right - clientRect.left;
+            int height = clientRect.bottom - clientRect.top;
+            var asBitmap = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            System.Drawing.Graphics.FromImage(asBitmap).CopyFromScreen(
+                clientRect.left,
+                clientRect.top,
+                0,
+                0,
+                new System.Drawing.Size(width, height),
+                System.Drawing.CopyPixelOperation.SourceCopy);
+            return asBitmap;
+        }
+
+        static void SetProcessDPIAware()
+        {
+            //  https://www.google.com/search?q=GetWindowRect+dpi
+            //  https://github.com/dotnet/wpf/issues/859
+            //  https://github.com/dotnet/winforms/issues/135
+            WinApi.SetProcessDPIAware();
+        }
 
         static ulong ParseULong(string asString)
         {
@@ -892,6 +1007,36 @@ namespace read_memory_64_bit
         [DllImport("kernel32.dll", SetLastError = true)]
         static public extern bool CloseHandle(IntPtr hHandle);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static public extern bool SetProcessDPIAware();
+
+        [DllImport("user32.dll")]
+        static public extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
+
+        [DllImport("user32.dll")]
+        static public extern IntPtr GetClientRect(IntPtr hWnd, ref Rect rect);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static public extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Rect
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Point
+        {
+            public int x;
+
+            public int y;
+        }
+
         //  http://www.pinvoke.net/default.aspx/kernel32.virtualqueryex
         //  https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-memory_basic_information
         [StructLayout(LayoutKind.Sequential)]
@@ -1043,13 +1188,29 @@ namespace read_memory_64_bit
     {
         static public byte[] ZipArchiveFromProcessSample(
             IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions,
-            IImmutableList<string> logEntries)
+            IImmutableList<string> logEntries,
+            byte[] beginMainWindowClientAreaScreenshotBmp,
+            byte[] endMainWindowClientAreaScreenshotBmp)
         {
+            var screenshotEntriesCandidates = new[]
+            {
+                (filePath: ImmutableList.Create("begin-main-window-client-area.bmp"), content: beginMainWindowClientAreaScreenshotBmp),
+                (filePath: ImmutableList.Create("end-main-window-client-area.bmp"), content: endMainWindowClientAreaScreenshotBmp),
+            };
+
+            var screenshotEntries =
+                screenshotEntriesCandidates
+                .Where(filePathAndContent => filePathAndContent.content != null)
+                .Select(filePathAndContent => new KeyValuePair<IImmutableList<string>, byte[]>(
+                    filePathAndContent.filePath, filePathAndContent.content))
+                .ToArray();
+
             var zipArchiveEntries =
                 memoryRegions.ToImmutableDictionary(
                     region => (IImmutableList<string>)(new[] { "Process", "Memory", $"0x{region.baseAddress:X}" }.ToImmutableList()),
                     region => region.content)
-                .Add(new[] { "copy-memory-log" }.ToImmutableList(), System.Text.Encoding.UTF8.GetBytes(String.Join("\n", logEntries)));
+                .Add(new[] { "copy-memory-log" }.ToImmutableList(), System.Text.Encoding.UTF8.GetBytes(String.Join("\n", logEntries)))
+                .AddRange(screenshotEntries);
 
             return Kalmit.ZipArchive.ZipArchiveFromEntries(zipArchiveEntries);
         }
