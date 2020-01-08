@@ -572,7 +572,7 @@ namespace read_memory_64_bit
             "_name", "_text", "_setText",
             "children",
             "texturePath", "_bgTexturePath",
-            "_texture", "_hint", "_display",
+            "_hint", "_display",
 
             //  HPGauges
             "lastShield", "lastArmor", "lastStructure",
