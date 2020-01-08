@@ -10,7 +10,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-04";
+        static string AppVersionId => "2020-01-08";
 
         static int Main(string[] args)
         {
@@ -78,6 +78,7 @@ namespace read_memory_64_bit
                     var sourceFileArgument = argumentFromParameterName("--source-file");
                     var outputFileArgument = argumentFromParameterName("--output-file");
                     var removeOtherDictEntriesArgument = argumentFromParameterName("--remove-other-dict-entries");
+                    var warmupFirstArgument = argumentFromParameterName("--warmup-first");
 
                     if (!processIdArgument.isPresent && !sourceFileArgument.isPresent)
                         throw new Exception("Where should I read from?");
@@ -133,13 +134,24 @@ namespace read_memory_64_bit
 
                     var (uiRootCandidatesAddresses, memoryReader) = GetRootAddressesAndMemoryReader();
 
+                    IImmutableList<UITreeNode> ReadUITrees() =>
+                            uiRootCandidatesAddresses
+                            .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
+                            .Where(uiTree => uiTree != null)
+                            .ToImmutableList();
+
+                    if (warmupFirstArgument.isPresent)
+                    {
+                        Console.WriteLine("Performing a warmup run first.");
+                        ReadUITrees().ToList();
+                        System.Threading.Thread.Sleep(1111);
+                        ReadUITrees().ToList();
+                        System.Threading.Thread.Sleep(1111);
+                    }
+
                     var readUiTreesStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-                    var uiTrees =
-                        uiRootCandidatesAddresses
-                        .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
-                        .Where(uiTree => uiTree != null)
-                        .ToImmutableList();
+                    var uiTrees = ReadUITrees();
 
                     readUiTreesStopwatch.Stop();
 
@@ -159,7 +171,7 @@ namespace read_memory_64_bit
                         .Select(uiTreeWithStats => $"\n0x{uiTreeWithStats.uiTree.pythonObjectAddress:X}: {uiTreeWithStats.nodeCount} nodes.")
                         .ToImmutableList();
 
-                    Console.WriteLine($"Read {uiTrees.Count} UI trees in {(int)readUiTreesStopwatch.Elapsed.TotalSeconds} seconds:" + string.Join("", uiTreesReport));
+                    Console.WriteLine($"Read {uiTrees.Count} UI trees in {(int)readUiTreesStopwatch.Elapsed.TotalMilliseconds} milliseconds:" + string.Join("", uiTreesReport));
 
                     var largestUiTree =
                         uiTreesWithStats
@@ -656,6 +668,11 @@ namespace read_memory_64_bit
                 return getPythonTypeNameFromPythonTypeObjectAddress(BitConverter.ToUInt64(objectMemory, 8));
             }
 
+            string readPythonStringValueMaxLength4000(ulong strObjectAddress)
+            {
+                return ReadPythonStringValue(strObjectAddress, memoryReader, 4000);
+            }
+
             PyDictEntry[] ReadActiveDictionaryEntriesFromDictionaryAddress(ulong dictionaryAddress)
             {
                 /*
@@ -741,7 +758,7 @@ namespace read_memory_64_bit
                 if (keyObject_type_name != "str")
                     continue;
 
-                var keyString = ReadPythonStringValue(dictionaryEntry.key, memoryReader, 0x1000);
+                var keyString = readPythonStringValueMaxLength4000(dictionaryEntry.key);
 
                 if (!DictEntriesOfInterestKeys.Contains(keyString))
                 {
@@ -749,15 +766,15 @@ namespace read_memory_64_bit
                     continue;
                 }
 
-                object getValueRepresentation()
+                object getValueRepresentation(ulong valueOjectAddress)
                 {
                     var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
                     {
-                        address = dictionaryEntry.value,
+                        address = valueOjectAddress,
                         pythonObjectTypeName = null
                     };
 
-                    var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(dictionaryEntry.value);
+                    var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
 
                     genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
 
@@ -775,7 +792,7 @@ namespace read_memory_64_bit
                 dictEntriesOfInterest.Add(new UITreeNode.DictEntry
                 {
                     key = keyString,
-                    value = getValueRepresentation()
+                    value = getValueRepresentation(dictionaryEntry.value)
                 });
             }
 
@@ -825,7 +842,7 @@ namespace read_memory_64_bit
                         if (getPythonTypeNameFromPythonObjectAddress(dictionaryEntry.key) != "str")
                             return false;
 
-                        var keyString = ReadPythonStringValue(dictionaryEntry.key, memoryReader, 1000);
+                        var keyString = readPythonStringValueMaxLength4000(dictionaryEntry.key);
 
                         return keyString == "_childrenObjects";
                     });
