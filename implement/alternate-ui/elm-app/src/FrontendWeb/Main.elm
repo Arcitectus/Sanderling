@@ -14,6 +14,12 @@ import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
 import Sanderling.Sanderling
+import Sanderling.SanderlingMemoryReading as SanderlingMemoryReading
+    exposing
+        ( MemoryReadingUITreeNode
+        , getHorizontalOffsetFromParentAndWidth
+        , getVerticalOffsetFromParent
+        )
 import Set
 import String.Extra
 import Task
@@ -80,25 +86,6 @@ type Event
     | UserInputSetTreeViewNodeIsExpanded ExpandableViewNode Bool
     | ContinueReadFromLiveProcess
     | UserInputDownloadJsonFile String
-
-
-type alias MemoryReadingUITreeNode =
-    { originalJson : Json.Encode.Value
-    , pythonObjectAddress : String
-    , pythonObjectTypeName : String
-    , children : Maybe (List MemoryReadingUITreeNodeChild)
-    , dictEntriesOfInterest : List ( String, Json.Encode.Value )
-    }
-
-
-type MemoryReadingUITreeNodeChild
-    = MemoryReadingUITreeNodeChild
-        { originalJson : Json.Encode.Value
-        , pythonObjectAddress : String
-        , pythonObjectTypeName : String
-        , children : Maybe (List MemoryReadingUITreeNodeChild)
-        , dictEntriesOfInterest : List ( String, Json.Encode.Value )
-        }
 
 
 type alias TreeViewState =
@@ -632,7 +619,7 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
                 |> List.map (String.Extra.ellipsis 20)
 
         commonSummaryText =
-            ((countDescendantsInUITreeNode treeNode |> String.fromInt)
+            ((SanderlingMemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
                 ++ " descendants"
             )
                 :: popularPropertiesDescription
@@ -659,7 +646,7 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map unwrapMemoryReadingUITreeNodeChild |> List.map (viewTreeMemoryReadingUITreeNode viewState) |> Html.div [])
+                                (\() -> children |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild |> List.map (viewTreeMemoryReadingUITreeNode viewState) |> Html.div [])
 
                 allProperties =
                     ( "summary", commonSummaryHtml )
@@ -685,7 +672,7 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
 
 parseMemoryReadingFromPartialPythonJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
 parseMemoryReadingFromPartialPythonJson =
-    decodeMemoryReadingFromString
+    SanderlingMemoryReading.decodeMemoryReadingFromString
         >> Result.map
             (\uiTree ->
                 { uiTree = uiTree
@@ -696,7 +683,7 @@ parseMemoryReadingFromPartialPythonJson =
 
 parseOverviewWindowFromUiRoot : MemoryReadingUITreeNode -> MaybeVisible OverviewWindow
 parseOverviewWindowFromUiRoot uiTreeRoot =
-    case uiTreeRoot |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
+    case uiTreeRoot |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
         Nothing ->
             CanNotSeeIt
 
@@ -708,7 +695,7 @@ parseOverviewWindow : MemoryReadingUITreeNode -> OverviewWindow
 parseOverviewWindow overviewWindowNode =
     let
         ( tableHeaders, overviewEntries ) =
-            case overviewWindowNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
+            case overviewWindowNode |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
                 Nothing ->
                     ( [], [] )
 
@@ -716,13 +703,13 @@ parseOverviewWindow overviewWindowNode =
                     let
                         -- TODO: Reduce risk of wrong link of entry contents to columns: Use the global/absolute offset instead of a local one.
                         headers =
-                            case scrollNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
+                            case scrollNode |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
                                 Nothing ->
                                     []
 
                                 Just headersContainerNode ->
                                     headersContainerNode
-                                        |> listDescendantsInUITreeNode
+                                        |> SanderlingMemoryReading.listDescendantsInUITreeNode
                                         |> List.filterMap
                                             (\headerContainerCandidate ->
                                                 if (headerContainerCandidate.pythonObjectTypeName |> String.toLower) /= "container" then
@@ -733,7 +720,7 @@ parseOverviewWindow overviewWindowNode =
                                                         maybeText =
                                                             headerContainerCandidate.children
                                                                 |> Maybe.withDefault []
-                                                                |> List.map unwrapMemoryReadingUITreeNodeChild
+                                                                |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild
                                                                 |> List.filterMap getDisplayText
                                                                 |> List.head
 
@@ -755,11 +742,11 @@ parseOverviewWindow overviewWindowNode =
 
                         entries =
                             overviewWindowNode
-                                |> listDescendantsInUITreeNode
+                                |> SanderlingMemoryReading.listDescendantsInUITreeNode
                                 |> List.filter (.pythonObjectTypeName >> (==) "OverviewScrollEntry")
                                 |> List.filterMap
                                     (\overviewEntryNode ->
-                                        if (overviewEntryNode |> countDescendantsInUITreeNode) < 1 then
+                                        if (overviewEntryNode |> SanderlingMemoryReading.countDescendantsInUITreeNode) < 1 then
                                             Nothing
 
                                         else
@@ -767,7 +754,7 @@ parseOverviewWindow overviewWindowNode =
                                                 childrenWithOffset =
                                                     overviewEntryNode.children
                                                         |> Maybe.withDefault []
-                                                        |> List.map unwrapMemoryReadingUITreeNodeChild
+                                                        |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild
                                                         |> List.filterMap
                                                             (\child ->
                                                                 child
@@ -803,7 +790,7 @@ parseOverviewWindow overviewWindowNode =
                                                                         maybeClosestChild
                                                                             |> Maybe.andThen
                                                                                 (\closestChild ->
-                                                                                    (closestChild :: (closestChild |> listDescendantsInUITreeNode))
+                                                                                    (closestChild :: (closestChild |> SanderlingMemoryReading.listDescendantsInUITreeNode))
                                                                                         |> List.filterMap getDisplayText
                                                                                         |> List.sortBy (String.length >> negate)
                                                                                         |> List.head
@@ -838,107 +825,6 @@ getDisplayText uiElement =
             )
         |> List.sortBy (String.length >> negate)
         |> List.head
-
-
-getHorizontalOffsetFromParentAndWidth : MemoryReadingUITreeNode -> Maybe { offset : Int, width : Int }
-getHorizontalOffsetFromParentAndWidth uiElement =
-    let
-        roundedNumberFromPropertyName propertyName =
-            uiElement.dictEntriesOfInterest
-                |> List.filter (Tuple.first >> (==) propertyName)
-                |> List.head
-                |> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
-                |> Maybe.map round
-    in
-    case ( roundedNumberFromPropertyName "_displayX", roundedNumberFromPropertyName "_width" ) of
-        ( Just offset, Just width ) ->
-            Just { offset = offset, width = width }
-
-        _ ->
-            Nothing
-
-
-getVerticalOffsetFromParent : MemoryReadingUITreeNode -> Maybe Int
-getVerticalOffsetFromParent =
-    .dictEntriesOfInterest
-        >> List.filter (Tuple.first >> (==) "_displayY")
-        >> List.head
-        >> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
-        >> Maybe.map round
-
-
-getMostPopulousDescendantMatchingPredicate : (MemoryReadingUITreeNode -> Bool) -> MemoryReadingUITreeNode -> Maybe MemoryReadingUITreeNode
-getMostPopulousDescendantMatchingPredicate predicate parent =
-    listDescendantsInUITreeNode parent
-        |> List.filter predicate
-        |> List.sortBy countDescendantsInUITreeNode
-        |> List.reverse
-        |> List.head
-
-
-unwrapMemoryReadingUITreeNodeChild : MemoryReadingUITreeNodeChild -> MemoryReadingUITreeNode
-unwrapMemoryReadingUITreeNodeChild wrappedNode =
-    case wrappedNode of
-        MemoryReadingUITreeNodeChild unwrapped ->
-            unwrapped
-
-
-countDescendantsInUITreeNode : MemoryReadingUITreeNode -> Int
-countDescendantsInUITreeNode parent =
-    parent.children
-        |> Maybe.withDefault []
-        |> List.map unwrapMemoryReadingUITreeNodeChild
-        |> List.map (countDescendantsInUITreeNode >> (+) 1)
-        |> List.sum
-
-
-listDescendantsInUITreeNode : MemoryReadingUITreeNode -> List MemoryReadingUITreeNode
-listDescendantsInUITreeNode parent =
-    parent.children
-        |> Maybe.withDefault []
-        |> List.map unwrapMemoryReadingUITreeNodeChild
-        |> List.concatMap (\child -> child :: listDescendantsInUITreeNode child)
-
-
-decodeMemoryReadingFromString : String -> Result Json.Decode.Error MemoryReadingUITreeNode
-decodeMemoryReadingFromString =
-    Json.Decode.decodeString memoryReadingUITreeNodeDecoder >> Result.map unwrapMemoryReadingUITreeNodeChild
-
-
-memoryReadingUITreeNodeDecoder : Json.Decode.Decoder MemoryReadingUITreeNodeChild
-memoryReadingUITreeNodeDecoder =
-    Json.Decode.map5
-        (\originalJson pythonObjectAddress pythonObjectTypeName children dictEntriesOfInterest ->
-            { originalJson = originalJson, pythonObjectAddress = pythonObjectAddress, pythonObjectTypeName = pythonObjectTypeName, children = children, dictEntriesOfInterest = dictEntriesOfInterest } |> MemoryReadingUITreeNodeChild
-        )
-        Json.Decode.value
-        (Json.Decode.field "pythonObjectAddress" Json.Decode.value |> Json.Decode.map (Json.Encode.encode 0))
-        (decodeOptionalField "pythonObjectTypeName" Json.Decode.string |> Json.Decode.map (Maybe.withDefault ""))
-        (decodeOptionalOrNullField "children" (Json.Decode.list (Json.Decode.lazy (\_ -> memoryReadingUITreeNodeDecoder))))
-        (Json.Decode.field "dictEntriesOfInterest" (Json.Decode.keyValuePairs Json.Decode.value))
-
-
-decodeOptionalOrNullField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
-decodeOptionalOrNullField fieldName decoder =
-    decodeOptionalField fieldName (Json.Decode.nullable decoder)
-        |> Json.Decode.map (Maybe.andThen identity)
-
-
-decodeOptionalField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
-decodeOptionalField fieldName decoder =
-    let
-        finishDecoding json =
-            case Json.Decode.decodeValue (Json.Decode.field fieldName Json.Decode.value) json of
-                Ok val ->
-                    -- The field is present, so run the decoder on it.
-                    Json.Decode.map Just (Json.Decode.field fieldName decoder)
-
-                Err _ ->
-                    -- The field was missing, which is fine!
-                    Json.Decode.succeed Nothing
-    in
-    Json.Decode.value
-        |> Json.Decode.andThen finishDecoding
 
 
 globalStylesHtmlElement : Html.Html a

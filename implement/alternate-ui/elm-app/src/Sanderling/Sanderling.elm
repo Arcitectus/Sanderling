@@ -8,7 +8,6 @@ module Sanderling.Sanderling exposing
     , ResponseFromVolatileHost(..)
     , VirtualKeyCode(..)
     , buildScriptToGetResponseFromVolatileHost
-    , centerFromRegion
     , decodeRequestToVolatileHost
     , deserializeResponseFromVolatileHost
     , effectMouseClickAtLocation
@@ -18,7 +17,6 @@ module Sanderling.Sanderling exposing
 import Json.Decode
 import Json.Decode.Extra
 import Json.Encode
-import Sanderling.SanderlingMemoryMeasurement as SanderlingMemoryMeasurement
 
 
 type RequestToVolatileHost
@@ -320,11 +318,6 @@ buildScriptToGetResponseFromVolatileHost request =
                 |> Json.Encode.encode 0
            )
         ++ ")"
-
-
-centerFromRegion : SanderlingMemoryMeasurement.UIElementRegion -> Location2d
-centerFromRegion region =
-    { x = (region.left + region.right) // 2, y = (region.top + region.bottom) // 2 }
 
 
 effectMouseClickAtLocation : MouseButton -> Location2d -> EffectOnWindowStructure
