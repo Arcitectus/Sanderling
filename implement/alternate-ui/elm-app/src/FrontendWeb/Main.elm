@@ -17,6 +17,7 @@ import Sanderling.Sanderling
 import Sanderling.SanderlingMemoryReading as SanderlingMemoryReading
     exposing
         ( MemoryReadingUITreeNode
+        , MemoryReadingUITreeNodeWithDisplayOffset
         , getHorizontalOffsetFromParentAndWidth
         , getVerticalOffsetFromParent
         )
@@ -67,6 +68,7 @@ type alias ParseMemoryReadingCompleted =
 
 type alias ParseMemoryReadingSuccess =
     { uiTree : MemoryReadingUITreeNode
+    , uiNodesWithDisplayOffset : Dict.Dict String MemoryReadingUITreeNodeWithDisplayOffset
     , overviewWindow : MaybeVisible OverviewWindow
     }
 
@@ -505,7 +507,7 @@ viewSourceFromLiveProcess state =
 presentParsedMemoryReading : ParseMemoryReadingSuccess -> State -> Html.Html Event
 presentParsedMemoryReading memoryReading state =
     [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-    , viewTreeMemoryReadingUITreeNode state.treeView memoryReading.uiTree
+    , viewTreeMemoryReadingUITreeNode memoryReading.uiNodesWithDisplayOffset state.treeView memoryReading.uiTree
     , verticalSpacerFromHeightInEm 0.5
     , [ "Overview" |> Html.text ] |> Html.h3 []
     , displayReadOverviewWindowResult memoryReading.overviewWindow
@@ -573,11 +575,14 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
-viewTreeMemoryReadingUITreeNode viewState treeNode =
+viewTreeMemoryReadingUITreeNode : Dict.Dict String MemoryReadingUITreeNodeWithDisplayOffset -> TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState treeNode =
     let
         nodeIdentityInView =
             { pythonObjectAddress = treeNode.pythonObjectAddress }
+
+        maybeNodeWithTotalDisplayOffset =
+            uiNodeWithOffsetFromAddress |> Dict.get treeNode.pythonObjectAddress
 
         expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
             let
@@ -646,12 +651,24 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild |> List.map (viewTreeMemoryReadingUITreeNode viewState) |> Html.div [])
+                                (\() -> children |> List.map (SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState) |> Html.div [])
+
+                totalDisplayOffsetText =
+                    maybeNodeWithTotalDisplayOffset
+                        |> Maybe.map
+                            (\nodeWithOffset ->
+                                "x = "
+                                    ++ (nodeWithOffset.totalDisplayOffset.x |> String.fromInt)
+                                    ++ ", y = "
+                                    ++ (nodeWithOffset.totalDisplayOffset.y |> String.fromInt)
+                            )
+                        |> Maybe.withDefault "None"
 
                 allProperties =
                     ( "summary", commonSummaryHtml )
                         :: ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
                         :: ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
+                        :: ( "totalDisplayOffset", totalDisplayOffsetText |> Html.text )
                         :: otherPropertiesHtml
                         ++ [ ( "children", childrenHtml ) ]
 
@@ -675,7 +692,16 @@ parseMemoryReadingFromPartialPythonJson =
     SanderlingMemoryReading.decodeMemoryReadingFromString
         >> Result.map
             (\uiTree ->
+                let
+                    uiTreeWithDisplayOffsets =
+                        uiTree |> SanderlingMemoryReading.asUITreeNodeWithTotalDisplayOffset { x = 0, y = 0 }
+                in
                 { uiTree = uiTree
+                , uiNodesWithDisplayOffset =
+                    uiTreeWithDisplayOffsets
+                        :: (uiTreeWithDisplayOffsets |> SanderlingMemoryReading.listDescendantsWithDisplayOffsetInUITreeNode)
+                        |> List.map (\uiNodeWithOffset -> ( uiNodeWithOffset.rawNode.pythonObjectAddress, uiNodeWithOffset ))
+                        |> Dict.fromList
                 , overviewWindow = parseOverviewWindowFromUiRoot uiTree
                 }
             )
