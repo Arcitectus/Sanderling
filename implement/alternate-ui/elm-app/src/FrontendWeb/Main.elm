@@ -84,20 +84,20 @@ type Event
 
 type alias MemoryReadingUITreeNode =
     { originalJson : Json.Encode.Value
-    , pythonObjAddress : Int
-    , pythonObjTypeName : String
+    , pythonObjectAddress : String
+    , pythonObjectTypeName : String
     , children : Maybe (List MemoryReadingUITreeNodeChild)
-    , otherProperties : List ( String, Json.Encode.Value )
+    , dictEntriesOfInterest : List ( String, Json.Encode.Value )
     }
 
 
 type MemoryReadingUITreeNodeChild
     = MemoryReadingUITreeNodeChild
         { originalJson : Json.Encode.Value
-        , pythonObjAddress : Int
-        , pythonObjTypeName : String
+        , pythonObjectAddress : String
+        , pythonObjectTypeName : String
         , children : Maybe (List MemoryReadingUITreeNodeChild)
-        , otherProperties : List ( String, Json.Encode.Value )
+        , dictEntriesOfInterest : List ( String, Json.Encode.Value )
         }
 
 
@@ -112,7 +112,7 @@ type ExpandableViewNode
 
 
 type alias UITreeNodeIdentity =
-    { pythonObjAddress : Int }
+    { pythonObjectAddress : String }
 
 
 type ResponseFromServer
@@ -590,7 +590,7 @@ viewTreeMemoryReadingUITreeNode : TreeViewState -> MemoryReadingUITreeNode -> Ht
 viewTreeMemoryReadingUITreeNode viewState treeNode =
     let
         nodeIdentityInView =
-            { pythonObjAddress = treeNode.pythonObjAddress }
+            { pythonObjectAddress = treeNode.pythonObjectAddress }
 
         expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
             let
@@ -621,11 +621,11 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
                 |> Html.table []
 
         popularPropertiesDescription =
-            treeNode.pythonObjTypeName
-                :: ([ "Name" ]
+            treeNode.pythonObjectTypeName
+                :: ([ "_name" ]
                         |> List.filterMap
                             (\popularProperty ->
-                                treeNode.otherProperties |> List.filter (Tuple.first >> (==) popularProperty) |> List.head
+                                treeNode.dictEntriesOfInterest |> List.filter (Tuple.first >> (==) popularProperty) |> List.head
                             )
                         |> List.map (Tuple.second >> Json.Encode.encode 0)
                    )
@@ -647,7 +647,7 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
         (\() ->
             let
                 otherPropertiesHtml =
-                    treeNode.otherProperties
+                    treeNode.dictEntriesOfInterest
                         |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
 
                 childrenHtml =
@@ -663,8 +663,8 @@ viewTreeMemoryReadingUITreeNode viewState treeNode =
 
                 allProperties =
                     ( "summary", commonSummaryHtml )
-                        :: ( "pythonObjAddress", treeNode.pythonObjAddress |> String.fromInt |> Html.text )
-                        :: ( "pythonObjTypeName", treeNode.pythonObjTypeName |> Html.text )
+                        :: ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
+                        :: ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
                         :: otherPropertiesHtml
                         ++ [ ( "children", childrenHtml ) ]
 
@@ -696,7 +696,7 @@ parseMemoryReadingFromPartialPythonJson =
 
 parseOverviewWindowFromUiRoot : MemoryReadingUITreeNode -> MaybeVisible OverviewWindow
 parseOverviewWindowFromUiRoot uiTreeRoot =
-    case uiTreeRoot |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> (==) "OverView") of
+    case uiTreeRoot |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
         Nothing ->
             CanNotSeeIt
 
@@ -708,7 +708,7 @@ parseOverviewWindow : MemoryReadingUITreeNode -> OverviewWindow
 parseOverviewWindow overviewWindowNode =
     let
         ( tableHeaders, overviewEntries ) =
-            case overviewWindowNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> String.toLower >> String.contains "scroll") of
+            case overviewWindowNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
                 Nothing ->
                     ( [], [] )
 
@@ -716,7 +716,7 @@ parseOverviewWindow overviewWindowNode =
                     let
                         -- TODO: Reduce risk of wrong link of entry contents to columns: Use the global/absolute offset instead of a local one.
                         headers =
-                            case scrollNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjTypeName >> String.toLower >> String.contains "headers") of
+                            case scrollNode |> getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
                                 Nothing ->
                                     []
 
@@ -725,7 +725,7 @@ parseOverviewWindow overviewWindowNode =
                                         |> listDescendantsInUITreeNode
                                         |> List.filterMap
                                             (\headerContainerCandidate ->
-                                                if (headerContainerCandidate.pythonObjTypeName |> String.toLower) /= "container" then
+                                                if (headerContainerCandidate.pythonObjectTypeName |> String.toLower) /= "container" then
                                                     Nothing
 
                                                 else
@@ -756,7 +756,7 @@ parseOverviewWindow overviewWindowNode =
                         entries =
                             overviewWindowNode
                                 |> listDescendantsInUITreeNode
-                                |> List.filter (.pythonObjTypeName >> (==) "OverviewScrollEntry")
+                                |> List.filter (.pythonObjectTypeName >> (==) "OverviewScrollEntry")
                                 |> List.filterMap
                                     (\overviewEntryNode ->
                                         if (overviewEntryNode |> countDescendantsInUITreeNode) < 1 then
@@ -828,10 +828,10 @@ parseOverviewWindow overviewWindowNode =
 
 getDisplayText : MemoryReadingUITreeNode -> Maybe String
 getDisplayText uiElement =
-    [ "SetText", "Text" ]
+    [ "_setText", "_text" ]
         |> List.filterMap
             (\displayTextPropertyName ->
-                uiElement.otherProperties
+                uiElement.dictEntriesOfInterest
                     |> Dict.fromList
                     |> Dict.get displayTextPropertyName
                     |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
@@ -844,13 +844,13 @@ getHorizontalOffsetFromParentAndWidth : MemoryReadingUITreeNode -> Maybe { offse
 getHorizontalOffsetFromParentAndWidth uiElement =
     let
         roundedNumberFromPropertyName propertyName =
-            uiElement.otherProperties
+            uiElement.dictEntriesOfInterest
                 |> List.filter (Tuple.first >> (==) propertyName)
                 |> List.head
                 |> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
                 |> Maybe.map round
     in
-    case ( roundedNumberFromPropertyName "LaageInParentA", roundedNumberFromPropertyName "GrööseA" ) of
+    case ( roundedNumberFromPropertyName "_displayX", roundedNumberFromPropertyName "_width" ) of
         ( Just offset, Just width ) ->
             Just { offset = offset, width = width }
 
@@ -860,8 +860,8 @@ getHorizontalOffsetFromParentAndWidth uiElement =
 
 getVerticalOffsetFromParent : MemoryReadingUITreeNode -> Maybe Int
 getVerticalOffsetFromParent =
-    .otherProperties
-        >> List.filter (Tuple.first >> (==) "LaageInParentB")
+    .dictEntriesOfInterest
+        >> List.filter (Tuple.first >> (==) "_displayY")
         >> List.head
         >> Maybe.andThen (Tuple.second >> Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
         >> Maybe.map round
@@ -908,14 +908,20 @@ decodeMemoryReadingFromString =
 memoryReadingUITreeNodeDecoder : Json.Decode.Decoder MemoryReadingUITreeNodeChild
 memoryReadingUITreeNodeDecoder =
     Json.Decode.map5
-        (\originalJson pythonObjAddress pythonObjTypeName children otherProperties ->
-            { originalJson = originalJson, pythonObjAddress = pythonObjAddress, pythonObjTypeName = pythonObjTypeName, children = children, otherProperties = otherProperties } |> MemoryReadingUITreeNodeChild
+        (\originalJson pythonObjectAddress pythonObjectTypeName children dictEntriesOfInterest ->
+            { originalJson = originalJson, pythonObjectAddress = pythonObjectAddress, pythonObjectTypeName = pythonObjectTypeName, children = children, dictEntriesOfInterest = dictEntriesOfInterest } |> MemoryReadingUITreeNodeChild
         )
         Json.Decode.value
-        (Json.Decode.field "PyObjAddress" Json.Decode.int)
-        (decodeOptionalField "PyObjTypName" Json.Decode.string |> Json.Decode.map (Maybe.withDefault ""))
-        (decodeOptionalField "ListChild" (Json.Decode.list (Json.Decode.lazy (\_ -> memoryReadingUITreeNodeDecoder))))
-        (Json.Decode.keyValuePairs Json.Decode.value |> Json.Decode.map (List.filter (\( property, _ ) -> [ "PyObjAddress", "PyObjTypName", "ListChild" ] |> List.member property |> not)))
+        (Json.Decode.field "pythonObjectAddress" Json.Decode.value |> Json.Decode.map (Json.Encode.encode 0))
+        (decodeOptionalField "pythonObjectTypeName" Json.Decode.string |> Json.Decode.map (Maybe.withDefault ""))
+        (decodeOptionalOrNullField "children" (Json.Decode.list (Json.Decode.lazy (\_ -> memoryReadingUITreeNodeDecoder))))
+        (Json.Decode.field "dictEntriesOfInterest" (Json.Decode.keyValuePairs Json.Decode.value))
+
+
+decodeOptionalOrNullField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
+decodeOptionalOrNullField fieldName decoder =
+    decodeOptionalField fieldName (Json.Decode.nullable decoder)
+        |> Json.Decode.map (Maybe.andThen identity)
 
 
 decodeOptionalField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
