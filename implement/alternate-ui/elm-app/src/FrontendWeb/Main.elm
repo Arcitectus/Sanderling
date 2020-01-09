@@ -16,8 +16,10 @@ import Json.Encode
 import Sanderling.Sanderling
 import Sanderling.SanderlingMemoryReading as SanderlingMemoryReading
     exposing
-        ( MemoryReadingUITreeNode
-        , MemoryReadingUITreeNodeWithDisplayOffset
+        ( MaybeVisible(..)
+        , MemoryReadingUITreeNode
+        , MemoryReadingUITreeNodeWithDisplayRegion
+        , getDisplayText
         , getHorizontalOffsetFromParentAndWidth
         , getVerticalOffsetFromParent
         )
@@ -68,8 +70,9 @@ type alias ParseMemoryReadingCompleted =
 
 type alias ParseMemoryReadingSuccess =
     { uiTree : MemoryReadingUITreeNode
-    , uiNodesWithDisplayOffset : Dict.Dict String MemoryReadingUITreeNodeWithDisplayOffset
+    , uiNodesWithDisplayRegion : Dict.Dict String MemoryReadingUITreeNodeWithDisplayRegion
     , overviewWindow : MaybeVisible OverviewWindow
+    , furtherParsed : SanderlingMemoryReading.MemoryReadingWithNamedNodes
     }
 
 
@@ -119,11 +122,6 @@ type alias OverviewEntry =
     { uiTreeNode : MemoryReadingUITreeNode
     , cellsContents : Dict.Dict String String
     }
-
-
-type MaybeVisible feature
-    = CanNotSeeIt
-    | CanSee feature
 
 
 subscriptions : State -> Sub Event
@@ -507,7 +505,7 @@ viewSourceFromLiveProcess state =
 presentParsedMemoryReading : ParseMemoryReadingSuccess -> State -> Html.Html Event
 presentParsedMemoryReading memoryReading state =
     [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-    , viewTreeMemoryReadingUITreeNode memoryReading.uiNodesWithDisplayOffset state.treeView memoryReading.uiTree
+    , viewTreeMemoryReadingUITreeNode memoryReading.uiNodesWithDisplayRegion state.treeView memoryReading.uiTree
     , verticalSpacerFromHeightInEm 0.5
     , [ "Overview" |> Html.text ] |> Html.h3 []
     , displayReadOverviewWindowResult memoryReading.overviewWindow
@@ -575,14 +573,14 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : Dict.Dict String MemoryReadingUITreeNodeWithDisplayOffset -> TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
-viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState treeNode =
+viewTreeMemoryReadingUITreeNode : Dict.Dict String MemoryReadingUITreeNodeWithDisplayRegion -> TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIdentityInView =
             { pythonObjectAddress = treeNode.pythonObjectAddress }
 
         maybeNodeWithTotalDisplayOffset =
-            uiNodeWithOffsetFromAddress |> Dict.get treeNode.pythonObjectAddress
+            uiNodesWithDisplayRegion |> Dict.get treeNode.pythonObjectAddress
 
         expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
             let
@@ -616,10 +614,8 @@ viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState treeNode =
             treeNode.pythonObjectTypeName
                 :: ([ "_name" ]
                         |> List.filterMap
-                            (\popularProperty ->
-                                treeNode.dictEntriesOfInterest |> List.filter (Tuple.first >> (==) popularProperty) |> List.head
-                            )
-                        |> List.map (Tuple.second >> Json.Encode.encode 0)
+                            (\popularProperty -> treeNode.dictEntriesOfInterest |> Dict.get popularProperty)
+                        |> List.map (Json.Encode.encode 0)
                    )
                 |> List.map (String.Extra.ellipsis 20)
 
@@ -640,6 +636,7 @@ viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState treeNode =
             let
                 otherPropertiesHtml =
                     treeNode.dictEntriesOfInterest
+                        |> Dict.toList
                         |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
 
                 childrenHtml =
@@ -651,16 +648,18 @@ viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map (SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodeWithOffsetFromAddress viewState) |> Html.div [])
+                                (\() -> children |> List.map (SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
 
                 totalDisplayOffsetText =
                     maybeNodeWithTotalDisplayOffset
                         |> Maybe.map
                             (\nodeWithOffset ->
-                                "x = "
-                                    ++ (nodeWithOffset.totalDisplayOffset.x |> String.fromInt)
-                                    ++ ", y = "
-                                    ++ (nodeWithOffset.totalDisplayOffset.y |> String.fromInt)
+                                [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
+                                    |> List.map
+                                        (\( regionPropertyName, regionProperty ) ->
+                                            regionPropertyName ++ " = " ++ (nodeWithOffset.totalDisplayRegion |> regionProperty |> String.fromInt)
+                                        )
+                                    |> String.join ", "
                             )
                         |> Maybe.withDefault "None"
 
@@ -693,16 +692,17 @@ parseMemoryReadingFromPartialPythonJson =
         >> Result.map
             (\uiTree ->
                 let
-                    uiTreeWithDisplayOffsets =
-                        uiTree |> SanderlingMemoryReading.asUITreeNodeWithTotalDisplayOffset { x = 0, y = 0 }
+                    uiTreeWithDisplayRegion =
+                        uiTree |> SanderlingMemoryReading.parseUITreeWithDisplayRegionFromUITree
                 in
                 { uiTree = uiTree
-                , uiNodesWithDisplayOffset =
-                    uiTreeWithDisplayOffsets
-                        :: (uiTreeWithDisplayOffsets |> SanderlingMemoryReading.listDescendantsWithDisplayOffsetInUITreeNode)
-                        |> List.map (\uiNodeWithOffset -> ( uiNodeWithOffset.rawNode.pythonObjectAddress, uiNodeWithOffset ))
+                , uiNodesWithDisplayRegion =
+                    uiTreeWithDisplayRegion
+                        :: (uiTreeWithDisplayRegion |> SanderlingMemoryReading.listDescendantsWithDisplayRegion)
+                        |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.rawNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
                 , overviewWindow = parseOverviewWindowFromUiRoot uiTree
+                , furtherParsed = SanderlingMemoryReading.parseMemoryReadingWithNamedNodes uiTreeWithDisplayRegion
                 }
             )
 
@@ -837,20 +837,6 @@ parseOverviewWindow overviewWindowNode =
                     ( headersFromLeftToRight |> List.map .text, entries )
     in
     { headers = tableHeaders, entries = overviewEntries }
-
-
-getDisplayText : MemoryReadingUITreeNode -> Maybe String
-getDisplayText uiElement =
-    [ "_setText", "_text" ]
-        |> List.filterMap
-            (\displayTextPropertyName ->
-                uiElement.dictEntriesOfInterest
-                    |> Dict.fromList
-                    |> Dict.get displayTextPropertyName
-                    |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
-            )
-        |> List.sortBy (String.length >> negate)
-        |> List.head
 
 
 globalStylesHtmlElement : Html.Html a
