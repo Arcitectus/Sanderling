@@ -63,7 +63,7 @@ type alias ReadFromLiveProcessCompleted =
 
 
 type alias ParseMemoryReadingCompleted =
-    { partialPythonJson : String
+    { serialRepresentationJson : String
     , parseResult : Result Json.Decode.Error ParseMemoryReadingSuccess
     }
 
@@ -194,11 +194,11 @@ update event stateBefore =
         UserInputSelectMemoryReadingFile (Just file) ->
             ( stateBefore, Task.perform ReadMemoryReadingFile (File.toString file) )
 
-        ReadMemoryReadingFile partialPythonJson ->
+        ReadMemoryReadingFile serialRepresentationJson ->
             let
                 memoryReading =
-                    { partialPythonJson = partialPythonJson
-                    , parseResult = partialPythonJson |> parseMemoryReadingFromPartialPythonJson
+                    { serialRepresentationJson = serialRepresentationJson
+                    , parseResult = serialRepresentationJson |> parseMemoryReadingFromJson
                     }
             in
             ( { stateBefore | readFromFileResult = Just memoryReading }, Cmd.none )
@@ -218,7 +218,7 @@ update event stateBefore =
             ( stateBefore, (stateBefore |> decideNextStepToReadFromLiveProcess).nextCmd )
 
         UserInputDownloadJsonFile jsonString ->
-            ( stateBefore, File.Download.string "partialPython.json" "application/json" jsonString )
+            ( stateBefore, File.Download.string "memory-reading.json" "application/json" jsonString )
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result Http.Error ResponseFromServer } -> State -> State
@@ -238,8 +238,8 @@ integrateBackendResponse { request, result } stateBefore =
 
                                     RunInVolatileHostResponse runInVolatileHostResponse ->
                                         case runInVolatileHostResponse of
-                                            InterfaceToFrontendClient.SetupNotCompleteResponse ->
-                                                Err "Volatile host setup not complete."
+                                            InterfaceToFrontendClient.SetupNotCompleteResponse status ->
+                                                Err ("Volatile host setup not complete: " ++ status)
 
                                             InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
                                                 case runInVolatileHostCompleteResponse.exceptionToString of
@@ -285,8 +285,8 @@ integrateBackendResponse { request, result } stateBefore =
 
                                     RunInVolatileHostResponse runInVolatileHostResponse ->
                                         case runInVolatileHostResponse of
-                                            InterfaceToFrontendClient.SetupNotCompleteResponse ->
-                                                Err "Volatile host setup not complete."
+                                            InterfaceToFrontendClient.SetupNotCompleteResponse status ->
+                                                Err ("Volatile host setup not complete: " ++ status)
 
                                             InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
                                                 case runInVolatileHostCompleteResponse.exceptionToString of
@@ -315,16 +315,16 @@ integrateBackendResponse { request, result } stateBefore =
                             )
                         |> Result.andThen
                             (\memoryReadingCompleted ->
-                                case memoryReadingCompleted.partialPythonJson of
+                                case memoryReadingCompleted.serialRepresentationJson of
                                     Nothing ->
-                                        Err "Memory reading completed, but 'partialPythonJson' is null. Please configure EVE Online client and restart."
+                                        Err "Memory reading completed, but 'serialRepresentationJson' is null. Please configure EVE Online client and restart."
 
-                                    Just partialPythonJson ->
+                                    Just serialRepresentationJson ->
                                         Ok
                                             { mainWindowId = memoryReadingCompleted.mainWindowId
                                             , memoryReading =
-                                                { partialPythonJson = partialPythonJson
-                                                , parseResult = partialPythonJson |> parseMemoryReadingFromPartialPythonJson
+                                                { serialRepresentationJson = serialRepresentationJson
+                                                , parseResult = serialRepresentationJson |> parseMemoryReadingFromJson
                                                 }
                                             }
                             )
@@ -477,7 +477,7 @@ viewSourceFromLiveProcess state =
                     let
                         downloadButton =
                             [ "Click here to download this memory measurement to a JSON file." |> Html.text ]
-                                |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.partialPythonJson) ]
+                                |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.serialRepresentationJson) ]
 
                         parsedHtml =
                             case parsedReadMemoryResult.memoryReading.parseResult of
@@ -686,8 +686,8 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
         )
 
 
-parseMemoryReadingFromPartialPythonJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
-parseMemoryReadingFromPartialPythonJson =
+parseMemoryReadingFromJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
+parseMemoryReadingFromJson =
     SanderlingMemoryReading.decodeMemoryReadingFromString
         >> Result.map
             (\uiTree ->
