@@ -176,11 +176,26 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
 
                                 _ ->
                                     let
+                                        setupStatusDescription =
+                                            "Last run script result: "
+                                                ++ (stateBefore.setup.lastRunScriptResult
+                                                        |> Maybe.map
+                                                            (\result ->
+                                                                case result of
+                                                                    Ok okResult ->
+                                                                        "Ok: " ++ (okResult |> Maybe.withDefault "")
+
+                                                                    Err errorResult ->
+                                                                        "Err: " ++ errorResult
+                                                            )
+                                                        |> Maybe.withDefault "Nothing"
+                                                   )
+
                                         httpResponse =
                                             { httpRequestId = httpRequestEvent.httpRequestId
                                             , response =
                                                 { statusCode = 200
-                                                , bodyAsString = Just (InterfaceToFrontendClient.SetupNotCompleteResponse |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
+                                                , bodyAsString = Just (InterfaceToFrontendClient.SetupNotCompleteResponse setupStatusDescription |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
                                                 , headersToAdd = []
                                                 }
                                             }
@@ -274,7 +289,19 @@ processFrameworkTaskCompleteEvent taskComplete stateBefore =
                 Ok runInVolatileHostComplete ->
                     case runInVolatileHostComplete.exceptionToString of
                         Just exceptionToString ->
-                            ( stateBefore |> addLogEntry ("Run in volatile host failed with exception: " ++ exceptionToString), [] )
+                            let
+                                setupStateBefore =
+                                    stateBefore.setup
+
+                                setupState =
+                                    { setupStateBefore
+                                        | lastRunScriptResult = Just (Err ("Exception: " ++ exceptionToString))
+                                    }
+                            in
+                            ( { stateBefore | setup = setupState }
+                                |> addLogEntry ("Run in volatile host failed with exception: " ++ exceptionToString)
+                            , []
+                            )
 
                         Nothing ->
                             if runInVolatileHostComplete.returnValueToString == Just "Sanderling Setup Completed" then

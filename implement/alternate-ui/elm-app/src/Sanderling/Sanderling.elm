@@ -8,7 +8,6 @@ module Sanderling.Sanderling exposing
     , ResponseFromVolatileHost(..)
     , VirtualKeyCode(..)
     , buildScriptToGetResponseFromVolatileHost
-    , centerFromRegion
     , decodeRequestToVolatileHost
     , deserializeResponseFromVolatileHost
     , effectMouseClickAtLocation
@@ -18,7 +17,6 @@ module Sanderling.Sanderling exposing
 import Json.Decode
 import Json.Decode.Extra
 import Json.Encode
-import Sanderling.SanderlingMemoryMeasurement as SanderlingMemoryMeasurement
 
 
 type RequestToVolatileHost
@@ -43,8 +41,7 @@ type GetMemoryMeasurementResultStructure
 
 type alias MemoryMeasurementCompleted =
     { mainWindowId : WindowId
-    , partialPythonJson : Maybe String
-    , reducedWithNamedNodesJson : Maybe String
+    , serialRepresentationJson : Maybe String
     }
 
 
@@ -304,10 +301,9 @@ decodeGetMemoryMeasurementResult =
 
 decodeMemoryMeasurementCompleted : Json.Decode.Decoder MemoryMeasurementCompleted
 decodeMemoryMeasurementCompleted =
-    Json.Decode.map3 MemoryMeasurementCompleted
+    Json.Decode.map2 MemoryMeasurementCompleted
         (Json.Decode.field "mainWindowId" Json.Decode.string)
-        (Json.Decode.Extra.optionalField "partialPythonJson" Json.Decode.string)
-        (Json.Decode.Extra.optionalField "reducedWithNamedNodesJson" Json.Decode.string)
+        (Json.Decode.Extra.optionalField "serialRepresentationJson" Json.Decode.string)
 
 
 buildScriptToGetResponseFromVolatileHost : RequestToVolatileHost -> String
@@ -320,11 +316,6 @@ buildScriptToGetResponseFromVolatileHost request =
                 |> Json.Encode.encode 0
            )
         ++ ")"
-
-
-centerFromRegion : SanderlingMemoryMeasurement.UIElementRegion -> Location2d
-centerFromRegion region =
-    { x = (region.left + region.right) // 2, y = (region.top + region.bottom) // 2 }
 
 
 effectMouseClickAtLocation : MouseButton -> Location2d -> EffectOnWindowStructure

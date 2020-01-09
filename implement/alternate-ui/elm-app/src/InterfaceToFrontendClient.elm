@@ -19,7 +19,7 @@ type RequestFromClient
 
 
 type RunInVolatileHostResponseStructure
-    = SetupNotCompleteResponse
+    = SetupNotCompleteResponse String
     | RunInVolatileHostCompleteResponse RunInVolatileHostComplete
 
 
@@ -51,8 +51,8 @@ jsonDecodeRequestFromClient =
 jsonEncodeRunInVolatileHostResponseStructure : RunInVolatileHostResponseStructure -> Json.Encode.Value
 jsonEncodeRunInVolatileHostResponseStructure response =
     case response of
-        SetupNotCompleteResponse ->
-            [ ( "SetupNotCompleteResponse", [] |> Json.Encode.object ) ] |> Json.Encode.object
+        SetupNotCompleteResponse setupNotCompleteResponse ->
+            [ ( "SetupNotCompleteResponse", setupNotCompleteResponse |> Json.Encode.string ) ] |> Json.Encode.object
 
         RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
             [ ( "RunInVolatileHostCompleteResponse", runInVolatileHostCompleteResponse |> encodeRunInVolatileHostComplete ) ] |> Json.Encode.object
@@ -61,7 +61,7 @@ jsonEncodeRunInVolatileHostResponseStructure response =
 jsonDecodeRunInVolatileHostResponseStructure : Json.Decode.Decoder RunInVolatileHostResponseStructure
 jsonDecodeRunInVolatileHostResponseStructure =
     Json.Decode.oneOf
-        [ Json.Decode.field "SetupNotCompleteResponse" (Json.Decode.succeed SetupNotCompleteResponse)
+        [ Json.Decode.field "SetupNotCompleteResponse" (Json.Decode.string |> Json.Decode.map SetupNotCompleteResponse)
         , Json.Decode.field "RunInVolatileHostCompleteResponse" (decodeRunInVolatileHostComplete |> Json.Decode.map RunInVolatileHostCompleteResponse)
         ]
 

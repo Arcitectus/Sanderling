@@ -73,7 +73,7 @@ At the top, you find a section titled 'Select a source for the memory reading'. 
 
 ### Reading from file
 
-Here you can load memory readings (partial python model) from JSON files.
+Here you can load memory readings from JSON files.
 After loading a memory reading, you can inspect it:
 
 > Successfully read the memory reading from the file. Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes.
