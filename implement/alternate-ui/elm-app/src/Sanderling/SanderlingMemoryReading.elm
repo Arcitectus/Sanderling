@@ -166,44 +166,8 @@ asUITreeNodeWithInheritedOffset inheritedOffset rawNode =
 getDisplayRegionFromDictEntries : MemoryReadingUITreeNode -> Maybe DisplayRegion
 getDisplayRegionFromDictEntries uiElement =
     let
-        fixedNumberFromJsonValue jsonValue =
-            let
-                asString =
-                    Json.Encode.encode 0 jsonValue
-            in
-            -- Looks like the EVE Online client uses intobjects but sometimes stores other stuff in the upper bits, so remove upper bits.let
-            if (asString |> String.length) < 10 then
-                String.toInt asString |> Result.fromMaybe "Failed to parse as integer."
-
-            else
-                case asString |> BigInt.fromIntString of
-                    Nothing ->
-                        Err "Failed to parse as integer."
-
-                    Just bigIntWithSign ->
-                        let
-                            hexString =
-                                (bigIntWithSign |> BigInt.abs)
-                                    |> BigInt.toHexString
-                                    |> String.right 8
-                                    |> String.toLower
-
-                            hexStringWithSign =
-                                if (hexString |> String.length) == 8 && (hexString |> String.left 1) == "f" then
-                                    "-8" ++ (hexString |> String.right 7)
-
-                                else
-                                    hexString
-                        in
-                        case hexStringWithSign |> BigInt.fromHexString of
-                            Nothing ->
-                                Err "Failed BigInt.fromHexString"
-
-                            Just truncated ->
-                                truncated
-                                    |> BigInt.toString
-                                    |> String.toInt
-                                    |> Result.fromMaybe "Failed to parse truncated as integer."
+        fixedNumberFromJsonValue =
+            Json.Encode.encode 0 >> parse64BitIntAndGetLower32BitInt >> Result.map .lower32Bit
 
         fixedNumberFromPropertyName propertyName =
             uiElement.dictEntriesOfInterest
@@ -220,6 +184,140 @@ getDisplayRegionFromDictEntries uiElement =
 
         _ ->
             Nothing
+
+
+
+-- Tests at https://ellie-app.com/7JJQTtHTJSwa1
+
+
+parse64BitIntAndGetLower32BitInt :
+    String
+    -> Result String { valueAsBase16 : String, base16WithSignIntegrated : String, lower32Bit : Int }
+parse64BitIntAndGetLower32BitInt asString =
+    let
+        ( wasNegative, valueAsString ) =
+            if asString |> String.startsWith "-" then
+                ( True, asString |> String.dropLeft 1 )
+
+            else
+                ( False, asString )
+    in
+    case valueAsString |> BigInt.fromIntString of
+        Nothing ->
+            Err "Failed to parse original as integer."
+
+        Just valueAsBigInt ->
+            let
+                valueAsBase16 =
+                    valueAsBigInt
+                        |> BigInt.toHexString
+                        |> String.padLeft 16 '0'
+                        |> String.toLower
+
+                withSignIntegratedResult =
+                    if wasNegative then
+                        valueAsBase16
+                            |> String.map flipAllBitsInBase16Char
+                            |> BigInt.fromHexString
+                            |> Maybe.map (BigInt.add (BigInt.fromInt 1))
+
+                    else
+                        BigInt.fromHexString valueAsBase16
+            in
+            case withSignIntegratedResult of
+                Nothing ->
+                    Err "Failed fromHexString"
+
+                Just withSignIntegrated ->
+                    let
+                        base16WithSignIntegrated =
+                            withSignIntegrated
+                                |> BigInt.toHexString
+                                |> String.padLeft 16 '0'
+                                |> String.toLower
+
+                        lower32BitAsBase16 =
+                            base16WithSignIntegrated |> String.right 8
+
+                        lower32BitAsBigIntResult =
+                            if lower32BitAsBase16 |> String.startsWith "f" then
+                                lower32BitAsBase16
+                                    |> String.map flipAllBitsInBase16Char
+                                    |> BigInt.fromHexString
+                                    |> Maybe.map (BigInt.add (BigInt.fromInt 1) >> BigInt.negate)
+
+                            else
+                                BigInt.fromHexString lower32BitAsBase16
+
+                        lower32BitResult =
+                            lower32BitAsBigIntResult
+                                |> Maybe.andThen (BigInt.toString >> String.toInt)
+                    in
+                    case lower32BitResult of
+                        Nothing ->
+                            Err "Failed fromHexString"
+
+                        Just lower32Bit ->
+                            Ok
+                                { valueAsBase16 = valueAsBase16
+                                , base16WithSignIntegrated = base16WithSignIntegrated
+                                , lower32Bit = lower32Bit
+                                }
+
+
+flipAllBitsInBase16Char : Char -> Char
+flipAllBitsInBase16Char originalChar =
+    case originalChar |> Char.toLower of
+        '0' ->
+            'f'
+
+        '1' ->
+            'e'
+
+        '2' ->
+            'd'
+
+        '3' ->
+            'c'
+
+        '4' ->
+            'b'
+
+        '5' ->
+            'a'
+
+        '6' ->
+            '9'
+
+        '7' ->
+            '8'
+
+        '8' ->
+            '7'
+
+        '9' ->
+            '6'
+
+        'a' ->
+            '5'
+
+        'b' ->
+            '4'
+
+        'c' ->
+            '3'
+
+        'd' ->
+            '2'
+
+        'e' ->
+            '1'
+
+        'f' ->
+            '0'
+
+        _ ->
+            '_'
 
 
 parseContextMenusFromUITreeRoot : MemoryReadingUITreeNodeWithDisplayRegion -> List ContextMenu
