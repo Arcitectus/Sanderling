@@ -33,6 +33,8 @@ import BigInt
 import Dict
 import Json.Decode
 import Json.Encode
+import Regex
+import Result.Extra
 
 
 type alias ParsedUserInterface =
@@ -40,6 +42,8 @@ type alias ParsedUserInterface =
     , contextMenus : List ContextMenu
     , shipUI : MaybeVisible ShipUI
     , infoPanelRoute : MaybeVisible InfoPanelRoute
+    , overviewWindow : MaybeVisible OverviewWindow
+    , inventoryWindows : List InventoryWindow
     }
 
 
@@ -107,11 +111,52 @@ type ShipManeuverType
 
 
 type alias InfoPanelRoute =
-    { routeElementMarker : List InfoPanelRouteRouteElementMarker }
+    { routeElementMarker : List InfoPanelRouteRouteElementMarker
+    }
 
 
 type alias InfoPanelRouteRouteElementMarker =
-    { uiNode : UITreeNodeWithDisplayRegion }
+    { uiNode : UITreeNodeWithDisplayRegion
+    }
+
+
+type alias OverviewWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , entries : List OverviewWindowEntry
+    }
+
+
+type alias OverviewWindowEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , textsLeftToRight : List String
+    , distanceInMeters : Result String Int
+    }
+
+
+type alias InventoryWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , leftTreeEntries : List InventoryWindowLeftTreeEntry
+    , selectedContainerCapacityGauge : Maybe InventoryWindowCapacityGauge
+    , selectedContainerInventory : Maybe Inventory
+    }
+
+
+type alias Inventory =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , listViewItems : List UITreeNodeWithDisplayRegion
+    }
+
+
+type alias InventoryWindowLeftTreeEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , text : String
+    }
+
+
+type alias InventoryWindowCapacityGauge =
+    { maximum : Int
+    , used : Int
+    }
 
 
 type MaybeVisible feature
@@ -130,6 +175,8 @@ parseUserInterfaceFromUITree uiTree =
     , contextMenus = parseContextMenusFromUITreeRoot uiTree
     , shipUI = parseShipUIFromUITreeRoot uiTree
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
+    , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
+    , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     }
 
 
@@ -312,6 +359,222 @@ parseShipUIIndication indicationUINode =
     { maneuverType = maneuverType }
 
 
+parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible OverviewWindow
+parseOverviewWindowFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverView")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just overviewWindowNode ->
+            let
+                entries =
+                    overviewWindowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
+                        |> List.map parseOverviewWindowEntry
+            in
+            CanSee { uiNode = overviewWindowNode, entries = entries }
+
+
+parseOverviewWindowEntry : UITreeNodeWithDisplayRegion -> OverviewWindowEntry
+parseOverviewWindowEntry overviewEntryNode =
+    let
+        textsLeftToRight =
+            overviewEntryNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
+                |> List.map Tuple.first
+    in
+    { uiNode = overviewEntryNode
+    , textsLeftToRight = textsLeftToRight
+    , distanceInMeters = textsLeftToRight |> parseOverviewEntryDistanceInMetersFromTexts
+    }
+
+
+parseOverviewEntryDistanceInMetersFromTexts : List String -> Result String Int
+parseOverviewEntryDistanceInMetersFromTexts texts =
+    let
+        parseResults =
+            texts |> List.map parseOverviewEntryDistanceInMetersFromText
+    in
+    case parseResults |> List.filterMap Result.toMaybe |> List.head of
+        Nothing ->
+            Err
+                ("Parsing did not succeed for any of the texts: "
+                    ++ ((parseResults |> List.filterMap (Result.Extra.unpack Just (always Nothing))) |> String.join ", ")
+                )
+
+        Just distanceInMeters ->
+            Ok distanceInMeters
+
+
+parseOverviewEntryDistanceInMetersFromText : String -> Result String Int
+parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
+    case "^[\\d\\,]+(?=\\s*m)" |> Regex.fromString of
+        Nothing ->
+            Err "Regex code error"
+
+        Just regexForUnitMeter ->
+            case "^[\\d\\,]+(?=\\s*km)" |> Regex.fromString of
+                Nothing ->
+                    Err "Regex code error"
+
+                Just regexForUnitKilometer ->
+                    let
+                        distanceDisplayText =
+                            distanceDisplayTextBeforeTrim |> String.trim
+                    in
+                    case distanceDisplayText |> Regex.find regexForUnitMeter |> List.head of
+                        Just match ->
+                            match.match
+                                |> String.replace "," ""
+                                |> String.toInt
+                                |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+
+                        Nothing ->
+                            case distanceDisplayText |> Regex.find regexForUnitKilometer |> List.head of
+                                Just match ->
+                                    match.match
+                                        |> String.replace "," ""
+                                        |> String.toInt
+                                        -- unit 'km'
+                                        |> Maybe.map ((*) 1000)
+                                        |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+
+                                Nothing ->
+                                    Err ("Text did not match expected number format: '" ++ distanceDisplayText ++ "'")
+
+
+parseInventoryWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List InventoryWindow
+parseInventoryWindowsFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (\uiNode -> [ "InventoryPrimary", "ActiveShipCargo" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
+        |> List.map parseInventoryWindow
+
+
+parseInventoryWindow : UITreeNodeWithDisplayRegion -> InventoryWindow
+parseInventoryWindow windowUiNode =
+    let
+        selectedContainerCapacityGaugeNode =
+            windowUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "CapacityGauge")
+                |> List.head
+
+        selectedContainerCapacityGauge =
+            selectedContainerCapacityGaugeNode
+                |> Maybe.map (.uiNode >> listDescendantsInUITreeNode)
+                |> Maybe.withDefault []
+                |> List.filterMap getDisplayText
+                |> List.sortBy (String.length >> negate)
+                |> List.head
+                |> Maybe.andThen (parseInventoryCapacityGaugeText >> Result.toMaybe)
+
+        leftTreeEntries =
+            windowUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.startsWith "TreeViewEntry")
+                |> List.map
+                    (\treeEntryNode ->
+                        let
+                            displayTextsWithRegion =
+                                treeEntryNode
+                                    |> getAllContainedDisplayTextsWithRegion
+
+                            text =
+                                displayTextsWithRegion
+                                    |> List.sortBy (\( _, textNode ) -> textNode.totalDisplayRegion.x + textNode.totalDisplayRegion.y)
+                                    |> List.head
+                                    |> Maybe.map Tuple.first
+                                    |> Maybe.withDefault ""
+                        in
+                        { uiNode = treeEntryNode
+                        , text = text
+                        }
+                    )
+
+        rightContainerNode =
+            windowUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter
+                    (\uiNode ->
+                        uiNode.uiNode.pythonObjectTypeName
+                            == "Container"
+                            && (uiNode.uiNode |> getNameFromDictEntries |> Maybe.map (String.contains "right") |> Maybe.withDefault False)
+                    )
+                |> List.head
+
+        selectedContainerInventory =
+            rightContainerNode
+                |> Maybe.andThen
+                    (listDescendantsWithDisplayRegion
+                        >> List.filter (\uiNode -> [ "ShipCargo", "ShipDroneBay", "ShipOreHold", "StationItems" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
+                        >> List.head
+                    )
+                |> Maybe.map
+                    (\selectedContainerInventoryNode ->
+                        { uiNode = selectedContainerInventoryNode
+                        , listViewItems =
+                            selectedContainerInventoryNode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
+                        }
+                    )
+    in
+    { uiNode = windowUiNode
+    , leftTreeEntries = leftTreeEntries
+    , selectedContainerCapacityGauge = selectedContainerCapacityGauge
+    , selectedContainerInventory = selectedContainerInventory
+    }
+
+
+parseInventoryCapacityGaugeText : String -> Result String InventoryWindowCapacityGauge
+parseInventoryCapacityGaugeText capacityText =
+    let
+        numbersParseResults =
+            capacityText
+                |> String.replace "m³" ""
+                |> String.split "/"
+                |> List.map (String.trim >> parseNumberTruncatingAfterOptionalDecimalSeparator)
+    in
+    case numbersParseResults |> Result.Extra.combine of
+        Err parseError ->
+            Err ("Failed to parse numbers: " ++ parseError)
+
+        Ok numbers ->
+            case numbers of
+                [ leftNumber, rightNumber ] ->
+                    Ok { used = leftNumber, maximum = rightNumber }
+
+                _ ->
+                    Err ("Unexpected number of components in capacityText '" ++ capacityText ++ "'")
+
+
+parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
+parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
+    case "^([\\d\\,\\s]+?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
+        Nothing ->
+            Err "Regex code error"
+
+        Just regex ->
+            case numberDisplayText |> String.trim |> Regex.find regex |> List.head of
+                Nothing ->
+                    Err ("Text did not match expected number format: '" ++ numberDisplayText ++ "'")
+
+                Just match ->
+                    match.match
+                        |> String.replace "," ""
+                        |> String.replace " " ""
+                        |> String.toInt
+                        |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+
+
 getDisplayText : UITreeNode -> Maybe String
 getDisplayText uiNode =
     [ "_setText", "_text" ]
@@ -330,6 +593,24 @@ getAllContainedDisplayTexts uiNode =
     uiNode
         :: (uiNode |> listDescendantsInUITreeNode)
         |> List.filterMap getDisplayText
+
+
+getAllContainedDisplayTextsWithRegion : UITreeNodeWithDisplayRegion -> List ( String, UITreeNodeWithDisplayRegion )
+getAllContainedDisplayTextsWithRegion uiNode =
+    uiNode
+        :: (uiNode |> listDescendantsWithDisplayRegion)
+        |> List.filterMap
+            (\descendant ->
+                let
+                    displayText =
+                        descendant.uiNode |> getDisplayText |> Maybe.withDefault ""
+                in
+                if 0 < (displayText |> String.length) then
+                    Just ( displayText, descendant )
+
+                else
+                    Nothing
+            )
 
 
 getNameFromDictEntries : UITreeNode -> Maybe String
