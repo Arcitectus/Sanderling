@@ -13,16 +13,15 @@ import Http
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
-import Sanderling.Sanderling
-import Sanderling.SanderlingMemoryReading as SanderlingMemoryReading
+import Sanderling.MemoryReading
     exposing
         ( MaybeVisible(..)
-        , MemoryReadingUITreeNode
-        , MemoryReadingUITreeNodeWithDisplayRegion
+        , UITreeNodeWithDisplayRegion
         , getDisplayText
         , getHorizontalOffsetFromParentAndWidth
         , getVerticalOffsetFromParent
         )
+import Sanderling.Sanderling
 import Set
 import String.Extra
 import Task
@@ -69,10 +68,10 @@ type alias ParseMemoryReadingCompleted =
 
 
 type alias ParseMemoryReadingSuccess =
-    { uiTree : MemoryReadingUITreeNode
-    , uiNodesWithDisplayRegion : Dict.Dict String MemoryReadingUITreeNodeWithDisplayRegion
+    { uiTree : Sanderling.MemoryReading.UITreeNode
+    , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
     , overviewWindow : MaybeVisible OverviewWindow
-    , furtherParsed : SanderlingMemoryReading.MemoryReadingWithNamedNodes
+    , parsed : Sanderling.MemoryReading.ParsedUserInterface
     }
 
 
@@ -119,7 +118,7 @@ type alias OverviewWindow =
 
 
 type alias OverviewEntry =
-    { uiTreeNode : MemoryReadingUITreeNode
+    { uiTreeNode : Sanderling.MemoryReading.UITreeNode
     , cellsContents : Dict.Dict String String
     }
 
@@ -573,7 +572,7 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : Dict.Dict String MemoryReadingUITreeNodeWithDisplayRegion -> TreeViewState -> MemoryReadingUITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode : Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> Sanderling.MemoryReading.UITreeNode -> Html.Html Event
 viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIdentityInView =
@@ -620,7 +619,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                 |> List.map (String.Extra.ellipsis 20)
 
         commonSummaryText =
-            ((SanderlingMemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
+            ((Sanderling.MemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
                 ++ " descendants"
             )
                 :: popularPropertiesDescription
@@ -648,7 +647,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map (SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
+                                (\() -> children |> List.map (Sanderling.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
 
                 totalDisplayOffsetText =
                     maybeNodeWithTotalDisplayOffset
@@ -688,28 +687,28 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
 
 parseMemoryReadingFromJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
 parseMemoryReadingFromJson =
-    SanderlingMemoryReading.decodeMemoryReadingFromString
+    Sanderling.MemoryReading.decodeMemoryReadingFromString
         >> Result.map
             (\uiTree ->
                 let
                     uiTreeWithDisplayRegion =
-                        uiTree |> SanderlingMemoryReading.parseUITreeWithDisplayRegionFromUITree
+                        uiTree |> Sanderling.MemoryReading.parseUITreeWithDisplayRegionFromUITree
                 in
                 { uiTree = uiTree
                 , uiNodesWithDisplayRegion =
                     uiTreeWithDisplayRegion
-                        :: (uiTreeWithDisplayRegion |> SanderlingMemoryReading.listDescendantsWithDisplayRegion)
-                        |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.rawNode.pythonObjectAddress, uiNodeWithRegion ))
+                        :: (uiTreeWithDisplayRegion |> Sanderling.MemoryReading.listDescendantsWithDisplayRegion)
+                        |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
                 , overviewWindow = parseOverviewWindowFromUiRoot uiTree
-                , furtherParsed = SanderlingMemoryReading.parseMemoryReadingWithNamedNodes uiTreeWithDisplayRegion
+                , parsed = Sanderling.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
                 }
             )
 
 
-parseOverviewWindowFromUiRoot : MemoryReadingUITreeNode -> MaybeVisible OverviewWindow
+parseOverviewWindowFromUiRoot : Sanderling.MemoryReading.UITreeNode -> MaybeVisible OverviewWindow
 parseOverviewWindowFromUiRoot uiTreeRoot =
-    case uiTreeRoot |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
+    case uiTreeRoot |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
         Nothing ->
             CanNotSeeIt
 
@@ -717,11 +716,11 @@ parseOverviewWindowFromUiRoot uiTreeRoot =
             CanSee (overviewWindowNode |> parseOverviewWindow)
 
 
-parseOverviewWindow : MemoryReadingUITreeNode -> OverviewWindow
+parseOverviewWindow : Sanderling.MemoryReading.UITreeNode -> OverviewWindow
 parseOverviewWindow overviewWindowNode =
     let
         ( tableHeaders, overviewEntries ) =
-            case overviewWindowNode |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
+            case overviewWindowNode |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
                 Nothing ->
                     ( [], [] )
 
@@ -729,13 +728,13 @@ parseOverviewWindow overviewWindowNode =
                     let
                         -- TODO: Reduce risk of wrong link of entry contents to columns: Use the global/absolute offset instead of a local one.
                         headers =
-                            case scrollNode |> SanderlingMemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
+                            case scrollNode |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
                                 Nothing ->
                                     []
 
                                 Just headersContainerNode ->
                                     headersContainerNode
-                                        |> SanderlingMemoryReading.listDescendantsInUITreeNode
+                                        |> Sanderling.MemoryReading.listDescendantsInUITreeNode
                                         |> List.filterMap
                                             (\headerContainerCandidate ->
                                                 if (headerContainerCandidate.pythonObjectTypeName |> String.toLower) /= "container" then
@@ -746,7 +745,7 @@ parseOverviewWindow overviewWindowNode =
                                                         maybeText =
                                                             headerContainerCandidate.children
                                                                 |> Maybe.withDefault []
-                                                                |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild
+                                                                |> List.map Sanderling.MemoryReading.unwrapUITreeNodeChild
                                                                 |> List.filterMap getDisplayText
                                                                 |> List.head
 
@@ -768,11 +767,11 @@ parseOverviewWindow overviewWindowNode =
 
                         entries =
                             overviewWindowNode
-                                |> SanderlingMemoryReading.listDescendantsInUITreeNode
+                                |> Sanderling.MemoryReading.listDescendantsInUITreeNode
                                 |> List.filter (.pythonObjectTypeName >> (==) "OverviewScrollEntry")
                                 |> List.filterMap
                                     (\overviewEntryNode ->
-                                        if (overviewEntryNode |> SanderlingMemoryReading.countDescendantsInUITreeNode) < 1 then
+                                        if (overviewEntryNode |> Sanderling.MemoryReading.countDescendantsInUITreeNode) < 1 then
                                             Nothing
 
                                         else
@@ -780,7 +779,7 @@ parseOverviewWindow overviewWindowNode =
                                                 childrenWithOffset =
                                                     overviewEntryNode.children
                                                         |> Maybe.withDefault []
-                                                        |> List.map SanderlingMemoryReading.unwrapMemoryReadingUITreeNodeChild
+                                                        |> List.map Sanderling.MemoryReading.unwrapUITreeNodeChild
                                                         |> List.filterMap
                                                             (\child ->
                                                                 child
@@ -816,7 +815,7 @@ parseOverviewWindow overviewWindowNode =
                                                                         maybeClosestChild
                                                                             |> Maybe.andThen
                                                                                 (\closestChild ->
-                                                                                    (closestChild :: (closestChild |> SanderlingMemoryReading.listDescendantsInUITreeNode))
+                                                                                    (closestChild :: (closestChild |> Sanderling.MemoryReading.listDescendantsInUITreeNode))
                                                                                         |> List.filterMap getDisplayText
                                                                                         |> List.sortBy (String.length >> negate)
                                                                                         |> List.head
