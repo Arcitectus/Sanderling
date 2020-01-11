@@ -15,7 +15,7 @@ sanderlingSetupScript =
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
 #r "sha256:2A89B0F057A26E1273DECC0FC7FE9C2BB12683479E37076D23A1F73CCC324D13"
-#r "sha256:94F9A9F713E3924BB5C38F37F550E33EFC1BC809D2BA97B547D5C8C290A25A73"
+#r "sha256:7A0E2FE8194A453AC9A16836CE67E5B55E2433E08951320401F9896B41666D81"
 
 #r "mscorlib"
 #r "netstandard"
@@ -205,7 +205,11 @@ Response request(Request request)
                 var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(uiTreeRootAddress.Value, memoryReader, 99);
 
                 if(uiTree != null)
-                    serialRepresentationJson = SerializeToJsonForBot(uiTree.WithOtherDictEntriesRemoved());
+                    serialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                        uiTree.WithOtherDictEntriesRemoved(),
+                        //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                        new read_memory_64_bit.IntegersToStringJsonConverter()
+                        );
             }
 
             uiTreeRootSearchResultCache = new UiTreeRootSearchResultCache { processId = processId, uiTreeRootAddress = uiTreeRootAddress.Value };

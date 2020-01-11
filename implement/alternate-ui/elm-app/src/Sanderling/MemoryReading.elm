@@ -253,7 +253,10 @@ getDisplayRegionFromDictEntries : UITreeNode -> Maybe DisplayRegion
 getDisplayRegionFromDictEntries uiNode =
     let
         fixedNumberFromJsonValue =
-            Json.Encode.encode 0 >> parse64BitIntAndGetLower32BitInt >> Result.map .lower32Bit
+            Json.Decode.decodeValue Json.Decode.string
+                >> Result.mapError Json.Decode.errorToString
+                >> Result.andThen parse64BitIntAndGetLower32BitInt
+                >> Result.map .lower32Bit
 
         fixedNumberFromPropertyName propertyName =
             uiNode.dictEntriesOfInterest
@@ -894,7 +897,7 @@ uiTreeNodeDecoder =
             }
         )
         Json.Decode.value
-        (Json.Decode.field "pythonObjectAddress" Json.Decode.value |> Json.Decode.map (Json.Encode.encode 0))
+        (Json.Decode.field "pythonObjectAddress" Json.Decode.string)
         (decodeOptionalField "pythonObjectTypeName" Json.Decode.string |> Json.Decode.map (Maybe.withDefault ""))
         (Json.Decode.field "dictEntriesOfInterest" (Json.Decode.keyValuePairs Json.Decode.value))
         (decodeOptionalOrNullField "children" (Json.Decode.list (Json.Decode.lazy (\_ -> uiTreeNodeDecoder))))

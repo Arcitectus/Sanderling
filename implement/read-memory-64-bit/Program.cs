@@ -10,7 +10,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-08";
+        static string AppVersionId => "2020-01-11";
 
         static int Main(string[] args)
         {
@@ -189,7 +189,11 @@ namespace read_memory_64_bit
                                 uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                             }
 
-                            var uiTreeAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(uiTreePreparedForFile);
+                            var uiTreeAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                                uiTreePreparedForFile,
+                                //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                                new IntegersToStringJsonConverter()
+                                );
 
                             var outputFilePath = outputFileArgument.argumentValue;
 
@@ -1263,6 +1267,26 @@ namespace read_memory_64_bit
                 }).ToImmutableList();
 
             return (memoryRegions, null);
+        }
+    }
+
+    public class IntegersToStringJsonConverter : Newtonsoft.Json.JsonConverter
+    {
+        public override bool CanRead => false;
+        public override bool CanWrite => true;
+        public override bool CanConvert(Type type) =>
+            type == typeof(int) || type == typeof(long) || type == typeof(uint) || type == typeof(ulong);
+
+        public override void WriteJson(
+            Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
+
+        public override object ReadJson(
+            Newtonsoft.Json.JsonReader reader, Type type, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            throw new NotSupportedException();
         }
     }
 }
