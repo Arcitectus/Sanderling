@@ -3,11 +3,21 @@ module Sanderling.MemoryReading exposing
     , ContextMenu
     , ContextMenuEntry
     , DisplayRegion
+    , Hitpoints
+    , InfoPanelLocationInfo
+    , InfoPanelLocationInfoExpandedContent
+    , InfoPanelRoute
     , InfoPanelRouteRouteElementMarker
+    , InventoryWindow
+    , InventoryWindowCapacityGauge
     , MaybeVisible(..)
+    , OverviewWindowEntry
     , ParsedUserInterface
     , ShipManeuverType(..)
     , ShipUI
+    , ShipUIIndication
+    , ShipUIModule
+    , Target
     , UITreeNode
     , UITreeNodeWithDisplayRegion
     , asUITreeNodeWithTotalDisplayRegion
@@ -21,6 +31,7 @@ module Sanderling.MemoryReading exposing
     , listDescendantsInUITreeNode
     , listDescendantsWithDisplayRegion
     , maybeNothingFromCanNotSeeIt
+    , maybeVisibleAndThen
     , parseContextMenusFromUITreeRoot
     , parseShipUIFromUITreeRoot
     , parseUITreeWithDisplayRegionFromUITree
@@ -41,6 +52,7 @@ type alias ParsedUserInterface =
     { uiTree : UITreeNodeWithDisplayRegion
     , contextMenus : List ContextMenu
     , shipUI : MaybeVisible ShipUI
+    , targets : List Target
     , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
@@ -96,11 +108,26 @@ type alias ContextMenuEntry =
 type alias ShipUI =
     { uiNode : UITreeNodeWithDisplayRegion
     , indication : MaybeVisible ShipUIIndication
+    , modules : List ShipUIModule
+    , hitpointsMilli : Hitpoints
     }
 
 
 type alias ShipUIIndication =
     { maneuverType : MaybeVisible ShipManeuverType
+    }
+
+
+type alias ShipUIModule =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , isActive : Maybe Bool
+    }
+
+
+type alias Hitpoints =
+    { structure : Int
+    , armor : Int
+    , shield : Int
     }
 
 
@@ -122,13 +149,19 @@ type alias InfoPanelRouteRouteElementMarker =
 
 
 type alias InfoPanelLocationInfo =
-    { listSurroundingsButton : Maybe UITreeNodeWithDisplayRegion
+    { listSurroundingsButton : UITreeNodeWithDisplayRegion
     , expandedContent : MaybeVisible InfoPanelLocationInfoExpandedContent
     }
 
 
 type alias InfoPanelLocationInfoExpandedContent =
     { currentStationName : Maybe String
+    }
+
+
+type alias Target =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , textsTopToBottom : List String
     }
 
 
@@ -186,6 +219,7 @@ parseUserInterfaceFromUITree uiTree =
     { uiTree = uiTree
     , contextMenus = parseContextMenusFromUITreeRoot uiTree
     , shipUI = parseShipUIFromUITreeRoot uiTree
+    , targets = parseTargetsFromUITreeRoot uiTree
     , infoPanelLocationInfo = parseInfoPanelLocationInfoFromUITreeRoot uiTree
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
@@ -269,7 +303,7 @@ parseInfoPanelLocationInfoFromUITreeRoot uiTreeRoot =
 
         Just infoPanelNode ->
             let
-                listSurroundingsButton =
+                maybeListSurroundingsButton =
                     infoPanelNode
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ListSurroundingsBtn")
@@ -295,10 +329,14 @@ parseInfoPanelLocationInfoFromUITreeRoot uiTreeRoot =
                             )
                         |> canNotSeeItFromMaybeNothing
             in
-            CanSee
-                { listSurroundingsButton = listSurroundingsButton
-                , expandedContent = expandedContent
-                }
+            maybeListSurroundingsButton
+                |> Maybe.map
+                    (\listSurroundingsButton ->
+                        { listSurroundingsButton = listSurroundingsButton
+                        , expandedContent = expandedContent
+                        }
+                    )
+                |> canNotSeeItFromMaybeNothing
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
@@ -407,11 +445,69 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                     maybeIndicationElement
                         |> Maybe.map (parseShipUIIndication >> CanSee)
                         |> Maybe.withDefault CanNotSeeIt
+
+                modules =
+                    shipUINode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButton")
+                        |> List.map
+                            (\moduleNode ->
+                                { uiNode = moduleNode
+                                , isActive =
+                                    moduleNode.uiNode.dictEntriesOfInterest
+                                        |> Dict.get "ramp_active"
+                                        |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
+                                }
+                            )
+
+                getLastValueMilliFromGaugeName gaugeName =
+                    shipUINode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) gaugeName) >> Maybe.withDefault False)
+                        |> List.head
+                        |> Maybe.andThen (.uiNode >> .dictEntriesOfInterest >> Dict.get "_lastValue")
+                        |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
+                        |> Maybe.map ((*) 1000 >> round)
+
+                maybeHitpointsMilli =
+                    case ( getLastValueMilliFromGaugeName "structureGauge", getLastValueMilliFromGaugeName "armorGauge", getLastValueMilliFromGaugeName "shieldGauge" ) of
+                        ( Just structure, Just armor, Just shield ) ->
+                            Just { structure = structure, armor = armor, shield = shield }
+
+                        _ ->
+                            Nothing
             in
-            CanSee
-                { uiNode = shipUINode
-                , indication = indication
-                }
+            maybeHitpointsMilli
+                |> Maybe.map
+                    (\hitpointsMilli ->
+                        { uiNode = shipUINode
+                        , indication = indication
+                        , modules = modules
+                        , hitpointsMilli = hitpointsMilli
+                        }
+                    )
+                |> canNotSeeItFromMaybeNothing
+
+
+parseTargetsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List Target
+parseTargetsFromUITreeRoot =
+    listDescendantsWithDisplayRegion
+        >> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "TargetInBar")
+        >> List.map parseTarget
+
+
+parseTarget : UITreeNodeWithDisplayRegion -> Target
+parseTarget targetNode =
+    let
+        textsTopToBottom =
+            targetNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .y)
+                |> List.map Tuple.first
+    in
+    { uiNode = targetNode
+    , textsTopToBottom = textsTopToBottom
+    }
 
 
 parseShipUIIndication : UITreeNode -> ShipUIIndication
@@ -845,6 +941,16 @@ maybeNothingFromCanNotSeeIt maybeVisible =
 
         CanSee feature ->
             Just feature
+
+
+maybeVisibleAndThen : (a -> MaybeVisible b) -> MaybeVisible a -> MaybeVisible b
+maybeVisibleAndThen map maybeVisible =
+    case maybeVisible of
+        CanNotSeeIt ->
+            CanNotSeeIt
+
+        CanSee visible ->
+            map visible
 
 
 {-| Tests at <https://ellie-app.com/7JJQTtHTJSwa1>
