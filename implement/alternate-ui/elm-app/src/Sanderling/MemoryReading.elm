@@ -41,6 +41,7 @@ type alias ParsedUserInterface =
     { uiTree : UITreeNodeWithDisplayRegion
     , contextMenus : List ContextMenu
     , shipUI : MaybeVisible ShipUI
+    , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
     , inventoryWindows : List InventoryWindow
@@ -120,6 +121,17 @@ type alias InfoPanelRouteRouteElementMarker =
     }
 
 
+type alias InfoPanelLocationInfo =
+    { listSurroundingsButton : Maybe UITreeNodeWithDisplayRegion
+    , expandedContent : MaybeVisible InfoPanelLocationInfoExpandedContent
+    }
+
+
+type alias InfoPanelLocationInfoExpandedContent =
+    { currentStationName : Maybe String
+    }
+
+
 type alias OverviewWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , entries : List OverviewWindowEntry
@@ -174,6 +186,7 @@ parseUserInterfaceFromUITree uiTree =
     { uiTree = uiTree
     , contextMenus = parseContextMenusFromUITreeRoot uiTree
     , shipUI = parseShipUIFromUITreeRoot uiTree
+    , infoPanelLocationInfo = parseInfoPanelLocationInfoFromUITreeRoot uiTree
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
@@ -241,6 +254,74 @@ parseContextMenusFromUITreeRoot uiTreeRoot =
                 |> listChildrenWithDisplayRegion
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "menu")
                 |> List.map parseContextMenu
+
+
+parseInfoPanelLocationInfoFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelLocationInfo
+parseInfoPanelLocationInfoFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelLocationInfo")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just infoPanelNode ->
+            let
+                listSurroundingsButton =
+                    infoPanelNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ListSurroundingsBtn")
+                        |> List.head
+
+                expandedContent =
+                    infoPanelNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter
+                            (\uiNode ->
+                                (uiNode.uiNode.pythonObjectTypeName |> String.contains "Container")
+                                    && (uiNode.uiNode |> getNameFromDictEntries |> Maybe.withDefault "" |> String.contains "mainCont")
+                            )
+                        |> List.head
+                        |> Maybe.map
+                            (\expandedContainer ->
+                                { currentStationName =
+                                    expandedContainer.uiNode
+                                        |> getAllContainedDisplayTexts
+                                        |> List.filterMap parseCurrentStationNameFromInfoPanelLocationInfoLabelText
+                                        |> List.head
+                                }
+                            )
+                        |> canNotSeeItFromMaybeNothing
+            in
+            CanSee
+                { listSurroundingsButton = listSurroundingsButton
+                , expandedContent = expandedContent
+                }
+
+
+parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
+parseCurrentStationNameFromInfoPanelLocationInfoLabelText labelText =
+    if labelText |> String.toLower |> String.contains "alt='current station'" |> not then
+        Nothing
+
+    else
+        {- Note: 2019-12-10 with 'JavaScriptEngineSwitcher.ChakraCore.Native.win-x64', the following regex pattern led to failing 'Regex.fromString': '(?<=\\>).+?(?=\\<)'
+              (The same pattern worked in chrome)
+           case "(?<=\\>).+?(?=\\<)" |> Regex.fromString of
+               Nothing ->
+                   Just "Regex code error"
+
+               Just regex ->
+                   labelText |> Regex.find regex |> List.map .match |> List.head
+        -}
+        labelText
+            |> String.split ">"
+            |> List.drop 1
+            |> List.head
+            |> Maybe.andThen (String.split "<" >> List.head)
+            |> Maybe.map String.trim
 
 
 parseInfoPanelRouteFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelRoute
