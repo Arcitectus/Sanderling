@@ -10,7 +10,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-11";
+        static string AppVersionId => "2020-01-16";
 
         static int Main(string[] args)
         {
@@ -638,8 +638,49 @@ namespace read_memory_64_bit
                 return ReadPythonFloatObjectValue(address, memoryReader);
             }));
 
-        static public UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth)
+        class MemoryReadingCache
         {
+            IDictionary<ulong, string> PythonTypeNameFromPythonObjectAddress;
+
+            IDictionary<ulong, string> PythonStringValueMaxLength4000;
+
+            IDictionary<ulong, object> DictEntryValueRepresentation;
+
+            public MemoryReadingCache()
+            {
+                PythonTypeNameFromPythonObjectAddress = new Dictionary<ulong, string>();
+                PythonStringValueMaxLength4000 = new Dictionary<ulong, string>();
+                DictEntryValueRepresentation = new Dictionary<ulong, object>();
+            }
+
+            public string GetPythonTypeNameFromPythonObjectAddress(ulong address, Func<ulong, string> getFresh) =>
+                GetFromCacheOrUpdate(PythonTypeNameFromPythonObjectAddress, address, getFresh);
+
+            public string GetPythonStringValueMaxLength4000(ulong address, Func<ulong, string> getFresh) =>
+                GetFromCacheOrUpdate(PythonStringValueMaxLength4000, address, getFresh);
+
+            public object GetDictEntryValueRepresentation(ulong address, Func<ulong, object> getFresh) =>
+                GetFromCacheOrUpdate(DictEntryValueRepresentation, address, getFresh);
+
+            static TValue GetFromCacheOrUpdate<TKey, TValue>(IDictionary<TKey, TValue> cache, TKey key, Func<TKey, TValue> getFresh)
+            {
+                if (cache.TryGetValue(key, out var fromCache))
+                    return fromCache;
+
+                var fresh = getFresh(key);
+
+                cache[key] = fresh;
+                return fresh;
+            }
+        }
+
+        static public UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth) =>
+            ReadUITreeFromAddress(nodeAddress, memoryReader, maxDepth, null);
+
+        static UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, MemoryReadingCache cache)
+        {
+            cache = cache ?? new MemoryReadingCache();
+
             var uiNodeObjectMemory = memoryReader.ReadBytes(nodeAddress, 0x30);
 
             if (!(0x30 == uiNodeObjectMemory?.Length))
@@ -664,17 +705,22 @@ namespace read_memory_64_bit
 
             string getPythonTypeNameFromPythonObjectAddress(ulong objectAddress)
             {
-                var objectMemory = memoryReader.ReadBytes(objectAddress, 0x10);
+                return cache.GetPythonTypeNameFromPythonObjectAddress(objectAddress, objectAddress =>
+                {
+                    var objectMemory = memoryReader.ReadBytes(objectAddress, 0x10);
 
-                if (!(objectMemory?.Length == 0x10))
-                    return null;
+                    if (!(objectMemory?.Length == 0x10))
+                        return null;
 
-                return getPythonTypeNameFromPythonTypeObjectAddress(BitConverter.ToUInt64(objectMemory, 8));
+                    return getPythonTypeNameFromPythonTypeObjectAddress(BitConverter.ToUInt64(objectMemory, 8));
+                });
             }
 
             string readPythonStringValueMaxLength4000(ulong strObjectAddress)
             {
-                return ReadPythonStringValue(strObjectAddress, memoryReader, 4000);
+                return cache.GetPythonStringValueMaxLength4000(
+                    strObjectAddress,
+                    strObjectAddress => ReadPythonStringValue(strObjectAddress, memoryReader, 4000));
             }
 
             PyDictEntry[] ReadActiveDictionaryEntriesFromDictionaryAddress(ulong dictionaryAddress)
@@ -772,25 +818,28 @@ namespace read_memory_64_bit
 
                 object getValueRepresentation(ulong valueOjectAddress)
                 {
-                    var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
+                    return cache.GetDictEntryValueRepresentation(valueOjectAddress, valueOjectAddress =>
                     {
-                        address = valueOjectAddress,
-                        pythonObjectTypeName = null
-                    };
+                        var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
+                        {
+                            address = valueOjectAddress,
+                            pythonObjectTypeName = null
+                        };
 
-                    var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
+                        var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
 
-                    genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
+                        genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
 
-                    if (value_pythonTypeName == null)
-                        return genericRepresentation;
+                        if (value_pythonTypeName == null)
+                            return genericRepresentation;
 
-                    specializedReadingFromPythonType.TryGetValue(value_pythonTypeName, out var specializedRepresentation);
+                        specializedReadingFromPythonType.TryGetValue(value_pythonTypeName, out var specializedRepresentation);
 
-                    if (specializedRepresentation == null)
-                        return genericRepresentation;
+                        if (specializedRepresentation == null)
+                            return genericRepresentation;
 
-                    return specializedRepresentation(genericRepresentation.address, memoryReader);
+                        return specializedRepresentation(genericRepresentation.address, memoryReader);
+                    });
                 }
 
                 dictEntriesOfInterest.Add(new UITreeNode.DictEntry
@@ -883,7 +932,7 @@ namespace read_memory_64_bit
 
                 return
                      listEntries
-                     .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1))
+                     .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache))
                      .ToArray();
             }
 
