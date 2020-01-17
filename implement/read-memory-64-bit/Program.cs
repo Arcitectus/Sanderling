@@ -3,37 +3,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-16";
+        static string AppVersionId => "2020-01-17";
 
         static int Main(string[] args)
         {
-            (bool isPresent, string argumentValue) argumentFromParameterName(string parameterName)
-            {
-                var match =
-                    args
-                    .Select(arg => Regex.Match(arg, parameterName + "(=(.*)|)", RegexOptions.IgnoreCase))
-                    .FirstOrDefault(matchCandidate => matchCandidate.Success);
-
-                if (match == null)
-                    return (false, null);
-
-                if (match.Groups[1].Length < 1)
-                    return (true, null);
-
-                return (true, match?.Groups[2].Value);
-            }
-
             var app = new CommandLineApplication
             {
                 Name = "read-memory-64-bit",
-                Description = "Read memory from 64 bit EVE Online client processes.",
+                Description = "Welcome to the Sanderling memory reading command-line interface. This tool helps you read objects from the memory of a 64-bit EVE Online client process and save it to a file. In addition to that, you have the option to save the entire memory contents of a game client process to a file.\nTo get help or report an issue, see the project website at https://github.com/Arcitectus/Sanderling",
             };
 
             app.HelpOption(inherited: true);
@@ -43,16 +26,14 @@ namespace read_memory_64_bit
             app.Command("save-process-sample", saveProcessSampleCmd =>
             {
                 saveProcessSampleCmd.Description = "Save a sample from a live process to a file. Use the '--pid' parameter to specify the process id.";
-                saveProcessSampleCmd.ThrowOnUnexpectedArgument = false;
+
+                var processIdParam = saveProcessSampleCmd.Option("--pid", "[Required] Id of the Windows process to read from.", CommandOptionType.SingleValue).IsRequired(errorMessage: "From which process should I read?");
 
                 saveProcessSampleCmd.OnExecute(() =>
                 {
-                    var processIdArgument = argumentFromParameterName("--pid");
+                    var processIdArgument = processIdParam.Value();
 
-                    if (!processIdArgument.isPresent)
-                        throw new Exception("Missing argument --pid for process ID.");
-
-                    var processId = int.Parse(processIdArgument.argumentValue);
+                    var processId = int.Parse(processIdArgument);
 
                     var processSampleFile = GetProcessSampleFileFromProcessId(processId);
 
@@ -69,29 +50,37 @@ namespace read_memory_64_bit
             app.Command("read-memory-eve-online", readMemoryEveOnlineCmd =>
             {
                 readMemoryEveOnlineCmd.Description = "Read the memory of an 64 bit EVE Online client process. You can use a live process ('--pid') or a process sample file ('--source-file') as the source.";
-                readMemoryEveOnlineCmd.ThrowOnUnexpectedArgument = false;
+
+                var processIdParam = readMemoryEveOnlineCmd.Option("--pid", "Id of the Windows process to read from.", CommandOptionType.SingleValue);
+                var rootAddressParam = readMemoryEveOnlineCmd.Option("--root-address", "Address of the UI root. If the address is not specified, the program searches the whole process memory for UI roots.", CommandOptionType.SingleValue);
+                var sourceFileParam = readMemoryEveOnlineCmd.Option("--source-file", "Process sample file to read from.", CommandOptionType.SingleValue);
+                var outputFileParam = readMemoryEveOnlineCmd.Option("--output-file", "File to save the memory reading result to.", CommandOptionType.SingleValue);
+                var removeOtherDictEntriesParam = readMemoryEveOnlineCmd.Option("--remove-other-dict-entries", "Use this to remove the other dict entries from the UI nodes in the resulting JSON representation.", CommandOptionType.NoValue);
+                var warmupFirstParam = readMemoryEveOnlineCmd.Option("--warmup-first", "Only to measure execution time: Use this to perform an additional warmup run before measuring execution time.", CommandOptionType.NoValue);
 
                 readMemoryEveOnlineCmd.OnExecute(() =>
                 {
-                    var processIdArgument = argumentFromParameterName("--pid");
-                    var rootAddressArgument = argumentFromParameterName("--root-address");
-                    var sourceFileArgument = argumentFromParameterName("--source-file");
-                    var outputFileArgument = argumentFromParameterName("--output-file");
-                    var removeOtherDictEntriesArgument = argumentFromParameterName("--remove-other-dict-entries");
-                    var warmupFirstArgument = argumentFromParameterName("--warmup-first");
+                    var processIdArgument = processIdParam.Value();
+                    var rootAddressArgument = rootAddressParam.Value();
+                    var sourceFileArgument = sourceFileParam.Value();
+                    var outputFileArgument = outputFileParam.Value();
+                    var removeOtherDictEntriesArgument = removeOtherDictEntriesParam.HasValue();
+                    var warmupFirstArgument = warmupFirstParam.HasValue();
 
-                    if (!processIdArgument.isPresent && !sourceFileArgument.isPresent)
-                        throw new Exception("Where should I read from?");
+                    var processId =
+                        0 < processIdArgument?.Length
+                        ?
+                        (int?)int.Parse(processIdArgument)
+                        :
+                        null;
 
                     (IImmutableList<ulong>, IMemoryReader) GetRootAddressesAndMemoryReader()
                     {
-                        if (rootAddressArgument.isPresent)
+                        if (0 < rootAddressArgument?.Length)
                         {
-                            if (processIdArgument.isPresent)
+                            if (processId.HasValue)
                             {
-                                var processId = int.Parse(processIdArgument.argumentValue);
-
-                                return (ImmutableList.Create(ParseULong(rootAddressArgument.argumentValue)), new MemoryReaderFromLiveProcess(processId));
+                                return (ImmutableList.Create(ParseULong(rootAddressArgument)), new MemoryReaderFromLiveProcess(processId.Value));
                             }
 
                             throw new NotSupportedException("Not supported combination: '--root-address' without '--pid'.");
@@ -99,16 +88,20 @@ namespace read_memory_64_bit
 
                         byte[] processSampleFile = null;
 
-                        if (processIdArgument.isPresent)
+                        if (processId.HasValue)
                         {
-                            var processId = int.Parse(processIdArgument.argumentValue);
-
-                            processSampleFile = GetProcessSampleFileFromProcessId(processId);
+                            processSampleFile = GetProcessSampleFileFromProcessId(processId.Value);
                         }
-
-                        if (sourceFileArgument.isPresent)
+                        else
                         {
-                            processSampleFile = System.IO.File.ReadAllBytes(sourceFileArgument.argumentValue);
+                            if (0 < sourceFileArgument?.Length)
+                            {
+                                processSampleFile = System.IO.File.ReadAllBytes(sourceFileArgument);
+                            }
+                            else
+                            {
+                                throw new Exception("Where should I read from?");
+                            }
                         }
 
                         var processSampleId = Kalmit.CommonConversion.StringBase16FromByteArray(Kalmit.CommonConversion.HashSHA256(processSampleFile));
@@ -140,7 +133,7 @@ namespace read_memory_64_bit
                             .Where(uiTree => uiTree != null)
                             .ToImmutableList();
 
-                    if (warmupFirstArgument.isPresent)
+                    if (warmupFirstArgument)
                     {
                         Console.WriteLine("Performing a warmup run first.");
                         ReadUITrees().ToList();
@@ -180,11 +173,11 @@ namespace read_memory_64_bit
 
                     if (largestUiTree != null)
                     {
-                        if (outputFileArgument.isPresent)
+                        if (0 < outputFileArgument?.Length)
                         {
                             var uiTreePreparedForFile = largestUiTree;
 
-                            if (removeOtherDictEntriesArgument.isPresent)
+                            if (removeOtherDictEntriesArgument)
                             {
                                 uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                             }
@@ -195,7 +188,7 @@ namespace read_memory_64_bit
                                 new IntegersToStringJsonConverter()
                                 );
 
-                            var outputFilePath = outputFileArgument.argumentValue;
+                            var outputFilePath = outputFileArgument;
 
                             System.IO.File.WriteAllText(outputFilePath, uiTreeAsJson, System.Text.Encoding.UTF8);
 
