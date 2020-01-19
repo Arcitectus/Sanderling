@@ -256,8 +256,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         Sanderling.Sanderling.EveOnlineProcessesIds processIds ->
                                                                             Ok (processIds |> Set.fromList)
 
-                                                                        Sanderling.Sanderling.GetMemoryMeasurementResult _ ->
-                                                                            Err "Unexpected response: GetMemoryMeasurementResult"
+                                                                        Sanderling.Sanderling.GetMemoryReadingResult _ ->
+                                                                            Err "Unexpected response: GetMemoryReadingResult"
                                                                 )
                             )
 
@@ -271,7 +271,7 @@ integrateBackendResponse { request, result } stateBefore =
                     }
             }
 
-        InterfaceToFrontendClient.RunInVolatileHostRequest (Sanderling.Sanderling.GetMemoryMeasurement _) ->
+        InterfaceToFrontendClient.RunInVolatileHostRequest (Sanderling.Sanderling.GetMemoryReading _) ->
             let
                 readMemoryResult =
                     result
@@ -303,8 +303,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         Sanderling.Sanderling.EveOnlineProcessesIds _ ->
                                                                             Err "Unexpected response: EveOnlineProcessesIds"
 
-                                                                        Sanderling.Sanderling.GetMemoryMeasurementResult getMemoryMeasurementResult ->
-                                                                            case getMemoryMeasurementResult of
+                                                                        Sanderling.Sanderling.GetMemoryReadingResult getMemoryReadingResult ->
+                                                                            case getMemoryReadingResult of
                                                                                 Sanderling.Sanderling.ProcessNotFound ->
                                                                                     Err "Process not found"
 
@@ -375,7 +375,7 @@ decideNextStepToReadFromLiveProcess state =
                         requestReadMemory =
                             apiRequestCmd
                                 (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (Sanderling.Sanderling.GetMemoryMeasurement { processId = firstEveOnlineClientProcessId })
+                                    (Sanderling.Sanderling.GetMemoryReading { processId = firstEveOnlineClientProcessId })
                                 )
 
                         ( describeLastReadResult, lastMemoryReading ) =
@@ -475,7 +475,7 @@ viewSourceFromLiveProcess state =
                 Just parsedReadMemoryResult ->
                     let
                         downloadButton =
-                            [ "Click here to download this memory measurement to a JSON file." |> Html.text ]
+                            [ "Click here to download this memory reading to a JSON file." |> Html.text ]
                                 |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.serialRepresentationJson) ]
 
                         parsedHtml =

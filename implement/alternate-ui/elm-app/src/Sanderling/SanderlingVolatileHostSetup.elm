@@ -15,7 +15,7 @@ sanderlingSetupScript =
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
 #r "sha256:2A89B0F057A26E1273DECC0FC7FE9C2BB12683479E37076D23A1F73CCC324D13"
-#r "sha256:7A0E2FE8194A453AC9A16836CE67E5B55E2433E08951320401F9896B41666D81"
+#r "sha256:0C49E4C312B0FADA070C950A2AD1D1066F5327E363EF76DEB0E1D25422A9EDC9"
 
 #r "mscorlib"
 #r "netstandard"
@@ -30,7 +30,6 @@ sanderlingSetupScript =
 #r "System.Security.Cryptography.Algorithms"
 #r "System.Security.Cryptography.Primitives"
 
-using Sanderling.ExploreProcessMeasurement;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,11 +51,11 @@ class Request
 {
     public object getEveOnlineProcessesIds;
 
-    public GetMemoryMeasurement getMemoryMeasurement;
+    public GetMemoryReadingStructure GetMemoryReading;
 
     public TaskOnWindow<EffectOnWindow> effectOnWindow;
 
-    public class GetMemoryMeasurement
+    public class GetMemoryReadingStructure
     {
         public int processId;
     }
@@ -117,17 +116,17 @@ class Response
 {
     public int[] eveOnlineProcessesIds;
 
-    public GetMemoryMeasurementResult getMemoryMeasurementResult;
+    public GetMemoryReadingResultStructure GetMemoryReadingResult;
 
     public object effectExecuted;
 
-    public class GetMemoryMeasurementResult
+    public class GetMemoryReadingResultStructure
     {
-        public object processNotFound;
+        public object ProcessNotFound;
 
-        public Completed completed;
+        public CompletedStructure Completed;
 
-        public class Completed
+        public class CompletedStructure
         {
             public string mainWindowId;
 
@@ -168,16 +167,16 @@ Response request(Request request)
         };
     }
 
-    if (request.getMemoryMeasurement != null)
+    if (request.GetMemoryReading != null)
     {
-        var processId = request.getMemoryMeasurement.processId;
+        var processId = request.GetMemoryReading.processId;
 
         if (!GetWindowsProcessesLookingLikeEVEOnlineClient().Select(proc => proc.Id).Contains(processId))
             return new Response
             {
-                getMemoryMeasurementResult = new Response.GetMemoryMeasurementResult
+                GetMemoryReadingResult = new Response.GetMemoryReadingResultStructure
                 {
-                    processNotFound = new object(),
+                    ProcessNotFound = new object(),
                 }
             };
 
@@ -217,9 +216,9 @@ Response request(Request request)
 
         return new Response
         {
-            getMemoryMeasurementResult = new Response.GetMemoryMeasurementResult
+            GetMemoryReadingResult = new Response.GetMemoryReadingResultStructure
             {
-                completed = new Response.GetMemoryMeasurementResult.Completed
+                Completed = new Response.GetMemoryReadingResultStructure.CompletedStructure
                 {
                     mainWindowId = process.MainWindowHandle.ToInt64().ToString(),
                     serialRepresentationJson = serialRepresentationJson,

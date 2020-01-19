@@ -33,6 +33,8 @@ module Sanderling.MemoryReading exposing
     , maybeNothingFromCanNotSeeIt
     , maybeVisibleAndThen
     , parseContextMenusFromUITreeRoot
+    , parseInventoryCapacityGaugeText
+    , parseOverviewEntryDistanceInMetersFromText
     , parseShipUIFromUITreeRoot
     , parseUITreeWithDisplayRegionFromUITree
     , parseUserInterfaceFromUITree

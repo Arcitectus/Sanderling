@@ -1,8 +1,8 @@
 module Sanderling.Sanderling exposing
     ( EffectOnWindowStructure(..)
-    , GetMemoryMeasurementResultStructure(..)
+    , GetMemoryReadingResultStructure(..)
     , Location2d
-    , MemoryMeasurementCompleted
+    , MemoryReadingCompletedStructure
     , MouseButton(..)
     , RequestToVolatileHost(..)
     , ResponseFromVolatileHost(..)
@@ -21,25 +21,25 @@ import Json.Encode
 
 type RequestToVolatileHost
     = GetEveOnlineProcessesIds
-    | GetMemoryMeasurement GetMemoryMeasurementStructure
+    | GetMemoryReading GetMemoryReadingStructure
     | EffectOnWindow (TaskOnWindowStructure EffectOnWindowStructure)
 
 
 type ResponseFromVolatileHost
     = EveOnlineProcessesIds (List Int)
-    | GetMemoryMeasurementResult GetMemoryMeasurementResultStructure
+    | GetMemoryReadingResult GetMemoryReadingResultStructure
 
 
-type alias GetMemoryMeasurementStructure =
+type alias GetMemoryReadingStructure =
     { processId : Int }
 
 
-type GetMemoryMeasurementResultStructure
+type GetMemoryReadingResultStructure
     = ProcessNotFound
-    | Completed MemoryMeasurementCompleted
+    | Completed MemoryReadingCompletedStructure
 
 
-type alias MemoryMeasurementCompleted =
+type alias MemoryReadingCompletedStructure =
     { mainWindowId : WindowId
     , serialRepresentationJson : Maybe String
     }
@@ -131,8 +131,8 @@ decodeResponseFromVolatileHost =
     Json.Decode.oneOf
         [ Json.Decode.field "eveOnlineProcessesIds" (Json.Decode.list Json.Decode.int)
             |> Json.Decode.map EveOnlineProcessesIds
-        , Json.Decode.field "getMemoryMeasurementResult" decodeGetMemoryMeasurementResult
-            |> Json.Decode.map GetMemoryMeasurementResult
+        , Json.Decode.field "GetMemoryReadingResult" decodeGetMemoryReadingResult
+            |> Json.Decode.map GetMemoryReadingResult
         ]
 
 
@@ -142,8 +142,8 @@ encodeRequestToVolatileHost request =
         GetEveOnlineProcessesIds ->
             Json.Encode.object [ ( "getEveOnlineProcessesIds", Json.Encode.object [] ) ]
 
-        GetMemoryMeasurement getMemoryMeasurement ->
-            Json.Encode.object [ ( "getMemoryMeasurement", getMemoryMeasurement |> encodeGetMemoryMeasurement ) ]
+        GetMemoryReading getMemoryReading ->
+            Json.Encode.object [ ( "GetMemoryReading", getMemoryReading |> encodeGetMemoryReading ) ]
 
         EffectOnWindow taskOnWindow ->
             Json.Encode.object [ ( "effectOnWindow", taskOnWindow |> encodeTaskOnWindow encodeEffectOnWindowStructure ) ]
@@ -153,7 +153,7 @@ decodeRequestToVolatileHost : Json.Decode.Decoder RequestToVolatileHost
 decodeRequestToVolatileHost =
     Json.Decode.oneOf
         [ Json.Decode.field "getEveOnlineProcessesIds" (Json.Decode.succeed GetEveOnlineProcessesIds)
-        , Json.Decode.field "getMemoryMeasurement" (decodeGetMemoryMeasurement |> Json.Decode.map GetMemoryMeasurement)
+        , Json.Decode.field "GetMemoryReading" (decodeGetMemoryReading |> Json.Decode.map GetMemoryReading)
         , Json.Decode.field "effectOnWindow" (decodeTaskOnWindow decodeEffectOnWindowStructure |> Json.Decode.map EffectOnWindow)
         ]
 
@@ -279,29 +279,29 @@ jsonDecodeMouseButton =
             )
 
 
-encodeGetMemoryMeasurement : GetMemoryMeasurementStructure -> Json.Encode.Value
-encodeGetMemoryMeasurement getMemoryMeasurement =
-    Json.Encode.object [ ( "processId", getMemoryMeasurement.processId |> Json.Encode.int ) ]
+encodeGetMemoryReading : GetMemoryReadingStructure -> Json.Encode.Value
+encodeGetMemoryReading getMemoryReading =
+    Json.Encode.object [ ( "processId", getMemoryReading.processId |> Json.Encode.int ) ]
 
 
-decodeGetMemoryMeasurement : Json.Decode.Decoder GetMemoryMeasurementStructure
-decodeGetMemoryMeasurement =
-    Json.Decode.map GetMemoryMeasurementStructure
+decodeGetMemoryReading : Json.Decode.Decoder GetMemoryReadingStructure
+decodeGetMemoryReading =
+    Json.Decode.map GetMemoryReadingStructure
         (Json.Decode.field "processId" Json.Decode.int)
 
 
-decodeGetMemoryMeasurementResult : Json.Decode.Decoder GetMemoryMeasurementResultStructure
-decodeGetMemoryMeasurementResult =
+decodeGetMemoryReadingResult : Json.Decode.Decoder GetMemoryReadingResultStructure
+decodeGetMemoryReadingResult =
     Json.Decode.oneOf
-        [ Json.Decode.field "processNotFound" (Json.Decode.succeed ProcessNotFound)
-        , Json.Decode.field "completed" decodeMemoryMeasurementCompleted
+        [ Json.Decode.field "ProcessNotFound" (Json.Decode.succeed ProcessNotFound)
+        , Json.Decode.field "Completed" decodeMemoryReadingCompleted
             |> Json.Decode.map Completed
         ]
 
 
-decodeMemoryMeasurementCompleted : Json.Decode.Decoder MemoryMeasurementCompleted
-decodeMemoryMeasurementCompleted =
-    Json.Decode.map2 MemoryMeasurementCompleted
+decodeMemoryReadingCompleted : Json.Decode.Decoder MemoryReadingCompletedStructure
+decodeMemoryReadingCompleted =
+    Json.Decode.map2 MemoryReadingCompletedStructure
         (Json.Decode.field "mainWindowId" Json.Decode.string)
         (Json.Decode.Extra.optionalField "serialRepresentationJson" Json.Decode.string)
 
