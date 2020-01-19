@@ -29,6 +29,11 @@ import Time
 import Url
 
 
+versionId : String
+versionId =
+    "2020-01-19"
+
+
 main =
     Browser.application
         { init = init
@@ -427,7 +432,7 @@ view state =
             , sourceSpecificHtml
             ]
     in
-    { title = "Alternate EVE Online UI", body = body }
+    { title = "Alternate EVE Online UI version " ++ versionId, body = body }
 
 
 viewSourceFromFile : State -> Html.Html Event
