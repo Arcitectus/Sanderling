@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-17";
+        static string AppVersionId => "2020-01-20";
 
         static int Main(string[] args)
         {
@@ -615,7 +615,18 @@ namespace read_memory_64_bit
                 if (!(intObjectMemory?.Length == 0x18))
                     return "Failed to read int object memory.";
 
-                return BitConverter.ToInt64(intObjectMemory, 0x10);
+                var value = BitConverter.ToInt64(intObjectMemory, 0x10);
+
+                var asInt32 = (Int32)value;
+
+                if (asInt32 == value)
+                    return asInt32;
+
+                return new
+                {
+                    @int = value,
+                    int_low32 = asInt32,
+                };
             }))
             .Add("bool", new Func<ulong, IMemoryReader, object>((address, memoryReader) =>
             {

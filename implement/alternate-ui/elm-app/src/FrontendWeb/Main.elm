@@ -31,7 +31,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-19"
+    "2020-01-20"
 
 
 main =
@@ -671,7 +671,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                     ( "summary", commonSummaryHtml )
                         :: ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
                         :: ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
-                        :: ( "totalDisplayOffset", totalDisplayOffsetText |> Html.text )
+                        :: ( "totalDisplayRegion", totalDisplayOffsetText |> Html.text )
                         :: otherPropertiesHtml
                         ++ [ ( "children", childrenHtml ) ]
 

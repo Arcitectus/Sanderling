@@ -42,7 +42,6 @@ module Sanderling.MemoryReading exposing
     , unwrapUITreeNodeChild
     )
 
-import BigInt
 import Dict
 import Json.Decode
 import Json.Encode
@@ -255,10 +254,13 @@ getDisplayRegionFromDictEntries : UITreeNode -> Maybe DisplayRegion
 getDisplayRegionFromDictEntries uiNode =
     let
         fixedNumberFromJsonValue =
-            Json.Decode.decodeValue Json.Decode.string
-                >> Result.mapError Json.Decode.errorToString
-                >> Result.andThen parse64BitIntAndGetLower32BitInt
-                >> Result.map .lower32Bit
+            Json.Decode.decodeValue
+                (Json.Decode.oneOf
+                    [ Json.Decode.string
+                    , Json.Decode.field "int_low32" Json.Decode.string
+                    ]
+                    |> Json.Decode.andThen (String.toInt >> Maybe.map Json.Decode.succeed >> Maybe.withDefault (Json.Decode.fail "Failed to parse integer from string."))
+                )
 
         fixedNumberFromPropertyName propertyName =
             uiNode.dictEntriesOfInterest
@@ -956,135 +958,3 @@ maybeVisibleAndThen map maybeVisible =
 
         CanSee visible ->
             map visible
-
-
-{-| Tests at <https://ellie-app.com/7JJQTtHTJSwa1>
--}
-parse64BitIntAndGetLower32BitInt :
-    String
-    -> Result String { valueAsBase16 : String, base16WithSignIntegrated : String, lower32Bit : Int }
-parse64BitIntAndGetLower32BitInt asString =
-    let
-        ( wasNegative, valueAsString ) =
-            if asString |> String.startsWith "-" then
-                ( True, asString |> String.dropLeft 1 )
-
-            else
-                ( False, asString )
-    in
-    case valueAsString |> BigInt.fromIntString of
-        Nothing ->
-            Err "Failed to parse original as integer."
-
-        Just valueAsBigInt ->
-            let
-                valueAsBase16 =
-                    valueAsBigInt
-                        |> BigInt.toHexString
-                        |> String.padLeft 16 '0'
-                        |> String.toLower
-
-                withSignIntegratedResult =
-                    if wasNegative then
-                        valueAsBase16
-                            |> String.map flipAllBitsInBase16Char
-                            |> BigInt.fromHexString
-                            |> Maybe.map (BigInt.add (BigInt.fromInt 1))
-
-                    else
-                        BigInt.fromHexString valueAsBase16
-            in
-            case withSignIntegratedResult of
-                Nothing ->
-                    Err "Failed fromHexString"
-
-                Just withSignIntegrated ->
-                    let
-                        base16WithSignIntegrated =
-                            withSignIntegrated
-                                |> BigInt.toHexString
-                                |> String.padLeft 16 '0'
-                                |> String.toLower
-
-                        lower32BitAsBase16 =
-                            base16WithSignIntegrated |> String.right 8
-
-                        lower32BitAsBigIntResult =
-                            if lower32BitAsBase16 |> String.startsWith "f" then
-                                lower32BitAsBase16
-                                    |> String.map flipAllBitsInBase16Char
-                                    |> BigInt.fromHexString
-                                    |> Maybe.map (BigInt.add (BigInt.fromInt 1) >> BigInt.negate)
-
-                            else
-                                BigInt.fromHexString lower32BitAsBase16
-
-                        lower32BitResult =
-                            lower32BitAsBigIntResult
-                                |> Maybe.andThen (BigInt.toString >> String.toInt)
-                    in
-                    case lower32BitResult of
-                        Nothing ->
-                            Err "Failed fromHexString"
-
-                        Just lower32Bit ->
-                            Ok
-                                { valueAsBase16 = valueAsBase16
-                                , base16WithSignIntegrated = base16WithSignIntegrated
-                                , lower32Bit = lower32Bit
-                                }
-
-
-flipAllBitsInBase16Char : Char -> Char
-flipAllBitsInBase16Char originalChar =
-    case originalChar |> Char.toLower of
-        '0' ->
-            'f'
-
-        '1' ->
-            'e'
-
-        '2' ->
-            'd'
-
-        '3' ->
-            'c'
-
-        '4' ->
-            'b'
-
-        '5' ->
-            'a'
-
-        '6' ->
-            '9'
-
-        '7' ->
-            '8'
-
-        '8' ->
-            '7'
-
-        '9' ->
-            '6'
-
-        'a' ->
-            '5'
-
-        'b' ->
-            '4'
-
-        'c' ->
-            '3'
-
-        'd' ->
-            '2'
-
-        'e' ->
-            '1'
-
-        'f' ->
-            '0'
-
-        _ ->
-            '_'
