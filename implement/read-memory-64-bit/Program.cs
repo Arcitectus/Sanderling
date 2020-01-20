@@ -414,7 +414,7 @@ namespace read_memory_64_bit
 
             } while (true);
 
-            logLine($"Found {committedRegions.Count} committed regions with a total size of {committedRegions.Select(region => region.content.Length).Sum()}.");
+            logLine($"Found {committedRegions.Count} committed regions with a total size of {committedRegions.Select(region => (long)region.content.Length).Sum()}.");
 
             return (committedRegions.ToImmutableList(), logEntries.ToImmutableList());
         }
