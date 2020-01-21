@@ -31,7 +31,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-20"
+    "2020-01-21"
 
 
 main =

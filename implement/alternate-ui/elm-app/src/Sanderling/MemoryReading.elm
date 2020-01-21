@@ -11,6 +11,9 @@ module Sanderling.MemoryReading exposing
     , InventoryWindow
     , InventoryWindowCapacityGauge
     , MaybeVisible(..)
+    , ModuleButtonTooltip
+    , Neocom
+    , NeocomClock
     , OverviewWindowEntry
     , ParsedUserInterface
     , ShipManeuverType(..)
@@ -58,6 +61,8 @@ type alias ParsedUserInterface =
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
     , inventoryWindows : List InventoryWindow
+    , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
+    , neocom : MaybeVisible Neocom
     }
 
 
@@ -205,6 +210,24 @@ type alias InventoryWindowCapacityGauge =
     }
 
 
+type alias ModuleButtonTooltip =
+    { uiNode : UITreeNodeWithDisplayRegion
+    }
+
+
+type alias Neocom =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , clock : MaybeVisible NeocomClock
+    }
+
+
+type alias NeocomClock =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , text : String
+    , parsedText : Result String { hour : Int, minute : Int }
+    }
+
+
 type MaybeVisible feature
     = CanNotSeeIt
     | CanSee feature
@@ -225,6 +248,8 @@ parseUserInterfaceFromUITree uiTree =
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
+    , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
+    , neocom = parseNeocomFromUITreeRoot uiTree
     }
 
 
@@ -738,6 +763,92 @@ parseInventoryCapacityGaugeText capacityText =
 
                 _ ->
                     Err ("Unexpected number of components in capacityText '" ++ capacityText ++ "'")
+
+
+parseModuleButtonTooltipFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ModuleButtonTooltip
+parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButtonTooltip")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just uiNode ->
+            CanSee { uiNode = uiNode }
+
+
+parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible Neocom
+parseNeocomFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Neocom")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just uiNode ->
+            CanSee (parseNeocom uiNode)
+
+
+parseNeocom : UITreeNodeWithDisplayRegion -> Neocom
+parseNeocom neocomUiNode =
+    let
+        maybeClockTextAndNode =
+            neocomUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InGameClock")
+                |> List.concatMap getAllContainedDisplayTextsWithRegion
+                |> List.head
+
+        clock =
+            maybeClockTextAndNode
+                |> Maybe.map
+                    (\( clockText, clockNode ) ->
+                        { uiNode = clockNode
+                        , text = clockText
+                        , parsedText = parseNeocomClockText clockText
+                        }
+                    )
+                |> canNotSeeItFromMaybeNothing
+    in
+    { uiNode = neocomUiNode
+    , clock = clock
+    }
+
+
+parseNeocomClockText : String -> Result String { hour : Int, minute : Int }
+parseNeocomClockText clockText =
+    case "(\\d+)\\:(\\d+)" |> Regex.fromString of
+        Nothing ->
+            Err "Regex code error"
+
+        Just regex ->
+            case clockText |> Regex.find regex |> List.head of
+                Nothing ->
+                    Err ("Text did not match expected format: '" ++ clockText ++ "'")
+
+                Just match ->
+                    case match.submatches of
+                        [ Just hourText, Just minuteText ] ->
+                            case hourText |> String.toInt of
+                                Nothing ->
+                                    Err ("Failed to parse hour: '" ++ hourText ++ "'")
+
+                                Just hour ->
+                                    case minuteText |> String.toInt of
+                                        Nothing ->
+                                            Err ("Failed to parse minute: '" ++ minuteText ++ "'")
+
+                                        Just minute ->
+                                            Ok { hour = hour, minute = minute }
+
+                        _ ->
+                            Err "Unexpected numer of text elements."
 
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
