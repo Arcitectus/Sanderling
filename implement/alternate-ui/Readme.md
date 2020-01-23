@@ -41,7 +41,7 @@ To start the software:
 + Navigate to the directory `alternate-ui`. This directory also contains the subdirectory `elm-app` and the `map.json` file.
 + In the next command we execute in the Shell, we execute the `PersistentProcess.WebHost.exe` file we got from the Zip-Archive in the setup section. Following is the command, you only need to replace the file path to the executable file:
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" build-config --frontend-web-elm-make-appendix="--debug" --output="./build-output/app-config.zip"
+."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" build-config --output="./build-output/app-config.zip"
 ```
 + After running the command above, you should see an output like this in the shell:
 ```PowerShell
@@ -49,7 +49,7 @@ I saved web app config 2DE17B921598B3B7EC6323599C8F348BC54EFA789B37E334622034C86
 ```
 + Next, we execute another command, using the same executable file:
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" "start-server" --webAppConfigurationFilePath="./build-output/app-config.zip" --processStoreDirectoryPath="./runtime-artifacts/process-store"
+."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" start-server --webAppConfigurationFilePath="./build-output/app-config.zip" --processStoreDirectoryPath="./runtime-artifacts/process-store"
 ```
 + The command starts a web server and the shell window will display an output like this:
 ```PowerShell

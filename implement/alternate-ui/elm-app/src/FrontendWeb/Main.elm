@@ -47,6 +47,7 @@ main =
 
 type alias State =
     { navigationKey : Navigation.Key
+    , timeMilli : Int
     , selectedSource : MemoryReadingSource
     , readFromFileResult : Maybe ParseMemoryReadingCompleted
     , readFromLiveProcess : ReadFromLiveProcessState
@@ -57,6 +58,7 @@ type alias State =
 type alias ReadFromLiveProcessState =
     { readEveOnlineClientProcessesIdsResult : Maybe (Result String (Set.Set Int))
     , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
+    , lastPendingRequestToReadMemoryTimeMilli : Maybe Int
     }
 
 
@@ -93,7 +95,7 @@ type Event
     | UserInputSelectMemoryReadingFile (Maybe File.File)
     | ReadMemoryReadingFile String
     | UserInputSetTreeViewNodeIsExpanded ExpandableViewNode Bool
-    | ContinueReadFromLiveProcess
+    | ContinueReadFromLiveProcess Time.Posix
     | UserInputDownloadJsonFile String
 
 
@@ -135,16 +137,18 @@ subscriptions state =
             Sub.none
 
         FromLiveProcess ->
-            Time.every 1000 (always ContinueReadFromLiveProcess)
+            Time.every 1000 ContinueReadFromLiveProcess
 
 
 init : () -> Url.Url -> Navigation.Key -> ( State, Cmd Event )
 init _ url navigationKey =
     { navigationKey = navigationKey
+    , timeMilli = 0
     , selectedSource = FromFile
     , readFromLiveProcess =
         { readEveOnlineClientProcessesIdsResult = Nothing
         , readMemoryResult = Nothing
+        , lastPendingRequestToReadMemoryTimeMilli = Nothing
         }
     , readFromFileResult = Nothing
     , treeView = { expandedNodes = [] }
@@ -218,8 +222,16 @@ update event stateBefore =
             in
             ( { stateBefore | treeView = { expandedNodes = expandedNodes } }, Cmd.none )
 
-        ContinueReadFromLiveProcess ->
-            ( stateBefore, (stateBefore |> decideNextStepToReadFromLiveProcess).nextCmd )
+        ContinueReadFromLiveProcess time ->
+            let
+                timeMilli =
+                    Time.posixToMillis time
+
+                ( readFromLiveProcessState, cmd ) =
+                    (stateBefore.readFromLiveProcess |> decideNextStepToReadFromLiveProcess { timeMilli = timeMilli })
+                        |> Tuple.mapSecond .nextCmd
+            in
+            ( { stateBefore | timeMilli = timeMilli, readFromLiveProcess = readFromLiveProcessState }, cmd )
 
         UserInputDownloadJsonFile jsonString ->
             ( stateBefore, File.Download.string "memory-reading.json" "application/json" jsonString )
@@ -336,44 +348,59 @@ integrateBackendResponse { request, result } stateBefore =
                 readFromLiveProcessBefore =
                     stateBefore.readFromLiveProcess
             in
-            { stateBefore | readFromLiveProcess = { readFromLiveProcessBefore | readMemoryResult = Just readMemoryResult } }
+            { stateBefore
+                | readFromLiveProcess =
+                    { readFromLiveProcessBefore
+                        | readMemoryResult = Just readMemoryResult
+                        , lastPendingRequestToReadMemoryTimeMilli = Nothing
+                    }
+            }
 
         _ ->
             stateBefore
 
 
 decideNextStepToReadFromLiveProcess :
-    State
+    { timeMilli : Int }
+    -> ReadFromLiveProcessState
     ->
-        { describeState : String
-        , lastMemoryReading : Maybe ReadFromLiveProcessCompleted
-        , nextCmd : Cmd.Cmd Event
-        }
-decideNextStepToReadFromLiveProcess state =
+        ( ReadFromLiveProcessState
+        , { describeState : String
+          , lastMemoryReading : Maybe ReadFromLiveProcessCompleted
+          , nextCmd : Cmd.Cmd Event
+          }
+        )
+decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
     let
         requestGetProcessesIds =
             apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest Sanderling.Sanderling.GetEveOnlineProcessesIds)
     in
-    case state.readFromLiveProcess.readEveOnlineClientProcessesIdsResult of
+    case stateBefore.readEveOnlineClientProcessesIdsResult of
         Nothing ->
-            { describeState = "Did not yet search for the IDs of the EVE Online client processes."
-            , lastMemoryReading = Nothing
-            , nextCmd = requestGetProcessesIds
-            }
+            ( stateBefore
+            , { describeState = "Did not yet search for the IDs of the EVE Online client processes."
+              , lastMemoryReading = Nothing
+              , nextCmd = requestGetProcessesIds
+              }
+            )
 
         Just (Err error) ->
-            { describeState = "Failed to get IDs of the EVE Online client processes: " ++ error
-            , lastMemoryReading = Nothing
-            , nextCmd = requestGetProcessesIds
-            }
+            ( stateBefore
+            , { describeState = "Failed to get IDs of the EVE Online client processes: " ++ error
+              , lastMemoryReading = Nothing
+              , nextCmd = requestGetProcessesIds
+              }
+            )
 
         Just (Ok eveOnlineClientProcessesIds) ->
             case eveOnlineClientProcessesIds |> Set.toList of
                 [] ->
-                    { describeState = "Looks like there is no EVE Online client process started. I continue looking in case one is started..."
-                    , lastMemoryReading = Nothing
-                    , nextCmd = requestGetProcessesIds
-                    }
+                    ( stateBefore
+                    , { describeState = "Looks like there is no EVE Online client process started. I continue looking in case one is started..."
+                      , lastMemoryReading = Nothing
+                      , nextCmd = requestGetProcessesIds
+                      }
+                    )
 
                 firstEveOnlineClientProcessId :: _ ->
                     let
@@ -384,7 +411,7 @@ decideNextStepToReadFromLiveProcess state =
                                 )
 
                         ( describeLastReadResult, lastMemoryReading ) =
-                            case state.readFromLiveProcess.readMemoryResult of
+                            case stateBefore.readMemoryResult of
                                 Nothing ->
                                     ( "", Nothing )
 
@@ -393,15 +420,29 @@ decideNextStepToReadFromLiveProcess state =
 
                                 Just (Ok lastMemoryReadingCompleted) ->
                                     ( "The last attempt to read from the process memory was successful.", Just lastMemoryReadingCompleted )
+
+                        memoryReadingStillPending =
+                            stateBefore.lastPendingRequestToReadMemoryTimeMilli
+                                |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
+                                |> Maybe.withDefault False
+
+                        ( state, nextCmd ) =
+                            if memoryReadingStillPending then
+                                ( stateBefore, Cmd.none )
+
+                            else
+                                ( { stateBefore | lastPendingRequestToReadMemoryTimeMilli = Just timeMilli }, requestReadMemory )
                     in
-                    { describeState =
-                        "I try to read the memory from process "
-                            ++ (firstEveOnlineClientProcessId |> String.fromInt)
-                            ++ ". "
-                            ++ describeLastReadResult
-                    , nextCmd = requestReadMemory
-                    , lastMemoryReading = lastMemoryReading
-                    }
+                    ( state
+                    , { describeState =
+                            "I try to read the memory from process "
+                                ++ (firstEveOnlineClientProcessId |> String.fromInt)
+                                ++ ". "
+                                ++ describeLastReadResult
+                      , nextCmd = nextCmd
+                      , lastMemoryReading = lastMemoryReading
+                      }
+                    )
 
 
 view : State -> Browser.Document Event
@@ -469,8 +510,8 @@ viewSourceFromFile state =
 viewSourceFromLiveProcess : State -> Html.Html Event
 viewSourceFromLiveProcess state =
     let
-        nextStep =
-            decideNextStepToReadFromLiveProcess state
+        ( _, nextStep ) =
+            decideNextStepToReadFromLiveProcess { timeMilli = state.timeMilli } state.readFromLiveProcess
 
         memoryReadingHtml =
             case nextStep.lastMemoryReading of
