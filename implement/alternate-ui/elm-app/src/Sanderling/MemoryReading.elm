@@ -1,5 +1,8 @@
 module Sanderling.MemoryReading exposing
-    ( ChildOfNodeWithDisplayRegion(..)
+    ( ChatUserEntry
+    , ChatWindow
+    , ChatWindowStack
+    , ChildOfNodeWithDisplayRegion(..)
     , ContextMenu
     , ContextMenuEntry
     , DisplayRegion
@@ -61,6 +64,7 @@ type alias ParsedUserInterface =
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
     , inventoryWindows : List InventoryWindow
+    , chatWindowStacks : List ChatWindowStack
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
     }
@@ -210,6 +214,26 @@ type alias InventoryWindowCapacityGauge =
     }
 
 
+type alias ChatWindowStack =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , chatWindow : Maybe ChatWindow
+    }
+
+
+type alias ChatWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , name : Maybe String
+    , visibleUsers : List ChatUserEntry
+    }
+
+
+type alias ChatUserEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , name : Maybe String
+    , standingIconHint : Maybe String
+    }
+
+
 type alias ModuleButtonTooltip =
     { uiNode : UITreeNodeWithDisplayRegion
     }
@@ -249,6 +273,7 @@ parseUserInterfaceFromUITree uiTree =
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
+    , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     }
 
@@ -780,6 +805,69 @@ parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
             CanSee { uiNode = uiNode }
 
 
+parseChatWindowStacksFromUITreeRoot : UITreeNodeWithDisplayRegion -> List ChatWindowStack
+parseChatWindowStacksFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ChatWindowStack")
+        |> List.map parseChatWindowStack
+
+
+parseChatWindowStack : UITreeNodeWithDisplayRegion -> ChatWindowStack
+parseChatWindowStack chatWindowStackUiNode =
+    let
+        chatWindowNode =
+            chatWindowStackUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "XmppChatWindow")
+                |> List.head
+    in
+    { uiNode = chatWindowStackUiNode
+    , chatWindow = chatWindowNode |> Maybe.map parseChatWindow
+    }
+
+
+parseChatWindow : UITreeNodeWithDisplayRegion -> ChatWindow
+parseChatWindow chatWindowUiNode =
+    let
+        visibleUsers =
+            chatWindowUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (\uiNode -> [ "XmppChatSimpleUserEntry", "XmppChatUserEntry" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
+                |> List.map parseChatUserEntry
+    in
+    { uiNode = chatWindowUiNode
+    , name = getNameFromDictEntries chatWindowUiNode.uiNode
+    , visibleUsers = visibleUsers
+    }
+
+
+parseChatUserEntry : UITreeNodeWithDisplayRegion -> ChatUserEntry
+parseChatUserEntry chatUserUiNode =
+    let
+        standingIconNode =
+            chatUserUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "FlagIconWithState")
+                |> List.head
+
+        name =
+            chatUserUiNode.uiNode
+                |> getAllContainedDisplayTexts
+                |> List.sortBy String.length
+                |> List.reverse
+                |> List.head
+
+        standingIconHint =
+            standingIconNode
+                |> Maybe.andThen (.uiNode >> getHintTextFromDictEntries)
+    in
+    { uiNode = chatUserUiNode
+    , name = name
+    , standingIconHint = standingIconHint
+    }
+
+
 parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible Neocom
 parseNeocomFromUITreeRoot uiTreeRoot =
     case
@@ -912,6 +1000,13 @@ getNameFromDictEntries : UITreeNode -> Maybe String
 getNameFromDictEntries uiNode =
     uiNode.dictEntriesOfInterest
         |> Dict.get "_name"
+        |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
+
+
+getHintTextFromDictEntries : UITreeNode -> Maybe String
+getHintTextFromDictEntries uiNode =
+    uiNode.dictEntriesOfInterest
+        |> Dict.get "_hint"
         |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
 
 
