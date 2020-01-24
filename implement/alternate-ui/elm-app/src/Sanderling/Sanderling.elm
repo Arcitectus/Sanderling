@@ -1,6 +1,7 @@
 module Sanderling.Sanderling exposing
     ( ConsoleBeepStructure
     , EffectOnWindowStructure(..)
+    , GetMemoryReadingResultStructure(..)
     , Location2d
     , MemoryReadingCompletedStructure
     , MouseButton(..)
@@ -326,6 +327,7 @@ buildScriptToGetResponseFromVolatileHost request =
                 |> Json.Encode.encode 0
            )
         ++ ")"
+
 
 encodeConsoleBeep : ConsoleBeepStructure -> Json.Encode.Value
 encodeConsoleBeep consoleBeep =
