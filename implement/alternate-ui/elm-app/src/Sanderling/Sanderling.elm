@@ -1,6 +1,6 @@
 module Sanderling.Sanderling exposing
-    ( EffectOnWindowStructure(..)
-    , GetMemoryReadingResultStructure(..)
+    ( ConsoleBeepStructure
+    , EffectOnWindowStructure(..)
     , Location2d
     , MemoryReadingCompletedStructure
     , MouseButton(..)
@@ -23,6 +23,7 @@ type RequestToVolatileHost
     = GetEveOnlineProcessesIds
     | GetMemoryReading GetMemoryReadingStructure
     | EffectOnWindow (TaskOnWindowStructure EffectOnWindowStructure)
+    | ConsoleBeepSequenceRequest (List ConsoleBeepStructure)
 
 
 type ResponseFromVolatileHost
@@ -121,6 +122,12 @@ type alias Location2d =
     { x : Int, y : Int }
 
 
+type alias ConsoleBeepStructure =
+    { frequency : Int
+    , durationInMs : Int
+    }
+
+
 deserializeResponseFromVolatileHost : String -> Result Json.Decode.Error ResponseFromVolatileHost
 deserializeResponseFromVolatileHost =
     Json.Decode.decodeString decodeResponseFromVolatileHost
@@ -147,6 +154,9 @@ encodeRequestToVolatileHost request =
 
         EffectOnWindow taskOnWindow ->
             Json.Encode.object [ ( "effectOnWindow", taskOnWindow |> encodeTaskOnWindow encodeEffectOnWindowStructure ) ]
+
+        ConsoleBeepSequenceRequest consoleBeepSequenceRequest ->
+            Json.Encode.object [ ( "ConsoleBeepSequenceRequest", consoleBeepSequenceRequest |> Json.Encode.list encodeConsoleBeep ) ]
 
 
 decodeRequestToVolatileHost : Json.Decode.Decoder RequestToVolatileHost
@@ -316,6 +326,13 @@ buildScriptToGetResponseFromVolatileHost request =
                 |> Json.Encode.encode 0
            )
         ++ ")"
+
+encodeConsoleBeep : ConsoleBeepStructure -> Json.Encode.Value
+encodeConsoleBeep consoleBeep =
+    Json.Encode.object
+        [ ( "frequency", consoleBeep.frequency |> Json.Encode.int )
+        , ( "durationInMs", consoleBeep.durationInMs |> Json.Encode.int )
+        ]
 
 
 effectMouseClickAtLocation : MouseButton -> Location2d -> EffectOnWindowStructure

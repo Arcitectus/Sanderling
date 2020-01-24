@@ -55,6 +55,8 @@ class Request
 
     public TaskOnWindow<EffectOnWindow> effectOnWindow;
 
+    public ConsoleBeepStructure[] ConsoleBeepSequenceRequest;
+
     public class GetMemoryReadingStructure
     {
         public int processId;
@@ -109,6 +111,13 @@ class Request
     public enum MouseButton
     {
         left, right,
+    }
+
+    public struct ConsoleBeepStructure
+    {
+        public int frequency;
+
+        public int durationInMs;
     }
 }
 
@@ -232,6 +241,22 @@ Response request(Request request)
         var windowHandle = new IntPtr(long.Parse(request.effectOnWindow.windowId));
 
         ExecuteEffectOnWindow(request.effectOnWindow.task, windowHandle, request.effectOnWindow.bringWindowToForeground);
+
+        return new Response
+        {
+            effectExecuted = new object(),
+        };
+    }
+
+    if (request?.ConsoleBeepSequenceRequest != null)
+    {
+        foreach (var beep in request?.ConsoleBeepSequenceRequest)
+        {
+            if(beep.frequency == 0) //  Avoid exception "The frequency must be between 37 and 32767."
+                System.Threading.Thread.Sleep(beep.durationInMs);
+            else
+                System.Console.Beep(beep.frequency, beep.durationInMs);
+        }
 
         return new Response
         {
