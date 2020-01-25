@@ -17,6 +17,7 @@ module Sanderling.MemoryReading exposing
     , ModuleButtonTooltip
     , Neocom
     , NeocomClock
+    , OverviewWindow
     , OverviewWindowEntry
     , ParsedUserInterface
     , ShipManeuverType(..)
@@ -38,6 +39,7 @@ module Sanderling.MemoryReading exposing
     , listDescendantsWithDisplayRegion
     , maybeNothingFromCanNotSeeIt
     , maybeVisibleAndThen
+    , maybeVisibleMap
     , parseContextMenusFromUITreeRoot
     , parseInventoryCapacityGaugeText
     , parseOverviewEntryDistanceInMetersFromText
@@ -177,6 +179,7 @@ type alias Target =
 
 type alias OverviewWindow =
     { uiNode : UITreeNodeWithDisplayRegion
+    , entriesHeaders : List ( String, UITreeNodeWithDisplayRegion )
     , entries : List OverviewWindowEntry
     }
 
@@ -184,6 +187,7 @@ type alias OverviewWindow =
 type alias OverviewWindowEntry =
     { uiNode : UITreeNodeWithDisplayRegion
     , textsLeftToRight : List String
+    , cellsTexts : Dict.Dict String String
     , distanceInMeters : Result String Int
     }
 
@@ -606,45 +610,81 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
 
         Just overviewWindowNode ->
             let
+                scrollNode =
+                    overviewWindowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                        |> List.head
+
+                headersContainerNode =
+                    scrollNode
+                        |> Maybe.map listDescendantsWithDisplayRegion
+                        |> Maybe.withDefault []
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers")
+                        |> List.head
+
+                entriesHeaders =
+                    headersContainerNode
+                        |> Maybe.map getAllContainedDisplayTextsWithRegion
+                        |> Maybe.withDefault []
+
                 entries =
                     overviewWindowNode
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
-                        |> List.map parseOverviewWindowEntry
+                        |> List.map (parseOverviewWindowEntry entriesHeaders)
             in
-            CanSee { uiNode = overviewWindowNode, entries = entries }
+            CanSee { uiNode = overviewWindowNode, entriesHeaders = entriesHeaders, entries = entries }
 
 
-parseOverviewWindowEntry : UITreeNodeWithDisplayRegion -> OverviewWindowEntry
-parseOverviewWindowEntry overviewEntryNode =
+parseOverviewWindowEntry : List ( String, UITreeNodeWithDisplayRegion ) -> UITreeNodeWithDisplayRegion -> OverviewWindowEntry
+parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     let
         textsLeftToRight =
             overviewEntryNode
                 |> getAllContainedDisplayTextsWithRegion
                 |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
                 |> List.map Tuple.first
+
+        cellsTexts =
+            overviewEntryNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.filterMap
+                    (\( cellText, cell ) ->
+                        let
+                            cellMiddle =
+                                cell.totalDisplayRegion.x + (cell.totalDisplayRegion.width // 2)
+
+                            maybeHeader =
+                                entriesHeaders
+                                    |> List.filter
+                                        (\( _, header ) ->
+                                            header.totalDisplayRegion.x
+                                                < cellMiddle
+                                                + 1
+                                                && cellMiddle
+                                                < header.totalDisplayRegion.x
+                                                + header.totalDisplayRegion.width
+                                                - 1
+                                        )
+                                    |> List.head
+                        in
+                        maybeHeader
+                            |> Maybe.map (\( headerText, _ ) -> ( headerText, cellText ))
+                    )
+                |> Dict.fromList
+
+        distanceInMeters =
+            cellsTexts
+                |> Dict.get "Distance"
+                |> Maybe.map parseOverviewEntryDistanceInMetersFromText
+                |> Maybe.withDefault (Err "Did not find the 'Distance' cell text.")
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
-    , distanceInMeters = textsLeftToRight |> parseOverviewEntryDistanceInMetersFromTexts
+    , cellsTexts = cellsTexts
+    , distanceInMeters = distanceInMeters
     }
-
-
-parseOverviewEntryDistanceInMetersFromTexts : List String -> Result String Int
-parseOverviewEntryDistanceInMetersFromTexts texts =
-    let
-        parseResults =
-            texts |> List.map parseOverviewEntryDistanceInMetersFromText
-    in
-    case parseResults |> List.filterMap Result.toMaybe |> List.head of
-        Nothing ->
-            Err
-                ("Parsing did not succeed for any of the texts: "
-                    ++ ((parseResults |> List.filterMap (Result.Extra.unpack Just (always Nothing))) |> String.join ", ")
-                )
-
-        Just distanceInMeters ->
-            Ok distanceInMeters
 
 
 parseOverviewEntryDistanceInMetersFromText : String -> Result String Int
@@ -1164,3 +1204,13 @@ maybeVisibleAndThen map maybeVisible =
 
         CanSee visible ->
             map visible
+
+
+maybeVisibleMap : (a -> b) -> MaybeVisible a -> MaybeVisible b
+maybeVisibleMap map maybeVisible =
+    case maybeVisible of
+        CanNotSeeIt ->
+            CanNotSeeIt
+
+        CanSee visible ->
+            CanSee (map visible)

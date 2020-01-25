@@ -20,6 +20,7 @@ import Sanderling.MemoryReading
         , getDisplayText
         , getHorizontalOffsetFromParentAndWidth
         , getVerticalOffsetFromParent
+        , maybeVisibleMap
         )
 import Sanderling.Sanderling
 import Set
@@ -31,7 +32,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-24"
+    "2020-01-25"
 
 
 main =
@@ -739,6 +740,9 @@ parseMemoryReadingFromJson =
                 let
                     uiTreeWithDisplayRegion =
                         uiTree |> Sanderling.MemoryReading.parseUITreeWithDisplayRegionFromUITree
+
+                    parsedUserInterface =
+                        Sanderling.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
                 in
                 { uiTree = uiTree
                 , uiNodesWithDisplayRegion =
@@ -746,142 +750,33 @@ parseMemoryReadingFromJson =
                         :: (uiTreeWithDisplayRegion |> Sanderling.MemoryReading.listDescendantsWithDisplayRegion)
                         |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
-                , overviewWindow = parseOverviewWindowFromUiRoot uiTree
-                , parsed = Sanderling.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
+                , overviewWindow = parsedUserInterface.overviewWindow |> maybeVisibleMap parseOverviewWindow
+                , parsed = parsedUserInterface
                 }
             )
 
 
-parseOverviewWindowFromUiRoot : Sanderling.MemoryReading.UITreeNode -> MaybeVisible OverviewWindow
-parseOverviewWindowFromUiRoot uiTreeRoot =
-    case uiTreeRoot |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> (==) "OverView") of
-        Nothing ->
-            CanNotSeeIt
-
-        Just overviewWindowNode ->
-            CanSee (overviewWindowNode |> parseOverviewWindow)
-
-
-parseOverviewWindow : Sanderling.MemoryReading.UITreeNode -> OverviewWindow
-parseOverviewWindow overviewWindowNode =
+parseOverviewWindow : Sanderling.MemoryReading.OverviewWindow -> OverviewWindow
+parseOverviewWindow overviewWindow =
     let
-        ( tableHeaders, overviewEntries ) =
-            case overviewWindowNode |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "scroll") of
-                Nothing ->
-                    ( [], [] )
+        mapEntry originalEntry =
+            { uiTreeNode = originalEntry.uiNode.uiNode
+            , cellsContents = originalEntry.cellsTexts
+            }
 
-                Just scrollNode ->
-                    let
-                        -- TODO: Reduce risk of wrong link of entry contents to columns: Use the global/absolute offset instead of a local one.
-                        headers =
-                            case scrollNode |> Sanderling.MemoryReading.getMostPopulousDescendantMatchingPredicate (.pythonObjectTypeName >> String.toLower >> String.contains "headers") of
-                                Nothing ->
-                                    []
+        headers =
+            overviewWindow.entriesHeaders
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
+                |> List.map Tuple.first
 
-                                Just headersContainerNode ->
-                                    headersContainerNode
-                                        |> Sanderling.MemoryReading.listDescendantsInUITreeNode
-                                        |> List.filterMap
-                                            (\headerContainerCandidate ->
-                                                if (headerContainerCandidate.pythonObjectTypeName |> String.toLower) /= "container" then
-                                                    Nothing
-
-                                                else
-                                                    let
-                                                        maybeText =
-                                                            headerContainerCandidate.children
-                                                                |> Maybe.withDefault []
-                                                                |> List.map Sanderling.MemoryReading.unwrapUITreeNodeChild
-                                                                |> List.filterMap getDisplayText
-                                                                |> List.head
-
-                                                        maybeOffset =
-                                                            headerContainerCandidate
-                                                                |> getHorizontalOffsetFromParentAndWidth
-                                                                |> Maybe.map (\offsetAndWidth -> offsetAndWidth.offset + offsetAndWidth.width // 2)
-                                                    in
-                                                    case ( maybeText, maybeOffset ) of
-                                                        ( Just text, Just offset ) ->
-                                                            Just { text = text, offset = offset }
-
-                                                        _ ->
-                                                            Nothing
-                                            )
-
-                        headersFromLeftToRight =
-                            headers |> List.sortBy .offset
-
-                        entries =
-                            overviewWindowNode
-                                |> Sanderling.MemoryReading.listDescendantsInUITreeNode
-                                |> List.filter (.pythonObjectTypeName >> (==) "OverviewScrollEntry")
-                                |> List.filterMap
-                                    (\overviewEntryNode ->
-                                        if (overviewEntryNode |> Sanderling.MemoryReading.countDescendantsInUITreeNode) < 1 then
-                                            Nothing
-
-                                        else
-                                            let
-                                                childrenWithOffset =
-                                                    overviewEntryNode.children
-                                                        |> Maybe.withDefault []
-                                                        |> List.map Sanderling.MemoryReading.unwrapUITreeNodeChild
-                                                        |> List.filterMap
-                                                            (\child ->
-                                                                child
-                                                                    |> getHorizontalOffsetFromParentAndWidth
-                                                                    |> Maybe.map (\offsetAndWidth -> { uiNode = child, offset = offsetAndWidth.offset + offsetAndWidth.width // 2 })
-                                                            )
-
-                                                cellsContents =
-                                                    headersFromLeftToRight
-                                                        |> List.map
-                                                            (\header ->
-                                                                let
-                                                                    childrenWithOffsetNotCloserToAnotherHeader =
-                                                                        childrenWithOffset
-                                                                            |> List.filter
-                                                                                (\childWithOffset ->
-                                                                                    let
-                                                                                        closestHeader =
-                                                                                            headersFromLeftToRight
-                                                                                                |> List.sortBy (\otherHeader -> abs (otherHeader.offset - childWithOffset.offset))
-                                                                                                |> List.head
-                                                                                    in
-                                                                                    closestHeader == Just header
-                                                                                )
-
-                                                                    maybeClosestChild =
-                                                                        childrenWithOffsetNotCloserToAnotherHeader
-                                                                            |> List.sortBy (\childNode -> abs (childNode.offset - header.offset))
-                                                                            |> List.head
-                                                                            |> Maybe.map .uiNode
-
-                                                                    cellText =
-                                                                        maybeClosestChild
-                                                                            |> Maybe.andThen
-                                                                                (\closestChild ->
-                                                                                    (closestChild :: (closestChild |> Sanderling.MemoryReading.listDescendantsInUITreeNode))
-                                                                                        |> List.filterMap getDisplayText
-                                                                                        |> List.sortBy (String.length >> negate)
-                                                                                        |> List.head
-                                                                                )
-                                                                            |> Maybe.withDefault ""
-                                                                in
-                                                                ( header.text, cellText )
-                                                            )
-                                                        |> Dict.fromList
-                                            in
-                                            Just
-                                                { uiTreeNode = overviewEntryNode
-                                                , cellsContents = cellsContents
-                                                }
-                                    )
-                                |> List.sortBy (.uiTreeNode >> getVerticalOffsetFromParent >> Maybe.withDefault 9999)
-                    in
-                    ( headersFromLeftToRight |> List.map .text, entries )
+        entries =
+            overviewWindow.entries
+                |> List.sortBy (.uiNode >> .totalDisplayRegion >> .y)
+                |> List.map mapEntry
     in
-    { headers = tableHeaders, entries = overviewEntries }
+    { headers = headers
+    , entries = entries
+    }
 
 
 globalStylesHtmlElement : Html.Html a
