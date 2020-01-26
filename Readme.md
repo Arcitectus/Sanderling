@@ -52,9 +52,13 @@ Location in the repository: [/implement/alternate-ui/elm-app/src/Sanderling/Memo
 
 TODO: Describe the alternative user interface for the EVE Online game client.
 
-## Where are the Bots?
+## Bots
 
-Some bots using Sanderling:
+Bots are not in the scope of this repository, but I sure have some links with further information.
+
+There is this guide on developing bots: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-develop-eve-online-bots.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-develop-eve-online-bots.md)
+
+And these are some bots using Sanderling:
 
 + Warp-To-0 Autopilot: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md)
 
@@ -62,7 +66,7 @@ Some bots using Sanderling:
 
 + List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
-+ Most up-to-date: [https://botcatalog.org/](https://botcatalog.org/)
++ Most up-to-date list of bots: [https://botcatalog.org/](https://botcatalog.org/)
 
 ## Contributing
 
