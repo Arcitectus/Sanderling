@@ -25,6 +25,8 @@ module EveOnline.MemoryReading exposing
     , OverviewWindow
     , OverviewWindowEntry
     , ParsedUserInterface
+    , ProbeScanResult
+    , ProbeScannerWindow
     , ShipManeuverType(..)
     , ShipUI
     , ShipUIIndication
@@ -72,6 +74,7 @@ type alias ParsedUserInterface =
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
     , dronesWindow : MaybeVisible DronesWindow
+    , probeScannerWindow : MaybeVisible ProbeScannerWindow
     , inventoryWindows : List InventoryWindow
     , chatWindowStacks : List ChatWindowStack
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
@@ -230,6 +233,19 @@ type alias DronesWindowEntry =
     }
 
 
+type alias ProbeScannerWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , scanResults : List ProbeScanResult
+    }
+
+
+type alias ProbeScanResult =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , textsLeftToRight : List String
+    , warpButton : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
 type alias InventoryWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , leftTreeEntries : List InventoryWindowLeftTreeEntry
@@ -321,6 +337,7 @@ parseUserInterfaceFromUITree uiTree =
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
+    , probeScannerWindow = parseProbeScannerWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
@@ -858,6 +875,52 @@ parseDronesWindowEntry droneEntryNode =
     in
     { uiNode = droneEntryNode
     , mainText = mainText
+    }
+
+
+parseProbeScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ProbeScannerWindow
+parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ProbeScannerWindow")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just windowNode ->
+            let
+                scanResultsNodes =
+                    windowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ScanResultNew")
+
+                scanResults =
+                    scanResultsNodes
+                        |> List.map parseProbeScanResult
+            in
+            CanSee { uiNode = windowNode, scanResults = scanResults }
+
+
+parseProbeScanResult : UITreeNodeWithDisplayRegion -> ProbeScanResult
+parseProbeScanResult scanResultUiNode =
+    let
+        textsLeftToRight =
+            scanResultUiNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
+                |> List.map Tuple.first
+
+        warpButton =
+            scanResultUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getTexturePathFromDictEntries >> Maybe.map (String.endsWith "44_32_18.png") >> Maybe.withDefault False)
+                |> List.head
+    in
+    { uiNode = scanResultUiNode
+    , textsLeftToRight = textsLeftToRight
+    , warpButton = warpButton
     }
 
 
