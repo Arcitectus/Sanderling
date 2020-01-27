@@ -17,9 +17,6 @@ import Sanderling.MemoryReading
     exposing
         ( MaybeVisible(..)
         , UITreeNodeWithDisplayRegion
-        , getDisplayText
-        , getHorizontalOffsetFromParentAndWidth
-        , getVerticalOffsetFromParent
         , maybeVisibleMap
         )
 import Sanderling.Sanderling
@@ -32,7 +29,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-25"
+    "2020-01-27"
 
 
 main =
