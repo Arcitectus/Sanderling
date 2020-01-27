@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-01-20";
+        static string AppVersionId => "2020-01-27";
 
         static int Main(string[] args)
         {
@@ -173,31 +173,43 @@ namespace read_memory_64_bit
 
                     if (largestUiTree != null)
                     {
-                        if (0 < outputFileArgument?.Length)
+                        var uiTreePreparedForFile = largestUiTree;
+
+                        if (removeOtherDictEntriesArgument)
                         {
-                            var uiTreePreparedForFile = largestUiTree;
-
-                            if (removeOtherDictEntriesArgument)
-                            {
-                                uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
-                            }
-
-                            var uiTreeAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-                                uiTreePreparedForFile,
-                                //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                                new IntegersToStringJsonConverter()
-                                );
-
-                            var outputFilePath = outputFileArgument;
-
-                            System.IO.File.WriteAllText(outputFilePath, uiTreeAsJson, System.Text.Encoding.UTF8);
-
-                            Console.WriteLine($"I saved ui tree {largestUiTree.pythonObjectAddress:X} to file '{outputFilePath}'.");
+                            uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                         }
-                        else
+
+                        var uiTreeAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                            uiTreePreparedForFile,
+                            //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                            new IntegersToStringJsonConverter()
+                            );
+
+                        var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
+
+                        var sampleId = Kalmit.CommonConversion.StringBase16FromByteArray(Kalmit.CommonConversion.HashSHA256(fileContent));
+
+                        var outputFilePath = outputFileArgument;
+
+                        if (!(0 < outputFileArgument?.Length))
                         {
-                            Console.WriteLine("I found no configuration of an output file path.");
+                            var outputFileName = "eve-online-memory-reading-" + sampleId.Substring(0, 10) + ".json";
+
+                            outputFilePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), outputFileName);
+
+                            Console.WriteLine(
+                                "I found no configuration of an output file path, so I use '" +
+                                outputFilePath + "' as the default.");
                         }
+
+                        System.IO.File.WriteAllBytes(outputFilePath, fileContent);
+
+                        Console.WriteLine($"I saved memory reading {sampleId} from address 0x{largestUiTree.pythonObjectAddress:X} to file '{outputFilePath}'.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No largest UI tree.");
                     }
                 });
             });
