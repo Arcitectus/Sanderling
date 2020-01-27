@@ -31,6 +31,7 @@ module EveOnline.MemoryReading exposing
     , ShipUI
     , ShipUIIndication
     , ShipUIModule
+    , StationWindow
     , Target
     , UITreeNode
     , UITreeNodeWithDisplayRegion
@@ -75,6 +76,7 @@ type alias ParsedUserInterface =
     , overviewWindow : MaybeVisible OverviewWindow
     , dronesWindow : MaybeVisible DronesWindow
     , probeScannerWindow : MaybeVisible ProbeScannerWindow
+    , stationWindow : MaybeVisible StationWindow
     , inventoryWindows : List InventoryWindow
     , chatWindowStacks : List ChatWindowStack
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
@@ -246,6 +248,12 @@ type alias ProbeScanResult =
     }
 
 
+type alias StationWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , undockButton : Maybe { uiNode : UITreeNodeWithDisplayRegion, mainText : String }
+    }
+
+
 type alias InventoryWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , leftTreeEntries : List InventoryWindowLeftTreeEntry
@@ -338,6 +346,7 @@ parseUserInterfaceFromUITree uiTree =
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
     , probeScannerWindow = parseProbeScannerWindowFromUITreeRoot uiTree
+    , stationWindow = parseStationWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
@@ -922,6 +931,42 @@ parseProbeScanResult scanResultUiNode =
     , textsLeftToRight = textsLeftToRight
     , warpButton = warpButton
     }
+
+
+parseStationWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible StationWindow
+parseStationWindowFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "LobbyWnd")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just windowNode ->
+            let
+                maybeUndockButton =
+                    windowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.contains "undock") >> Maybe.withDefault False)
+                        |> List.filterMap
+                            (\undockNodeCandidate ->
+                                let
+                                    maybeMainText =
+                                        undockNodeCandidate
+                                            |> getAllContainedDisplayTextsWithRegion
+                                            |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                                            |> List.reverse
+                                            |> List.head
+                                            |> Maybe.map Tuple.first
+                                in
+                                maybeMainText
+                                    |> Maybe.map (\mainText -> { uiNode = undockNodeCandidate, mainText = mainText })
+                            )
+                        |> List.head
+            in
+            CanSee { uiNode = windowNode, undockButton = maybeUndockButton }
 
 
 parseInventoryWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List InventoryWindow
