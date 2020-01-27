@@ -1,9 +1,8 @@
-module Sanderling.Sanderling exposing
+module EveOnline.VolatileHostInterface exposing
     ( ConsoleBeepStructure
     , EffectOnWindowStructure(..)
     , GetMemoryReadingResultStructure(..)
     , Location2d
-    , MemoryReadingCompletedStructure
     , MouseButton(..)
     , RequestToVolatileHost(..)
     , ResponseFromVolatileHost(..)
@@ -305,8 +304,7 @@ decodeGetMemoryReadingResult : Json.Decode.Decoder GetMemoryReadingResultStructu
 decodeGetMemoryReadingResult =
     Json.Decode.oneOf
         [ Json.Decode.field "ProcessNotFound" (Json.Decode.succeed ProcessNotFound)
-        , Json.Decode.field "Completed" decodeMemoryReadingCompleted
-            |> Json.Decode.map Completed
+        , Json.Decode.field "Completed" decodeMemoryReadingCompleted |> Json.Decode.map Completed
         ]
 
 

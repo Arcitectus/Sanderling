@@ -6,12 +6,12 @@ module Backend.Main exposing
     )
 
 import Backend.InterfaceToHost as InterfaceToHost
+import EveOnline.VolatileHostInterface
+import EveOnline.VolatileHostScript as VolatileHostScript
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
 import Result.Extra
-import Sanderling.Sanderling
-import Sanderling.SanderlingVolatileHostSetup as SanderlingVolatileHostSetup
 
 
 type alias State =
@@ -162,7 +162,7 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
                                             , task =
                                                 InterfaceToHost.RunInVolatileHost
                                                     { hostId = volatileHostId
-                                                    , script = Sanderling.Sanderling.buildScriptToGetResponseFromVolatileHost runInVolatileHostRequest
+                                                    , script = EveOnline.VolatileHostInterface.buildScriptToGetResponseFromVolatileHost runInVolatileHostRequest
                                                     }
                                             }
                                     in
@@ -272,7 +272,7 @@ processFrameworkTaskCompleteEvent taskComplete stateBefore =
                             , task =
                                 InterfaceToHost.RunInVolatileHost
                                     { hostId = hostId
-                                    , script = SanderlingVolatileHostSetup.sanderlingSetupScript
+                                    , script = VolatileHostScript.setupScript
                                     }
                             }
                     in
@@ -304,7 +304,7 @@ processFrameworkTaskCompleteEvent taskComplete stateBefore =
                             )
 
                         Nothing ->
-                            if runInVolatileHostComplete.returnValueToString == Just "Sanderling Setup Completed" then
+                            if runInVolatileHostComplete.returnValueToString == Just "Setup Completed" then
                                 let
                                     setupBefore =
                                         stateBefore.setup
@@ -322,7 +322,7 @@ processFrameworkTaskCompleteEvent taskComplete stateBefore =
                                     returnValueAsHttpResponseResult =
                                         runInVolatileHostComplete.returnValueToString
                                             |> Maybe.withDefault ""
-                                            |> Sanderling.Sanderling.deserializeResponseFromVolatileHost
+                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
                                 in
                                 case returnValueAsHttpResponseResult of
                                     Err decodeError ->

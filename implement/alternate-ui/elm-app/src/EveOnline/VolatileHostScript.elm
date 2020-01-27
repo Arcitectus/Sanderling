@@ -1,8 +1,8 @@
-module Sanderling.SanderlingVolatileHostSetup exposing ( sanderlingSetupScript )
+module EveOnline.VolatileHostScript exposing ( setupScript )
 
 
-sanderlingSetupScript : String
-sanderlingSetupScript =
+setupScript : String
+setupScript =
     """
 #r "sha256:FE8A38EBCED27A112519023A7A1216C69FE0863BCA3EF766234E972E920096C1"
 #r "sha256:11DCCA7041E1436B858BAC75E2577CA471ABA40208C4214ABD90A717DD89CEF6"
@@ -447,5 +447,5 @@ System.Diagnostics.Process[] GetWindowsProcessesLookingLikeEVEOnlineClient() =>
     System.Diagnostics.Process.GetProcessesByName("exefile");
 
 
-"Sanderling Setup Completed"
+"Setup Completed"
 """

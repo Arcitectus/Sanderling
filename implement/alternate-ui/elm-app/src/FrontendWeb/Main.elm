@@ -3,6 +3,13 @@ module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
 import Browser
 import Browser.Navigation as Navigation
 import Dict
+import EveOnline.MemoryReading
+    exposing
+        ( MaybeVisible(..)
+        , UITreeNodeWithDisplayRegion
+        , maybeVisibleMap
+        )
+import EveOnline.VolatileHostInterface
 import File
 import File.Download
 import File.Select
@@ -13,13 +20,6 @@ import Http
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
-import Sanderling.MemoryReading
-    exposing
-        ( MaybeVisible(..)
-        , UITreeNodeWithDisplayRegion
-        , maybeVisibleMap
-        )
-import Sanderling.Sanderling
 import Set
 import String.Extra
 import Task
@@ -73,10 +73,10 @@ type alias ParseMemoryReadingCompleted =
 
 
 type alias ParseMemoryReadingSuccess =
-    { uiTree : Sanderling.MemoryReading.UITreeNode
+    { uiTree : EveOnline.MemoryReading.UITreeNode
     , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
     , overviewWindow : MaybeVisible OverviewWindow
-    , parsed : Sanderling.MemoryReading.ParsedUserInterface
+    , parsed : EveOnline.MemoryReading.ParsedUserInterface
     }
 
 
@@ -123,7 +123,7 @@ type alias OverviewWindow =
 
 
 type alias OverviewEntry =
-    { uiTreeNode : Sanderling.MemoryReading.UITreeNode
+    { uiTreeNode : EveOnline.MemoryReading.UITreeNode
     , cellsContents : Dict.Dict String String
     }
 
@@ -239,7 +239,7 @@ integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClie
 integrateBackendResponse { request, result } stateBefore =
     case request of
         -- TODO: Consolidate unpack response common parts.
-        InterfaceToFrontendClient.RunInVolatileHostRequest Sanderling.Sanderling.GetEveOnlineProcessesIds ->
+        InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.GetEveOnlineProcessesIds ->
             let
                 getEveOnlineClientProcessesIdsResult =
                     result
@@ -263,15 +263,15 @@ integrateBackendResponse { request, result } stateBefore =
                                                     Nothing ->
                                                         runInVolatileHostCompleteResponse.returnValueToString
                                                             |> Maybe.withDefault ""
-                                                            |> Sanderling.Sanderling.deserializeResponseFromVolatileHost
+                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
                                                             |> Result.mapError Json.Decode.errorToString
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        Sanderling.Sanderling.EveOnlineProcessesIds processIds ->
+                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds processIds ->
                                                                             Ok (processIds |> Set.fromList)
 
-                                                                        Sanderling.Sanderling.GetMemoryReadingResult _ ->
+                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
                                                                             Err "Unexpected response: GetMemoryReadingResult"
                                                                 )
                             )
@@ -286,7 +286,7 @@ integrateBackendResponse { request, result } stateBefore =
                     }
             }
 
-        InterfaceToFrontendClient.RunInVolatileHostRequest (Sanderling.Sanderling.GetMemoryReading _) ->
+        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.GetMemoryReading _) ->
             let
                 readMemoryResult =
                     result
@@ -310,20 +310,20 @@ integrateBackendResponse { request, result } stateBefore =
                                                     Nothing ->
                                                         runInVolatileHostCompleteResponse.returnValueToString
                                                             |> Maybe.withDefault ""
-                                                            |> Sanderling.Sanderling.deserializeResponseFromVolatileHost
+                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
                                                             |> Result.mapError Json.Decode.errorToString
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        Sanderling.Sanderling.EveOnlineProcessesIds _ ->
+                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds _ ->
                                                                             Err "Unexpected response: EveOnlineProcessesIds"
 
-                                                                        Sanderling.Sanderling.GetMemoryReadingResult getMemoryReadingResult ->
+                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult getMemoryReadingResult ->
                                                                             case getMemoryReadingResult of
-                                                                                Sanderling.Sanderling.ProcessNotFound ->
+                                                                                EveOnline.VolatileHostInterface.ProcessNotFound ->
                                                                                     Err "Process not found"
 
-                                                                                Sanderling.Sanderling.Completed memoryReadingCompleted ->
+                                                                                EveOnline.VolatileHostInterface.Completed memoryReadingCompleted ->
                                                                                     Ok memoryReadingCompleted
                                                                 )
                             )
@@ -371,7 +371,7 @@ decideNextStepToReadFromLiveProcess :
 decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
     let
         requestGetProcessesIds =
-            apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest Sanderling.Sanderling.GetEveOnlineProcessesIds)
+            apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.GetEveOnlineProcessesIds)
     in
     case stateBefore.readEveOnlineClientProcessesIdsResult of
         Nothing ->
@@ -405,7 +405,7 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                         requestReadMemory =
                             apiRequestCmd
                                 (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (Sanderling.Sanderling.GetMemoryReading { processId = firstEveOnlineClientProcessId })
+                                    (EveOnline.VolatileHostInterface.GetMemoryReading { processId = firstEveOnlineClientProcessId })
                                 )
 
                         ( describeLastReadResult, lastMemoryReading ) =
@@ -616,7 +616,7 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> Sanderling.MemoryReading.UITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode : Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> EveOnline.MemoryReading.UITreeNode -> Html.Html Event
 viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIdentityInView =
@@ -663,7 +663,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                 |> List.map (String.Extra.ellipsis 20)
 
         commonSummaryText =
-            ((Sanderling.MemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
+            ((EveOnline.MemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
                 ++ " descendants"
             )
                 :: popularPropertiesDescription
@@ -691,7 +691,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map (Sanderling.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
+                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
 
                 totalDisplayOffsetText =
                     maybeNodeWithTotalDisplayOffset
@@ -731,20 +731,20 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
 
 parseMemoryReadingFromJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
 parseMemoryReadingFromJson =
-    Sanderling.MemoryReading.decodeMemoryReadingFromString
+    EveOnline.MemoryReading.decodeMemoryReadingFromString
         >> Result.map
             (\uiTree ->
                 let
                     uiTreeWithDisplayRegion =
-                        uiTree |> Sanderling.MemoryReading.parseUITreeWithDisplayRegionFromUITree
+                        uiTree |> EveOnline.MemoryReading.parseUITreeWithDisplayRegionFromUITree
 
                     parsedUserInterface =
-                        Sanderling.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
+                        EveOnline.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
                 in
                 { uiTree = uiTree
                 , uiNodesWithDisplayRegion =
                     uiTreeWithDisplayRegion
-                        :: (uiTreeWithDisplayRegion |> Sanderling.MemoryReading.listDescendantsWithDisplayRegion)
+                        :: (uiTreeWithDisplayRegion |> EveOnline.MemoryReading.listDescendantsWithDisplayRegion)
                         |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
                 , overviewWindow = parsedUserInterface.overviewWindow |> maybeVisibleMap parseOverviewWindow
@@ -753,7 +753,7 @@ parseMemoryReadingFromJson =
             )
 
 
-parseOverviewWindow : Sanderling.MemoryReading.OverviewWindow -> OverviewWindow
+parseOverviewWindow : EveOnline.MemoryReading.OverviewWindow -> OverviewWindow
 parseOverviewWindow overviewWindow =
     let
         mapEntry originalEntry =

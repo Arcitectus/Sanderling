@@ -1,4 +1,4 @@
-module Sanderling.MemoryReading exposing
+module EveOnline.MemoryReading exposing
     ( ChatUserEntry
     , ChatWindow
     , ChatWindowStack
@@ -34,6 +34,7 @@ module Sanderling.MemoryReading exposing
     , UITreeNodeWithDisplayRegion
     , asUITreeNodeWithTotalDisplayRegion
     , canNotSeeItFromMaybeNothing
+    , centerFromDisplayRegion
     , countDescendantsInUITreeNode
     , decodeMemoryReadingFromString
     , getDisplayText
@@ -90,6 +91,12 @@ type alias DisplayRegion =
     , y : Int
     , width : Int
     , height : Int
+    }
+
+
+type alias Location2d =
+    { x : Int
+    , y : Int
     }
 
 
@@ -1148,6 +1155,11 @@ parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
                         |> String.replace " " ""
                         |> String.toInt
                         |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+
+
+centerFromDisplayRegion : DisplayRegion -> Location2d
+centerFromDisplayRegion region =
+    { x = region.x + region.width // 2, y = region.y + region.height // 2 }
 
 
 getDisplayText : UITreeNode -> Maybe String

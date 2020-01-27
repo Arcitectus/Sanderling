@@ -7,15 +7,15 @@ module InterfaceToFrontendClient exposing
     , jsonEncodeRunInVolatileHostResponseStructure
     )
 
+import EveOnline.VolatileHostInterface
 import Json.Decode
 import Json.Encode
 import Json.Encode.Extra
-import Sanderling.Sanderling
 
 
 type RequestFromClient
     = ReadLogRequest
-    | RunInVolatileHostRequest Sanderling.Sanderling.RequestToVolatileHost
+    | RunInVolatileHostRequest EveOnline.VolatileHostInterface.RequestToVolatileHost
 
 
 type RunInVolatileHostResponseStructure
@@ -37,14 +37,14 @@ jsonEncodeRequestFromClient requestFromClient =
             [ ( "ReadLogRequest", [] |> Json.Encode.object ) ] |> Json.Encode.object
 
         RunInVolatileHostRequest runInVolatileHostRequest ->
-            [ ( "RunInVolatileHostRequest", runInVolatileHostRequest |> Sanderling.Sanderling.encodeRequestToVolatileHost ) ] |> Json.Encode.object
+            [ ( "RunInVolatileHostRequest", runInVolatileHostRequest |> EveOnline.VolatileHostInterface.encodeRequestToVolatileHost ) ] |> Json.Encode.object
 
 
 jsonDecodeRequestFromClient : Json.Decode.Decoder RequestFromClient
 jsonDecodeRequestFromClient =
     Json.Decode.oneOf
         [ Json.Decode.field "ReadLogRequest" (Json.Decode.succeed ReadLogRequest)
-        , Json.Decode.field "RunInVolatileHostRequest" (Sanderling.Sanderling.decodeRequestToVolatileHost |> Json.Decode.map RunInVolatileHostRequest)
+        , Json.Decode.field "RunInVolatileHostRequest" (EveOnline.VolatileHostInterface.decodeRequestToVolatileHost |> Json.Decode.map RunInVolatileHostRequest)
         ]
 
 
