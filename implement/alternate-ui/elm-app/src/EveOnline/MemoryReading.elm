@@ -139,7 +139,7 @@ type alias ShipUI =
     { uiNode : UITreeNodeWithDisplayRegion
     , indication : MaybeVisible ShipUIIndication
     , modules : List ShipUIModule
-    , hitpointsMilli : Hitpoints
+    , hitpointsPercent : Hitpoints
     }
 
 
@@ -593,30 +593,30 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 }
                             )
 
-                getLastValueMilliFromGaugeName gaugeName =
+                getLastValuePercentFromGaugeName gaugeName =
                     shipUINode
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) gaugeName) >> Maybe.withDefault False)
                         |> List.head
                         |> Maybe.andThen (.uiNode >> .dictEntriesOfInterest >> Dict.get "_lastValue")
                         |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
-                        |> Maybe.map ((*) 1000 >> round)
+                        |> Maybe.map ((*) 100 >> round)
 
-                maybeHitpointsMilli =
-                    case ( getLastValueMilliFromGaugeName "structureGauge", getLastValueMilliFromGaugeName "armorGauge", getLastValueMilliFromGaugeName "shieldGauge" ) of
+                maybeHitpointsPercent =
+                    case ( getLastValuePercentFromGaugeName "structureGauge", getLastValuePercentFromGaugeName "armorGauge", getLastValuePercentFromGaugeName "shieldGauge" ) of
                         ( Just structure, Just armor, Just shield ) ->
                             Just { structure = structure, armor = armor, shield = shield }
 
                         _ ->
                             Nothing
             in
-            maybeHitpointsMilli
+            maybeHitpointsPercent
                 |> Maybe.map
-                    (\hitpointsMilli ->
+                    (\hitpointsPercent ->
                         { uiNode = shipUINode
                         , indication = indication
                         , modules = modules
-                        , hitpointsMilli = hitpointsMilli
+                        , hitpointsPercent = hitpointsPercent
                         }
                     )
                 |> canNotSeeItFromMaybeNothing
