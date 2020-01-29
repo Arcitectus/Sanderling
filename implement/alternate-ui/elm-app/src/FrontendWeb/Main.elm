@@ -552,6 +552,9 @@ presentParsedMemoryReading memoryReading state =
     , verticalSpacerFromHeightInEm 0.5
     , [ "Overview" |> Html.text ] |> Html.h3 []
     , displayReadOverviewWindowResult memoryReading.overviewWindow
+    , verticalSpacerFromHeightInEm 0.5
+    , [ ((memoryReading.parsed.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
+    , displayParsedContextMenus memoryReading.parsed.contextMenus
     ]
         |> List.map (List.singleton >> Html.div [])
         |> Html.div []
@@ -593,6 +596,26 @@ displayReadOverviewWindowResult maybeOverviewWindow =
             headersHtml
                 :: entriesHtml
                 |> Html.table []
+
+
+displayParsedContextMenus : List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenus contextMenus =
+    contextMenus
+        |> List.indexedMap
+            (\i contextMenu ->
+                [ [ ("Context menu " ++ (i |> String.fromInt)) |> Html.text ] |> Html.h4 []
+                , contextMenu |> displayParsedContextMenu
+                ]
+                    |> Html.div []
+            )
+        |> Html.div []
+
+
+displayParsedContextMenu : EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenu contextMenu =
+    contextMenu.entries
+        |> List.map (\menuEntry -> [ menuEntry.text |> Html.text ] |> Html.div [])
+        |> Html.div []
 
 
 selectSourceHtml : State -> Html.Html Event
