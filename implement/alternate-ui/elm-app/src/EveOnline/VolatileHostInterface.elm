@@ -7,6 +7,7 @@ module EveOnline.VolatileHostInterface exposing
     , RequestToVolatileHost(..)
     , ResponseFromVolatileHost(..)
     , VirtualKeyCode(..)
+    , WindowId
     , buildScriptToGetResponseFromVolatileHost
     , decodeRequestToVolatileHost
     , deserializeResponseFromVolatileHost

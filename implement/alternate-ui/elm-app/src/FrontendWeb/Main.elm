@@ -20,6 +20,7 @@ import Http
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
+import Process
 import Set
 import String.Extra
 import Task
@@ -29,7 +30,14 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-27"
+    "2020-01-29"
+
+
+{-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
+-}
+inputDelayDefaultMilliseconds : Int
+inputDelayDefaultMilliseconds =
+    300
 
 
 main =
@@ -95,6 +103,20 @@ type Event
     | UserInputSetTreeViewNodeIsExpanded ExpandableViewNode Bool
     | ContinueReadFromLiveProcess Time.Posix
     | UserInputDownloadJsonFile String
+    | UserInputSendInputToUINode UserInputSendInputToUINodeStructure
+
+
+type alias UserInputSendInputToUINodeStructure =
+    { uiNode : EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
+    , input : InputOnUINode
+    , windowId : EveOnline.VolatileHostInterface.WindowId
+    , delayMilliseconds : Maybe Int
+    }
+
+
+type InputOnUINode
+    = MouseClickLeft
+    | MouseClickRight
 
 
 type alias TreeViewState =
@@ -124,8 +146,13 @@ type alias OverviewWindow =
 
 
 type alias OverviewEntry =
-    { uiTreeNode : EveOnline.MemoryReading.UITreeNode
+    { uiTreeNode : EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
     , cellsContents : Dict.Dict String String
+    }
+
+
+type alias InputRouteStructure =
+    { windowId : EveOnline.VolatileHostInterface.WindowId
     }
 
 
@@ -234,6 +261,47 @@ update event stateBefore =
 
         UserInputDownloadJsonFile jsonString ->
             ( stateBefore, File.Download.string "memory-reading.json" "application/json" jsonString )
+
+        UserInputSendInputToUINode sendInput ->
+            case sendInput.delayMilliseconds of
+                Just delayMilliseconds ->
+                    let
+                        delayedInputCmd =
+                            Task.perform
+                                (always (UserInputSendInputToUINode { sendInput | delayMilliseconds = Nothing }))
+                                (Process.sleep (toFloat delayMilliseconds))
+                    in
+                    ( stateBefore, delayedInputCmd )
+
+                Nothing ->
+                    let
+                        uiNodeCenter =
+                            sendInput.uiNode.totalDisplayRegion |> EveOnline.MemoryReading.centerFromDisplayRegion
+
+                        volatileHostInterfaceTaskOnWindow =
+                            case sendInput.input of
+                                MouseClickLeft ->
+                                    EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
+                                        { location = uiNodeCenter, mouseButton = EveOnline.VolatileHostInterface.MouseButtonLeft }
+
+                                MouseClickRight ->
+                                    EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
+                                        { location = uiNodeCenter, mouseButton = EveOnline.VolatileHostInterface.MouseButtonRight }
+
+                        requestSendInputToGameClient =
+                            apiRequestCmd
+                                (InterfaceToFrontendClient.RunInVolatileHostRequest
+                                    (EveOnline.VolatileHostInterface.EffectOnWindow
+                                        { windowId = sendInput.windowId
+                                        , bringWindowToForeground = True
+                                        , task = volatileHostInterfaceTaskOnWindow
+                                        }
+                                    )
+                                )
+
+                        -- TODO: Remember sending input, to syncronize with get next memory reading.
+                    in
+                    ( stateBefore, requestSendInputToGameClient )
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result Http.Error ResponseFromServer } -> State -> State
@@ -494,7 +562,7 @@ viewSourceFromFile state =
 
                         Ok parseSuccess ->
                             [ "Successfully read the memory reading from the file." |> Html.text
-                            , presentParsedMemoryReading parseSuccess state
+                            , presentParsedMemoryReading parseSuccess Nothing state
                             ]
                                 |> List.map (List.singleton >> Html.div [])
                                 |> Html.div []
@@ -523,13 +591,16 @@ viewSourceFromLiveProcess state =
                             [ "Click here to download this memory reading to a JSON file." |> Html.text ]
                                 |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.serialRepresentationJson) ]
 
+                        inputRoute =
+                            { windowId = parsedReadMemoryResult.mainWindowId }
+
                         parsedHtml =
                             case parsedReadMemoryResult.memoryReading.parseResult of
                                 Err parseError ->
                                     ("Failed to parse this memory reading: " ++ (parseError |> Json.Decode.errorToString)) |> Html.text
 
                                 Ok parseSuccess ->
-                                    presentParsedMemoryReading parseSuccess state
+                                    presentParsedMemoryReading parseSuccess (Just inputRoute) state
                     in
                     [ "Successfully read from the memory of the live process." |> Html.text
                     , downloadButton
@@ -546,23 +617,23 @@ viewSourceFromLiveProcess state =
         |> Html.div []
 
 
-presentParsedMemoryReading : ParseMemoryReadingSuccess -> State -> Html.Html Event
-presentParsedMemoryReading memoryReading state =
+presentParsedMemoryReading : ParseMemoryReadingSuccess -> Maybe InputRouteStructure -> State -> Html.Html Event
+presentParsedMemoryReading memoryReading maybeInputRoute state =
     [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
     , viewTreeMemoryReadingUITreeNode memoryReading.uiNodesWithDisplayRegion state.treeView memoryReading.uiTree
     , verticalSpacerFromHeightInEm 0.5
     , [ "Overview" |> Html.text ] |> Html.h3 []
-    , displayReadOverviewWindowResult memoryReading.overviewWindow
+    , displayReadOverviewWindowResult maybeInputRoute memoryReading.overviewWindow
     , verticalSpacerFromHeightInEm 0.5
     , [ ((memoryReading.parsed.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
-    , displayParsedContextMenus memoryReading.parsed.contextMenus
+    , displayParsedContextMenus maybeInputRoute memoryReading.parsed.contextMenus
     ]
         |> List.map (List.singleton >> Html.div [])
         |> Html.div []
 
 
-displayReadOverviewWindowResult : MaybeVisible OverviewWindow -> Html.Html Event
-displayReadOverviewWindowResult maybeOverviewWindow =
+displayReadOverviewWindowResult : Maybe InputRouteStructure -> MaybeVisible OverviewWindow -> Html.Html Event
+displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
     case maybeOverviewWindow of
         CanNotSeeIt ->
             "Can not see the overview window" |> Html.text
@@ -581,17 +652,23 @@ displayReadOverviewWindowResult maybeOverviewWindow =
                     overviewWindow.entries
                         |> List.map
                             (\overviewEntry ->
-                                columns
-                                    |> List.map
-                                        (\column ->
-                                            [ overviewEntry.cellsContents
-                                                |> Dict.get column
-                                                |> Maybe.withDefault ""
-                                                |> Html.text
-                                            ]
-                                                |> Html.td []
-                                        )
-                                    |> Html.tr []
+                                let
+                                    columnsHtml =
+                                        columns
+                                            |> List.map
+                                                (\column ->
+                                                    [ overviewEntry.cellsContents
+                                                        |> Dict.get column
+                                                        |> Maybe.withDefault ""
+                                                        |> Html.text
+                                                    ]
+                                                        |> Html.td []
+                                                )
+
+                                    inputHtml =
+                                        maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] overviewEntry.uiTreeNode
+                                in
+                                (columnsHtml ++ [ inputHtml ]) |> Html.tr []
                             )
             in
             headersHtml
@@ -599,24 +676,63 @@ displayReadOverviewWindowResult maybeOverviewWindow =
                 |> Html.table []
 
 
-displayParsedContextMenus : List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
-displayParsedContextMenus contextMenus =
+displayParsedContextMenus : Maybe InputRouteStructure -> List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenus maybeInputRoute contextMenus =
     contextMenus
         |> List.indexedMap
             (\i contextMenu ->
                 [ [ ("Context menu " ++ (i |> String.fromInt)) |> Html.text ] |> Html.h4 []
-                , contextMenu |> displayParsedContextMenu
+                , contextMenu |> displayParsedContextMenu maybeInputRoute
                 ]
                     |> Html.div []
             )
         |> Html.div []
 
 
-displayParsedContextMenu : EveOnline.MemoryReading.ContextMenu -> Html.Html Event
-displayParsedContextMenu contextMenu =
+displayParsedContextMenu : Maybe InputRouteStructure -> EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenu maybeInputRoute contextMenu =
     contextMenu.entries
-        |> List.map (\menuEntry -> [ menuEntry.text |> Html.text ] |> Html.div [])
+        |> List.map
+            (\menuEntry ->
+                [ menuEntry.text |> Html.text, maybeInputOfferHtml maybeInputRoute [ MouseClickLeft ] menuEntry.uiNode ]
+                    |> Html.div []
+            )
         |> Html.div []
+
+
+maybeInputOfferHtml : Maybe InputRouteStructure -> List InputOnUINode -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> Html.Html Event
+maybeInputOfferHtml maybeInputRoute enabledInputKinds uiNode =
+    maybeInputRoute
+        |> Maybe.map
+            (\inputRoute ->
+                enabledInputKinds
+                    |> List.map
+                        (\inputKind ->
+                            let
+                                inputCmd =
+                                    UserInputSendInputToUINode
+                                        { uiNode = uiNode
+                                        , input = inputKind
+                                        , windowId = inputRoute.windowId
+                                        , delayMilliseconds = Just inputDelayDefaultMilliseconds
+                                        }
+                            in
+                            [ displayTextForInputKind inputKind |> Html.text ]
+                                |> Html.button [ HE.onClick inputCmd ]
+                        )
+                    |> Html.span []
+            )
+        |> Maybe.withDefault (Html.text "")
+
+
+displayTextForInputKind : InputOnUINode -> String
+displayTextForInputKind inputKind =
+    case inputKind of
+        MouseClickLeft ->
+            "leftclick"
+
+        MouseClickRight ->
+            "rightclick"
 
 
 selectSourceHtml : State -> Html.Html Event
@@ -788,7 +904,7 @@ parseOverviewWindow : EveOnline.MemoryReading.OverviewWindow -> OverviewWindow
 parseOverviewWindow overviewWindow =
     let
         mapEntry originalEntry =
-            { uiTreeNode = originalEntry.uiNode.uiNode
+            { uiTreeNode = originalEntry.uiNode
             , cellsContents = originalEntry.cellsTexts
             }
 
