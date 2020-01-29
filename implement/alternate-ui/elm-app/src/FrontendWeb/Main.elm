@@ -105,6 +105,7 @@ type alias TreeViewState =
 type ExpandableViewNode
     = ExpandableUITreeNode UITreeNodeIdentity
     | ExpandableUITreeNodeChildren UITreeNodeIdentity
+    | ExpandableUITreeNodeDictEntries UITreeNodeIdentity
 
 
 type alias UITreeNodeIdentity =
@@ -700,11 +701,6 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
         (always commonSummaryHtml)
         (\() ->
             let
-                otherPropertiesHtml =
-                    treeNode.dictEntriesOfInterest
-                        |> Dict.toList
-                        |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
-
                 childrenHtml =
                     case treeNode.children |> Maybe.withDefault [] of
                         [] ->
@@ -729,24 +725,36 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                             )
                         |> Maybe.withDefault "None"
 
+                propertyTableRowHtml ( propertyName, propertyValueHtml ) =
+                    [ [ propertyName |> Html.text ] |> Html.span []
+                    , propertyValueHtml
+                    ]
+                        |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
+                        |> Html.tr []
+
+                otherPropertiesHtml =
+                    expandableHtml
+                        (ExpandableUITreeNodeDictEntries nodeIdentityInView)
+                        (always ((treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " properties" |> Html.text))
+                        (\() ->
+                            treeNode.dictEntriesOfInterest
+                                |> Dict.toList
+                                |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
+                                |> List.map propertyTableRowHtml
+                                |> Html.table []
+                        )
+
                 allProperties =
-                    ( "summary", commonSummaryHtml )
-                        :: ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
-                        :: ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
-                        :: ( "totalDisplayRegion", totalDisplayOffsetText |> Html.text )
-                        :: otherPropertiesHtml
-                        ++ [ ( "children", childrenHtml ) ]
+                    [ ( "summary", commonSummaryHtml )
+                    , ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
+                    , ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
+                    , ( "totalDisplayRegion", totalDisplayOffsetText |> Html.text )
+                    , ( "dictEntriesOfInterest", otherPropertiesHtml )
+                    , ( "children", childrenHtml )
+                    ]
 
                 allPropertiesHtml =
-                    allProperties
-                        |> List.map
-                            (\( propertyName, propertyValueHtml ) ->
-                                [ [ propertyName |> Html.text ] |> Html.span []
-                                , propertyValueHtml
-                                ]
-                                    |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
-                                    |> Html.tr []
-                            )
+                    allProperties |> List.map propertyTableRowHtml
             in
             allPropertiesHtml |> Html.table []
         )
