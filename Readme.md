@@ -44,13 +44,17 @@ This library takes the result of an EVE Online memory reading and transforms it 
 
 The UI tree in the EVE Online client can contain thousands of nodes and tens of thousands of individual properties. Because of this vast amount of data, navigating in there can be time-consuming. To make this easier, this library filters and transforms the memory reading result into a form that contains less redundant information and uses names more closely related to the experience of players; for example, the overview window or ship modules.
 
-The input for this library is the JSON string, as we get it from the memory reading tool. In contrast to the low-level memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
+The input for this library is the JSON string, as we get it from the memory reading. In contrast to the memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
 
 Location in the repository: [/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm](/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm)
 
 ### Alternate UI for EVE Online
 
-TODO: Describe the alternative user interface for the EVE Online game client.
+The alternate UI is a web-based user interface for the EVE Online client, helping blind people to play the game. Because of the HTML based rendering, this user interface is better accessible with screen-readers. For more information about the origins and history of the project, see [https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950](https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950)
+
+The alternate UI also lets you play the game from other devices that cannot run the EVE Online client but have a web browser. This way, you can play the game from your android smartphone or iPhone. This remote-play is possible because of the division into a frontend and backend, which communicate only via HTTP. The backend runs on the same machine as the EVE Online client and runs an HTTP server. The web-based frontend then connects to this HTTP server to read the game client's contents and send input commands.
+
+Location of the alternate UI in the repository: [/implement/alternate-ui/](/implement/alternate-ui/)
 
 ## Bots
 

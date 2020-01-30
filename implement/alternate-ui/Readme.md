@@ -1,8 +1,8 @@
 # Alternate UI for EVE Online
 
-This is an alternate user interface for the EVE Online game client. It is based on HTML and javascript and is used in a web browser.
+The alternate UI is a web-based user interface for the EVE Online client, helping blind people to play the game. Because of the HTML based rendering, this user interface is better accessible with screen-readers. For more information about the origins and history of the project, see [https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950](https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950)
 
-It gets information from the EVE Online client via memory reading.
+The alternate UI also lets you play the game from other devices that cannot run the EVE Online client but have a web browser. This way, you can play the game from your android smartphone or iPhone. This remote-play is possible because of the division into a frontend and backend, which communicate only via HTTP. The backend runs on the same machine as the EVE Online client and runs an HTTP server. The web-based frontend then connects to this HTTP server to read the game client's contents and send input commands.
 
 This tool also shows the UI tree from the game client and presents the properties of the UI nodes in text form.
 
@@ -12,7 +12,7 @@ This quantity might make for a confusing impression, so I introduced a way to be
 
 There are two ways to get a memory reading into this interface:
 
-+ Load from a live EVE Online client process. (TODO, Not implemented yet: This user interface offers you input elements to interact with input elements in the EVE Online client. Note: When you send an input to the EVE Online client this way, the tool will switch the input focus to the EVE Online window and bring to the foreground. In case you run this user interface on the same desktop as the EVE Online client: To avoid interference between web browser window and game client window, place them side-by-side, so that they don't overlap.)
++ Load from a live EVE Online client process. This user interface offers you input elements to interact with input elements in the EVE Online client. Note: When you send an input to the EVE Online client this way, the tool will switch the input focus to the EVE Online window and bring to the foreground. In case you run this user interface on the same desktop as the EVE Online client: To avoid interference between web browser window and game client window, place them side-by-side, so that they don't overlap.
 
 + Load from a file: You can load memory readings in JSON format you have saved earlier. Since this memory reading does not correspond to a live process, we use this option only to explore the general structure of information found in the game client's memory.
 
