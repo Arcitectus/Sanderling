@@ -1,5 +1,7 @@
 # Alternate UI for EVE Online
 
+![Alternate UI for EVE Online, this part shows the Overview.](./../../guide/image/2020-01-30.eve-online-overview-alternate-ui-and-game-client.png)
+
 The alternate UI is a web-based user interface for the EVE Online client, helping blind people to play the game. Because of the HTML based rendering, this user interface is better accessible with screen-readers. For more information about the origins and history of the project, see [https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950](https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950)
 
 The alternate UI also lets you play the game from other devices that cannot run the EVE Online client but have a web browser. This way, you can play the game from your android smartphone or iPhone. This remote-play is possible because of the division into a frontend and backend, which communicate only via HTTP. The backend runs on the same machine as the EVE Online client and runs an HTTP server. The web-based frontend then connects to this HTTP server to read the game client's contents and send input commands.
