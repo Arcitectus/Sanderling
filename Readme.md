@@ -46,7 +46,7 @@ The UI tree in the EVE Online client can contain thousands of nodes and tens of 
 
 The input for this library is the JSON string, as we get it from the memory reading tool. In contrast to the low-level memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
 
-Location in the repository: [/implement/alternate-ui/elm-app/src/Sanderling/MemoryReading.elm](/implement/alternate-ui/elm-app/src/Sanderling/MemoryReading.elm)
+Location in the repository: [/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm](/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm)
 
 ### Alternate UI for EVE Online
 
@@ -56,7 +56,7 @@ TODO: Describe the alternative user interface for the EVE Online game client.
 
 Bots are not in the scope of this repository, but I sure have some links with further information.
 
-There is this guide on developing bots: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-develop-eve-online-bots.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-develop-eve-online-bots.md)
+Guide on developing bots for EVE Online: [https://github.com/Viir/bots/blob/master/guide/eve-online/developing-bots-for-eve-online.md](https://github.com/Viir/bots/blob/master/guide/eve-online/developing-bots-for-eve-online.md)
 
 And these are some bots using Sanderling:
 
