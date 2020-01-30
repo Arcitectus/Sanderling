@@ -30,7 +30,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-29"
+    "2020-01-30"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -562,7 +562,7 @@ viewSourceFromFile state =
 
                         Ok parseSuccess ->
                             [ "Successfully read the memory reading from the file." |> Html.text
-                            , presentParsedMemoryReading parseSuccess Nothing state
+                            , presentParsedMemoryReading Nothing parseSuccess state
                             ]
                                 |> List.map (List.singleton >> Html.div [])
                                 |> Html.div []
@@ -600,7 +600,7 @@ viewSourceFromLiveProcess state =
                                     ("Failed to parse this memory reading: " ++ (parseError |> Json.Decode.errorToString)) |> Html.text
 
                                 Ok parseSuccess ->
-                                    presentParsedMemoryReading parseSuccess (Just inputRoute) state
+                                    presentParsedMemoryReading (Just inputRoute) parseSuccess state
                     in
                     [ "Successfully read from the memory of the live process." |> Html.text
                     , downloadButton
@@ -617,10 +617,10 @@ viewSourceFromLiveProcess state =
         |> Html.div []
 
 
-presentParsedMemoryReading : ParseMemoryReadingSuccess -> Maybe InputRouteStructure -> State -> Html.Html Event
-presentParsedMemoryReading memoryReading maybeInputRoute state =
+presentParsedMemoryReading : Maybe InputRouteStructure -> ParseMemoryReadingSuccess -> State -> Html.Html Event
+presentParsedMemoryReading maybeInputRoute memoryReading state =
     [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-    , viewTreeMemoryReadingUITreeNode memoryReading.uiNodesWithDisplayRegion state.treeView memoryReading.uiTree
+    , viewTreeMemoryReadingUITreeNode maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.treeView memoryReading.uiTree
     , verticalSpacerFromHeightInEm 0.5
     , [ "Overview" |> Html.text ] |> Html.h3 []
     , displayReadOverviewWindowResult maybeInputRoute memoryReading.overviewWindow
@@ -756,13 +756,13 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> EveOnline.MemoryReading.UITreeNode -> Html.Html Event
-viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
+viewTreeMemoryReadingUITreeNode : Maybe InputRouteStructure -> Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> EveOnline.MemoryReading.UITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIdentityInView =
             { pythonObjectAddress = treeNode.pythonObjectAddress }
 
-        maybeNodeWithTotalDisplayOffset =
+        maybeNodeWithDisplayRegion =
             uiNodesWithDisplayRegion |> Dict.get treeNode.pythonObjectAddress
 
         expandableHtml viewNode getCollapsedContentHtml getExpandedContentHtml =
@@ -809,8 +809,16 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                 :: popularPropertiesDescription
                 |> String.join ", "
 
+        inputHtml =
+            maybeNodeWithDisplayRegion
+                |> Maybe.map
+                    (\nodeWithDisplayRegion ->
+                        maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] nodeWithDisplayRegion
+                    )
+                |> Maybe.withDefault (Html.text "")
+
         commonSummaryHtml =
-            commonSummaryText |> Html.text
+            [ commonSummaryText |> Html.text, inputHtml ] |> Html.span []
     in
     expandableHtml
         (ExpandableUITreeNode nodeIdentityInView)
@@ -826,10 +834,10 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                             expandableHtml
                                 (ExpandableUITreeNodeChildren nodeIdentityInView)
                                 (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState) |> Html.div [])
+                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState) |> Html.div [])
 
-                totalDisplayOffsetText =
-                    maybeNodeWithTotalDisplayOffset
+                totalDisplayRegionText =
+                    maybeNodeWithDisplayRegion
                         |> Maybe.map
                             (\nodeWithOffset ->
                                 [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
@@ -864,7 +872,7 @@ viewTreeMemoryReadingUITreeNode uiNodesWithDisplayRegion viewState treeNode =
                     [ ( "summary", commonSummaryHtml )
                     , ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
                     , ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
-                    , ( "totalDisplayRegion", totalDisplayOffsetText |> Html.text )
+                    , ( "totalDisplayRegion", totalDisplayRegionText |> Html.text )
                     , ( "dictEntriesOfInterest", otherPropertiesHtml )
                     , ( "children", childrenHtml )
                     ]
