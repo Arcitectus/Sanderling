@@ -1,6 +1,6 @@
 # How to Collect Samples for 64-bit Memory Reading Development
 
-This guide explains how to save an example of a game client process to a file. Such examples are to support the development of memory reading frameworks or bots.
+This guide explains how to save an example of a game client process to a file. Such a sample allows seeing the state in which your EVE Online client was at the time you take the sample. These samples can also be used as training data for bot development.
 
 The tool we use in this guide works only for 64-bit processes.
 
@@ -8,7 +8,7 @@ The tool copies the memory contents of a chosen Windows process (such as a game 
 
 **Steps to collect a sample:**
 
-+ Download and unpack the zip-archive from [https://github.com/Arcitectus/Sanderling/releases/download/v2020-01-04/2020-01-04.read-memory-64-bit.zip](https://github.com/Arcitectus/Sanderling/releases/download/v2020-01-04/2020-01-04.read-memory-64-bit.zip)
++ Download and unpack the zip-archive from [https://github.com/Arcitectus/Sanderling/releases/download/v2020-01-20/2020-01-20.read-memory-64-bit.zip](https://github.com/Arcitectus/Sanderling/releases/download/v2020-01-20/2020-01-20.read-memory-64-bit.zip)
 + Find the game client in the Windows Task Manager.
 + Make sure the name of the game client displayed in the Windows Task Manager does not contain `(32 bit)`.
 + Read the process ID of the game client process in the `PID` column in the Task Manager.
