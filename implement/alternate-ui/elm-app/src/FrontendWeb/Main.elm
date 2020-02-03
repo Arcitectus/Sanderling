@@ -30,7 +30,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-01-30"
+    "2020-02-03"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.

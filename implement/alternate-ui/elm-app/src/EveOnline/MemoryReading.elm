@@ -1248,7 +1248,7 @@ parseExpander uiNode =
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
 parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
-    case "^([\\d\\,\\s]+?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
+    case "^(\\d+(\\s*[\\s\\,\\.]\\d{3})*?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
         Nothing ->
             Err "Regex code error"
 
@@ -1260,6 +1260,7 @@ parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
                 Just match ->
                     match.match
                         |> String.replace "," ""
+                        |> String.replace "." ""
                         |> String.replace " " ""
                         |> String.toInt
                         |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
