@@ -658,7 +658,8 @@ displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
                 cssColorFromColorPercent colorPercent =
                     "rgba("
                         ++ (([ colorPercent.r, colorPercent.g, colorPercent.b ]
-                                |> List.map (\rgbComponent -> String.fromInt ((rgbComponent * 255) // 100)))
+                                |> List.map (\rgbComponent -> String.fromInt ((rgbComponent * 255) // 100))
+                            )
                                 ++ [ String.fromFloat ((colorPercent.a |> toFloat) / 100) ]
                                 |> String.join ","
                            )
@@ -789,7 +790,12 @@ radioButtonHtml labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-viewTreeMemoryReadingUITreeNode : Maybe InputRouteStructure -> Dict.Dict String UITreeNodeWithDisplayRegion -> TreeViewState -> EveOnline.MemoryReading.UITreeNode -> Html.Html Event
+viewTreeMemoryReadingUITreeNode :
+    Maybe InputRouteStructure
+    -> Dict.Dict String UITreeNodeWithDisplayRegion
+    -> TreeViewState
+    -> EveOnline.MemoryReading.UITreeNode
+    -> Html.Html Event
 viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIdentityInView =
@@ -816,15 +822,9 @@ viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewSta
 
                 buttonHtml =
                     [ buttonLabel |> Html.text ]
-                        |> Html.button
-                            [ HE.onClick (UserInputSetTreeViewNodeIsExpanded viewNode offeredNewExpensionState)
-                            ]
+                        |> Html.button [ HE.onClick (UserInputSetTreeViewNodeIsExpanded viewNode offeredNewExpensionState) ]
             in
-            [ [ buttonHtml, contentHtml ]
-                |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
-                |> Html.tr []
-            ]
-                |> Html.table []
+            ( buttonHtml, contentHtml )
 
         popularPropertiesDescription =
             treeNode.pythonObjectTypeName
@@ -852,69 +852,92 @@ viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewSta
 
         commonSummaryHtml =
             [ commonSummaryText |> Html.text, inputHtml ] |> Html.span []
-    in
-    expandableHtml
-        (ExpandableUITreeNode nodeIdentityInView)
-        (always commonSummaryHtml)
-        (\() ->
-            let
-                childrenHtml =
-                    case treeNode.children |> Maybe.withDefault [] of
-                        [] ->
-                            "No children" |> Html.text
 
-                        children ->
+        ( toggleButtonHtml, nodeHtml ) =
+            expandableHtml
+                (ExpandableUITreeNode nodeIdentityInView)
+                (always commonSummaryHtml)
+                (\() ->
+                    let
+                        ( childrenToggleButtonHtml, childrenHtml ) =
+                            case treeNode.children |> Maybe.withDefault [] of
+                                [] ->
+                                    ( Nothing, "No children" |> Html.text )
+
+                                children ->
+                                    expandableHtml
+                                        (ExpandableUITreeNodeChildren nodeIdentityInView)
+                                        (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
+                                        (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState) |> Html.div [])
+                                        |> Tuple.mapFirst Just
+
+                        totalDisplayRegionText =
+                            maybeNodeWithDisplayRegion
+                                |> Maybe.map
+                                    (\nodeWithOffset ->
+                                        [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
+                                            |> List.map
+                                                (\( regionPropertyName, regionProperty ) ->
+                                                    regionPropertyName ++ " = " ++ (nodeWithOffset.totalDisplayRegion |> regionProperty |> String.fromInt)
+                                                )
+                                            |> String.join ", "
+                                    )
+                                |> Maybe.withDefault "None"
+
+                        propertyTableRowHtml propertyViewComponents =
+                            [ propertyViewComponents.toggleButton |> Maybe.withDefault (Html.text "")
+                            , [ propertyViewComponents.propertyName |> Html.text ] |> Html.span []
+                            , propertyViewComponents.propertyValueHtml
+                            ]
+                                |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
+                                |> Html.tr []
+
+                        ( otherPropertiesToggleButtonHtml, otherPropertiesHtml ) =
                             expandableHtml
-                                (ExpandableUITreeNodeChildren nodeIdentityInView)
-                                (always ((children |> List.length |> String.fromInt) ++ " children" |> Html.text))
-                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState) |> Html.div [])
+                                (ExpandableUITreeNodeDictEntries nodeIdentityInView)
+                                (always ((treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " properties" |> Html.text))
+                                (\() ->
+                                    treeNode.dictEntriesOfInterest
+                                        |> Dict.toList
+                                        |> List.map
+                                            (\( propertyName, propertyValue ) ->
+                                                propertyTableRowHtml
+                                                    { toggleButton = Nothing
+                                                    , propertyName = propertyName
+                                                    , propertyValueHtml = propertyValue |> Json.Encode.encode 0 |> Html.text |> List.singleton |> Html.span []
+                                                    }
+                                            )
+                                        |> Html.table []
+                                )
 
-                totalDisplayRegionText =
-                    maybeNodeWithDisplayRegion
-                        |> Maybe.map
-                            (\nodeWithOffset ->
-                                [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
-                                    |> List.map
-                                        (\( regionPropertyName, regionProperty ) ->
-                                            regionPropertyName ++ " = " ++ (nodeWithOffset.totalDisplayRegion |> regionProperty |> String.fromInt)
-                                        )
-                                    |> String.join ", "
-                            )
-                        |> Maybe.withDefault "None"
+                        allProperties =
+                            [ ( Nothing, "summary", commonSummaryHtml )
+                            , ( Nothing, "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
+                            , ( Nothing, "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
+                            , ( Nothing, "totalDisplayRegion", totalDisplayRegionText |> Html.text )
+                            , ( Just otherPropertiesToggleButtonHtml, "dictEntriesOfInterest", otherPropertiesHtml )
+                            , ( childrenToggleButtonHtml, "children", childrenHtml )
+                            ]
 
-                propertyTableRowHtml ( propertyName, propertyValueHtml ) =
-                    [ [ propertyName |> Html.text ] |> Html.span []
-                    , propertyValueHtml
-                    ]
-                        |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
-                        |> Html.tr []
-
-                otherPropertiesHtml =
-                    expandableHtml
-                        (ExpandableUITreeNodeDictEntries nodeIdentityInView)
-                        (always ((treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " properties" |> Html.text))
-                        (\() ->
-                            treeNode.dictEntriesOfInterest
-                                |> Dict.toList
-                                |> List.map (Tuple.mapSecond (Json.Encode.encode 0 >> Html.text >> List.singleton >> Html.span []))
-                                |> List.map propertyTableRowHtml
-                                |> Html.table []
-                        )
-
-                allProperties =
-                    [ ( "summary", commonSummaryHtml )
-                    , ( "pythonObjectAddress", treeNode.pythonObjectAddress |> Html.text )
-                    , ( "pythonObjectTypeName", treeNode.pythonObjectTypeName |> Html.text )
-                    , ( "totalDisplayRegion", totalDisplayRegionText |> Html.text )
-                    , ( "dictEntriesOfInterest", otherPropertiesHtml )
-                    , ( "children", childrenHtml )
-                    ]
-
-                allPropertiesHtml =
-                    allProperties |> List.map propertyTableRowHtml
-            in
-            allPropertiesHtml |> Html.table []
-        )
+                        allPropertiesHtml =
+                            allProperties
+                                |> List.map
+                                    (\( toggleButton, propertyName, propertyValueHtml ) ->
+                                        propertyTableRowHtml
+                                            { toggleButton = toggleButton
+                                            , propertyName = propertyName
+                                            , propertyValueHtml = propertyValueHtml
+                                            }
+                                    )
+                    in
+                    allPropertiesHtml |> Html.table []
+                )
+    in
+    [ [ toggleButtonHtml, nodeHtml ]
+        |> List.map (List.singleton >> Html.td [ HA.attribute "valign" "top" ])
+        |> Html.tr []
+    ]
+        |> Html.table []
 
 
 parseMemoryReadingFromJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
