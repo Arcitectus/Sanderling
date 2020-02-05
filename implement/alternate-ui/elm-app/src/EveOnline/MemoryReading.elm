@@ -3,6 +3,7 @@ module EveOnline.MemoryReading exposing
     , ChatWindow
     , ChatWindowStack
     , ChildOfNodeWithDisplayRegion(..)
+    , ColorComponents
     , ContextMenu
     , ContextMenuEntry
     , DisplayRegion
@@ -207,7 +208,12 @@ type alias OverviewWindowEntry =
     , textsLeftToRight : List String
     , cellsTexts : Dict.Dict String String
     , distanceInMeters : Result String Int
+    , iconSpriteColorPercent : Maybe ColorComponents
     }
+
+
+type alias ColorComponents =
+    { a : Int, r : Int, g : Int, b : Int }
 
 
 type alias DronesWindow =
@@ -382,10 +388,9 @@ getDisplayRegionFromDictEntries uiNode =
         fixedNumberFromJsonValue =
             Json.Decode.decodeValue
                 (Json.Decode.oneOf
-                    [ Json.Decode.string
-                    , Json.Decode.field "int_low32" Json.Decode.string
+                    [ jsonDecodeIntFromString
+                    , Json.Decode.field "int_low32" jsonDecodeIntFromString
                     ]
-                    |> Json.Decode.andThen (String.toInt >> Maybe.map Json.Decode.succeed >> Maybe.withDefault (Json.Decode.fail "Failed to parse integer from string."))
                 )
 
         fixedNumberFromPropertyName propertyName =
@@ -751,11 +756,26 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> Dict.get "Distance"
                 |> Maybe.map parseOverviewEntryDistanceInMetersFromText
                 |> Maybe.withDefault (Err "Did not find the 'Distance' cell text.")
+
+        spaceObjectIconNode =
+            overviewEntryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpaceObjectIcon")
+                |> List.head
+
+        iconSpriteColorPercent =
+            spaceObjectIconNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "iconSprite"))
+                |> List.head
+                |> Maybe.andThen (.uiNode >> getColorPercentFromDictEntries)
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
     , cellsTexts = cellsTexts
     , distanceInMeters = distanceInMeters
+    , iconSpriteColorPercent = iconSpriteColorPercent
     }
 
 
@@ -1329,6 +1349,36 @@ getStringPropertyFromDictEntries dictEntryKey uiNode =
     uiNode.dictEntriesOfInterest
         |> Dict.get dictEntryKey
         |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
+
+
+getColorPercentFromDictEntries : UITreeNode -> Maybe ColorComponents
+getColorPercentFromDictEntries =
+    .dictEntriesOfInterest
+        >> Dict.get "_color"
+        >> Maybe.andThen (Json.Decode.decodeValue jsonDecodeColorPercent >> Result.toMaybe)
+
+
+jsonDecodeColorPercent : Json.Decode.Decoder ColorComponents
+jsonDecodeColorPercent =
+    Json.Decode.map4 ColorComponents
+        (Json.Decode.field "aPercent" jsonDecodeIntFromString)
+        (Json.Decode.field "rPercent" jsonDecodeIntFromString)
+        (Json.Decode.field "gPercent" jsonDecodeIntFromString)
+        (Json.Decode.field "bPercent" jsonDecodeIntFromString)
+
+
+jsonDecodeIntFromString : Json.Decode.Decoder Int
+jsonDecodeIntFromString =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\asString ->
+                case asString |> String.toInt of
+                    Just asInt ->
+                        Json.Decode.succeed asInt
+
+                    Nothing ->
+                        Json.Decode.fail ("Failed to parse integer from string '" ++ asString ++ "'")
+            )
 
 
 getHorizontalOffsetFromParentAndWidth : UITreeNode -> Maybe { offset : Int, width : Int }

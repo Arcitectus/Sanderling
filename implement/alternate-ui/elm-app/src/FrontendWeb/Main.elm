@@ -30,7 +30,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-03"
+    "2020-02-05"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -148,6 +148,7 @@ type alias OverviewWindow =
 type alias OverviewEntry =
     { uiTreeNode : EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
     , cellsContents : Dict.Dict String String
+    , iconSpriteColorPercent : Maybe EveOnline.MemoryReading.ColorComponents
     }
 
 
@@ -640,12 +641,51 @@ displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
 
         CanSee overviewWindow ->
             let
-                columns =
+                columnsFromHeaders =
                     overviewWindow.headers
+                        |> List.map
+                            (\header ->
+                                { header = header
+                                , cellHtmlFromEntry =
+                                    \overviewEntry ->
+                                        overviewEntry.cellsContents
+                                            |> Dict.get header
+                                            |> Maybe.withDefault ""
+                                            |> Html.text
+                                }
+                            )
+
+                cssColorFromColorPercent colorPercent =
+                    "rgba("
+                        ++ (([ colorPercent.r, colorPercent.g, colorPercent.b ]
+                                |> List.map (\rgbComponent -> String.fromInt ((rgbComponent * 255) // 100)))
+                                ++ [ String.fromFloat ((colorPercent.a |> toFloat) / 100) ]
+                                |> String.join ","
+                           )
+                        ++ ")"
+
+                iconColumn =
+                    { header = ""
+                    , cellHtmlFromEntry =
+                        .iconSpriteColorPercent
+                            >> Maybe.map
+                                (\colorPercent ->
+                                    Html.div
+                                        [ HA.style "background-color" (cssColorFromColorPercent colorPercent)
+                                        , HA.style "width" "10px"
+                                        , HA.style "height" "10px"
+                                        ]
+                                        []
+                                )
+                            >> Maybe.withDefault (Html.text "")
+                    }
+
+                columns =
+                    iconColumn :: columnsFromHeaders
 
                 headersHtml =
                     columns
-                        |> List.map (Html.text >> List.singleton >> Html.td [])
+                        |> List.map (.header >> Html.text >> List.singleton >> Html.td [])
                         |> Html.tr []
 
                 entriesHtml =
@@ -656,14 +696,7 @@ displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
                                     columnsHtml =
                                         columns
                                             |> List.map
-                                                (\column ->
-                                                    [ overviewEntry.cellsContents
-                                                        |> Dict.get column
-                                                        |> Maybe.withDefault ""
-                                                        |> Html.text
-                                                    ]
-                                                        |> Html.td []
-                                                )
+                                                (\column -> [ overviewEntry |> column.cellHtmlFromEntry ] |> Html.td [])
 
                                     inputHtml =
                                         maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] overviewEntry.uiTreeNode
@@ -914,6 +947,7 @@ parseOverviewWindow overviewWindow =
         mapEntry originalEntry =
             { uiTreeNode = originalEntry.uiNode
             , cellsContents = originalEntry.cellsTexts
+            , iconSpriteColorPercent = originalEntry.iconSpriteColorPercent
             }
 
         headers =
