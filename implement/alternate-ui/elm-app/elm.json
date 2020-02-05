@@ -19,7 +19,8 @@
             "elm-community/json-extra": "4.2.0",
             "elm-community/list-extra": "8.2.2",
             "elm-community/result-extra": "2.3.0",
-            "elm-community/string-extra": "4.0.1"
+            "elm-community/string-extra": "4.0.1",
+            "fapian/elm-html-aria": "1.4.0"
         },
         "indirect": {
             "elm/bytes": "1.0.8",
