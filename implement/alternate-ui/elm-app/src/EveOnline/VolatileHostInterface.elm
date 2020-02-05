@@ -24,7 +24,7 @@ type RequestToVolatileHost
     = GetEveOnlineProcessesIds
     | GetMemoryReading GetMemoryReadingStructure
     | EffectOnWindow (TaskOnWindowStructure EffectOnWindowStructure)
-    | ConsoleBeepSequenceRequest (List ConsoleBeepStructure)
+    | EffectConsoleBeepSequence (List ConsoleBeepStructure)
 
 
 type ResponseFromVolatileHost
@@ -156,8 +156,8 @@ encodeRequestToVolatileHost request =
         EffectOnWindow taskOnWindow ->
             Json.Encode.object [ ( "effectOnWindow", taskOnWindow |> encodeTaskOnWindow encodeEffectOnWindowStructure ) ]
 
-        ConsoleBeepSequenceRequest consoleBeepSequenceRequest ->
-            Json.Encode.object [ ( "ConsoleBeepSequenceRequest", consoleBeepSequenceRequest |> Json.Encode.list encodeConsoleBeep ) ]
+        EffectConsoleBeepSequence effectConsoleBeepSequence ->
+            Json.Encode.object [ ( "EffectConsoleBeepSequence", effectConsoleBeepSequence |> Json.Encode.list encodeConsoleBeep ) ]
 
 
 decodeRequestToVolatileHost : Json.Decode.Decoder RequestToVolatileHost

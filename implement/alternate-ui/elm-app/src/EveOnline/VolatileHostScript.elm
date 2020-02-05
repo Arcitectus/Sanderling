@@ -55,7 +55,7 @@ class Request
 
     public TaskOnWindow<EffectOnWindow> effectOnWindow;
 
-    public ConsoleBeepStructure[] ConsoleBeepSequenceRequest;
+    public ConsoleBeepStructure[] EffectConsoleBeepSequence;
 
     public class GetMemoryReadingStructure
     {
@@ -248,9 +248,9 @@ Response request(Request request)
         };
     }
 
-    if (request?.ConsoleBeepSequenceRequest != null)
+    if (request?.EffectConsoleBeepSequence != null)
     {
-        foreach (var beep in request?.ConsoleBeepSequenceRequest)
+        foreach (var beep in request?.EffectConsoleBeepSequence)
         {
             if(beep.frequency == 0) //  Avoid exception "The frequency must be between 37 and 32767."
                 System.Threading.Thread.Sleep(beep.durationInMs);
