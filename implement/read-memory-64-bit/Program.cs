@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-02-05";
+        static string AppVersionId => "2020-02-06";
 
         static int Main(string[] args)
         {
@@ -112,15 +112,20 @@ namespace read_memory_64_bit
 
                         var searchUIRootsStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
+                        var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
+
+                        var memoryRegions =
+                            processSampleUnpacked.memoryRegions
+                            .Select(memoryRegion => (memoryRegion.baseAddress, length: (ulong)memoryRegion.content.LongLength))
+                            .ToImmutableList();
+
                         var uiRootCandidatesAddresses =
-                            EveOnline64.EnumeratePossibleAddressesForUIRootObjects(processSampleUnpacked.memoryRegions)
+                            EveOnline64.EnumeratePossibleAddressesForUIRootObjects(memoryRegions, memoryReader)
                             .ToImmutableList();
 
                         searchUIRootsStopwatch.Stop();
 
                         Console.WriteLine($"Found {uiRootCandidatesAddresses.Count} candidates for UIRoot in {(int)searchUIRootsStopwatch.Elapsed.TotalSeconds} seconds: " + string.Join(",", uiRootCandidatesAddresses.Select(address => $"0x{address:X}")));
-
-                        var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
 
                         return (uiRootCandidatesAddresses, memoryReader);
                     }
@@ -231,7 +236,7 @@ namespace read_memory_64_bit
 
             var beginMainWindowClientAreaScreenshotBmp = BMPFileFromBitmap(GetScreenshotOfWindowClientAreaAsBitmap(process.MainWindowHandle));
 
-            var (committedRegions, logEntries) = EveOnline64.ReadCommittedMemoryRegionsFromProcessId(processId);
+            var (committedRegions, logEntries) = EveOnline64.ReadCommittedMemoryRegionsWithContentFromProcessId(processId);
 
             var endMainWindowClientAreaScreenshotBmp = BMPFileFromBitmap(GetScreenshotOfWindowClientAreaAsBitmap(process.MainWindowHandle));
 
@@ -361,12 +366,40 @@ namespace read_memory_64_bit
     {
         static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjectsFromProcessId(int processId)
         {
-            var (committedMemoryRegions, _) = ReadCommittedMemoryRegionsFromProcessId(processId);
+            var memoryReader = new MemoryReaderFromLiveProcess(processId);
 
-            return EnumeratePossibleAddressesForUIRootObjects(committedMemoryRegions);
+            var (committedMemoryRegions, _) = ReadCommittedMemoryRegionsWithoutContentFromProcessId(processId);
+
+            return EnumeratePossibleAddressesForUIRootObjects(committedMemoryRegions, memoryReader);
         }
 
-        static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsFromProcessId(int processId)
+        static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithContentFromProcessId(int processId)
+        {
+            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: true);
+
+            var memoryRegions =
+                genericResult.memoryRegions
+                .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, content: memoryRegion.content))
+                .ToImmutableList();
+
+            return (memoryRegions, genericResult.logEntries);
+        }
+
+        static public (IImmutableList<(ulong baseAddress, ulong length)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithoutContentFromProcessId(int processId)
+        {
+            var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: false);
+
+            var memoryRegions =
+                genericResult.memoryRegions
+                .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, length: memoryRegion.length))
+                .ToImmutableList();
+
+            return (memoryRegions, genericResult.logEntries);
+        }
+
+        static public (IImmutableList<(ulong baseAddress, ulong length, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsFromProcessId(
+            int processId,
+            bool readContent)
         {
             var logEntries = new List<string>();
 
@@ -383,7 +416,7 @@ namespace read_memory_64_bit
 
             long address = 0;
 
-            var committedRegions = new List<(ulong baseAddress, byte[] content)>();
+            var committedRegions = new List<(ulong baseAddress, ulong length, byte[] content)>();
 
             do
             {
@@ -414,72 +447,89 @@ namespace read_memory_64_bit
 
                 var regionBaseAddress = m.BaseAddress;
 
-                int bytesRead = 0;
-                byte[] regionContentBuffer = new byte[(long)m.RegionSize];
+                byte[] regionContent = null;
 
-                WinApi.ReadProcessMemory(processHandle, regionBaseAddress, regionContentBuffer, regionContentBuffer.Length, ref bytesRead);
+                if (readContent)
+                {
+                    int bytesRead = 0;
+                    var regionContentBuffer = new byte[(long)m.RegionSize];
 
-                if (bytesRead != regionContentBuffer.Length)
-                    throw new Exception($"Failed to ReadProcessMemory at 0x{regionBaseAddress:X}: Only read " + bytesRead + " bytes.");
+                    WinApi.ReadProcessMemory(processHandle, regionBaseAddress, regionContentBuffer, regionContentBuffer.Length, ref bytesRead);
 
-                committedRegions.Add((regionBaseAddress, regionContentBuffer));
+                    if (bytesRead != regionContentBuffer.Length)
+                        throw new Exception($"Failed to ReadProcessMemory at 0x{regionBaseAddress:X}: Only read " + bytesRead + " bytes.");
+
+                    regionContent = regionContentBuffer;
+                }
+
+                committedRegions.Add((baseAddress: regionBaseAddress, length: m.RegionSize, content: regionContent));
 
             } while (true);
 
-            logLine($"Found {committedRegions.Count} committed regions with a total size of {committedRegions.Select(region => (long)region.content.Length).Sum()}.");
+            logLine($"Found {committedRegions.Count} committed regions with a total size of {committedRegions.Select(region => (long)region.length).Sum()}.");
 
             return (committedRegions.ToImmutableList(), logEntries.ToImmutableList());
         }
 
-        static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjects(IEnumerable<(ulong baseAddress, byte[] content)> memoryRegions)
+        static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjects(
+            IEnumerable<(ulong baseAddress, ulong length)> memoryRegions,
+            IMemoryReader memoryReader)
         {
             var memoryRegionsOrderedByAddress =
                 memoryRegions
                 .OrderBy(memoryRegion => memoryRegion.baseAddress)
-                .Select(memoryRegion =>
-                new
-                {
-                    baseAddress = memoryRegion.baseAddress,
-                    content = memoryRegion.content,
-                    contentAsULongArray = TransformMemoryContent.AsULongArray(memoryRegion.content)
-                })
                 .ToImmutableList();
 
-            string ReadNullTerminatedAsciiStringFromAddress(ulong address)
+            string ReadNullTerminatedAsciiStringFromAddressUpTo255(ulong address)
             {
-                var memoryRegion =
-                    memoryRegions
-                    .Where(c => c.baseAddress <= address)
-                    .OrderBy(c => c.baseAddress)
-                    .LastOrDefault();
+                var bytesBeforeTruncate = memoryReader.ReadBytes(address, 0x100);
 
-                if (memoryRegion.content == null)
+                if (bytesBeforeTruncate == null)
                     return null;
 
                 var bytes =
-                    memoryRegion.content
-                    .Skip((int)(address - memoryRegion.baseAddress))
+                    bytesBeforeTruncate
                     .TakeWhile(character => 0 < character)
                     .ToArray();
 
                 return System.Text.Encoding.ASCII.GetString(bytes);
             }
 
+            ulong[] ReadMemoryRegionContentAsULongArray((ulong baseAddress, ulong length) memoryRegion)
+            {
+                var lengthAsInt32 = (int)memoryRegion.length;
+
+                if ((ulong)lengthAsInt32 != memoryRegion.length)
+                    throw new NotSupportedException("Memory region length exceeds supported range: " + memoryRegion.length);
+
+                var asByteArray = memoryReader.ReadBytes(memoryRegion.baseAddress, lengthAsInt32);
+
+                if (asByteArray == null)
+                    return null;
+
+                return TransformMemoryContent.AsULongArray(asByteArray);
+            }
+
             IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectType()
             {
                 foreach (var memoryRegion in memoryRegionsOrderedByAddress)
                 {
-                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegion.contentAsULongArray.Length - 4; ++candidateAddressIndex)
+                    var memoryRegionContentAsULongArray = ReadMemoryRegionContentAsULongArray(memoryRegion);
+
+                    if (memoryRegionContentAsULongArray == null)
+                        continue;
+
+                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
                     {
                         var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                        var candidate_ob_type = memoryRegion.contentAsULongArray[candidateAddressIndex + 1];
+                        var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
 
                         if (candidate_ob_type != candidateAddressInProcess)
                             continue;
 
                         var candidate_tp_name =
-                            ReadNullTerminatedAsciiStringFromAddress(memoryRegion.contentAsULongArray[candidateAddressIndex + 3]);
+                            ReadNullTerminatedAsciiStringFromAddressUpTo255(memoryRegionContentAsULongArray[candidateAddressIndex + 3]);
 
                         if (candidate_tp_name != "type")
                             continue;
@@ -500,11 +550,16 @@ namespace read_memory_64_bit
 
                 foreach (var memoryRegion in memoryRegionsOrderedByAddress)
                 {
-                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegion.contentAsULongArray.Length - 4; ++candidateAddressIndex)
+                    var memoryRegionContentAsULongArray = ReadMemoryRegionContentAsULongArray(memoryRegion);
+
+                    if (memoryRegionContentAsULongArray == null)
+                        continue;
+
+                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
                     {
                         var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                        var candidate_ob_type = memoryRegion.contentAsULongArray[candidateAddressIndex + 1];
+                        var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
 
                         {
                             //  This check is redundant with the following one. It just implements a specialization to optimize runtime expenses.
@@ -516,7 +571,7 @@ namespace read_memory_64_bit
                             continue;
 
                         var candidate_tp_name =
-                            ReadNullTerminatedAsciiStringFromAddress(memoryRegion.contentAsULongArray[candidateAddressIndex + 3]);
+                            ReadNullTerminatedAsciiStringFromAddressUpTo255(memoryRegionContentAsULongArray[candidateAddressIndex + 3]);
 
                         if (candidate_tp_name == null)
                             continue;
@@ -537,14 +592,19 @@ namespace read_memory_64_bit
 
                 foreach (var memoryRegion in memoryRegionsOrderedByAddress)
                 {
-                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegion.contentAsULongArray.Length - 4; ++candidateAddressIndex)
+                    var memoryRegionContentAsULongArray = ReadMemoryRegionContentAsULongArray(memoryRegion);
+
+                    if (memoryRegionContentAsULongArray == null)
+                        continue;
+
+                    for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
                     {
                         var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                        var candidate_ob_type = memoryRegion.contentAsULongArray[candidateAddressIndex + 1];
+                        var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
 
                         {
-                            //  This check is redundant with the following one. It just implements a specialization to optimize runtime expenses.
+                            //  This check is redundant with the following one. It just implements a specialization to reduce processing time.
                             if (candidate_ob_type < typeAddressMin || typeAddressMax < candidate_ob_type)
                                 continue;
                         }
@@ -1131,7 +1191,8 @@ namespace read_memory_64_bit
 
             int numberOfBytesRead = 0;
 
-            WinApi.ReadProcessMemory(processHandle, startAddress, buffer, buffer.Length, ref numberOfBytesRead);
+            if (!WinApi.ReadProcessMemory(processHandle, startAddress, buffer, buffer.Length, ref numberOfBytesRead))
+                return null;
 
             if (numberOfBytesRead == 0)
                 return null;
