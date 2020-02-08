@@ -12,6 +12,7 @@ The tool copies the memory contents of a chosen Windows process (such as a game 
 + Find the game client in the Windows Task Manager.
 + Make sure the name of the game client displayed in the Windows Task Manager does not contain `(32 bit)`.
 + Read the process ID of the game client process in the `PID` column in the Task Manager.
++ Ensure the game client window is visible and not minimized.
 + Use the Windows Command Prompt to run the tool, using the following command:
 ```cmd
 read-memory-64-bit.exe  save-process-sample  --pid=12345
