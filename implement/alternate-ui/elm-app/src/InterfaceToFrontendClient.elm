@@ -81,31 +81,3 @@ decodeRunInVolatileHostComplete =
         (Json.Decode.field "exceptionToString" (Json.Decode.nullable Json.Decode.string))
         (Json.Decode.field "returnValueToString" (Json.Decode.nullable Json.Decode.string))
         (Json.Decode.field "durationInMilliseconds" Json.Decode.int)
-
-
-jsonEncodeResult : (err -> Json.Encode.Value) -> (ok -> Json.Encode.Value) -> Result err ok -> Json.Encode.Value
-jsonEncodeResult encodeErr encodeOk result =
-    case result of
-        Err err ->
-            [ ( "Err", err |> encodeErr ) ] |> Json.Encode.object
-
-        Ok ok ->
-            [ ( "Ok", ok |> encodeOk ) ] |> Json.Encode.object
-
-
-jsonDecodeResult : Json.Decode.Decoder error -> Json.Decode.Decoder ok -> Json.Decode.Decoder (Result error ok)
-jsonDecodeResult errorDecoder okDecoder =
-    Json.Decode.oneOf
-        [ Json.Decode.field "Err" errorDecoder |> Json.Decode.map Err
-        , Json.Decode.field "Ok" okDecoder |> Json.Decode.map Ok
-        ]
-
-
-jsonEncodeMaybe : (just -> Json.Encode.Value) -> Maybe just -> Json.Encode.Value
-jsonEncodeMaybe encodeJust =
-    Maybe.map encodeJust >> Maybe.withDefault Json.Encode.null
-
-
-jsonDecodeMaybe : Json.Decode.Decoder just -> Json.Decode.Decoder (Maybe just)
-jsonDecodeMaybe =
-    Json.Decode.nullable

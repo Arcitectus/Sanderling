@@ -31,7 +31,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-05"
+    "2020-02-11"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -64,6 +64,7 @@ type alias State =
 
 type alias ReadFromLiveProcessState =
     { readEveOnlineClientProcessesIdsResult : Maybe (Result String (Set.Set Int))
+    , searchUIRootAddressResult : Maybe ( EveOnline.VolatileHostInterface.SearchUIRootAddressStructure, Result String EveOnline.VolatileHostInterface.SearchUIRootAddressResultStructure )
     , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
     , lastPendingRequestToReadMemoryTimeMilli : Maybe Int
     }
@@ -175,6 +176,7 @@ init _ url navigationKey =
     , selectedSource = FromFile
     , readFromLiveProcess =
         { readEveOnlineClientProcessesIdsResult = Nothing
+        , searchUIRootAddressResult = Nothing
         , readMemoryResult = Nothing
         , lastPendingRequestToReadMemoryTimeMilli = Nothing
         }
@@ -342,6 +344,9 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileHostInterface.EveOnlineProcessesIds processIds ->
                                                                             Ok (processIds |> Set.fromList)
 
+                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
+                                                                            Err "Unexpected response: SearchUIRootAddressResult"
+
                                                                         EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
                                                                             Err "Unexpected response: GetMemoryReadingResult"
                                                                 )
@@ -389,6 +394,9 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileHostInterface.EveOnlineProcessesIds _ ->
                                                                             Err "Unexpected response: EveOnlineProcessesIds"
 
+                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
+                                                                            Err "Unexpected response: SearchUIRootAddressResult"
+
                                                                         EveOnline.VolatileHostInterface.GetMemoryReadingResult getMemoryReadingResult ->
                                                                             case getMemoryReadingResult of
                                                                                 EveOnline.VolatileHostInterface.ProcessNotFound ->
@@ -425,6 +433,57 @@ integrateBackendResponse { request, result } stateBefore =
                     }
             }
 
+        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.SearchUIRootAddress searchUIRootRequest) ->
+            let
+                searchUIRootResult =
+                    result
+                        |> Result.mapError describeHttpError
+                        |> Result.andThen
+                            (\response ->
+                                case response of
+                                    ReadLogResponse _ ->
+                                        Err "Unexpected response"
+
+                                    RunInVolatileHostResponse runInVolatileHostResponse ->
+                                        case runInVolatileHostResponse of
+                                            InterfaceToFrontendClient.SetupNotCompleteResponse status ->
+                                                Err ("Volatile host setup not complete: " ++ status)
+
+                                            InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
+                                                case runInVolatileHostCompleteResponse.exceptionToString of
+                                                    Just exception ->
+                                                        Err ("Failed with exception: " ++ exception)
+
+                                                    Nothing ->
+                                                        runInVolatileHostCompleteResponse.returnValueToString
+                                                            |> Maybe.withDefault ""
+                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
+                                                            |> Result.mapError Json.Decode.errorToString
+                                                            |> Result.andThen
+                                                                (\responseFromVolatileHost ->
+                                                                    case responseFromVolatileHost of
+                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds _ ->
+                                                                            Err "Unexpected response: EveOnlineProcessesIds"
+
+                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult searchUIRootAddressResult ->
+                                                                            Ok searchUIRootAddressResult
+
+                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
+                                                                            Err "Unexpected response: GetMemoryReadingResult"
+                                                                )
+                            )
+
+                readFromLiveProcessBefore =
+                    stateBefore.readFromLiveProcess
+            in
+            { stateBefore
+                | readFromLiveProcess =
+                    { readFromLiveProcessBefore
+                        | searchUIRootAddressResult = Just ( searchUIRootRequest, searchUIRootResult )
+                        , lastPendingRequestToReadMemoryTimeMilli = Nothing
+                    }
+            }
+
         _ ->
             stateBefore
 
@@ -444,39 +503,92 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
         requestGetProcessesIds =
             apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.GetEveOnlineProcessesIds)
     in
-    case stateBefore.readEveOnlineClientProcessesIdsResult of
+    case stateBefore.searchUIRootAddressResult of
         Nothing ->
-            ( stateBefore
-            , { describeState = "Did not yet search for the IDs of the EVE Online client processes."
-              , lastMemoryReading = Nothing
-              , nextCmd = requestGetProcessesIds
-              }
-            )
-
-        Just (Err error) ->
-            ( stateBefore
-            , { describeState = "Failed to get IDs of the EVE Online client processes: " ++ error
-              , lastMemoryReading = Nothing
-              , nextCmd = requestGetProcessesIds
-              }
-            )
-
-        Just (Ok eveOnlineClientProcessesIds) ->
-            case eveOnlineClientProcessesIds |> Set.toList of
-                [] ->
+            case stateBefore.readEveOnlineClientProcessesIdsResult of
+                Nothing ->
                     ( stateBefore
-                    , { describeState = "Looks like there is no EVE Online client process started. I continue looking in case one is started..."
+                    , { describeState = "Did not yet search for the IDs of the EVE Online client processes."
                       , lastMemoryReading = Nothing
                       , nextCmd = requestGetProcessesIds
                       }
                     )
 
-                firstEveOnlineClientProcessId :: _ ->
+                Just (Err error) ->
+                    ( stateBefore
+                    , { describeState = "Failed to get IDs of the EVE Online client processes: " ++ error
+                      , lastMemoryReading = Nothing
+                      , nextCmd = requestGetProcessesIds
+                      }
+                    )
+
+                Just (Ok eveOnlineClientProcessesIds) ->
+                    case eveOnlineClientProcessesIds |> Set.toList of
+                        [] ->
+                            ( stateBefore
+                            , { describeState = "Looks like there is no EVE Online client process started. I continue looking in case one is started..."
+                              , lastMemoryReading = Nothing
+                              , nextCmd = requestGetProcessesIds
+                              }
+                            )
+
+                        eveOnlineProcessId :: _ ->
+                            let
+                                requestSearchUIRoot =
+                                    apiRequestCmd
+                                        (InterfaceToFrontendClient.RunInVolatileHostRequest
+                                            (EveOnline.VolatileHostInterface.SearchUIRootAddress { processId = eveOnlineProcessId })
+                                        )
+
+                                searchStillPending =
+                                    stateBefore.lastPendingRequestToReadMemoryTimeMilli
+                                        |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
+                                        |> Maybe.withDefault False
+
+                                ( state, nextCmd ) =
+                                    if searchStillPending then
+                                        ( stateBefore, Cmd.none )
+
+                                    else
+                                        ( { stateBefore | lastPendingRequestToReadMemoryTimeMilli = Just timeMilli }, requestSearchUIRoot )
+                            in
+                            ( state
+                            , { describeState = "Search the address of the UI root in process " ++ (eveOnlineProcessId |> String.fromInt)
+                              , lastMemoryReading = Nothing
+                              , nextCmd = nextCmd
+                              }
+                            )
+
+        Just ( searchUIRootRequest, Err error ) ->
+            ( stateBefore
+            , { describeState =
+                    "Failed to search the UI root in process "
+                        ++ (searchUIRootRequest.processId |> String.fromInt)
+                        ++ ": "
+                        ++ error
+              , lastMemoryReading = Nothing
+              , nextCmd = Cmd.none
+              }
+            )
+
+        Just ( _, Ok searchUIRootAddressResult ) ->
+            case searchUIRootAddressResult.uiRootAddress of
+                Nothing ->
+                    ( stateBefore
+                    , { describeState = "Did not find the UI root in process " ++ (searchUIRootAddressResult.processId |> String.fromInt)
+                      , lastMemoryReading = Nothing
+                      , nextCmd = Cmd.none
+                      }
+                    )
+
+                Just uiRootAddress ->
                     let
                         requestReadMemory =
                             apiRequestCmd
                                 (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (EveOnline.VolatileHostInterface.GetMemoryReading { processId = firstEveOnlineClientProcessId })
+                                    (EveOnline.VolatileHostInterface.GetMemoryReading
+                                        { processId = searchUIRootAddressResult.processId, uiRootAddress = uiRootAddress }
+                                    )
                                 )
 
                         ( describeLastReadResult, lastMemoryReading ) =
@@ -505,7 +617,9 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                     ( state
                     , { describeState =
                             "I try to read the memory from process "
-                                ++ (firstEveOnlineClientProcessId |> String.fromInt)
+                                ++ (searchUIRootAddressResult.processId |> String.fromInt)
+                                ++ " starting from root address "
+                                ++ uiRootAddress
                                 ++ ". "
                                 ++ describeLastReadResult
                       , nextCmd = nextCmd

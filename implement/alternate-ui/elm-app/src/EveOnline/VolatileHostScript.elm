@@ -5,16 +5,12 @@ setupScript : String
 setupScript =
     """
 #r "sha256:FE8A38EBCED27A112519023A7A1216C69FE0863BCA3EF766234E972E920096C1"
-#r "sha256:11DCCA7041E1436B858BAC75E2577CA471ABA40208C4214ABD90A717DD89CEF6"
 #r "sha256:5229128932E6AAFB5433B7AA5E05E6AFA3C19A929897E49F83690AB8FE273162"
 #r "sha256:CADE001866564D185F14798ECFD077EDA6415E69D978748C19B98DDF0EE839BB"
 #r "sha256:FE532D93F820980181F34C163E54F83726876CC9B02FEC72086FD3DC747793BC"
-#r "sha256:C6E93D210F2A71438B9BEDDDA3D9E0CAB723A179BB9F2400A983EEF72FDF9FB5"
 #r "sha256:831EF0489D9FA85C34C95F0670CC6393D1AD9548EE708E223C1AD87B51F7C7B3"
-#r "sha256:137CF2631884C20D61F6C4FA122624ACE70780B3A24E12D9172AE3582EDA46E4"
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
-#r "sha256:2A89B0F057A26E1273DECC0FC7FE9C2BB12683479E37076D23A1F73CCC324D13"
 #r "sha256:C4BA921F99DE518AE1F4D4C7D7A6CA52CE5E167CA803E4AF505398A926F2E1EA"
 
 #r "mscorlib"
@@ -49,17 +45,26 @@ string ToStringBase16(byte[] array) => BitConverter.ToString(array).Replace("-",
 
 class Request
 {
-    public object getEveOnlineProcessesIds;
+    public object GetEveOnlineProcessesIds;
+
+    public SearchUIRootAddressStructure SearchUIRootAddress;
 
     public GetMemoryReadingStructure GetMemoryReading;
 
-    public TaskOnWindow<EffectOnWindow> effectOnWindow;
+    public TaskOnWindow<EffectOnWindowStructure> EffectOnWindow;
 
     public ConsoleBeepStructure[] EffectConsoleBeepSequence;
+
+    public class SearchUIRootAddressStructure
+    {
+        public int processId;
+    }
 
     public class GetMemoryReadingStructure
     {
         public int processId;
+
+        public ulong uiRootAddress;
     }
 
     public class TaskOnWindow<Task>
@@ -71,7 +76,7 @@ class Request
         public Task task;
     }
 
-    public class EffectOnWindow
+    public class EffectOnWindowStructure
     {
         public SimpleMouseClickAtLocation simpleMouseClickAtLocation;
 
@@ -125,9 +130,18 @@ class Response
 {
     public int[] eveOnlineProcessesIds;
 
+    public SearchUIRootAddressResultStructure SearchUIRootAddressResult;
+
     public GetMemoryReadingResultStructure GetMemoryReadingResult;
 
     public object effectExecuted;
+
+    public class SearchUIRootAddressResultStructure
+    {
+        public int processId;
+
+        public string uiRootAddress;
+    }
 
     public class GetMemoryReadingResultStructure
     {
@@ -153,26 +167,30 @@ string serialRequest(string serializedRequest)
     return SerializeToJsonForBot(response);
 }
 
-//  TODO: Simplify: Remove cache.
-struct UiTreeRootSearchResultCache
-{
-    public int processId;
-
-    public ulong uiTreeRootAddress;
-}
-
-UiTreeRootSearchResultCache? uiTreeRootSearchResultCache = null;
-
 Response request(Request request)
 {
     SetProcessDPIAware();
 
-    if (request.getEveOnlineProcessesIds != null)
+    if (request.GetEveOnlineProcessesIds != null)
     {
         return new Response
         {
             eveOnlineProcessesIds =
                 GetWindowsProcessesLookingLikeEVEOnlineClient().Select(proc => proc.Id).ToArray(),
+        };
+    }
+
+    if (request.SearchUIRootAddress != null)
+    {
+        var uiTreeRootAddress = FindUIRootAddressFromProcessId(request.SearchUIRootAddress.processId);
+
+        return new Response
+        {
+            SearchUIRootAddressResult = new Response.SearchUIRootAddressResultStructure
+            {
+                processId = request.SearchUIRootAddress.processId,
+                uiRootAddress = uiTreeRootAddress?.ToString(),
+            },
         };
     }
 
@@ -191,36 +209,18 @@ Response request(Request request)
 
         var process = System.Diagnostics.Process.GetProcessById(processId);
 
-        //  TODO: Simplify: Remove cache.
-        if (uiTreeRootSearchResultCache?.processId != processId)
-            uiTreeRootSearchResultCache = null;
-
-
-        var uiTreeRootAddress =
-            uiTreeRootSearchResultCache?.uiTreeRootAddress;
-        
-        if(!uiTreeRootAddress.HasValue)
-        {
-            uiTreeRootAddress = FindUIRootAddressFromProcessId(processId);
-        }
-
         string serialRepresentationJson = null;
 
-        if(uiTreeRootAddress.HasValue)
+        using (var memoryReader = new read_memory_64_bit.MemoryReaderFromLiveProcess(processId))
         {
-            using (var memoryReader = new read_memory_64_bit.MemoryReaderFromLiveProcess(processId))
-            {
-                var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(uiTreeRootAddress.Value, memoryReader, 99);
+            var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(request.GetMemoryReading.uiRootAddress, memoryReader, 99);
 
-                if(uiTree != null)
-                    serialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-                        uiTree.WithOtherDictEntriesRemoved(),
-                        //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                        new read_memory_64_bit.IntegersToStringJsonConverter()
-                        );
-            }
-
-            uiTreeRootSearchResultCache = new UiTreeRootSearchResultCache { processId = processId, uiTreeRootAddress = uiTreeRootAddress.Value };
+            if(uiTree != null)
+                serialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                    uiTree.WithOtherDictEntriesRemoved(),
+                    //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                    new read_memory_64_bit.IntegersToStringJsonConverter()
+                    );
         }
 
         return new Response
@@ -236,11 +236,11 @@ Response request(Request request)
         };
     }
 
-    if (request?.effectOnWindow?.task != null)
+    if (request?.EffectOnWindow?.task != null)
     {
-        var windowHandle = new IntPtr(long.Parse(request.effectOnWindow.windowId));
+        var windowHandle = new IntPtr(long.Parse(request.EffectOnWindow.windowId));
 
-        ExecuteEffectOnWindow(request.effectOnWindow.task, windowHandle, request.effectOnWindow.bringWindowToForeground);
+        ExecuteEffectOnWindow(request.EffectOnWindow.task, windowHandle, request.EffectOnWindow.bringWindowToForeground);
 
         return new Response
         {
@@ -288,7 +288,7 @@ ulong? FindUIRootAddressFromProcessId(int processId)
 }
 
 void ExecuteEffectOnWindow(
-    Request.EffectOnWindow effectOnWindow,
+    Request.EffectOnWindowStructure effectOnWindow,
     IntPtr windowHandle,
     bool bringWindowToForeground)
 {

@@ -6,6 +6,8 @@ module EveOnline.VolatileHostInterface exposing
     , MouseButton(..)
     , RequestToVolatileHost(..)
     , ResponseFromVolatileHost(..)
+    , SearchUIRootAddressResultStructure
+    , SearchUIRootAddressStructure
     , VirtualKeyCode(..)
     , WindowId
     , buildScriptToGetResponseFromVolatileHost
@@ -22,6 +24,7 @@ import Json.Encode
 
 type RequestToVolatileHost
     = GetEveOnlineProcessesIds
+    | SearchUIRootAddress SearchUIRootAddressStructure
     | GetMemoryReading GetMemoryReadingStructure
     | EffectOnWindow (TaskOnWindowStructure EffectOnWindowStructure)
     | EffectConsoleBeepSequence (List ConsoleBeepStructure)
@@ -29,11 +32,25 @@ type RequestToVolatileHost
 
 type ResponseFromVolatileHost
     = EveOnlineProcessesIds (List Int)
+    | SearchUIRootAddressResult SearchUIRootAddressResultStructure
     | GetMemoryReadingResult GetMemoryReadingResultStructure
 
 
 type alias GetMemoryReadingStructure =
-    { processId : Int }
+    { processId : Int
+    , uiRootAddress : String
+    }
+
+
+type alias SearchUIRootAddressStructure =
+    { processId : Int
+    }
+
+
+type alias SearchUIRootAddressResultStructure =
+    { processId : Int
+    , uiRootAddress : Maybe String
+    }
 
 
 type GetMemoryReadingResultStructure
@@ -139,6 +156,8 @@ decodeResponseFromVolatileHost =
     Json.Decode.oneOf
         [ Json.Decode.field "eveOnlineProcessesIds" (Json.Decode.list Json.Decode.int)
             |> Json.Decode.map EveOnlineProcessesIds
+        , Json.Decode.field "SearchUIRootAddressResult" decodeSearchUIRootAddressResult
+            |> Json.Decode.map SearchUIRootAddressResult
         , Json.Decode.field "GetMemoryReadingResult" decodeGetMemoryReadingResult
             |> Json.Decode.map GetMemoryReadingResult
         ]
@@ -148,13 +167,16 @@ encodeRequestToVolatileHost : RequestToVolatileHost -> Json.Encode.Value
 encodeRequestToVolatileHost request =
     case request of
         GetEveOnlineProcessesIds ->
-            Json.Encode.object [ ( "getEveOnlineProcessesIds", Json.Encode.object [] ) ]
+            Json.Encode.object [ ( "GetEveOnlineProcessesIds", Json.Encode.object [] ) ]
+
+        SearchUIRootAddress searchUIRootAddress ->
+            Json.Encode.object [ ( "SearchUIRootAddress", searchUIRootAddress |> encodeSearchUIRootAddress ) ]
 
         GetMemoryReading getMemoryReading ->
             Json.Encode.object [ ( "GetMemoryReading", getMemoryReading |> encodeGetMemoryReading ) ]
 
         EffectOnWindow taskOnWindow ->
-            Json.Encode.object [ ( "effectOnWindow", taskOnWindow |> encodeTaskOnWindow encodeEffectOnWindowStructure ) ]
+            Json.Encode.object [ ( "EffectOnWindow", taskOnWindow |> encodeTaskOnWindow encodeEffectOnWindowStructure ) ]
 
         EffectConsoleBeepSequence effectConsoleBeepSequence ->
             Json.Encode.object [ ( "EffectConsoleBeepSequence", effectConsoleBeepSequence |> Json.Encode.list encodeConsoleBeep ) ]
@@ -163,9 +185,11 @@ encodeRequestToVolatileHost request =
 decodeRequestToVolatileHost : Json.Decode.Decoder RequestToVolatileHost
 decodeRequestToVolatileHost =
     Json.Decode.oneOf
-        [ Json.Decode.field "getEveOnlineProcessesIds" (Json.Decode.succeed GetEveOnlineProcessesIds)
+        [ Json.Decode.field "GetEveOnlineProcessesIds" (Json.Decode.succeed GetEveOnlineProcessesIds)
+        , Json.Decode.field "SearchUIRootAddress" (decodeSearchUIRootAddress |> Json.Decode.map SearchUIRootAddress)
         , Json.Decode.field "GetMemoryReading" (decodeGetMemoryReading |> Json.Decode.map GetMemoryReading)
-        , Json.Decode.field "effectOnWindow" (decodeTaskOnWindow decodeEffectOnWindowStructure |> Json.Decode.map EffectOnWindow)
+        , Json.Decode.field "EffectOnWindow" (decodeTaskOnWindow decodeEffectOnWindowStructure |> Json.Decode.map EffectOnWindow)
+        , Json.Decode.field "EffectConsoleBeepSequence" (Json.Decode.list decodeConsoleBeep |> Json.Decode.map EffectConsoleBeepSequence)
         ]
 
 
@@ -290,15 +314,39 @@ jsonDecodeMouseButton =
             )
 
 
+encodeSearchUIRootAddress : SearchUIRootAddressStructure -> Json.Encode.Value
+encodeSearchUIRootAddress getMemoryReading =
+    Json.Encode.object
+        [ ( "processId", getMemoryReading.processId |> Json.Encode.int )
+        ]
+
+
+decodeSearchUIRootAddress : Json.Decode.Decoder SearchUIRootAddressStructure
+decodeSearchUIRootAddress =
+    Json.Decode.map SearchUIRootAddressStructure
+        (Json.Decode.field "processId" Json.Decode.int)
+
+
 encodeGetMemoryReading : GetMemoryReadingStructure -> Json.Encode.Value
 encodeGetMemoryReading getMemoryReading =
-    Json.Encode.object [ ( "processId", getMemoryReading.processId |> Json.Encode.int ) ]
+    Json.Encode.object
+        [ ( "processId", getMemoryReading.processId |> Json.Encode.int )
+        , ( "uiRootAddress", getMemoryReading.uiRootAddress |> Json.Encode.string )
+        ]
 
 
 decodeGetMemoryReading : Json.Decode.Decoder GetMemoryReadingStructure
 decodeGetMemoryReading =
-    Json.Decode.map GetMemoryReadingStructure
+    Json.Decode.map2 GetMemoryReadingStructure
         (Json.Decode.field "processId" Json.Decode.int)
+        (Json.Decode.field "uiRootAddress" Json.Decode.string)
+
+
+decodeSearchUIRootAddressResult : Json.Decode.Decoder SearchUIRootAddressResultStructure
+decodeSearchUIRootAddressResult =
+    Json.Decode.map2 SearchUIRootAddressResultStructure
+        (Json.Decode.field "processId" Json.Decode.int)
+        (Json.Decode.field "uiRootAddress" (Json.Decode.maybe Json.Decode.string))
 
 
 decodeGetMemoryReadingResult : Json.Decode.Decoder GetMemoryReadingResultStructure
@@ -334,6 +382,13 @@ encodeConsoleBeep consoleBeep =
         [ ( "frequency", consoleBeep.frequency |> Json.Encode.int )
         , ( "durationInMs", consoleBeep.durationInMs |> Json.Encode.int )
         ]
+
+
+decodeConsoleBeep : Json.Decode.Decoder ConsoleBeepStructure
+decodeConsoleBeep =
+    Json.Decode.map2 ConsoleBeepStructure
+        (Json.Decode.field "frequency" Json.Decode.int)
+        (Json.Decode.field "durationInMs" Json.Decode.int)
 
 
 effectMouseClickAtLocation : MouseButton -> Location2d -> EffectOnWindowStructure
