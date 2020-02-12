@@ -7,7 +7,7 @@ module Backend.InterfaceToHost exposing
     , HttpResponseRequest
     , ProcessEvent(..)
     , ProcessRequest(..)
-    , RunInVolatileHostError(..)
+    , RequestToVolatileHostError(..)
     , StartTaskStructure
     , Task(..)
     , TaskCompleteStructure
@@ -37,27 +37,28 @@ type alias TaskCompleteStructure =
 
 
 type TaskResultStructure
-    = CreateVolatileHostResponse (Result CreateVolatileHostError CreateVolatileHostComplete)
-    | RunInVolatileHostResponse (Result RunInVolatileHostError RunInVolatileHostComplete)
+    = CreateVolatileHostResponse (Result CreateVolatileHostErrorStructure CreateVolatileHostComplete)
+    | RequestToVolatileHostResponse (Result RequestToVolatileHostError RequestToVolatileHostComplete)
     | CompleteWithoutResult
 
 
-type alias RunInVolatileHostComplete =
+type alias RequestToVolatileHostComplete =
     { exceptionToString : Maybe String
     , returnValueToString : Maybe String
     , durationInMilliseconds : Int
     }
 
 
-type alias CreateVolatileHostError =
-    ()
+type alias CreateVolatileHostErrorStructure =
+    { exceptionToString : String
+    }
 
 
 type alias CreateVolatileHostComplete =
     { hostId : String }
 
 
-type RunInVolatileHostError
+type RequestToVolatileHostError
     = HostNotFound
 
 
@@ -67,16 +68,20 @@ type alias StartTaskStructure =
     }
 
 
-type alias RunInVolatileHostStructure =
+type alias RequestToVolatileHostStructure =
     { hostId : String
-    , script : String
+    , request : String
     }
 
 
 type Task
-    = CreateVolatileHost
-    | RunInVolatileHost RunInVolatileHostStructure
+    = CreateVolatileHost CreateVolatileHostStructure
+    | RequestToVolatileHost RequestToVolatileHostStructure
     | ReleaseVolatileHost ReleaseVolatileHostStructure
+
+
+type alias CreateVolatileHostStructure =
+    { script : String }
 
 
 type alias ReleaseVolatileHostStructure =
@@ -170,12 +175,18 @@ decodeTaskComplete =
 decodeTaskResult : Json.Decode.Decoder TaskResultStructure
 decodeTaskResult =
     Json.Decode.oneOf
-        [ Json.Decode.field "createVolatileHostResponse" (decodeResult (Json.Decode.succeed ()) decodeCreateVolatileHostComplete)
+        [ Json.Decode.field "CreateVolatileHostResponse" (decodeResult decodeCreateVolatileHostError decodeCreateVolatileHostComplete)
             |> Json.Decode.map CreateVolatileHostResponse
-        , Json.Decode.field "runInVolatileHostResponse" (decodeResult decodeRunInVolatileHostError decodeRunInVolatileHostComplete)
-            |> Json.Decode.map RunInVolatileHostResponse
-        , Json.Decode.field "completeWithoutResult" (Json.Decode.succeed CompleteWithoutResult)
+        , Json.Decode.field "RequestToVolatileHostResponse" (decodeResult decodeRequestToVolatileHostError decodeRequestToVolatileHostComplete)
+            |> Json.Decode.map RequestToVolatileHostResponse
+        , Json.Decode.field "CompleteWithoutResult" (Json.Decode.succeed CompleteWithoutResult)
         ]
+
+
+decodeCreateVolatileHostError : Json.Decode.Decoder CreateVolatileHostErrorStructure
+decodeCreateVolatileHostError =
+    Json.Decode.map CreateVolatileHostErrorStructure
+        (Json.Decode.field "exceptionToString" Json.Decode.string)
 
 
 decodeCreateVolatileHostComplete : Json.Decode.Decoder CreateVolatileHostComplete
@@ -184,18 +195,18 @@ decodeCreateVolatileHostComplete =
         (Json.Decode.field "hostId" Json.Decode.string)
 
 
-decodeRunInVolatileHostComplete : Json.Decode.Decoder RunInVolatileHostComplete
-decodeRunInVolatileHostComplete =
-    Json.Decode.map3 RunInVolatileHostComplete
+decodeRequestToVolatileHostComplete : Json.Decode.Decoder RequestToVolatileHostComplete
+decodeRequestToVolatileHostComplete =
+    Json.Decode.map3 RequestToVolatileHostComplete
         (decodeOptionalField "exceptionToString" Json.Decode.string)
         (decodeOptionalField "returnValueToString" Json.Decode.string)
         (Json.Decode.field "durationInMilliseconds" Json.Decode.int)
 
 
-decodeRunInVolatileHostError : Json.Decode.Decoder RunInVolatileHostError
-decodeRunInVolatileHostError =
+decodeRequestToVolatileHostError : Json.Decode.Decoder RequestToVolatileHostError
+decodeRequestToVolatileHostError =
     Json.Decode.oneOf
-        [ Json.Decode.field "hostNotFound" (Json.Decode.succeed HostNotFound)
+        [ Json.Decode.field "HostNotFound" (Json.Decode.succeed HostNotFound)
         ]
 
 
@@ -263,7 +274,7 @@ encodeProcessRequest : ProcessRequest -> Json.Encode.Value
 encodeProcessRequest request =
     case request of
         CompleteHttpResponse httpResponse ->
-            [ ( "completeHttpResponse", httpResponse |> encodeHttpResponseRequest )
+            [ ( "CompleteHttpResponse", httpResponse |> encodeHttpResponseRequest )
             ]
                 |> Json.Encode.object
 
@@ -287,22 +298,23 @@ encodeTaskId =
 encodeTask : Task -> Json.Encode.Value
 encodeTask task =
     case task of
-        CreateVolatileHost ->
-            Json.Encode.object [ ( "createVolatileHost", Json.Encode.object [] ) ]
-
-        RunInVolatileHost runInVolatileHost ->
+        CreateVolatileHost createVolatileHost ->
             Json.Encode.object
-                [ ( "runInVolatileHost"
+                [ ( "CreateVolatileHost", Json.Encode.object [ ( "script", createVolatileHost.script |> Json.Encode.string ) ] ) ]
+
+        RequestToVolatileHost processRequestToVolatileHost ->
+            Json.Encode.object
+                [ ( "RequestToVolatileHost"
                   , Json.Encode.object
-                        [ ( "hostId", runInVolatileHost.hostId |> Json.Encode.string )
-                        , ( "script", runInVolatileHost.script |> Json.Encode.string )
+                        [ ( "hostId", processRequestToVolatileHost.hostId |> Json.Encode.string )
+                        , ( "request", processRequestToVolatileHost.request |> Json.Encode.string )
                         ]
                   )
                 ]
 
         ReleaseVolatileHost releaseVolatileHost ->
             Json.Encode.object
-                [ ( "releaseVolatileHost"
+                [ ( "ReleaseVolatileHost"
                   , Json.Encode.object
                         [ ( "hostId", releaseVolatileHost.hostId |> Json.Encode.string )
                         ]
@@ -347,6 +359,6 @@ filterTakeOnlyWhereTupleSecondNotNothing =
 decodeResult : Json.Decode.Decoder error -> Json.Decode.Decoder ok -> Json.Decode.Decoder (Result error ok)
 decodeResult errorDecoder okDecoder =
     Json.Decode.oneOf
-        [ Json.Decode.field "err" errorDecoder |> Json.Decode.map Err
-        , Json.Decode.field "ok" okDecoder |> Json.Decode.map Ok
+        [ Json.Decode.field "Err" errorDecoder |> Json.Decode.map Err
+        , Json.Decode.field "Ok" okDecoder |> Json.Decode.map Ok
         ]

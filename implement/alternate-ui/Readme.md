@@ -33,25 +33,17 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://botengine.blob.core.windows.net/blob-library/by-name/2019-12-18.elm-fullstack-webhost.zip and unpack it.
+Download the Zip-Archive from https://botengine.blob.core.windows.net/blob-library/by-name/2020-02-12-elm-fullstack-win10-x64.zip and unpack it.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ Navigate to the directory `alternate-ui`. This directory also contains the subdirectory `elm-app` and the `map.json` file.
-+ In the next command we execute in the Shell, we execute the `PersistentProcess.WebHost.exe` file we got from the Zip-Archive in the setup section. Following is the command, you only need to replace the file path to the executable file:
++ Navigate to the directory `alternate-ui`. This directory also contains the subdirectory `elm-app` and the `elm-fullstack.json` file.
++ In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" build-config --output="./build-output/app-config.zip"
-```
-+ After running the command above, you should see an output like this in the shell:
-```PowerShell
-I saved web app config 2DE17B921598B3B7EC6323599C8F348BC54EFA789B37E334622034C86EF3A361 to './build-output/app-config.zip'
-```
-+ Next, we execute another command, using the same executable file:
-```PowerShell
-."C:\replace-this-the-path-on-your-system\PersistentProcess.WebHost.exe" start-server --webAppConfigurationFilePath="./build-output/app-config.zip" --processStoreDirectoryPath="./runtime-artifacts/process-store"
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --process-store-directory-path=./process-store  --delete-previous-backend-state
 ```
 + The command starts a web server and the shell window will display an output like this:
 ```PowerShell
@@ -68,7 +60,7 @@ After starting the web server, you don't need to look at the shell window anymor
 Use a web browser (only tested with Chrome) to navigate to http://localhost/
 There you find the Alternate EVE Online UI.
 
-At the top, you find a section titled 'Select a source for the memory reading'. Here are two radio buttons to choose between the two possible sources to load a memory reading:
+At the top, you find a section titled 'Select a source for the memory reading'. Here are two radio buttons to choose between the two possible sources:
 
 + From file
 + From live game client process

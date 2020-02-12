@@ -24,15 +24,10 @@ type alias State =
 
 
 type alias SetupState =
-    { volatileHost : Maybe ( String, VolatileHostState )
+    { volatileHostId : Maybe String
     , lastRunScriptResult : Maybe (Result String (Maybe String))
     , eveOnlineProcessesIds : Maybe (List Int)
     }
-
-
-type VolatileHostState
-    = Initial
-    | SanderlingSetupCompleted
 
 
 type alias LogEntry =
@@ -43,7 +38,7 @@ type alias LogEntry =
 
 initSetup : SetupState
 initSetup =
-    { volatileHost = Nothing
+    { volatileHostId = Nothing
     , lastRunScriptResult = Nothing
     , eveOnlineProcessesIds = Nothing
     }
@@ -77,15 +72,15 @@ updateVolatileHostIdForHostEvent hostEvent stateBefore =
         InterfaceToHost.TaskComplete { taskResult } ->
             case taskResult of
                 InterfaceToHost.CreateVolatileHostResponse (Ok { hostId }) ->
-                    { stateBefore | setup = { initSetup | volatileHost = Just ( hostId, Initial ) } }
+                    { stateBefore | setup = { initSetup | volatileHostId = Just hostId } }
 
                 InterfaceToHost.CreateVolatileHostResponse (Err _) ->
                     stateBefore
 
-                InterfaceToHost.RunInVolatileHostResponse (Err InterfaceToHost.HostNotFound) ->
+                InterfaceToHost.RequestToVolatileHostResponse (Err InterfaceToHost.HostNotFound) ->
                     { stateBefore | setup = initSetup }
 
-                InterfaceToHost.RunInVolatileHostResponse (Ok _) ->
+                InterfaceToHost.RequestToVolatileHostResponse (Ok _) ->
                     stateBefore
 
                 InterfaceToHost.CompleteWithoutResult ->
@@ -97,12 +92,15 @@ updateVolatileHostIdForHostEvent hostEvent stateBefore =
 
 maintainVolatileHostTaskFromState : State -> Maybe InterfaceToHost.StartTaskStructure
 maintainVolatileHostTaskFromState state =
-    if state.setup.volatileHost /= Nothing then
+    if state.setup.volatileHostId /= Nothing then
         -- TODO: Add cyclic check if volatile host still exists.
         Nothing
 
     else
-        Just { taskId = "create-volatile-host", task = InterfaceToHost.CreateVolatileHost }
+        Just
+            { taskId = "create-volatile-host"
+            , task = InterfaceToHost.CreateVolatileHost { script = VolatileHostScript.setupScript }
+            }
 
 
 processEventExceptVolatileHostMaintenance : InterfaceToHost.ProcessEvent -> State -> ( State, List InterfaceToHost.ProcessRequest )
@@ -145,8 +143,8 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
                             ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }, [ httpResponse ] )
 
                         InterfaceToFrontendClient.RunInVolatileHostRequest runInVolatileHostRequest ->
-                            case stateBefore.setup.volatileHost of
-                                Just ( volatileHostId, SanderlingSetupCompleted ) ->
+                            case stateBefore.setup.volatileHostId of
+                                Just volatileHostId ->
                                     let
                                         taskId =
                                             "task-for-client-" ++ ((stateBefore.lastTaskIndex + 1) |> String.fromInt)
@@ -160,9 +158,9 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
                                         setupScriptTask =
                                             { taskId = taskId
                                             , task =
-                                                InterfaceToHost.RunInVolatileHost
+                                                InterfaceToHost.RequestToVolatileHost
                                                     { hostId = volatileHostId
-                                                    , script = EveOnline.VolatileHostInterface.buildScriptToGetResponseFromVolatileHost runInVolatileHostRequest
+                                                    , request = EveOnline.VolatileHostInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileHostRequest
                                                     }
                                             }
                                     in
@@ -225,7 +223,7 @@ processTaskCompleteEvent taskComplete stateBefore =
 
                 sanderlingResponseResult =
                     case taskComplete.taskResult of
-                        InterfaceToHost.RunInVolatileHostResponse runInVolatileHostResponse ->
+                        InterfaceToHost.RequestToVolatileHostResponse runInVolatileHostResponse ->
                             runInVolatileHostResponse
                                 |> Result.mapError (always "runInVolatileHostResponse is Error")
 
@@ -251,40 +249,27 @@ processTaskCompleteEvent taskComplete stateBefore =
             )
 
         Nothing ->
-            processFrameworkTaskCompleteEvent taskComplete stateBefore
+            ( processFrameworkTaskCompleteEvent taskComplete stateBefore, [] )
 
 
-processFrameworkTaskCompleteEvent : InterfaceToHost.TaskCompleteStructure -> State -> ( State, List InterfaceToHost.ProcessRequest )
+processFrameworkTaskCompleteEvent : InterfaceToHost.TaskCompleteStructure -> State -> State
 processFrameworkTaskCompleteEvent taskComplete stateBefore =
     case taskComplete.taskResult of
         InterfaceToHost.CompleteWithoutResult ->
-            ( stateBefore |> addLogEntry "Completed task without result.", [] )
+            stateBefore |> addLogEntry "Completed task without result."
 
         InterfaceToHost.CreateVolatileHostResponse createVolatileHostResponse ->
             case createVolatileHostResponse of
                 Err _ ->
-                    ( stateBefore |> addLogEntry "Failed to create volatile host.", [] )
+                    stateBefore |> addLogEntry "Failed to create volatile host."
 
                 Ok { hostId } ->
-                    let
-                        setupScriptTask =
-                            { taskId = "create-volatile-host"
-                            , task =
-                                InterfaceToHost.RunInVolatileHost
-                                    { hostId = hostId
-                                    , script = VolatileHostScript.setupScript
-                                    }
-                            }
-                    in
-                    ( stateBefore
-                        |> addLogEntry ("Created volatile host with id '" ++ hostId ++ "'.")
-                    , [ setupScriptTask |> InterfaceToHost.StartTask ]
-                    )
+                    stateBefore |> addLogEntry ("Created volatile host with id '" ++ hostId ++ "'.")
 
-        InterfaceToHost.RunInVolatileHostResponse runInVolatileHostResponse ->
-            case runInVolatileHostResponse of
+        InterfaceToHost.RequestToVolatileHostResponse requestToVolatileHostResponse ->
+            case requestToVolatileHostResponse of
                 Err InterfaceToHost.HostNotFound ->
-                    ( stateBefore |> addLogEntry "HostNotFound", [] )
+                    stateBefore |> addLogEntry "HostNotFound"
 
                 Ok runInVolatileHostComplete ->
                     case runInVolatileHostComplete.exceptionToString of
@@ -298,38 +283,22 @@ processFrameworkTaskCompleteEvent taskComplete stateBefore =
                                         | lastRunScriptResult = Just (Err ("Exception: " ++ exceptionToString))
                                     }
                             in
-                            ( { stateBefore | setup = setupState }
+                            { stateBefore | setup = setupState }
                                 |> addLogEntry ("Run in volatile host failed with exception: " ++ exceptionToString)
-                            , []
-                            )
 
                         Nothing ->
-                            if runInVolatileHostComplete.returnValueToString == Just "Setup Completed" then
-                                let
-                                    setupBefore =
-                                        stateBefore.setup
+                            let
+                                returnValueAsHttpResponseResult =
+                                    runInVolatileHostComplete.returnValueToString
+                                        |> Maybe.withDefault ""
+                                        |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
+                            in
+                            case returnValueAsHttpResponseResult of
+                                Err decodeError ->
+                                    stateBefore |> addLogEntry ("Failed to parse response from volatile host: " ++ (decodeError |> Json.Decode.errorToString))
 
-                                    volatileHost =
-                                        setupBefore.volatileHost |> Maybe.map (Tuple.mapSecond (always SanderlingSetupCompleted))
-                                in
-                                ( { stateBefore | setup = { setupBefore | volatileHost = volatileHost } }
-                                    |> addLogEntry "Completed volatile host setup."
-                                , []
-                                )
-
-                            else
-                                let
-                                    returnValueAsHttpResponseResult =
-                                        runInVolatileHostComplete.returnValueToString
-                                            |> Maybe.withDefault ""
-                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
-                                in
-                                case returnValueAsHttpResponseResult of
-                                    Err decodeError ->
-                                        ( stateBefore |> addLogEntry ("Failed to parse response from volatile host: " ++ (decodeError |> Json.Decode.errorToString)), [] )
-
-                                    Ok _ ->
-                                        ( stateBefore |> addLogEntry "Succeeded parsing task result.", [] )
+                                Ok _ ->
+                                    stateBefore |> addLogEntry "Succeeded parsing task result."
 
 
 addLogEntry : String -> State -> State

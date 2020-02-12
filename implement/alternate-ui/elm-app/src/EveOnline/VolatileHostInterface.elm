@@ -10,7 +10,7 @@ module EveOnline.VolatileHostInterface exposing
     , SearchUIRootAddressStructure
     , VirtualKeyCode(..)
     , WindowId
-    , buildScriptToGetResponseFromVolatileHost
+    , buildRequestStringToGetResponseFromVolatileHost
     , decodeRequestToVolatileHost
     , deserializeResponseFromVolatileHost
     , effectMouseClickAtLocation
@@ -364,16 +364,10 @@ decodeMemoryReadingCompleted =
         (Json.Decode.Extra.optionalField "serialRepresentationJson" Json.Decode.string)
 
 
-buildScriptToGetResponseFromVolatileHost : RequestToVolatileHost -> String
-buildScriptToGetResponseFromVolatileHost request =
-    "serialRequest("
-        ++ (request
-                |> encodeRequestToVolatileHost
-                |> Json.Encode.encode 0
-                |> Json.Encode.string
-                |> Json.Encode.encode 0
-           )
-        ++ ")"
+buildRequestStringToGetResponseFromVolatileHost : RequestToVolatileHost -> String
+buildRequestStringToGetResponseFromVolatileHost =
+    encodeRequestToVolatileHost
+        >> Json.Encode.encode 0
 
 
 encodeConsoleBeep : ConsoleBeepStructure -> Json.Encode.Value

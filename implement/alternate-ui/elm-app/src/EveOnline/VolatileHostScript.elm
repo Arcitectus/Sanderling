@@ -447,5 +447,9 @@ System.Diagnostics.Process[] GetWindowsProcessesLookingLikeEVEOnlineClient() =>
     System.Diagnostics.Process.GetProcessesByName("exefile");
 
 
-"Setup Completed"
+string InterfaceToHost_Request(string request)
+{
+    return serialRequest(request);
+}
+
 """
