@@ -41,6 +41,7 @@ module EveOnline.MemoryReading exposing
     , centerFromDisplayRegion
     , countDescendantsInUITreeNode
     , decodeMemoryReadingFromString
+    , getAllContainedDisplayTexts
     , getDisplayText
     , getHorizontalOffsetFromParentAndWidth
     , getMostPopulousDescendantMatchingPredicate
@@ -66,6 +67,7 @@ import Json.Decode
 import Json.Encode
 import Regex
 import Result.Extra
+import Set
 
 
 type alias ParsedUserInterface =
@@ -193,7 +195,9 @@ type alias InfoPanelLocationInfoExpandedContent =
 
 type alias Target =
     { uiNode : UITreeNodeWithDisplayRegion
+    , barAndImageCont : Maybe UITreeNodeWithDisplayRegion
     , textsTopToBottom : List String
+    , isActiveTarget : Bool
     }
 
 
@@ -210,6 +214,7 @@ type alias OverviewWindowEntry =
     , cellsTexts : Dict.Dict String String
     , distanceInMeters : Result String Int
     , iconSpriteColorPercent : Maybe ColorComponents
+    , namesUnderSpaceObjectIcon : Set.Set String
     }
 
 
@@ -220,6 +225,8 @@ type alias ColorComponents =
 type alias DronesWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , droneGroups : List DronesWindowDroneGroup
+    , droneGroupInBay : Maybe DronesWindowDroneGroup
+    , droneGroupInLocalSpace : Maybe DronesWindowDroneGroup
     }
 
 
@@ -233,6 +240,7 @@ type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
     , expander : MaybeVisible Expander
+    , quantityFromTitle : Maybe Int
     }
 
 
@@ -643,9 +651,22 @@ parseTarget targetNode =
                 |> getAllContainedDisplayTextsWithRegion
                 |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .y)
                 |> List.map Tuple.first
+
+        barAndImageCont =
+            targetNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "barAndImageCont"))
+                |> List.head
+
+        isActiveTarget =
+            targetNode.uiNode
+                |> listDescendantsInUITreeNode
+                |> List.any (.pythonObjectTypeName >> (==) "ActiveTargetOnBracket")
     in
     { uiNode = targetNode
+    , barAndImageCont = barAndImageCont
     , textsTopToBottom = textsTopToBottom
+    , isActiveTarget = isActiveTarget
     }
 
 
@@ -771,12 +792,20 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "iconSprite"))
                 |> List.head
                 |> Maybe.andThen (.uiNode >> getColorPercentFromDictEntries)
+
+        namesUnderSpaceObjectIcon =
+            spaceObjectIconNode
+                |> Maybe.map (.uiNode >> listDescendantsInUITreeNode)
+                |> Maybe.withDefault []
+                |> List.filterMap getNameFromDictEntries
+                |> Set.fromList
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
     , cellsTexts = cellsTexts
     , distanceInMeters = distanceInMeters
     , iconSpriteColorPercent = iconSpriteColorPercent
+    , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     }
 
 
@@ -863,8 +892,19 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                                 , drones = droneEntries |> List.filter (headerFromDroneEntry >> (==) (Just header))
                                 }
                             )
+
+                droneGroupFromHeaderTextPart headerTextPart =
+                    droneGroups
+                        |> List.filter (.header >> .mainText >> Maybe.withDefault "" >> String.toLower >> String.contains (headerTextPart |> String.toLower))
+                        |> List.sortBy (.header >> .mainText >> Maybe.map String.length >> Maybe.withDefault 999)
+                        |> List.head
             in
-            CanSee { uiNode = windowNode, droneGroups = droneGroups }
+            CanSee
+                { uiNode = windowNode
+                , droneGroups = droneGroups
+                , droneGroupInBay = droneGroupFromHeaderTextPart "in Bay"
+                , droneGroupInLocalSpace = droneGroupFromHeaderTextPart "in local space"
+                }
 
 
 parseDronesWindowDroneGroupHeader : UITreeNodeWithDisplayRegion -> DronesWindowDroneGroupHeader
@@ -886,11 +926,40 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
                         >> (Maybe.map (String.toLower >> String.contains "expander") >> Maybe.withDefault False)
                     )
                 |> List.head
+
+        quantityFromTitle =
+            mainText |> Maybe.andThen (parseQuantityFromDroneGroupTitleText >> Result.withDefault Nothing)
     in
     { uiNode = groupHeaderUiNode
     , mainText = mainText
     , expander = expanderNode |> Maybe.map parseExpander |> canNotSeeItFromMaybeNothing
+    , quantityFromTitle = quantityFromTitle
     }
+
+
+parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
+parseQuantityFromDroneGroupTitleText droneGroupTitleText =
+    case "\\(\\s*(\\d+)\\s*\\)*$" |> Regex.fromString of
+        Nothing ->
+            Err "Regex code error"
+
+        Just regex ->
+            case droneGroupTitleText |> String.trim |> Regex.find regex |> List.head of
+                Nothing ->
+                    Ok Nothing
+
+                Just match ->
+                    case match.submatches of
+                        [ quantityText ] ->
+                            quantityText
+                                |> Maybe.withDefault ""
+                                |> String.trim
+                                |> String.toInt
+                                |> Maybe.map (Just >> Ok)
+                                |> Maybe.withDefault (Err ("Failed to parse to integer: " ++ match.match))
+
+                        _ ->
+                            Err "Unexpected number of text elements."
 
 
 parseDronesWindowEntry : UITreeNodeWithDisplayRegion -> DronesWindowEntry
@@ -1242,7 +1311,7 @@ parseNeocomClockText clockText =
                                             Ok { hour = hour, minute = minute }
 
                         _ ->
-                            Err "Unexpected numer of text elements."
+                            Err "Unexpected number of text elements."
 
 
 parseExpander : UITreeNodeWithDisplayRegion -> Expander
