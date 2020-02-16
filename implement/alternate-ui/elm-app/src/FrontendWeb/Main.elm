@@ -86,7 +86,7 @@ type alias ParseMemoryReadingSuccess =
     { uiTree : EveOnline.MemoryReading.UITreeNode
     , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
     , overviewWindow : MaybeVisible OverviewWindow
-    , parsed : EveOnline.MemoryReading.ParsedUserInterface
+    , parsedUserInterface : EveOnline.MemoryReading.ParsedUserInterface
     }
 
 
@@ -745,8 +745,8 @@ presentParsedMemoryReading maybeInputRoute memoryReading state =
     , [ "Overview" |> Html.text ] |> Html.h3 []
     , displayReadOverviewWindowResult maybeInputRoute memoryReading.overviewWindow
     , verticalSpacerFromHeightInEm 0.5
-    , [ ((memoryReading.parsed.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
-    , displayParsedContextMenus maybeInputRoute memoryReading.parsed.contextMenus
+    , [ ((memoryReading.parsedUserInterface.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
+    , displayParsedContextMenus maybeInputRoute memoryReading.parsedUserInterface.contextMenus
     ]
         |> List.map (List.singleton >> Html.div [])
         |> Html.div []
@@ -1120,7 +1120,7 @@ parseMemoryReadingFromJson =
                         |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
                 , overviewWindow = parsedUserInterface.overviewWindow |> maybeVisibleMap parseOverviewWindow
-                , parsed = parsedUserInterface
+                , parsedUserInterface = parsedUserInterface
                 }
             )
 

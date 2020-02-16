@@ -274,13 +274,19 @@ type alias InventoryWindow =
     , leftTreeEntries : List InventoryWindowLeftTreeEntry
     , selectedContainerCapacityGauge : Maybe InventoryWindowCapacityGauge
     , selectedContainerInventory : Maybe Inventory
+    , buttonToSwitchToListView : Maybe UITreeNodeWithDisplayRegion
     }
 
 
 type alias Inventory =
     { uiNode : UITreeNodeWithDisplayRegion
-    , listViewItems : List UITreeNodeWithDisplayRegion
+    , itemsView : Maybe InventoryItemsView
     }
+
+
+type InventoryItemsView
+    = InventoryItemsListView { items : List UITreeNodeWithDisplayRegion }
+    | InventoryItemsNotListView { items : List UITreeNodeWithDisplayRegion }
 
 
 type alias InventoryWindowLeftTreeEntry =
@@ -1113,33 +1119,65 @@ parseInventoryWindow windowUiNode =
                 |> listDescendantsWithDisplayRegion
                 |> List.filter
                     (\uiNode ->
-                        uiNode.uiNode.pythonObjectTypeName
-                            == "Container"
+                        (uiNode.uiNode.pythonObjectTypeName == "Container")
                             && (uiNode.uiNode |> getNameFromDictEntries |> Maybe.map (String.contains "right") |> Maybe.withDefault False)
                     )
                 |> List.head
 
-        selectedContainerInventory =
+        maybeSelectedContainerInventoryNode =
             rightContainerNode
                 |> Maybe.andThen
                     (listDescendantsWithDisplayRegion
                         >> List.filter (\uiNode -> [ "ShipCargo", "ShipDroneBay", "ShipOreHold", "StationItems" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
                         >> List.head
                     )
+
+        selectedContainerInventory =
+            maybeSelectedContainerInventoryNode
                 |> Maybe.map
                     (\selectedContainerInventoryNode ->
+                        let
+                            listViewItemNodes =
+                                selectedContainerInventoryNode
+                                    |> listDescendantsWithDisplayRegion
+                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
+
+                            notListViewItemNodes =
+                                selectedContainerInventoryNode
+                                    |> listDescendantsWithDisplayRegion
+                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "InvItem")
+
+                            itemsView =
+                                if 0 < (listViewItemNodes |> List.length) then
+                                    Just (InventoryItemsListView { items = listViewItemNodes })
+
+                                else if 0 < (notListViewItemNodes |> List.length) then
+                                    Just (InventoryItemsNotListView { items = notListViewItemNodes })
+
+                                else
+                                    Nothing
+                        in
                         { uiNode = selectedContainerInventoryNode
-                        , listViewItems =
-                            selectedContainerInventoryNode
-                                |> listDescendantsWithDisplayRegion
-                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
+                        , itemsView = itemsView
                         }
                     )
+
+        buttonToSwitchToListView =
+            rightContainerNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter
+                    (\uiNode ->
+                        (uiNode.uiNode.pythonObjectTypeName |> String.contains "ButtonIcon")
+                            && ((uiNode.uiNode |> getTexturePathFromDictEntries |> Maybe.withDefault "") |> String.endsWith "38_16_190.png")
+                    )
+                |> List.head
     in
     { uiNode = windowUiNode
     , leftTreeEntries = leftTreeEntries
     , selectedContainerCapacityGauge = selectedContainerCapacityGauge
     , selectedContainerInventory = selectedContainerInventory
+    , buttonToSwitchToListView = buttonToSwitchToListView
     }
 
 
