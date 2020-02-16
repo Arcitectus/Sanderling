@@ -31,7 +31,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-12"
+    "2020-02-16"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -96,7 +96,7 @@ type MemoryReadingSource
 
 
 type Event
-    = BackendResponse { request : InterfaceToFrontendClient.RequestFromClient, result : Result Http.Error ResponseFromServer }
+    = BackendResponse { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer }
     | UrlRequest Browser.UrlRequest
     | UrlChange Url.Url
     | UserInputSelectMemoryReadingSource MemoryReadingSource
@@ -106,6 +106,10 @@ type Event
     | ContinueReadFromLiveProcess Time.Posix
     | UserInputDownloadJsonFile String
     | UserInputSendInputToUINode UserInputSendInputToUINodeStructure
+
+
+type alias HttpRequestErrorStructure =
+    { error : Http.Error, bodyString : Maybe String }
 
 
 type alias UserInputSendInputToUINodeStructure =
@@ -201,7 +205,7 @@ apiRequestCmd request =
     in
     Http.post
         { url = "/api/"
-        , expect = Http.expectJson (\result -> BackendResponse { request = request, result = result }) responseDecoder
+        , expect = httpExpectJson (\result -> BackendResponse { request = request, result = result }) responseDecoder
         , body = Http.jsonBody (request |> InterfaceToFrontendClient.jsonEncodeRequestFromClient)
         }
 
@@ -308,7 +312,7 @@ update event stateBefore =
                     ( stateBefore, requestSendInputToGameClient )
 
 
-integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result Http.Error ResponseFromServer } -> State -> State
+integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer } -> State -> State
 integrateBackendResponse { request, result } stateBefore =
     case request of
         -- TODO: Consolidate unpack response common parts.
@@ -1163,9 +1167,35 @@ verticalSpacerFromHeightInEm heightInEm =
     [] |> Html.div [ HA.style "height" ((heightInEm |> String.fromFloat) ++ "em") ]
 
 
-describeHttpError : Http.Error -> String
-describeHttpError httpError =
-    case httpError of
+httpExpectJson : (Result { error : Http.Error, bodyString : Maybe String } a -> msg) -> Json.Decode.Decoder a -> Http.Expect msg
+httpExpectJson toMsg decoder =
+    Http.expectStringResponse toMsg <|
+        \response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err { error = Http.BadUrl url, bodyString = Nothing }
+
+                Http.Timeout_ ->
+                    Err { error = Http.Timeout, bodyString = Nothing }
+
+                Http.NetworkError_ ->
+                    Err { error = Http.NetworkError, bodyString = Nothing }
+
+                Http.BadStatus_ metadata body ->
+                    Err { error = Http.BadStatus metadata.statusCode, bodyString = Just body }
+
+                Http.GoodStatus_ metadata body ->
+                    case Json.Decode.decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err { error = Http.BadBody (Json.Decode.errorToString err), bodyString = Just body }
+
+
+describeHttpError : HttpRequestErrorStructure -> String
+describeHttpError { error, bodyString } =
+    case error of
         Http.BadUrl errorMessage ->
             "Bad Url: " ++ errorMessage
 
@@ -1176,7 +1206,11 @@ describeHttpError httpError =
             "Network Error"
 
         Http.BadStatus statusCode ->
-            "BadStatus: " ++ (statusCode |> String.fromInt)
+            "BadStatus: "
+                ++ (statusCode |> String.fromInt)
+                ++ " ("
+                ++ (bodyString |> Maybe.withDefault "No details in HTTP response body.")
+                ++ ")"
 
         Http.BadBody errorMessage ->
             "BadPayload: " ++ errorMessage
