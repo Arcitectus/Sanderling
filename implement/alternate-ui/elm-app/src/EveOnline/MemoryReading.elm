@@ -84,6 +84,7 @@ type alias ParsedUserInterface =
     , chatWindowStacks : List ChatWindowStack
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
+    , messageBoxes : List MessageBox
     }
 
 
@@ -346,6 +347,12 @@ type alias Expander =
     }
 
 
+type alias MessageBox =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , buttons : List { uiNode : UITreeNodeWithDisplayRegion, mainText : Maybe String }
+    }
+
+
 type MaybeVisible feature
     = CanNotSeeIt
     | CanSee feature
@@ -372,6 +379,7 @@ parseUserInterfaceFromUITree uiTree =
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
+    , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     }
 
 
@@ -1396,6 +1404,38 @@ parseExpander uiNode =
     { uiNode = uiNode
     , texturePath = maybeTexturePath
     , isExpanded = isExpanded
+    }
+
+
+parseMessageBoxesFromUITreeRoot : UITreeNodeWithDisplayRegion -> List MessageBox
+parseMessageBoxesFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MessageBox")
+        |> List.map parseMessageBox
+
+
+parseMessageBox : UITreeNodeWithDisplayRegion -> MessageBox
+parseMessageBox uiNode =
+    let
+        buttons =
+            uiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Button")
+                |> List.map
+                    (\buttonNode ->
+                        { uiNode = buttonNode
+                        , mainText =
+                            buttonNode
+                                |> getAllContainedDisplayTextsWithRegion
+                                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                                |> List.map Tuple.first
+                                |> List.head
+                        }
+                    )
+    in
+    { buttons = buttons
+    , uiNode = uiNode
     }
 
 
