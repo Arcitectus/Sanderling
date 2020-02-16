@@ -66,7 +66,6 @@ import Dict
 import Json.Decode
 import Json.Encode
 import Regex
-import Result.Extra
 import Set
 
 
@@ -296,8 +295,9 @@ type alias InventoryWindowLeftTreeEntry =
 
 
 type alias InventoryWindowCapacityGauge =
-    { maximum : Int
+    { maximum : Maybe Int
     , used : Int
+    , selected : Maybe Int
     }
 
 
@@ -1184,23 +1184,48 @@ parseInventoryWindow windowUiNode =
 parseInventoryCapacityGaugeText : String -> Result String InventoryWindowCapacityGauge
 parseInventoryCapacityGaugeText capacityText =
     let
-        numbersParseResults =
-            capacityText
-                |> String.replace "m³" ""
-                |> String.split "/"
-                |> List.map (String.trim >> parseNumberTruncatingAfterOptionalDecimalSeparator)
-    in
-    case numbersParseResults |> Result.Extra.combine of
-        Err parseError ->
-            Err ("Failed to parse numbers: " ++ parseError)
+        parseMaybeNumber =
+            Maybe.map (String.trim >> parseNumberTruncatingAfterOptionalDecimalSeparator >> Result.map Just)
+                >> Maybe.withDefault (Ok Nothing)
 
-        Ok numbers ->
-            case numbers of
-                [ leftNumber, rightNumber ] ->
-                    Ok { used = leftNumber, maximum = rightNumber }
+        continueWithTexts { usedText, maybeMaximumText, maybeSelectedText } =
+            case usedText |> parseNumberTruncatingAfterOptionalDecimalSeparator of
+                Err parseNumberError ->
+                    Err ("Failed to parse used number: " ++ parseNumberError)
+
+                Ok used ->
+                    case maybeMaximumText |> parseMaybeNumber of
+                        Err parseNumberError ->
+                            Err ("Failed to parse maximum number: " ++ parseNumberError)
+
+                        Ok maximum ->
+                            case maybeSelectedText |> parseMaybeNumber of
+                                Err parseNumberError ->
+                                    Err ("Failed to parse selected number: " ++ parseNumberError)
+
+                                Ok selected ->
+                                    Ok { used = used, maximum = maximum, selected = selected }
+
+        continueAfterSeparatingBySlash { beforeSlashText, afterSlashMaybeText } =
+            case beforeSlashText |> String.trim |> String.split ")" of
+                [ onlyUsedText ] ->
+                    continueWithTexts { usedText = onlyUsedText, maybeMaximumText = afterSlashMaybeText, maybeSelectedText = Nothing }
+
+                [ firstPart, secondPart ] ->
+                    continueWithTexts { usedText = secondPart, maybeMaximumText = afterSlashMaybeText, maybeSelectedText = Just (firstPart |> String.replace "(" "") }
 
                 _ ->
-                    Err ("Unexpected number of components in capacityText '" ++ capacityText ++ "'")
+                    Err ("Unexpected number of components in text before slash '" ++ beforeSlashText ++ "'")
+    in
+    case capacityText |> String.replace "m³" "" |> String.split "/" of
+        [ withoutSlash ] ->
+            continueAfterSeparatingBySlash { beforeSlashText = withoutSlash, afterSlashMaybeText = Nothing }
+
+        [ partBeforeSlash, partAfterSlash ] ->
+            continueAfterSeparatingBySlash { beforeSlashText = partBeforeSlash, afterSlashMaybeText = Just partAfterSlash }
+
+        _ ->
+            Err ("Unexpected number of components in capacityText '" ++ capacityText ++ "'")
 
 
 parseModuleButtonTooltipFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ModuleButtonTooltip
