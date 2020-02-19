@@ -13,6 +13,14 @@ import EveOnline.VolatileHostInterface
 import File
 import File.Download
 import File.Select
+import FrontendWeb.InspectParsedUserInterface
+    exposing
+        ( InputOnUINode(..)
+        , ParsedUITreeViewPathNode(..)
+        , TreeViewNode
+        , TreeViewNodeChildren(..)
+        , renderTreeNodeFromParsedUserInterface
+        )
 import Html
 import Html.Attributes as HA
 import Html.Attributes.Aria
@@ -31,7 +39,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-16"
+    "2020-02-19"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -58,7 +66,9 @@ type alias State =
     , selectedSource : MemoryReadingSource
     , readFromFileResult : Maybe ParseMemoryReadingCompleted
     , readFromLiveProcess : ReadFromLiveProcessState
-    , treeView : TreeViewState
+    , uiTreeView : UITreeViewState
+    , selectedViewMode : ViewMode
+    , parsedUITreeView : ParsedUITreeViewState
     }
 
 
@@ -95,6 +105,12 @@ type MemoryReadingSource
     | FromFile
 
 
+type ViewMode
+    = ViewAlternateUI
+    | ViewUITree
+    | ViewParsedUI
+
+
 type Event
     = BackendResponse { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer }
     | UrlRequest Browser.UrlRequest
@@ -102,7 +118,9 @@ type Event
     | UserInputSelectMemoryReadingSource MemoryReadingSource
     | UserInputSelectMemoryReadingFile (Maybe File.File)
     | ReadMemoryReadingFile String
-    | UserInputSetTreeViewNodeIsExpanded ExpandableViewNode Bool
+    | UserInputSelectViewMode ViewMode
+    | UserInputUISetTreeViewNodeIsExpanded (List ExpandableViewNode) Bool
+    | UserInputParsedUISetTreeViewNodeIsExpanded (List ParsedUITreeViewPathNode) Bool
     | ContinueReadFromLiveProcess Time.Posix
     | UserInputDownloadJsonFile String
     | UserInputSendInputToUINode UserInputSendInputToUINodeStructure
@@ -120,20 +138,20 @@ type alias UserInputSendInputToUINodeStructure =
     }
 
 
-type InputOnUINode
-    = MouseClickLeft
-    | MouseClickRight
+type alias ParsedUITreeViewState =
+    { expandedNodes : List (List ParsedUITreeViewPathNode)
+    }
 
 
-type alias TreeViewState =
-    { expandedNodes : List ExpandableViewNode
+type alias UITreeViewState =
+    { expandedNodes : List (List ExpandableViewNode)
     }
 
 
 type ExpandableViewNode
     = ExpandableUITreeNode UITreeNodeIdentity
-    | ExpandableUITreeNodeChildren UITreeNodeIdentity
-    | ExpandableUITreeNodeDictEntries UITreeNodeIdentity
+    | ExpandableUITreeNodeChildren
+    | ExpandableUITreeNodeDictEntries
 
 
 type alias UITreeNodeIdentity =
@@ -185,7 +203,9 @@ init _ url navigationKey =
         , lastPendingRequestToReadMemoryTimeMilli = Nothing
         }
     , readFromFileResult = Nothing
-    , treeView = { expandedNodes = [] }
+    , uiTreeView = { expandedNodes = [] }
+    , selectedViewMode = ViewAlternateUI
+    , parsedUITreeView = { expandedNodes = [] }
     }
         |> update (UrlChange url)
 
@@ -230,6 +250,9 @@ update event stateBefore =
         UserInputSelectMemoryReadingSource selectedSource ->
             ( { stateBefore | selectedSource = selectedSource }, Cmd.none )
 
+        UserInputSelectViewMode selectedViewMode ->
+            ( { stateBefore | selectedViewMode = selectedViewMode }, Cmd.none )
+
         UserInputSelectMemoryReadingFile Nothing ->
             ( stateBefore, File.Select.file [ "application/json" ] (Just >> UserInputSelectMemoryReadingFile) )
 
@@ -245,16 +268,27 @@ update event stateBefore =
             in
             ( { stateBefore | readFromFileResult = Just memoryReading }, Cmd.none )
 
-        UserInputSetTreeViewNodeIsExpanded treeViewNode isExpanded ->
+        UserInputUISetTreeViewNodeIsExpanded treeViewNode isExpanded ->
             let
                 expandedNodes =
                     if isExpanded then
-                        treeViewNode :: stateBefore.treeView.expandedNodes
+                        treeViewNode :: stateBefore.uiTreeView.expandedNodes
 
                     else
-                        stateBefore.treeView.expandedNodes |> List.filter ((/=) treeViewNode)
+                        stateBefore.uiTreeView.expandedNodes |> List.filter ((/=) treeViewNode)
             in
-            ( { stateBefore | treeView = { expandedNodes = expandedNodes } }, Cmd.none )
+            ( { stateBefore | uiTreeView = { expandedNodes = expandedNodes } }, Cmd.none )
+
+        UserInputParsedUISetTreeViewNodeIsExpanded treeViewNode isExpanded ->
+            let
+                expandedNodes =
+                    if isExpanded then
+                        treeViewNode :: stateBefore.parsedUITreeView.expandedNodes
+
+                    else
+                        stateBefore.parsedUITreeView.expandedNodes |> List.filter ((/=) treeViewNode)
+            in
+            ( { stateBefore | parsedUITreeView = { expandedNodes = expandedNodes } }, Cmd.none )
 
         ContinueReadFromLiveProcess time ->
             let
@@ -653,10 +687,9 @@ view state =
 
         body =
             [ globalStylesHtmlElement
-            , [ "Select a source for the memory reading" |> Html.text ] |> Html.h2 []
             , selectSourceHtml state
             , verticalSpacerFromHeightInEm 1
-            , [ ("Reading from " ++ selectedSourceText) |> Html.text ] |> Html.h2 []
+            , [ ("Reading from " ++ selectedSourceText) |> Html.text ] |> Html.h3 []
             , sourceSpecificHtml
             ]
     in
@@ -739,16 +772,41 @@ viewSourceFromLiveProcess state =
 
 presentParsedMemoryReading : Maybe InputRouteStructure -> ParseMemoryReadingSuccess -> State -> Html.Html Event
 presentParsedMemoryReading maybeInputRoute memoryReading state =
-    [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
-    , viewTreeMemoryReadingUITreeNode maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.treeView memoryReading.uiTree
-    , verticalSpacerFromHeightInEm 0.5
-    , [ "Overview" |> Html.text ] |> Html.h3 []
-    , displayReadOverviewWindowResult maybeInputRoute memoryReading.overviewWindow
-    , verticalSpacerFromHeightInEm 0.5
-    , [ ((memoryReading.parsedUserInterface.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
-    , displayParsedContextMenus maybeInputRoute memoryReading.parsedUserInterface.contextMenus
-    ]
+    let
+        continueWithTitle title htmlElements =
+            ([ title |> Html.text ] |> Html.h3 []) :: htmlElements
+
+        selectedViewHtml =
+            case state.selectedViewMode of
+                ViewAlternateUI ->
+                    continueWithTitle
+                        "Using the Alternate UI"
+                        [ [ "Overview" |> Html.text ] |> Html.h3 []
+                        , displayReadOverviewWindowResult maybeInputRoute memoryReading.overviewWindow
+                        , verticalSpacerFromHeightInEm 0.5
+                        , [ ((memoryReading.parsedUserInterface.contextMenus |> List.length |> String.fromInt) ++ " Context menus") |> Html.text ] |> Html.h3 []
+                        , displayParsedContextMenus maybeInputRoute memoryReading.parsedUserInterface.contextMenus
+                        ]
+
+                ViewUITree ->
+                    continueWithTitle
+                        "Inspecting the UI tree"
+                        [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
+                        , viewTreeMemoryReadingUITreeNode maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.uiTreeView memoryReading.uiTree
+                        ]
+
+                ViewParsedUI ->
+                    continueWithTitle
+                        "Inspecting the parsed user interface"
+                        [ "Below is an interactive tree view to explore the parsed user interface. You can expand and collapse individual nodes." |> Html.text
+                        , viewTreeParsedUserInterface maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.parsedUITreeView memoryReading.parsedUserInterface
+                        ]
+    in
+    [ selectViewModeHtml state
+    , selectedViewHtml
         |> List.map (List.singleton >> Html.div [])
+        |> Html.div []
+    ]
         |> Html.div []
 
 
@@ -890,20 +948,46 @@ displayTextForInputKind inputKind =
 
 selectSourceHtml : State -> Html.Html Event
 selectSourceHtml state =
-    [ ( "From file", FromFile ), ( "From live game client process", FromLiveProcess ) ]
-        |> List.map
-            (\( offeredSourceLabel, offeredSource ) ->
-                radioButtonHtml
-                    offeredSourceLabel
-                    (state.selectedSource == offeredSource)
-                    (UserInputSelectMemoryReadingSource offeredSource)
-            )
-        |> Html.div []
+    (([ "Select a source for the memory reading" |> Html.text ] |> Html.legend [])
+        :: ([ ( "From file", FromFile )
+            , ( "From live game client process", FromLiveProcess )
+            ]
+                |> List.map
+                    (\( offeredSourceLabel, offeredSource ) ->
+                        radioButtonHtml
+                            "memoryreadingsource"
+                            offeredSourceLabel
+                            (state.selectedSource == offeredSource)
+                            (UserInputSelectMemoryReadingSource offeredSource)
+                    )
+           )
+    )
+        |> Html.fieldset []
 
 
-radioButtonHtml : String -> Bool -> event -> Html.Html event
-radioButtonHtml labelText isChecked msg =
-    [ Html.input [ HA.type_ "radio", HA.name "font-size", HE.onClick msg, HA.checked isChecked ] []
+selectViewModeHtml : State -> Html.Html Event
+selectViewModeHtml state =
+    (([ "Select a view mode" |> Html.text ] |> Html.legend [])
+        :: ([ ( "View Alternate UI", ViewAlternateUI )
+            , ( "View UI Tree", ViewUITree )
+            , ( "View Parsed User Interface", ViewParsedUI )
+            ]
+                |> List.map
+                    (\( offeredModeLabel, offeredMode ) ->
+                        radioButtonHtml
+                            "viewmode"
+                            offeredModeLabel
+                            (state.selectedViewMode == offeredMode)
+                            (UserInputSelectViewMode offeredMode)
+                    )
+           )
+    )
+        |> Html.fieldset []
+
+
+radioButtonHtml : String -> String -> Bool -> event -> Html.Html event
+radioButtonHtml groupName labelText isChecked msg =
+    [ Html.input [ HA.type_ "radio", HA.name groupName, HE.onClick msg, HA.checked isChecked ] []
     , Html.text labelText
     ]
         |> Html.label [ HA.style "padding" "20px" ]
@@ -912,7 +996,7 @@ radioButtonHtml labelText isChecked msg =
 viewTreeMemoryReadingUITreeNode :
     Maybe InputRouteStructure
     -> Dict.Dict String UITreeNodeWithDisplayRegion
-    -> TreeViewState
+    -> UITreeViewState
     -> EveOnline.MemoryReading.UITreeNode
     -> Html.Html Event
 viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState treeNode =
@@ -920,38 +1004,51 @@ viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewSta
         nodeIsExpanded nodeId =
             viewState.expandedNodes |> List.member nodeId
     in
-    renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode
-        |> renderInteractiveTreeView UserInputSetTreeViewNodeIsExpanded nodeIsExpanded
+    treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode
+        |> renderInteractiveTreeView UserInputUISetTreeViewNodeIsExpanded nodeIsExpanded []
 
 
-renderTreeNodeFromMemoryReadingUITreeNode :
+viewTreeParsedUserInterface :
+    Maybe InputRouteStructure
+    -> Dict.Dict String UITreeNodeWithDisplayRegion
+    -> ParsedUITreeViewState
+    -> EveOnline.MemoryReading.ParsedUserInterface
+    -> Html.Html Event
+viewTreeParsedUserInterface maybeInputRouteConfig uiNodesWithDisplayRegion viewState parsedUserInterface =
+    let
+        nodeIsExpanded nodeId =
+            viewState.expandedNodes |> List.member nodeId
+
+        maybeInputRoute : Maybe (FrontendWeb.InspectParsedUserInterface.InputRoute Event)
+        maybeInputRoute =
+            maybeInputRouteConfig
+                |> Maybe.map
+                    (\inputRouteConfig ->
+                        \uiNode inputKind ->
+                            UserInputSendInputToUINode
+                                { uiNode = uiNode
+                                , input = inputKind
+                                , windowId = inputRouteConfig.windowId
+                                , delayMilliseconds = Just inputDelayDefaultMilliseconds
+                                }
+                    )
+    in
+    renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface
+        |> renderInteractiveTreeView UserInputParsedUISetTreeViewNodeIsExpanded nodeIsExpanded []
+
+
+treeViewNodeFromMemoryReadingUITreeNode :
     Maybe InputRouteStructure
     -> Dict.Dict String UITreeNodeWithDisplayRegion
     -> EveOnline.MemoryReading.UITreeNode
     -> TreeViewNode Event ExpandableViewNode
-renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode =
+treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode =
     let
         nodeIdentityInView =
             { pythonObjectAddress = treeNode.pythonObjectAddress }
 
         maybeNodeWithDisplayRegion =
             uiNodesWithDisplayRegion |> Dict.get treeNode.pythonObjectAddress
-
-        popularPropertiesDescription =
-            treeNode.pythonObjectTypeName
-                :: ([ "_name" ]
-                        |> List.filterMap
-                            (\popularProperty -> treeNode.dictEntriesOfInterest |> Dict.get popularProperty)
-                        |> List.map (Json.Encode.encode 0)
-                   )
-                |> List.map (String.Extra.ellipsis 25)
-
-        commonSummaryText =
-            ((EveOnline.MemoryReading.countDescendantsInUITreeNode treeNode |> String.fromInt)
-                ++ " descendants"
-            )
-                :: popularPropertiesDescription
-                |> String.join ", "
 
         inputHtml =
             maybeNodeWithDisplayRegion
@@ -962,7 +1059,7 @@ renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegi
                 |> Maybe.withDefault (Html.text "")
 
         commonSummaryHtml =
-            [ commonSummaryText |> Html.text, inputHtml ] |> Html.span []
+            [ FrontendWeb.InspectParsedUserInterface.uiNodeCommonSummaryText treeNode |> Html.text, inputHtml ] |> Html.span []
 
         getDisplayChildren _ =
             let
@@ -986,8 +1083,8 @@ renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegi
 
                         children ->
                             ( ExpandableChildren
-                                (ExpandableUITreeNodeChildren nodeIdentityInView)
-                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion))
+                                ExpandableUITreeNodeChildren
+                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion))
                             , (children |> List.length |> String.fromInt) ++ " children"
                             )
 
@@ -1007,7 +1104,7 @@ renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegi
 
                 displayEntryOtherProperties =
                     { selfHtml = (treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " dictEntriesOfInterest" |> Html.text
-                    , children = ExpandableChildren (ExpandableUITreeNodeDictEntries nodeIdentityInView) (always displayChildrenOtherProperties)
+                    , children = ExpandableChildren ExpandableUITreeNodeDictEntries (always displayChildrenOtherProperties)
                     }
 
                 properties =
@@ -1026,23 +1123,13 @@ renderTreeNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegi
     }
 
 
-type alias TreeViewNode event expandableId =
-    { selfHtml : Html.Html event
-    , children : TreeViewNodeChildren event expandableId
-    }
-
-
-type TreeViewNodeChildren event expandableId
-    = NoChildren
-    | ExpandableChildren expandableId (() -> List (TreeViewNode event expandableId))
-
-
 renderInteractiveTreeView :
-    (expandableId -> Bool -> event)
-    -> (expandableId -> Bool)
-    -> TreeViewNode event expandableId
+    (List expandPathNode -> Bool -> event)
+    -> (List expandPathNode -> Bool)
+    -> List expandPathNode
+    -> TreeViewNode event expandPathNode
     -> Html.Html event
-renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded treeNode =
+renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded currentPath treeNode =
     let
         expandIconHtmlFromIsExpanded isExpanded =
             (if isExpanded then
@@ -1060,19 +1147,22 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded treeNod
                 NoChildren ->
                     ( Nothing, Nothing, [ Html.Attributes.Aria.role "none" ] )
 
-                ExpandableChildren expandableId getChildren ->
+                ExpandableChildren pathNodeId getChildren ->
                     let
+                        childPath =
+                            currentPath ++ [ pathNodeId ]
+
                         expandableIsExpanded =
-                            nodeIsExpanded expandableId
+                            nodeIsExpanded childPath
 
                         expandableButtonHtml =
                             [ expandIconHtmlFromIsExpanded expandableIsExpanded ]
-                                |> Html.span [ HE.onClick (eventFromNodeIdAndExpandedState expandableId (not expandableIsExpanded)), HA.style "cursor" "pointer" ]
+                                |> Html.span [ HE.onClick (eventFromNodeIdAndExpandedState childPath (not expandableIsExpanded)), HA.style "cursor" "pointer" ]
 
                         expandableChildrenHtml =
                             if expandableIsExpanded then
                                 getChildren ()
-                                    |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded)
+                                    |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded childPath)
                                     |> Html.ul []
                                     |> Just
 

@@ -17,6 +17,8 @@ module EveOnline.MemoryReading exposing
     , InfoPanelLocationInfoExpandedContent
     , InfoPanelRoute
     , InfoPanelRouteRouteElementMarker
+    , Inventory
+    , InventoryItemsView(..)
     , InventoryWindow
     , InventoryWindowCapacityGauge
     , MaybeVisible(..)
@@ -296,8 +298,8 @@ type alias InventoryWindowLeftTreeEntry =
 
 
 type alias InventoryWindowCapacityGauge =
-    { maximum : Maybe Int
-    , used : Int
+    { used : Int
+    , maximum : Maybe Int
     , selected : Maybe Int
     }
 
