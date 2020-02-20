@@ -1094,18 +1094,19 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
 
         getDisplayChildren _ =
             let
-                totalDisplayRegionText =
+                totalDisplayRegionJson =
                     maybeNodeWithDisplayRegion
+                        |> Maybe.map .totalDisplayRegion
                         |> Maybe.map
-                            (\nodeWithOffset ->
+                            (\totalDisplayRegion ->
                                 [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
                                     |> List.map
                                         (\( regionPropertyName, regionProperty ) ->
-                                            regionPropertyName ++ " = " ++ (nodeWithOffset.totalDisplayRegion |> regionProperty |> String.fromInt)
+                                            ( regionPropertyName, totalDisplayRegion |> regionProperty |> Json.Encode.int )
                                         )
-                                    |> String.join ", "
+                                    |> Json.Encode.object
                             )
-                        |> Maybe.withDefault "None"
+                        |> Maybe.withDefault Json.Encode.null
 
                 ( childrenNodeChildren, childrenNodeText ) =
                     case treeNode.children |> Maybe.withDefault [] of
@@ -1123,14 +1124,13 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                     { selfHtml = childrenNodeText |> Html.text, children = childrenNodeChildren }
 
                 propertyDisplayChild ( propertyName, propertyValue ) =
-                    { selfHtml = (propertyName ++ ": " ++ propertyValue) |> Html.text
+                    { selfHtml = (propertyName ++ " = " ++ (propertyValue |> Json.Encode.encode 0)) |> Html.text
                     , children = NoChildren
                     }
 
                 displayChildrenOtherProperties =
                     treeNode.dictEntriesOfInterest
                         |> Dict.toList
-                        |> List.map (Tuple.mapSecond (Json.Encode.encode 0))
                         |> List.map propertyDisplayChild
 
                 displayEntryOtherProperties =
@@ -1139,9 +1139,9 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                     }
 
                 properties =
-                    [ ( "pythonObjectAddress", treeNode.pythonObjectAddress )
-                    , ( "pythonObjectTypeName", treeNode.pythonObjectTypeName )
-                    , ( "totalDisplayRegion", totalDisplayRegionText )
+                    [ ( "pythonObjectAddress", Json.Encode.string treeNode.pythonObjectAddress )
+                    , ( "pythonObjectTypeName", Json.Encode.string treeNode.pythonObjectTypeName )
+                    , ( "totalDisplayRegion", totalDisplayRegionJson )
                     ]
 
                 allDisplayChildren =
