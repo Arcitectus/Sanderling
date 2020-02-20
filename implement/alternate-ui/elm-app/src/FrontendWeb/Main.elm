@@ -123,6 +123,8 @@ type Event
     | ContinueReadFromLiveProcess Time.Posix
     | UserInputDownloadJsonFile String
     | UserInputSendInputToUINode UserInputSendInputToUINodeStructure
+    | UserInputFocusInUITree (List ExpandableViewNode)
+    | UserInputFocusInParsedUI (List ParsedUITreeViewPathNode)
 
 
 type alias HttpRequestErrorStructure =
@@ -139,11 +141,13 @@ type alias UserInputSendInputToUINodeStructure =
 
 type alias ParsedUITreeViewState =
     { expandedNodes : List (List ParsedUITreeViewPathNode)
+    , focused : List ParsedUITreeViewPathNode
     }
 
 
 type alias UITreeViewState =
     { expandedNodes : List (List ExpandableViewNode)
+    , focused : List ExpandableViewNode
     }
 
 
@@ -202,9 +206,9 @@ init _ url navigationKey =
         , lastPendingRequestToReadMemoryTimeMilli = Nothing
         }
     , readFromFileResult = Nothing
-    , uiTreeView = { expandedNodes = [] }
+    , uiTreeView = { expandedNodes = [], focused = [] }
     , selectedViewMode = ViewAlternateUI
-    , parsedUITreeView = { expandedNodes = [] }
+    , parsedUITreeView = { expandedNodes = [], focused = [] }
     }
         |> update (UrlChange url)
 
@@ -275,8 +279,11 @@ update event stateBefore =
 
                     else
                         stateBefore.uiTreeView.expandedNodes |> List.filter ((/=) treeViewNode)
+
+                uiTreeViewBefore =
+                    stateBefore.uiTreeView
             in
-            ( { stateBefore | uiTreeView = { expandedNodes = expandedNodes } }, Cmd.none )
+            ( { stateBefore | uiTreeView = { uiTreeViewBefore | expandedNodes = expandedNodes } }, Cmd.none )
 
         UserInputParsedUISetTreeViewNodeIsExpanded treeViewNode isExpanded ->
             let
@@ -286,8 +293,11 @@ update event stateBefore =
 
                     else
                         stateBefore.parsedUITreeView.expandedNodes |> List.filter ((/=) treeViewNode)
+
+                parsedUITreeViewBefore =
+                    stateBefore.parsedUITreeView
             in
-            ( { stateBefore | parsedUITreeView = { expandedNodes = expandedNodes } }, Cmd.none )
+            ( { stateBefore | parsedUITreeView = { parsedUITreeViewBefore | expandedNodes = expandedNodes } }, Cmd.none )
 
         ContinueReadFromLiveProcess time ->
             let
@@ -343,6 +353,20 @@ update event stateBefore =
                         -- TODO: Remember sending input, to syncronize with get next memory reading.
                     in
                     ( stateBefore, requestSendInputToGameClient )
+
+        UserInputFocusInUITree focusedPath ->
+            let
+                uiTreeViewBefore =
+                    stateBefore.uiTreeView
+            in
+            ( { stateBefore | uiTreeView = { uiTreeViewBefore | focused = focusedPath } }, Cmd.none )
+
+        UserInputFocusInParsedUI focusedPath ->
+            let
+                parsedUITreeViewBefore =
+                    stateBefore.parsedUITreeView
+            in
+            ( { stateBefore | parsedUITreeView = { parsedUITreeViewBefore | focused = focusedPath } }, Cmd.none )
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer } -> State -> State
@@ -1004,7 +1028,11 @@ viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewSta
             viewState.expandedNodes |> List.member nodeId
     in
     treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode
-        |> renderInteractiveTreeView UserInputUISetTreeViewNodeIsExpanded nodeIsExpanded []
+        |> renderInteractiveTreeView
+            UserInputUISetTreeViewNodeIsExpanded
+            nodeIsExpanded
+            { focusedPath = viewState.focused, eventForFocus = UserInputFocusInUITree }
+            []
 
 
 viewTreeParsedUserInterface :
@@ -1033,7 +1061,11 @@ viewTreeParsedUserInterface maybeInputRouteConfig uiNodesWithDisplayRegion viewS
                     )
     in
     renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface
-        |> renderInteractiveTreeView UserInputParsedUISetTreeViewNodeIsExpanded nodeIsExpanded []
+        |> renderInteractiveTreeView
+            UserInputParsedUISetTreeViewNodeIsExpanded
+            nodeIsExpanded
+            { focusedPath = viewState.focused, eventForFocus = UserInputFocusInParsedUI }
+            []
 
 
 treeViewNodeFromMemoryReadingUITreeNode :
@@ -1125,10 +1157,11 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
 renderInteractiveTreeView :
     (List expandPathNode -> Bool -> event)
     -> (List expandPathNode -> Bool)
+    -> { focusedPath : List expandPathNode, eventForFocus : List expandPathNode -> event }
     -> List expandPathNode
     -> TreeViewNode event expandPathNode
     -> Html.Html event
-renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded currentPath treeNode =
+renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig currentPath treeNode =
     let
         expandIconHtmlFromIsExpanded isExpanded =
             (if isExpanded then
@@ -1161,7 +1194,7 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded current
                         expandableChildrenHtml =
                             if expandableIsExpanded then
                                 getChildren ()
-                                    |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded childPath)
+                                    |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig childPath)
                                     |> Html.ul [ HA.style "padding-inline-start" "1em", HA.style "margin-block-start" "0" ]
                                     |> Just
 
@@ -1174,15 +1207,29 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded current
 
                             else
                                 "false"
+
+                        -- https://www.w3.org/TR/wai-aria-practices/#kbd_roving_tabindex
+                        tabIndex =
+                            if focusConfig.focusedPath == childPath then
+                                0
+
+                            else
+                                -1
                     in
                     ( Just expandableButtonHtml
                     , expandableChildrenHtml
-                    , [ Html.Attributes.Aria.role "treeitem", Html.Attributes.Aria.ariaExpanded ariaExpanded ]
+                    , [ Html.Attributes.Aria.role "treeitem"
+                      , Html.Attributes.Aria.ariaExpanded ariaExpanded
+                      , HA.tabindex tabIndex
+                      , HE.onFocus (focusConfig.eventForFocus childPath)
+                      ]
                     )
 
         expandIconHtml =
             maybeExpandIconHtml
                 |> Maybe.withDefault ([ expandIconHtmlFromIsExpanded False ] |> Html.span [ HA.style "visibility" "hidden" ])
+
+        -- TODO: Implement navigation using keyboard, probably arrow keys.
     in
     [ [ expandIconHtml, treeNode.selfHtml ] |> Html.span []
     , childrenHtml |> Maybe.withDefault (Html.text "")
