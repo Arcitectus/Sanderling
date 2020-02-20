@@ -31,7 +31,6 @@ import Json.Decode
 import Json.Encode
 import Process
 import Set
-import String.Extra
 import Task
 import Time
 import Url
@@ -39,7 +38,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-19"
+    "2020-02-20"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -1163,7 +1162,7 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded current
                             if expandableIsExpanded then
                                 getChildren ()
                                     |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded childPath)
-                                    |> Html.ul []
+                                    |> Html.ul [ HA.style "padding-inline-start" "1em", HA.style "margin-block-start" "0" ]
                                     |> Just
 
                             else
