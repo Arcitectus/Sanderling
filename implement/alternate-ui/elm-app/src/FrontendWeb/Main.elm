@@ -1174,15 +1174,28 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
                 |> List.singleton
                 |> Html.span [ HA.style "margin" "0.3em", HA.style "font-weight" "bold" ]
 
-        ( maybeExpandIconHtml, childrenHtml, ariaAttributes ) =
+        maybeChildren =
             case treeNode.children of
                 NoChildren ->
-                    ( Nothing, Nothing, [ Html.Attributes.Aria.role "none" ] )
+                    Nothing
 
                 ExpandableChildren pathNodeId getChildren ->
+                    case getChildren () of
+                        [] ->
+                            Nothing
+
+                        notEmptyChildren ->
+                            Just { pathNodeId = pathNodeId, children = notEmptyChildren }
+
+        ( maybeExpandIconHtml, childrenHtml, ariaAttributes ) =
+            case maybeChildren of
+                Nothing ->
+                    ( Nothing, Nothing, [ Html.Attributes.Aria.role "none" ] )
+
+                Just childrenInfo ->
                     let
                         childPath =
-                            currentPath ++ [ pathNodeId ]
+                            currentPath ++ [ childrenInfo.pathNodeId ]
 
                         expandableIsExpanded =
                             nodeIsExpanded childPath
@@ -1193,7 +1206,7 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
 
                         expandableChildrenHtml =
                             if expandableIsExpanded then
-                                getChildren ()
+                                childrenInfo.children
                                     |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig childPath)
                                     |> Html.ul [ HA.style "padding-inline-start" "1em", HA.style "margin-block-start" "0" ]
                                     |> Just
