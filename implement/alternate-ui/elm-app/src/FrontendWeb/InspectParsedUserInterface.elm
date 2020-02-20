@@ -18,6 +18,7 @@ import EveOnline.MemoryReading
 import Html
 import Html.Events as HE
 import Json.Encode
+import Set
 import String.Extra
 
 
@@ -88,28 +89,81 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface =
                 , parsedUserInterface.contextMenus
                     |> fieldFromListInstance
                         { fieldName = "contextMenus"
-                        , fieldValueChildren =
-                            treeNodeChildrenFromParsedUserInterfaceContextMenu maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceContextMenu maybeInputRoute
                         }
                 , parsedUserInterface.shipUI
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "shipUI"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren =
-                            treeNodeChildrenFromParsedUserInterfaceShipUI maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUI maybeInputRoute
                         }
                 , parsedUserInterface.targets
                     |> fieldFromListInstance
                         { fieldName = "targets"
-                        , fieldValueChildren =
-                            treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute
+                        }
+                , parsedUserInterface.infoPanelLocationInfo
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "infoPanelLocationInfo"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo maybeInputRoute
+                        }
+                , parsedUserInterface.infoPanelRoute
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "infoPanelRoute"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute maybeInputRoute
+                        }
+                , parsedUserInterface.overviewWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "overviewWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromOverviewWindow maybeInputRoute
+                        }
+                , parsedUserInterface.dronesWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "dronesWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromDronesWindow maybeInputRoute
+                        }
+                , parsedUserInterface.probeScannerWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "probeScannerWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromProbeScannerWindow maybeInputRoute
+                        }
+                , parsedUserInterface.stationWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "stationWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromStationWindow maybeInputRoute
                         }
                 , parsedUserInterface.inventoryWindows
                     |> fieldFromListInstance
                         { fieldName = "inventoryWindows"
-                        , fieldValueChildren =
-                            treeNodeChildrenFromParsedUserInterfaceInventoryWindow
-                                maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceInventoryWindow maybeInputRoute
+                        }
+                , parsedUserInterface.chatWindowStacks
+                    |> fieldFromListInstance
+                        { fieldName = "chatWindowStacks"
+                        , fieldValueChildren = treeNodeChildrenFromChatWindowStack maybeInputRoute
+                        }
+                , parsedUserInterface.moduleButtonTooltip
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "moduleButtonTooltip"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromModuleButtonTooltip maybeInputRoute
+                        }
+                , parsedUserInterface.neocom
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "neocom"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromNeocom maybeInputRoute
+                        }
+                , parsedUserInterface.messageBoxes
+                    |> fieldFromListInstance
+                        { fieldName = "messageBoxes"
+                        , fieldValueChildren = treeNodeChildrenFromMessageBox maybeInputRoute
                         }
                 ]
     in
@@ -246,6 +300,204 @@ treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute parsedUserInterfac
         ]
 
 
+treeNodeChildrenFromInfoPanelLocationInfo :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.InfoPanelLocationInfo
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelLocationInfo maybeInputRoute infoPanelLocationInfo =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        infoPanelLocationInfo.uiNode
+        [ { fieldName = "listSurroundingsButton"
+          , fieldValueSummary = "..."
+          , fieldValueChildren = always [ treeNodeFromParsedUserInterfaceUINode maybeInputRoute infoPanelLocationInfo.listSurroundingsButton ]
+          }
+        ]
+
+
+treeNodeChildrenFromInfoPanelRoute :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.InfoPanelRoute
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelRoute maybeInputRoute infoPanelLocationRoute =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        infoPanelLocationRoute.uiNode
+        [ infoPanelLocationRoute.routeElementMarker
+            |> fieldFromListInstance
+                { fieldName = "routeElementMarker"
+                , fieldValueChildren = .uiNode >> treeNodeFromParsedUserInterfaceUINode maybeInputRoute >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromOverviewWindow :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.OverviewWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromOverviewWindow maybeInputRoute overviewWindow =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        overviewWindow.uiNode
+        [ overviewWindow.entries
+            |> fieldFromListInstance
+                { fieldName = "entries"
+                , fieldValueChildren = treeNodeChildrenFromOverviewWindowEntry maybeInputRoute
+                }
+        ]
+
+
+treeNodeChildrenFromOverviewWindowEntry :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.OverviewWindowEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromOverviewWindowEntry maybeInputRoute overviewWindowEntry =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        overviewWindowEntry.uiNode
+        [ overviewWindowEntry.namesUnderSpaceObjectIcon
+            |> Set.toList
+            |> fieldFromPrimitiveListInstance
+                { fieldName = "namesUnderSpaceObjectIcon"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        , overviewWindowEntry.cellsTexts
+            |> fieldFromPrimitiveStringDictInstance
+                { fieldName = "cellsTexts"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        ]
+
+
+treeNodeChildrenFromDronesWindow :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.DronesWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindow maybeInputRoute dronesWindow =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        dronesWindow.uiNode
+        [ dronesWindow.droneGroups
+            |> fieldFromListInstance
+                { fieldName = "droneGroups"
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                }
+        , dronesWindow.droneGroupInBay
+            |> fieldFromMaybeInstance
+                { fieldName = "droneGroupInBay"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                }
+        , dronesWindow.droneGroupInLocalSpace
+            |> fieldFromMaybeInstance
+                { fieldName = "droneGroupInLocalSpace"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                }
+        ]
+
+
+treeNodeChildrenFromDronesWindowDroneGroup :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.DronesWindowDroneGroup
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute dronesWindowDroneGroup =
+    treeNodeChildrenFromRecord
+        [ { fieldName = "header"
+          , fieldValueSummary = "..."
+          , fieldValueChildren = always (treeNodeChildrenFromDronesWindowDroneGroupHeader maybeInputRoute dronesWindowDroneGroup.header)
+          }
+        , dronesWindowDroneGroup.drones
+            |> fieldFromListInstance
+                { fieldName = "drones"
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry maybeInputRoute
+                }
+        ]
+
+
+treeNodeChildrenFromDronesWindowEntry :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.DronesWindowEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindowEntry maybeInputRoute dronesWindowEntry =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        dronesWindowEntry.uiNode
+        [ dronesWindowEntry.mainText
+            |> fieldFromMaybeInstance
+                { fieldName = "mainText"
+                , fieldValueSummary = Json.Encode.string >> Json.Encode.encode 0
+                , fieldValueChildren = always []
+                }
+        ]
+
+
+treeNodeChildrenFromDronesWindowDroneGroupHeader :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.DronesWindowDroneGroupHeader
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindowDroneGroupHeader maybeInputRoute dronesWindowDroneGroupHeader =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        dronesWindowDroneGroupHeader.uiNode
+        [ dronesWindowDroneGroupHeader.mainText
+            |> fieldFromMaybeInstance
+                { fieldName = "mainText"
+                , fieldValueSummary = Json.Encode.string >> Json.Encode.encode 0
+                , fieldValueChildren = always []
+                }
+        , dronesWindowDroneGroupHeader.quantityFromTitle
+            |> fieldFromMaybeInstance
+                { fieldName = "quantityFromTitle"
+                , fieldValueSummary = String.fromInt
+                , fieldValueChildren = always []
+                }
+        ]
+
+
+treeNodeChildrenFromProbeScannerWindow :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.ProbeScannerWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromProbeScannerWindow maybeInputRoute probeScannerWindow =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        probeScannerWindow.uiNode
+        [ probeScannerWindow.scanResults
+            |> fieldFromListInstance
+                { fieldName = "scanResults"
+                , fieldValueChildren = treeNodeChildrenFromProbeScanResult maybeInputRoute
+                }
+        ]
+
+
+treeNodeChildrenFromProbeScanResult :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.ProbeScanResult
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromProbeScanResult maybeInputRoute probeScanResult =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        probeScanResult.uiNode
+        [ probeScanResult.textsLeftToRight
+            |> fieldFromPrimitiveListInstance
+                { fieldName = "textsLeftToRight"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        ]
+
+
+treeNodeChildrenFromStationWindow :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.StationWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromStationWindow maybeInputRoute stationWindow =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        stationWindow.uiNode
+        []
+
+
 treeNodeChildrenFromParsedUserInterfaceInventoryWindow :
     Maybe (InputRoute event)
     -> EveOnline.MemoryReading.InventoryWindow
@@ -344,6 +596,50 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView maybeInputRoute parsed
 
         EveOnline.MemoryReading.InventoryItemsNotListView { items } ->
             continueWithTagName "InventoryItemsNotListView" items
+
+
+treeNodeChildrenFromChatWindowStack :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.ChatWindowStack
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromChatWindowStack maybeInputRoute chatWindowStack =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        chatWindowStack.uiNode
+        []
+
+
+treeNodeChildrenFromModuleButtonTooltip :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.ModuleButtonTooltip
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromModuleButtonTooltip maybeInputRoute moduleButtonTooltip =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        moduleButtonTooltip.uiNode
+        []
+
+
+treeNodeChildrenFromNeocom :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.Neocom
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromNeocom maybeInputRoute neocom =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        neocom.uiNode
+        []
+
+
+treeNodeChildrenFromMessageBox :
+    Maybe (InputRoute event)
+    -> EveOnline.MemoryReading.MessageBox
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromMessageBox maybeInputRoute messageBox =
+    treeNodeChildrenFromRecordWithUINode
+        maybeInputRoute
+        messageBox.uiNode
+        []
 
 
 treeNodeFromParsedUserInterfaceUINode :
@@ -463,6 +759,27 @@ fieldFromPrimitiveListInstance listField list =
                 |> List.indexedMap
                     (\index elem ->
                         { selfHtml = ((index |> String.fromInt) ++ " = " ++ listField.fieldValueDescription elem) |> Html.text
+                        , children = NoChildren
+                        }
+                    )
+            )
+    }
+
+
+fieldFromPrimitiveStringDictInstance :
+    { fieldName : String, fieldValueDescription : value -> String }
+    -> Dict.Dict String value
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromPrimitiveStringDictInstance listField dict =
+    { fieldName = listField.fieldName
+    , fieldValueSummary = "Dict (" ++ (dict |> Dict.size |> String.fromInt) ++ ")"
+    , fieldValueChildren =
+        always
+            (dict
+                |> Dict.toList
+                |> List.map
+                    (\( key, value ) ->
+                        { selfHtml = "\"" ++ key ++ " = " ++ listField.fieldValueDescription value |> Html.text
                         , children = NoChildren
                         }
                     )
