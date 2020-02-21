@@ -55,6 +55,7 @@ type ExpandableViewNode
     = ExpandableUITreeNode UITreeNodeIdentity
     | ExpandableUITreeNodeChildren
     | ExpandableUITreeNodeDictEntries
+    | ExpandableUITreeNodeAllDisplayTexts
 
 
 type alias UITreeNodeIdentity =
@@ -741,6 +742,28 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                 displayEntryChildren =
                     { selfHtml = childrenNodeText |> Html.text, children = childrenNodeChildren }
 
+                allContainedDisplayTexts =
+                    EveOnline.MemoryReading.getAllContainedDisplayTexts treeNode
+
+                allContainedDisplayTextsChildren =
+                    ExpandableChildren
+                        ExpandableUITreeNodeAllDisplayTexts
+                        (\() ->
+                            allContainedDisplayTexts
+                                |> List.map
+                                    (\displayText ->
+                                        { selfHtml = displayText |> Json.Encode.string |> Json.Encode.encode 0 |> Html.text
+                                        , children = NoChildren
+                                        }
+                                    )
+                        )
+
+                displayEntryGetAllContainedDisplayTexts =
+                    { selfHtml =
+                        ("getAllContainedDisplayTexts = List (" ++ (allContainedDisplayTexts |> List.length |> String.fromInt) ++ ")") |> Html.text
+                    , children = allContainedDisplayTextsChildren
+                    }
+
                 propertyDisplayChild ( propertyName, propertyValue ) =
                     { selfHtml = (propertyName ++ " = " ++ (propertyValue |> Json.Encode.encode 0)) |> Html.text
                     , children = NoChildren
@@ -763,7 +786,7 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                     ]
 
                 allDisplayChildren =
-                    (properties |> List.map propertyDisplayChild) ++ [ displayEntryOtherProperties, displayEntryChildren ]
+                    (properties |> List.map propertyDisplayChild) ++ [ displayEntryOtherProperties, displayEntryChildren, displayEntryGetAllContainedDisplayTexts ]
             in
             allDisplayChildren
     in
