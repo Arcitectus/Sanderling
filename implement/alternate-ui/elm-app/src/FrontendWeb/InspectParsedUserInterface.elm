@@ -1,10 +1,13 @@
 module FrontendWeb.InspectParsedUserInterface exposing
-    ( InputOnUINode(..)
+    ( ExpandableViewNode(..)
+    , InputOnUINode(..)
     , InputRoute
     , ParsedUITreeViewPathNode(..)
     , TreeViewNode
     , TreeViewNodeChildren(..)
+    , maybeInputOfferHtml
     , renderTreeNodeFromParsedUserInterface
+    , treeViewNodeFromMemoryReadingUITreeNode
     , uiNodeCommonSummaryText
     )
 
@@ -22,6 +25,17 @@ import Set
 import String.Extra
 
 
+type alias TreeViewNode event expandableId =
+    { selfHtml : Html.Html event
+    , children : TreeViewNodeChildren event expandableId
+    }
+
+
+type TreeViewNodeChildren event expandableId
+    = NoChildren
+    | ExpandableChildren expandableId (() -> List (TreeViewNode event expandableId))
+
+
 type InputOnUINode
     = MouseClickLeft
     | MouseClickRight
@@ -30,10 +44,27 @@ type InputOnUINode
 type ParsedUITreeViewPathNode
     = NamedNode String
     | IndexedNode Int
+    | UITreeNode ExpandableViewNode
 
 
 type alias InputRoute event =
     EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> InputOnUINode -> event
+
+
+type ExpandableViewNode
+    = ExpandableUITreeNode UITreeNodeIdentity
+    | ExpandableUITreeNodeChildren
+    | ExpandableUITreeNodeDictEntries
+
+
+type alias UITreeNodeIdentity =
+    { pythonObjectAddress : String }
+
+
+type alias ViewConfig event =
+    { inputRoute : Maybe (InputRoute event)
+    , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
+    }
 
 
 maybeInputOfferHtml : Maybe (InputRoute event) -> List InputOnUINode -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> Html.Html event
@@ -68,102 +99,101 @@ displayTextForInputKind inputKind =
 
 renderTreeNodeFromParsedUserInterface :
     Maybe (InputRoute event)
+    -> Dict.Dict String UITreeNodeWithDisplayRegion
     -> EveOnline.MemoryReading.ParsedUserInterface
     -> TreeViewNode event ParsedUITreeViewPathNode
-renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface =
+renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion parsedUserInterface =
     let
         commonSummaryHtml =
             [ parsedUserInterface.uiTree.uiNode |> uiNodeCommonSummaryText |> Html.text ] |> Html.span []
+
+        viewConfig =
+            { inputRoute = maybeInputRoute, uiNodesWithDisplayRegion = uiNodesWithDisplayRegion }
 
         children =
             treeNodeChildrenFromRecord
                 [ { fieldName = "uiTree"
                   , fieldValueSummary = "..."
-                  , fieldValueChildren =
-                        always
-                            [ treeNodeFromParsedUserInterfaceUINode
-                                maybeInputRoute
-                                parsedUserInterface.uiTree
-                            ]
+                  , fieldValueChildren = always [ treeViewNodeFromUINode viewConfig parsedUserInterface.uiTree ]
                   }
                 , parsedUserInterface.contextMenus
                     |> fieldFromListInstance
                         { fieldName = "contextMenus"
-                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceContextMenu maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceContextMenu viewConfig
                         }
                 , parsedUserInterface.shipUI
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "shipUI"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUI maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig
                         }
                 , parsedUserInterface.targets
                     |> fieldFromListInstance
                         { fieldName = "targets"
-                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceTarget viewConfig
                         }
                 , parsedUserInterface.infoPanelLocationInfo
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "infoPanelLocationInfo"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo viewConfig
                         }
                 , parsedUserInterface.infoPanelRoute
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "infoPanelRoute"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute viewConfig
                         }
                 , parsedUserInterface.overviewWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "overviewWindow"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromOverviewWindow maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromOverviewWindow viewConfig
                         }
                 , parsedUserInterface.dronesWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "dronesWindow"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromDronesWindow maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromDronesWindow viewConfig
                         }
                 , parsedUserInterface.probeScannerWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "probeScannerWindow"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromProbeScannerWindow maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromProbeScannerWindow viewConfig
                         }
                 , parsedUserInterface.stationWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "stationWindow"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromStationWindow maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromStationWindow viewConfig
                         }
                 , parsedUserInterface.inventoryWindows
                     |> fieldFromListInstance
                         { fieldName = "inventoryWindows"
-                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceInventoryWindow maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig
                         }
                 , parsedUserInterface.chatWindowStacks
                     |> fieldFromListInstance
                         { fieldName = "chatWindowStacks"
-                        , fieldValueChildren = treeNodeChildrenFromChatWindowStack maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromChatWindowStack viewConfig
                         }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "moduleButtonTooltip"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromModuleButtonTooltip maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromModuleButtonTooltip viewConfig
                         }
                 , parsedUserInterface.neocom
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "neocom"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromNeocom maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromNeocom viewConfig
                         }
                 , parsedUserInterface.messageBoxes
                     |> fieldFromListInstance
                         { fieldName = "messageBoxes"
-                        , fieldValueChildren = treeNodeChildrenFromMessageBox maybeInputRoute
+                        , fieldValueChildren = treeNodeChildrenFromMessageBox viewConfig
                         }
                 ]
     in
@@ -173,29 +203,29 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface =
 
 
 treeNodeChildrenFromParsedUserInterfaceContextMenu :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ContextMenu
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceContextMenu maybeInputRoute parsedUserInterfaceContextMenu =
+treeNodeChildrenFromParsedUserInterfaceContextMenu viewConfig parsedUserInterfaceContextMenu =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceContextMenu.uiNode
         [ parsedUserInterfaceContextMenu.entries
             |> fieldFromListInstance
                 { fieldName = "entries"
                 , fieldValueChildren =
-                    treeNodeChildrenFromParsedUserInterfaceContextMenuEntry maybeInputRoute
+                    treeNodeChildrenFromParsedUserInterfaceContextMenuEntry viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromParsedUserInterfaceContextMenuEntry :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ContextMenuEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceContextMenuEntry maybeInputRoute parsedUserInterfaceContextMenuEntry =
+treeNodeChildrenFromParsedUserInterfaceContextMenuEntry viewConfig parsedUserInterfaceContextMenuEntry =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceContextMenuEntry.uiNode
         [ { fieldName = "text"
           , fieldValueSummary = parsedUserInterfaceContextMenuEntry.text |> Json.Encode.string |> Json.Encode.encode 0
@@ -205,18 +235,18 @@ treeNodeChildrenFromParsedUserInterfaceContextMenuEntry maybeInputRoute parsedUs
 
 
 treeNodeChildrenFromParsedUserInterfaceShipUI :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ShipUI
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceShipUI maybeInputRoute parsedUserInterfaceShipUI =
+treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShipUI =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceShipUI.uiNode
         [ parsedUserInterfaceShipUI.modules
             |> fieldFromListInstance
                 { fieldName = "modules"
                 , fieldValueChildren =
-                    treeNodeChildrenFromParsedUserInterfaceShipUIModule maybeInputRoute
+                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
                 }
         , { fieldName = "hitpointsPercent"
           , fieldValueSummary = "..."
@@ -227,25 +257,14 @@ treeNodeChildrenFromParsedUserInterfaceShipUI maybeInputRoute parsedUserInterfac
 
 
 treeNodeChildrenFromParsedUserInterfaceShipUIModule :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ShipUIModule
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceShipUIModule maybeInputRoute parsedUserInterfaceShipUIModule =
+treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig parsedUserInterfaceShipUIModule =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceShipUIModule.uiNode
-        [ parsedUserInterfaceShipUIModule.isActive
-            |> fieldFromMaybeInstance
-                { fieldName = "isActive"
-                , fieldValueSummary =
-                    \isActive ->
-                        if isActive then
-                            "True"
-
-                        else
-                            "False"
-                , fieldValueChildren = always []
-                }
+        [ parsedUserInterfaceShipUIModule.isActive |> fieldFromMaybeBool "isActive"
         ]
 
 
@@ -270,18 +289,18 @@ treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints hitpoints =
 
 
 treeNodeChildrenFromParsedUserInterfaceTarget :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.Target
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute parsedUserInterfaceTarget =
+treeNodeChildrenFromParsedUserInterfaceTarget viewConfig parsedUserInterfaceTarget =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceTarget.uiNode
         [ parsedUserInterfaceTarget.barAndImageCont
             |> fieldFromMaybeInstance
                 { fieldName = "barAndImageCont"
                 , fieldValueSummary = always "..."
-                , fieldValueChildren = treeNodeFromParsedUserInterfaceUINode maybeInputRoute >> List.singleton
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , parsedUserInterfaceTarget.textsTopToBottom
             |> fieldFromPrimitiveListInstance
@@ -301,59 +320,59 @@ treeNodeChildrenFromParsedUserInterfaceTarget maybeInputRoute parsedUserInterfac
 
 
 treeNodeChildrenFromInfoPanelLocationInfo :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.InfoPanelLocationInfo
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromInfoPanelLocationInfo maybeInputRoute infoPanelLocationInfo =
+treeNodeChildrenFromInfoPanelLocationInfo viewConfig infoPanelLocationInfo =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         infoPanelLocationInfo.uiNode
         [ { fieldName = "listSurroundingsButton"
           , fieldValueSummary = "..."
-          , fieldValueChildren = always [ treeNodeFromParsedUserInterfaceUINode maybeInputRoute infoPanelLocationInfo.listSurroundingsButton ]
+          , fieldValueChildren = always [ treeViewNodeFromUINode viewConfig infoPanelLocationInfo.listSurroundingsButton ]
           }
         ]
 
 
 treeNodeChildrenFromInfoPanelRoute :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.InfoPanelRoute
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromInfoPanelRoute maybeInputRoute infoPanelLocationRoute =
+treeNodeChildrenFromInfoPanelRoute viewConfig infoPanelLocationRoute =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         infoPanelLocationRoute.uiNode
         [ infoPanelLocationRoute.routeElementMarker
             |> fieldFromListInstance
                 { fieldName = "routeElementMarker"
-                , fieldValueChildren = .uiNode >> treeNodeFromParsedUserInterfaceUINode maybeInputRoute >> List.singleton
+                , fieldValueChildren = .uiNode >> treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
 
 
 treeNodeChildrenFromOverviewWindow :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.OverviewWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromOverviewWindow maybeInputRoute overviewWindow =
+treeNodeChildrenFromOverviewWindow viewConfig overviewWindow =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         overviewWindow.uiNode
         [ overviewWindow.entries
             |> fieldFromListInstance
                 { fieldName = "entries"
-                , fieldValueChildren = treeNodeChildrenFromOverviewWindowEntry maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromOverviewWindowEntry viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromOverviewWindowEntry :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.OverviewWindowEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromOverviewWindowEntry maybeInputRoute overviewWindowEntry =
+treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         overviewWindowEntry.uiNode
         [ overviewWindowEntry.namesUnderSpaceObjectIcon
             |> Set.toList
@@ -370,114 +389,99 @@ treeNodeChildrenFromOverviewWindowEntry maybeInputRoute overviewWindowEntry =
 
 
 treeNodeChildrenFromDronesWindow :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.DronesWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromDronesWindow maybeInputRoute dronesWindow =
+treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         dronesWindow.uiNode
         [ dronesWindow.droneGroups
             |> fieldFromListInstance
                 { fieldName = "droneGroups"
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
         , dronesWindow.droneGroupInBay
             |> fieldFromMaybeInstance
                 { fieldName = "droneGroupInBay"
                 , fieldValueSummary = always "..."
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
         , dronesWindow.droneGroupInLocalSpace
             |> fieldFromMaybeInstance
                 { fieldName = "droneGroupInLocalSpace"
                 , fieldValueSummary = always "..."
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromDronesWindowDroneGroup :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.DronesWindowDroneGroup
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromDronesWindowDroneGroup maybeInputRoute dronesWindowDroneGroup =
+treeNodeChildrenFromDronesWindowDroneGroup viewConfig dronesWindowDroneGroup =
     treeNodeChildrenFromRecord
         [ { fieldName = "header"
           , fieldValueSummary = "..."
-          , fieldValueChildren = always (treeNodeChildrenFromDronesWindowDroneGroupHeader maybeInputRoute dronesWindowDroneGroup.header)
+          , fieldValueChildren = always (treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGroup.header)
           }
         , dronesWindowDroneGroup.drones
             |> fieldFromListInstance
                 { fieldName = "drones"
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromDronesWindowEntry :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.DronesWindowEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromDronesWindowEntry maybeInputRoute dronesWindowEntry =
+treeNodeChildrenFromDronesWindowEntry viewConfig dronesWindowEntry =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         dronesWindowEntry.uiNode
-        [ dronesWindowEntry.mainText
-            |> fieldFromMaybeInstance
-                { fieldName = "mainText"
-                , fieldValueSummary = Json.Encode.string >> Json.Encode.encode 0
-                , fieldValueChildren = always []
-                }
+        [ dronesWindowEntry.mainText |> fieldFromMaybeString "mainText"
         ]
 
 
 treeNodeChildrenFromDronesWindowDroneGroupHeader :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.DronesWindowDroneGroupHeader
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromDronesWindowDroneGroupHeader maybeInputRoute dronesWindowDroneGroupHeader =
+treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGroupHeader =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         dronesWindowDroneGroupHeader.uiNode
-        [ dronesWindowDroneGroupHeader.mainText
-            |> fieldFromMaybeInstance
-                { fieldName = "mainText"
-                , fieldValueSummary = Json.Encode.string >> Json.Encode.encode 0
-                , fieldValueChildren = always []
-                }
-        , dronesWindowDroneGroupHeader.quantityFromTitle
-            |> fieldFromMaybeInstance
-                { fieldName = "quantityFromTitle"
-                , fieldValueSummary = String.fromInt
-                , fieldValueChildren = always []
-                }
+        [ dronesWindowDroneGroupHeader.mainText |> fieldFromMaybeString "mainText"
+        , dronesWindowDroneGroupHeader.quantityFromTitle |> fieldFromMaybeInt "quantityFromTitle"
         ]
 
 
 treeNodeChildrenFromProbeScannerWindow :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ProbeScannerWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromProbeScannerWindow maybeInputRoute probeScannerWindow =
+treeNodeChildrenFromProbeScannerWindow viewConfig probeScannerWindow =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         probeScannerWindow.uiNode
         [ probeScannerWindow.scanResults
             |> fieldFromListInstance
                 { fieldName = "scanResults"
-                , fieldValueChildren = treeNodeChildrenFromProbeScanResult maybeInputRoute
+                , fieldValueChildren = treeNodeChildrenFromProbeScanResult viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromProbeScanResult :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ProbeScanResult
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromProbeScanResult maybeInputRoute probeScanResult =
+treeNodeChildrenFromProbeScanResult viewConfig probeScanResult =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         probeScanResult.uiNode
         [ probeScanResult.textsLeftToRight
             |> fieldFromPrimitiveListInstance
@@ -488,23 +492,23 @@ treeNodeChildrenFromProbeScanResult maybeInputRoute probeScanResult =
 
 
 treeNodeChildrenFromStationWindow :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.StationWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromStationWindow maybeInputRoute stationWindow =
+treeNodeChildrenFromStationWindow viewConfig stationWindow =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         stationWindow.uiNode
         []
 
 
 treeNodeChildrenFromParsedUserInterfaceInventoryWindow :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.InventoryWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceInventoryWindow maybeInputRoute parsedUserInterfaceInventoryWindow =
+treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInterfaceInventoryWindow =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceInventoryWindow.uiNode
         [ parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
             |> fieldFromMaybeInstance
@@ -518,25 +522,25 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow maybeInputRoute parsedUse
                 { fieldName = "selectedContainerInventory"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren =
-                    treeNodeChildrenFromParsedUserInterfaceInventory maybeInputRoute
+                    treeNodeChildrenFromParsedUserInterfaceInventory viewConfig
                 }
         ]
 
 
 treeNodeChildrenFromParsedUserInterfaceInventory :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.Inventory
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceInventory maybeInputRoute parsedUserInterfaceInventory =
+treeNodeChildrenFromParsedUserInterfaceInventory viewConfig parsedUserInterfaceInventory =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         parsedUserInterfaceInventory.uiNode
         [ parsedUserInterfaceInventory.itemsView
             |> fieldFromMaybeInstance
                 { fieldName = "itemsView"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren =
-                    treeNodeChildrenFromParsedUserInterfaceInventoryItemsView maybeInputRoute
+                    treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig
                 }
         ]
 
@@ -550,26 +554,16 @@ treeNodeChildrenFromParsedUserInterfaceInventoryCapacityGauge parsedUserInterfac
           , fieldValueSummary = String.fromInt parsedUserInterfaceInventoryCapacityGauge.used
           , fieldValueChildren = always []
           }
-        , parsedUserInterfaceInventoryCapacityGauge.maximum
-            |> fieldFromMaybeInstance
-                { fieldName = "maximum"
-                , fieldValueSummary = String.fromInt
-                , fieldValueChildren = always []
-                }
-        , parsedUserInterfaceInventoryCapacityGauge.selected
-            |> fieldFromMaybeInstance
-                { fieldName = "selected"
-                , fieldValueSummary = String.fromInt
-                , fieldValueChildren = always []
-                }
+        , parsedUserInterfaceInventoryCapacityGauge.maximum |> fieldFromMaybeInt "maximum"
+        , parsedUserInterfaceInventoryCapacityGauge.selected |> fieldFromMaybeInt "selected"
         ]
 
 
 treeNodeChildrenFromParsedUserInterfaceInventoryItemsView :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.InventoryItemsView
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceInventoryItemsView maybeInputRoute parsedUserInterfaceInventoryItemsView =
+treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserInterfaceInventoryItemsView =
     let
         continueWithTagName tagName items =
             treeNodeChildrenFromRecord
@@ -583,7 +577,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView maybeInputRoute parsed
                                         { fieldName = "items"
                                         , fieldValueChildren =
                                             \inventoryItem ->
-                                                [ treeNodeFromParsedUserInterfaceUINode maybeInputRoute inventoryItem ]
+                                                [ treeViewNodeFromUINode viewConfig inventoryItem ]
                                         }
                                 ]
                             )
@@ -599,63 +593,182 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView maybeInputRoute parsed
 
 
 treeNodeChildrenFromChatWindowStack :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ChatWindowStack
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromChatWindowStack maybeInputRoute chatWindowStack =
+treeNodeChildrenFromChatWindowStack viewConfig chatWindowStack =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         chatWindowStack.uiNode
-        []
+        [ chatWindowStack.chatWindow
+            |> fieldFromMaybeInstance
+                { fieldName = "chatWindow"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromChatWindow viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromChatWindow :
+    ViewConfig event
+    -> EveOnline.MemoryReading.ChatWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromChatWindow viewConfig chatWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        chatWindow.uiNode
+        [ chatWindow.name |> fieldFromMaybeString "name"
+        , chatWindow.visibleUsers
+            |> fieldFromListInstance
+                { fieldName = "visibleUsers "
+                , fieldValueChildren = treeNodeChildrenFromChatUserEntry viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromChatUserEntry :
+    ViewConfig event
+    -> EveOnline.MemoryReading.ChatUserEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromChatUserEntry viewConfig chatUserEntry =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        chatUserEntry.uiNode
+        [ chatUserEntry.name |> fieldFromMaybeString "name"
+        , chatUserEntry.standingIconHint |> fieldFromMaybeString "standingIconHint"
+        ]
 
 
 treeNodeChildrenFromModuleButtonTooltip :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.ModuleButtonTooltip
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromModuleButtonTooltip maybeInputRoute moduleButtonTooltip =
+treeNodeChildrenFromModuleButtonTooltip viewConfig moduleButtonTooltip =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         moduleButtonTooltip.uiNode
         []
 
 
 treeNodeChildrenFromNeocom :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.Neocom
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromNeocom maybeInputRoute neocom =
+treeNodeChildrenFromNeocom viewConfig neocom =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         neocom.uiNode
         []
 
 
 treeNodeChildrenFromMessageBox :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> EveOnline.MemoryReading.MessageBox
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromMessageBox maybeInputRoute messageBox =
+treeNodeChildrenFromMessageBox viewConfig messageBox =
     treeNodeChildrenFromRecordWithUINode
-        maybeInputRoute
+        viewConfig
         messageBox.uiNode
-        []
+        [ messageBox.buttons
+            |> fieldFromListInstance
+                { fieldName = "buttons"
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry viewConfig
+                }
+        ]
 
 
-treeNodeFromParsedUserInterfaceUINode :
-    Maybe (InputRoute event)
+treeViewNodeFromUINode :
+    ViewConfig event
     -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
     -> TreeViewNode event ParsedUITreeViewPathNode
-treeNodeFromParsedUserInterfaceUINode maybeInputRoute parsedUserInterfaceUINode =
+treeViewNodeFromUINode viewConfig parsedUserInterfaceUINode =
+    treeViewNodeFromMemoryReadingUITreeNode viewConfig.inputRoute viewConfig.uiNodesWithDisplayRegion parsedUserInterfaceUINode.uiNode
+        |> mapTreeViewNode UITreeNode identity
+
+
+treeViewNodeFromMemoryReadingUITreeNode :
+    Maybe (InputRoute event)
+    -> Dict.Dict String UITreeNodeWithDisplayRegion
+    -> EveOnline.MemoryReading.UITreeNode
+    -> TreeViewNode event ExpandableViewNode
+treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode =
     let
+        nodeIdentityInView =
+            { pythonObjectAddress = treeNode.pythonObjectAddress }
+
+        maybeNodeWithDisplayRegion =
+            uiNodesWithDisplayRegion |> Dict.get treeNode.pythonObjectAddress
+
         inputHtml =
-            maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] parsedUserInterfaceUINode
+            maybeNodeWithDisplayRegion
+                |> Maybe.map
+                    (\nodeWithDisplayRegion ->
+                        maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] nodeWithDisplayRegion
+                    )
+                |> Maybe.withDefault (Html.text "")
 
         commonSummaryHtml =
-            [ parsedUserInterfaceUINode.uiNode |> uiNodeCommonSummaryText |> Html.text, inputHtml ] |> Html.span []
+            [ uiNodeCommonSummaryText treeNode |> Html.text, inputHtml ] |> Html.span []
+
+        getDisplayChildren _ =
+            let
+                totalDisplayRegionJson =
+                    maybeNodeWithDisplayRegion
+                        |> Maybe.map .totalDisplayRegion
+                        |> Maybe.map
+                            (\totalDisplayRegion ->
+                                [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
+                                    |> List.map
+                                        (\( regionPropertyName, regionProperty ) ->
+                                            ( regionPropertyName, totalDisplayRegion |> regionProperty |> Json.Encode.int )
+                                        )
+                                    |> Json.Encode.object
+                            )
+                        |> Maybe.withDefault Json.Encode.null
+
+                ( childrenNodeChildren, childrenNodeText ) =
+                    case treeNode.children |> Maybe.withDefault [] of
+                        [] ->
+                            ( NoChildren, "No children" )
+
+                        children ->
+                            ( ExpandableChildren
+                                ExpandableUITreeNodeChildren
+                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion))
+                            , (children |> List.length |> String.fromInt) ++ " children"
+                            )
+
+                displayEntryChildren =
+                    { selfHtml = childrenNodeText |> Html.text, children = childrenNodeChildren }
+
+                propertyDisplayChild ( propertyName, propertyValue ) =
+                    { selfHtml = (propertyName ++ " = " ++ (propertyValue |> Json.Encode.encode 0)) |> Html.text
+                    , children = NoChildren
+                    }
+
+                displayChildrenOtherProperties =
+                    treeNode.dictEntriesOfInterest
+                        |> Dict.toList
+                        |> List.map propertyDisplayChild
+
+                displayEntryOtherProperties =
+                    { selfHtml = (treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " dictEntriesOfInterest" |> Html.text
+                    , children = ExpandableChildren ExpandableUITreeNodeDictEntries (always displayChildrenOtherProperties)
+                    }
+
+                properties =
+                    [ ( "pythonObjectAddress", Json.Encode.string treeNode.pythonObjectAddress )
+                    , ( "pythonObjectTypeName", Json.Encode.string treeNode.pythonObjectTypeName )
+                    , ( "totalDisplayRegion", totalDisplayRegionJson )
+                    ]
+
+                allDisplayChildren =
+                    (properties |> List.map propertyDisplayChild) ++ [ displayEntryOtherProperties, displayEntryChildren ]
+            in
+            allDisplayChildren
     in
     { selfHtml = commonSummaryHtml
-    , children = NoChildren
+    , children = ExpandableChildren (ExpandableUITreeNode nodeIdentityInView) getDisplayChildren
     }
 
 
@@ -681,15 +794,22 @@ uiNodeCommonSummaryText uiNode =
     commonSummaryText
 
 
-type alias TreeViewNode event expandableId =
-    { selfHtml : Html.Html event
-    , children : TreeViewNodeChildren event expandableId
+mapTreeViewNode : (expandableIdA -> expandableIdB) -> (eventA -> eventB) -> TreeViewNode eventA expandableIdA -> TreeViewNode eventB expandableIdB
+mapTreeViewNode mapNodeId mapEvent originalTreeViewNode =
+    let
+        children =
+            case originalTreeViewNode.children of
+                NoChildren ->
+                    NoChildren
+
+                ExpandableChildren expandableId getChildren ->
+                    ExpandableChildren
+                        (mapNodeId expandableId)
+                        (always (getChildren () |> List.map (mapTreeViewNode mapNodeId mapEvent)))
+    in
+    { selfHtml = originalTreeViewNode.selfHtml |> Html.map mapEvent
+    , children = children
     }
-
-
-type TreeViewNodeChildren event expandableId
-    = NoChildren
-    | ExpandableChildren expandableId (() -> List (TreeViewNode event expandableId))
 
 
 treeViewNodeForField :
@@ -704,7 +824,7 @@ treeViewNodeForField field fieldValueDescription children =
 
 
 treeNodeChildrenFromRecordWithUINode :
-    Maybe (InputRoute event)
+    ViewConfig event
     -> UITreeNodeWithDisplayRegion
     ->
         List
@@ -713,16 +833,12 @@ treeNodeChildrenFromRecordWithUINode :
             , fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode)
             }
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromRecordWithUINode maybeInputRoute fieldUINodeValue fields =
+treeNodeChildrenFromRecordWithUINode viewConfig fieldUINodeValue fields =
     treeNodeChildrenFromRecord
         ({ fieldName = "uiNode"
          , fieldValueSummary = "..."
          , fieldValueChildren =
-            always
-                [ treeNodeFromParsedUserInterfaceUINode
-                    maybeInputRoute
-                    fieldUINodeValue
-                ]
+            always [ treeViewNodeFromUINode viewConfig fieldUINodeValue ]
          }
             :: fields
         )
@@ -807,6 +923,42 @@ fieldFromListInstance listField list =
     }
 
 
+fieldFromMaybeBool :
+    String
+    -> Maybe Bool
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromMaybeBool fieldName =
+    fieldFromMaybePrimitive { fieldName = fieldName, fieldValueSummary = Json.Encode.bool }
+
+
+fieldFromMaybeInt :
+    String
+    -> Maybe Int
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromMaybeInt fieldName =
+    fieldFromMaybePrimitive { fieldName = fieldName, fieldValueSummary = Json.Encode.int }
+
+
+fieldFromMaybeString :
+    String
+    -> Maybe String
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromMaybeString fieldName =
+    fieldFromMaybePrimitive { fieldName = fieldName, fieldValueSummary = Json.Encode.string }
+
+
+fieldFromMaybePrimitive :
+    { fieldName : String, fieldValueSummary : element -> Json.Encode.Value }
+    -> Maybe element
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromMaybePrimitive { fieldName, fieldValueSummary } =
+    fieldFromMaybeInstance
+        { fieldName = fieldName
+        , fieldValueSummary = fieldValueSummary >> Json.Encode.encode 0
+        , fieldValueChildren = always []
+        }
+
+
 fieldFromMaybeInstance :
     { fieldName : String, fieldValueSummary : element -> String, fieldValueChildren : element -> List (TreeViewNode event ParsedUITreeViewPathNode) }
     -> Maybe element
@@ -840,11 +992,11 @@ fieldFromMaybeVisibleInstance maybeField maybeValue =
                 |> EveOnline.MemoryReading.maybeNothingFromCanNotSeeIt
                 |> Maybe.map
                     (\just ->
-                        ( "Just " ++ maybeField.fieldValueSummary just
+                        ( "CanSee " ++ maybeField.fieldValueSummary just
                         , maybeField.fieldValueChildren just
                         )
                     )
-                |> Maybe.withDefault ( "Nothing", [] )
+                |> Maybe.withDefault ( "CanNotSeeIt", [] )
     in
     { fieldName = maybeField.fieldName
     , fieldValueSummary = valueSummary

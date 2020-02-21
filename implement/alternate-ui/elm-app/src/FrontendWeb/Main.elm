@@ -15,11 +15,14 @@ import File.Download
 import File.Select
 import FrontendWeb.InspectParsedUserInterface
     exposing
-        ( InputOnUINode(..)
+        ( ExpandableViewNode
+        , InputOnUINode(..)
         , ParsedUITreeViewPathNode(..)
         , TreeViewNode
         , TreeViewNodeChildren(..)
+        , maybeInputOfferHtml
         , renderTreeNodeFromParsedUserInterface
+        , treeViewNodeFromMemoryReadingUITreeNode
         )
 import Html
 import Html.Attributes as HA
@@ -28,7 +31,6 @@ import Html.Events as HE
 import Http
 import InterfaceToFrontendClient
 import Json.Decode
-import Json.Encode
 import Process
 import Set
 import Task
@@ -38,7 +40,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-20"
+    "2020-02-21"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -151,16 +153,6 @@ type alias UITreeViewState =
     }
 
 
-type ExpandableViewNode
-    = ExpandableUITreeNode UITreeNodeIdentity
-    | ExpandableUITreeNodeChildren
-    | ExpandableUITreeNodeDictEntries
-
-
-type alias UITreeNodeIdentity =
-    { pythonObjectAddress : String }
-
-
 type ResponseFromServer
     = RunInVolatileHostResponse InterfaceToFrontendClient.RunInVolatileHostResponseStructure
     | ReadLogResponse (List String)
@@ -179,7 +171,7 @@ type alias OverviewEntry =
     }
 
 
-type alias InputRouteStructure =
+type alias InputRouteConfig =
     { windowId : EveOnline.VolatileHostInterface.WindowId
     }
 
@@ -793,7 +785,7 @@ viewSourceFromLiveProcess state =
         |> Html.div []
 
 
-presentParsedMemoryReading : Maybe InputRouteStructure -> ParseMemoryReadingSuccess -> State -> Html.Html Event
+presentParsedMemoryReading : Maybe InputRouteConfig -> ParseMemoryReadingSuccess -> State -> Html.Html Event
 presentParsedMemoryReading maybeInputRoute memoryReading state =
     let
         continueWithTitle title htmlElements =
@@ -833,8 +825,8 @@ presentParsedMemoryReading maybeInputRoute memoryReading state =
         |> Html.div []
 
 
-displayReadOverviewWindowResult : Maybe InputRouteStructure -> MaybeVisible OverviewWindow -> Html.Html Event
-displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
+displayReadOverviewWindowResult : Maybe InputRouteConfig -> MaybeVisible OverviewWindow -> Html.Html Event
+displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
     case maybeOverviewWindow of
         CanNotSeeIt ->
             "Can not see the overview window" |> Html.text
@@ -900,7 +892,7 @@ displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
                                                 (\column -> [ overviewEntry |> column.cellHtmlFromEntry ] |> Html.td [])
 
                                     inputHtml =
-                                        maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] overviewEntry.uiTreeNode
+                                        maybeInputOfferHtml (maybeInputRouteConfig |> Maybe.map inputRouteFromInputConfig) [ MouseClickLeft, MouseClickRight ] overviewEntry.uiTreeNode
                                 in
                                 (columnsHtml ++ [ inputHtml ]) |> Html.tr []
                             )
@@ -910,7 +902,7 @@ displayReadOverviewWindowResult maybeInputRoute maybeOverviewWindow =
                 |> Html.table []
 
 
-displayParsedContextMenus : Maybe InputRouteStructure -> List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenus : Maybe InputRouteConfig -> List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
 displayParsedContextMenus maybeInputRoute contextMenus =
     contextMenus
         |> List.indexedMap
@@ -923,50 +915,15 @@ displayParsedContextMenus maybeInputRoute contextMenus =
         |> Html.div []
 
 
-displayParsedContextMenu : Maybe InputRouteStructure -> EveOnline.MemoryReading.ContextMenu -> Html.Html Event
-displayParsedContextMenu maybeInputRoute contextMenu =
+displayParsedContextMenu : Maybe InputRouteConfig -> EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenu maybeInputRouteConfig contextMenu =
     contextMenu.entries
         |> List.map
             (\menuEntry ->
-                [ menuEntry.text |> Html.text, maybeInputOfferHtml maybeInputRoute [ MouseClickLeft ] menuEntry.uiNode ]
+                [ menuEntry.text |> Html.text, maybeInputOfferHtml (maybeInputRouteConfig |> Maybe.map inputRouteFromInputConfig) [ MouseClickLeft ] menuEntry.uiNode ]
                     |> Html.div []
             )
         |> Html.div []
-
-
-maybeInputOfferHtml : Maybe InputRouteStructure -> List InputOnUINode -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> Html.Html Event
-maybeInputOfferHtml maybeInputRoute enabledInputKinds uiNode =
-    maybeInputRoute
-        |> Maybe.map
-            (\inputRoute ->
-                enabledInputKinds
-                    |> List.map
-                        (\inputKind ->
-                            let
-                                inputCmd =
-                                    UserInputSendInputToUINode
-                                        { uiNode = uiNode
-                                        , input = inputKind
-                                        , windowId = inputRoute.windowId
-                                        , delayMilliseconds = Just inputDelayDefaultMilliseconds
-                                        }
-                            in
-                            [ displayTextForInputKind inputKind |> Html.text ]
-                                |> Html.button [ HE.onClick inputCmd ]
-                        )
-                    |> Html.span []
-            )
-        |> Maybe.withDefault (Html.text "")
-
-
-displayTextForInputKind : InputOnUINode -> String
-displayTextForInputKind inputKind =
-    case inputKind of
-        MouseClickLeft ->
-            "leftclick"
-
-        MouseClickRight ->
-            "rightclick"
 
 
 selectSourceHtml : State -> Html.Html Event
@@ -992,8 +949,8 @@ selectViewModeHtml : State -> Html.Html Event
 selectViewModeHtml state =
     (([ "Select a view mode" |> Html.text ] |> Html.legend [])
         :: ([ ( "View Alternate UI", ViewAlternateUI )
-            , ( "View UI Tree", ViewUITree )
             , ( "View Parsed User Interface", ViewParsedUI )
+            , ( "View UI Tree", ViewUITree )
             ]
                 |> List.map
                     (\( offeredModeLabel, offeredMode ) ->
@@ -1016,18 +973,29 @@ radioButtonHtml groupName labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
+inputRouteFromInputConfig : InputRouteConfig -> FrontendWeb.InspectParsedUserInterface.InputRoute Event
+inputRouteFromInputConfig inputRouteConfig =
+    \uiNode inputKind ->
+        UserInputSendInputToUINode
+            { uiNode = uiNode
+            , input = inputKind
+            , windowId = inputRouteConfig.windowId
+            , delayMilliseconds = Just inputDelayDefaultMilliseconds
+            }
+
+
 viewTreeMemoryReadingUITreeNode :
-    Maybe InputRouteStructure
+    Maybe InputRouteConfig
     -> Dict.Dict String UITreeNodeWithDisplayRegion
     -> UITreeViewState
     -> EveOnline.MemoryReading.UITreeNode
     -> Html.Html Event
-viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewState treeNode =
+viewTreeMemoryReadingUITreeNode maybeInputRouteConfig uiNodesWithDisplayRegion viewState treeNode =
     let
         nodeIsExpanded nodeId =
             viewState.expandedNodes |> List.member nodeId
     in
-    treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode
+    treeViewNodeFromMemoryReadingUITreeNode (maybeInputRouteConfig |> Maybe.map inputRouteFromInputConfig) uiNodesWithDisplayRegion treeNode
         |> renderInteractiveTreeView
             UserInputUISetTreeViewNodeIsExpanded
             nodeIsExpanded
@@ -1036,7 +1004,7 @@ viewTreeMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion viewSta
 
 
 viewTreeParsedUserInterface :
-    Maybe InputRouteStructure
+    Maybe InputRouteConfig
     -> Dict.Dict String UITreeNodeWithDisplayRegion
     -> ParsedUITreeViewState
     -> EveOnline.MemoryReading.ParsedUserInterface
@@ -1045,113 +1013,16 @@ viewTreeParsedUserInterface maybeInputRouteConfig uiNodesWithDisplayRegion viewS
     let
         nodeIsExpanded nodeId =
             viewState.expandedNodes |> List.member nodeId
-
-        maybeInputRoute : Maybe (FrontendWeb.InspectParsedUserInterface.InputRoute Event)
-        maybeInputRoute =
-            maybeInputRouteConfig
-                |> Maybe.map
-                    (\inputRouteConfig ->
-                        \uiNode inputKind ->
-                            UserInputSendInputToUINode
-                                { uiNode = uiNode
-                                , input = inputKind
-                                , windowId = inputRouteConfig.windowId
-                                , delayMilliseconds = Just inputDelayDefaultMilliseconds
-                                }
-                    )
     in
-    renderTreeNodeFromParsedUserInterface maybeInputRoute parsedUserInterface
+    renderTreeNodeFromParsedUserInterface
+        (maybeInputRouteConfig |> Maybe.map inputRouteFromInputConfig)
+        uiNodesWithDisplayRegion
+        parsedUserInterface
         |> renderInteractiveTreeView
             UserInputParsedUISetTreeViewNodeIsExpanded
             nodeIsExpanded
             { focusedPath = viewState.focused, eventForFocus = UserInputFocusInParsedUI }
             []
-
-
-treeViewNodeFromMemoryReadingUITreeNode :
-    Maybe InputRouteStructure
-    -> Dict.Dict String UITreeNodeWithDisplayRegion
-    -> EveOnline.MemoryReading.UITreeNode
-    -> TreeViewNode Event ExpandableViewNode
-treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion treeNode =
-    let
-        nodeIdentityInView =
-            { pythonObjectAddress = treeNode.pythonObjectAddress }
-
-        maybeNodeWithDisplayRegion =
-            uiNodesWithDisplayRegion |> Dict.get treeNode.pythonObjectAddress
-
-        inputHtml =
-            maybeNodeWithDisplayRegion
-                |> Maybe.map
-                    (\nodeWithDisplayRegion ->
-                        maybeInputOfferHtml maybeInputRoute [ MouseClickLeft, MouseClickRight ] nodeWithDisplayRegion
-                    )
-                |> Maybe.withDefault (Html.text "")
-
-        commonSummaryHtml =
-            [ FrontendWeb.InspectParsedUserInterface.uiNodeCommonSummaryText treeNode |> Html.text, inputHtml ] |> Html.span []
-
-        getDisplayChildren _ =
-            let
-                totalDisplayRegionJson =
-                    maybeNodeWithDisplayRegion
-                        |> Maybe.map .totalDisplayRegion
-                        |> Maybe.map
-                            (\totalDisplayRegion ->
-                                [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
-                                    |> List.map
-                                        (\( regionPropertyName, regionProperty ) ->
-                                            ( regionPropertyName, totalDisplayRegion |> regionProperty |> Json.Encode.int )
-                                        )
-                                    |> Json.Encode.object
-                            )
-                        |> Maybe.withDefault Json.Encode.null
-
-                ( childrenNodeChildren, childrenNodeText ) =
-                    case treeNode.children |> Maybe.withDefault [] of
-                        [] ->
-                            ( NoChildren, "No children" )
-
-                        children ->
-                            ( ExpandableChildren
-                                ExpandableUITreeNodeChildren
-                                (\() -> children |> List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion))
-                            , (children |> List.length |> String.fromInt) ++ " children"
-                            )
-
-                displayEntryChildren =
-                    { selfHtml = childrenNodeText |> Html.text, children = childrenNodeChildren }
-
-                propertyDisplayChild ( propertyName, propertyValue ) =
-                    { selfHtml = (propertyName ++ " = " ++ (propertyValue |> Json.Encode.encode 0)) |> Html.text
-                    , children = NoChildren
-                    }
-
-                displayChildrenOtherProperties =
-                    treeNode.dictEntriesOfInterest
-                        |> Dict.toList
-                        |> List.map propertyDisplayChild
-
-                displayEntryOtherProperties =
-                    { selfHtml = (treeNode.dictEntriesOfInterest |> Dict.size |> String.fromInt) ++ " dictEntriesOfInterest" |> Html.text
-                    , children = ExpandableChildren ExpandableUITreeNodeDictEntries (always displayChildrenOtherProperties)
-                    }
-
-                properties =
-                    [ ( "pythonObjectAddress", Json.Encode.string treeNode.pythonObjectAddress )
-                    , ( "pythonObjectTypeName", Json.Encode.string treeNode.pythonObjectTypeName )
-                    , ( "totalDisplayRegion", totalDisplayRegionJson )
-                    ]
-
-                allDisplayChildren =
-                    (properties |> List.map propertyDisplayChild) ++ [ displayEntryOtherProperties, displayEntryChildren ]
-            in
-            allDisplayChildren
-    in
-    { selfHtml = commonSummaryHtml
-    , children = ExpandableChildren (ExpandableUITreeNode nodeIdentityInView) getDisplayChildren
-    }
 
 
 renderInteractiveTreeView :
