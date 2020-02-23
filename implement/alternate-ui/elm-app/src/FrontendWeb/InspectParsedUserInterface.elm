@@ -512,6 +512,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
         viewConfig
         parsedUserInterfaceInventoryWindow.uiNode
         [ parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
+            |> Maybe.andThen Result.toMaybe
             |> fieldFromMaybeInstance
                 { fieldName = "selectedContainerCapacityGauge"
                 , fieldValueSummary = always "..."

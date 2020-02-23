@@ -277,7 +277,7 @@ type alias StationWindow =
 type alias InventoryWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , leftTreeEntries : List InventoryWindowLeftTreeEntry
-    , selectedContainerCapacityGauge : Maybe InventoryWindowCapacityGauge
+    , selectedContainerCapacityGauge : Maybe (Result String InventoryWindowCapacityGauge)
     , selectedContainerInventory : Maybe Inventory
     , buttonToSwitchToListView : Maybe UITreeNodeWithDisplayRegion
     }
@@ -1103,7 +1103,7 @@ parseInventoryWindow windowUiNode =
                 |> List.filterMap getDisplayText
                 |> List.sortBy (String.length >> negate)
                 |> List.head
-                |> Maybe.andThen (parseInventoryCapacityGaugeText >> Result.toMaybe)
+                |> Maybe.map parseInventoryCapacityGaugeText
 
         leftTreeEntries =
             windowUiNode
@@ -1461,6 +1461,8 @@ parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
                         |> String.replace "," ""
                         |> String.replace "." ""
                         |> String.replace " " ""
+                        |> String.replace "\u{00A0}" ""
+                        |> String.replace "\u{202F}" ""
                         |> String.toInt
                         |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
 
