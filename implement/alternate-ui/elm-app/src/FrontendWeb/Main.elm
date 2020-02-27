@@ -1,6 +1,7 @@
 module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
 
 import Browser
+import Browser.Dom
 import Browser.Navigation as Navigation
 import Dict
 import EveOnline.MemoryReading
@@ -31,6 +32,7 @@ import Html.Events as HE
 import Http
 import InterfaceToFrontendClient
 import Json.Decode
+import List.Extra
 import Process
 import Set
 import Task
@@ -40,7 +42,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-23"
+    "2020-02-27"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -127,6 +129,8 @@ type Event
     | UserInputSendInputToUINode UserInputSendInputToUINodeStructure
     | UserInputFocusInUITree (List ExpandableViewNode)
     | UserInputFocusInParsedUI (List ParsedUITreeViewPathNode)
+    | UserInputNavigateToElement String
+    | DiscardEvent
 
 
 type alias HttpRequestErrorStructure =
@@ -359,6 +363,12 @@ update event stateBefore =
                     stateBefore.parsedUITreeView
             in
             ( { stateBefore | parsedUITreeView = { parsedUITreeViewBefore | focused = focusedPath } }, Cmd.none )
+
+        UserInputNavigateToElement elementId ->
+            ( stateBefore, Task.attempt (always DiscardEvent) (Browser.Dom.focus elementId) )
+
+        DiscardEvent ->
+            ( stateBefore, Cmd.none )
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer } -> State -> State
@@ -999,8 +1009,28 @@ viewTreeMemoryReadingUITreeNode maybeInputRouteConfig uiNodesWithDisplayRegion v
         |> renderInteractiveTreeView
             UserInputUISetTreeViewNodeIsExpanded
             nodeIsExpanded
-            { focusedPath = viewState.focused, eventForFocus = UserInputFocusInUITree }
+            { focusedPath = viewState.focused
+            , eventForFocus = UserInputFocusInUITree
+            , setFocusEvent = UserInputNavigateToElement
+            , htmlElementId = htmlElementIdFromUIPathNode
+            }
             []
+
+
+htmlElementIdFromUIPathNode : ExpandableViewNode -> String
+htmlElementIdFromUIPathNode pathNode =
+    case pathNode of
+        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNode nodeIdentity ->
+            "UITreeNode_" ++ nodeIdentity.pythonObjectAddress
+
+        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeChildren ->
+            "Children"
+
+        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeDictEntries ->
+            "DictEntries"
+
+        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeAllDisplayTexts ->
+            "AllDisplayTexts"
 
 
 viewTreeParsedUserInterface :
@@ -1021,19 +1051,46 @@ viewTreeParsedUserInterface maybeInputRouteConfig uiNodesWithDisplayRegion viewS
         |> renderInteractiveTreeView
             UserInputParsedUISetTreeViewNodeIsExpanded
             nodeIsExpanded
-            { focusedPath = viewState.focused, eventForFocus = UserInputFocusInParsedUI }
+            { focusedPath = viewState.focused
+            , eventForFocus = UserInputFocusInParsedUI
+            , setFocusEvent = UserInputNavigateToElement
+            , htmlElementId = htmlElementIdFromParsedUIPathNode
+            }
             []
 
 
+htmlElementIdFromParsedUIPathNode : ParsedUITreeViewPathNode -> String
+htmlElementIdFromParsedUIPathNode pathNode =
+    case pathNode of
+        NamedNode name ->
+            "NamedNode_" ++ name
+
+        IndexedNode index ->
+            "IndexedNode_" ++ (index |> String.fromInt)
+
+        UITreeNode uiTreeNode ->
+            "UITreeNode_" ++ htmlElementIdFromUIPathNode uiTreeNode
+
+
+{-| TODO: Consolidate implementation to get visual tree: Also use `getExpandedPartOfTree`.
+-}
 renderInteractiveTreeView :
     (List expandPathNode -> Bool -> event)
     -> (List expandPathNode -> Bool)
-    -> { focusedPath : List expandPathNode, eventForFocus : List expandPathNode -> event }
+    ->
+        { focusedPath : List expandPathNode
+        , eventForFocus : List expandPathNode -> event
+        , setFocusEvent : String -> event
+        , htmlElementId : expandPathNode -> String
+        }
     -> List expandPathNode
     -> TreeViewNode event expandPathNode
     -> Html.Html event
-renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig currentPath treeNode =
+renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig parentPath treeNode =
     let
+        htmlElementIdFromNodePath =
+            List.map focusConfig.htmlElementId >> String.join "-"
+
         expandIconHtmlFromIsExpanded isExpanded =
             (if isExpanded then
                 "ᐯ"
@@ -1065,20 +1122,26 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
 
                 Just childrenInfo ->
                     let
-                        childPath =
-                            currentPath ++ [ childrenInfo.pathNodeId ]
+                        currentPath =
+                            parentPath ++ [ childrenInfo.pathNodeId ]
 
-                        expandableIsExpanded =
-                            nodeIsExpanded childPath
+                        currentNodeIsExpanded =
+                            nodeIsExpanded currentPath
 
                         expandableButtonHtml =
-                            [ expandIconHtmlFromIsExpanded expandableIsExpanded ]
-                                |> Html.span [ HE.onClick (eventFromNodeIdAndExpandedState childPath (not expandableIsExpanded)), HA.style "cursor" "pointer" ]
+                            [ expandIconHtmlFromIsExpanded currentNodeIsExpanded ]
+                                |> Html.span [ HE.onClick (eventFromNodeIdAndExpandedState currentPath (not currentNodeIsExpanded)), HA.style "cursor" "pointer" ]
 
                         expandableChildrenHtml =
-                            if expandableIsExpanded then
+                            if currentNodeIsExpanded then
                                 childrenInfo.children
-                                    |> List.map (renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusConfig childPath)
+                                    |> List.map
+                                        (renderInteractiveTreeView
+                                            eventFromNodeIdAndExpandedState
+                                            nodeIsExpanded
+                                            focusConfig
+                                            currentPath
+                                        )
                                     |> Html.ul [ HA.style "padding-inline-start" "1em", HA.style "margin-block-start" "0" ]
                                     |> Just
 
@@ -1086,7 +1149,7 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
                                 Nothing
 
                         ariaExpanded =
-                            if expandableIsExpanded then
+                            if currentNodeIsExpanded then
                                 "true"
 
                             else
@@ -1094,19 +1157,94 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
 
                         -- https://www.w3.org/TR/wai-aria-practices/#kbd_roving_tabindex
                         tabIndex =
-                            if focusConfig.focusedPath == childPath then
+                            if focusConfig.focusedPath == currentPath then
                                 0
 
                             else
                                 -1
+
+                        keyEventListeners =
+                            if parentPath /= [] then
+                                []
+
+                            else
+                                let
+                                    immediateNeighborsPaths =
+                                        searchImmediateNeighborsPaths
+                                            focusConfig.focusedPath
+                                            (treeNode |> getExpandedPartOfTree nodeIsExpanded [])
+                                            { currentPath = [], up = Nothing, down = Nothing, left = Nothing, previousSibling = Nothing }
+                                            |> Maybe.withDefault { up = Nothing, down = Nothing, left = Nothing, right = Nothing }
+
+                                    jsonDecodeMapUserInputArrowToEvent inputArrow =
+                                        case inputArrow of
+                                            ArrowLeft ->
+                                                if nodeIsExpanded focusConfig.focusedPath then
+                                                    Json.Decode.succeed (eventFromNodeIdAndExpandedState focusConfig.focusedPath False)
+
+                                                else
+                                                    case immediateNeighborsPaths.left of
+                                                        Nothing ->
+                                                            Json.Decode.fail "Path to left not available."
+
+                                                        Just pathToLeft ->
+                                                            Json.Decode.succeed (focusConfig.setFocusEvent (htmlElementIdFromNodePath pathToLeft))
+
+                                            ArrowRight ->
+                                                if not (nodeIsExpanded focusConfig.focusedPath) then
+                                                    Json.Decode.succeed (eventFromNodeIdAndExpandedState focusConfig.focusedPath True)
+
+                                                else
+                                                    case immediateNeighborsPaths.right of
+                                                        Nothing ->
+                                                            Json.Decode.fail "Path to right not available."
+
+                                                        Just pathToRight ->
+                                                            Json.Decode.succeed (focusConfig.setFocusEvent (htmlElementIdFromNodePath pathToRight))
+
+                                            ArrowUp ->
+                                                case immediateNeighborsPaths.up of
+                                                    Nothing ->
+                                                        Json.Decode.fail "Path up not available."
+
+                                                    Just pathUp ->
+                                                        Json.Decode.succeed (focusConfig.setFocusEvent (htmlElementIdFromNodePath pathUp))
+
+                                            ArrowDown ->
+                                                case immediateNeighborsPaths.down of
+                                                    Nothing ->
+                                                        Json.Decode.fail "Path down not available."
+
+                                                    Just pathDown ->
+                                                        Json.Decode.succeed (focusConfig.setFocusEvent (htmlElementIdFromNodePath pathDown))
+                                in
+                                [ HE.custom "keydown"
+                                    (HE.keyCode
+                                        |> Json.Decode.andThen
+                                            (arrowKeyTypeFromKeyCode
+                                                >> Maybe.map Json.Decode.succeed
+                                                >> Maybe.withDefault (Json.Decode.fail "No arrow key")
+                                            )
+                                        |> Json.Decode.andThen jsonDecodeMapUserInputArrowToEvent
+                                        |> Json.Decode.map
+                                            (\inputEvent ->
+                                                { message = inputEvent
+                                                , stopPropagation = True
+                                                , preventDefault = True
+                                                }
+                                            )
+                                    )
+                                ]
                     in
                     ( Just expandableButtonHtml
                     , expandableChildrenHtml
-                    , [ Html.Attributes.Aria.role "treeitem"
+                    , [ HA.id (htmlElementIdFromNodePath currentPath)
+                      , Html.Attributes.Aria.role "treeitem"
                       , Html.Attributes.Aria.ariaExpanded ariaExpanded
                       , HA.tabindex tabIndex
-                      , HE.onFocus (focusConfig.eventForFocus childPath)
+                      , HE.onFocus (focusConfig.eventForFocus currentPath)
                       ]
+                        ++ keyEventListeners
                     )
 
         expandIconHtml =
@@ -1119,6 +1257,190 @@ renderInteractiveTreeView eventFromNodeIdAndExpandedState nodeIsExpanded focusCo
     , childrenHtml |> Maybe.withDefault (Html.text "")
     ]
         |> Html.li (HA.style "list-style" "none" :: ariaAttributes)
+
+
+type VisualTreeChild event pathNode
+    = VisualWithoutChildren
+    | VisualCollapsed
+    | VisualExpanded pathNode (List (VisualTreeChild event pathNode))
+
+
+mapEmptyChildrenToNotExpandable : TreeViewNode event pathNode -> TreeViewNode event pathNode
+mapEmptyChildrenToNotExpandable tree =
+    let
+        children =
+            case tree.children of
+                NoChildren ->
+                    NoChildren
+
+                ExpandableChildren currentNodeId getChildren ->
+                    case getChildren () of
+                        [] ->
+                            NoChildren
+
+                        nonEmptyChildren ->
+                            ExpandableChildren currentNodeId
+                                (always (nonEmptyChildren |> List.map mapEmptyChildrenToNotExpandable))
+    in
+    { tree | children = children }
+
+
+getExpandedPartOfTree : (List pathNode -> Bool) -> List pathNode -> TreeViewNode event pathNode -> TreeViewNode event pathNode
+getExpandedPartOfTree nodeIsExpanded fromParentPath tree =
+    let
+        children =
+            case tree.children of
+                NoChildren ->
+                    NoChildren
+
+                ExpandableChildren currentNodeId getChildren ->
+                    let
+                        currentPath =
+                            fromParentPath ++ [ currentNodeId ]
+                    in
+                    if nodeIsExpanded currentPath then
+                        ExpandableChildren currentNodeId
+                            (always (getChildren () |> List.map (getExpandedPartOfTree nodeIsExpanded currentPath)))
+
+                    else
+                        ExpandableChildren currentNodeId (always [])
+    in
+    { tree | children = children }
+
+
+searchImmediateNeighborsPaths :
+    List pathNode
+    -> TreeViewNode event pathNode
+    -> { currentPath : List pathNode, up : Maybe (List pathNode), down : Maybe (List pathNode), left : Maybe (List pathNode), previousSibling : Maybe (TreeViewNode event pathNode) }
+    -> Maybe { up : Maybe (List pathNode), down : Maybe (List pathNode), left : Maybe (List pathNode), right : Maybe (List pathNode) }
+searchImmediateNeighborsPaths pathToSearch tree fromParent =
+    -- TODO: Check if impl can be simplified by using List of TreeViewNode instead of single one in 'tree'.
+    case tree.children of
+        NoChildren ->
+            Nothing
+
+        ExpandableChildren currentNodeId getVisualChildren ->
+            let
+                currentPath =
+                    fromParent.currentPath ++ [ currentNodeId ]
+            in
+            case pathToSearch of
+                pathToSearchFirstNode :: remainingPathToSearch ->
+                    if pathToSearchFirstNode /= currentNodeId then
+                        Nothing
+
+                    else if remainingPathToSearch == [] then
+                        let
+                            pathDownFromExpandedContentNodeId =
+                                let
+                                    focusableChildren =
+                                        case tree.children of
+                                            NoChildren ->
+                                                []
+
+                                            ExpandableChildren _ getChildren ->
+                                                getChildren ()
+                                                    |> List.filterMap
+                                                        (\candidate ->
+                                                            case candidate.children of
+                                                                NoChildren ->
+                                                                    Nothing
+
+                                                                ExpandableChildren childNodeId _ ->
+                                                                    Just childNodeId
+                                                        )
+                                in
+                                focusableChildren |> List.head
+
+                            pathDownFromExpandedContent =
+                                pathDownFromExpandedContentNodeId
+                                    |> Maybe.map (List.singleton >> (++) currentPath)
+                        in
+                        Just
+                            { up = fromParent.up
+                            , down = pathDownFromExpandedContent |> maybeWithMaybeDefault fromParent.down
+                            , left = fromParent.left
+                            , right = pathDownFromExpandedContent
+                            }
+
+                    else
+                        let
+                            visualChildren =
+                                getVisualChildren ()
+
+                            focusableChildren =
+                                visualChildren
+                                    |> List.filter
+                                        (\candidate ->
+                                            case candidate.children of
+                                                NoChildren ->
+                                                    False
+
+                                                ExpandableChildren _ _ ->
+                                                    True
+                                        )
+
+                            getChildFromFocusableChildIndex childIndex =
+                                -- TODO: make each visual children focusable, not only the expandable ones.
+                                case focusableChildren |> List.Extra.getAt childIndex of
+                                    Nothing ->
+                                        Nothing
+
+                                    Just child ->
+                                        case child.children of
+                                            NoChildren ->
+                                                Nothing
+
+                                            ExpandableChildren childPathNodeId _ ->
+                                                Just ( child, currentPath ++ [ childPathNodeId ] )
+                        in
+                        focusableChildren
+                            |> List.indexedMap
+                                (\childIndex child ->
+                                    let
+                                        visualNextUpperPath =
+                                            getChildFromFocusableChildIndex (childIndex - 1)
+                                                |> Maybe.map Tuple.second
+                                                |> maybeWithMaybeDefault (Just currentPath)
+
+                                        visualNextLowerPath =
+                                            getChildFromFocusableChildIndex (childIndex + 1)
+                                                |> Maybe.map Tuple.second
+                                                |> maybeWithMaybeDefault fromParent.down
+                                    in
+                                    searchImmediateNeighborsPaths
+                                        remainingPathToSearch
+                                        child
+                                        { currentPath = currentPath
+                                        , up = visualNextUpperPath
+                                        , down = visualNextLowerPath
+                                        , left = Just currentPath
+                                        , previousSibling = getChildFromFocusableChildIndex (childIndex - 1) |> Maybe.map Tuple.first
+                                        }
+                                )
+                            |> List.filterMap identity
+                            |> List.head
+
+                _ ->
+                    Nothing
+
+
+type ArrowKeyType
+    = ArrowUp
+    | ArrowDown
+    | ArrowLeft
+    | ArrowRight
+
+
+arrowKeyTypeFromKeyCode : Int -> Maybe ArrowKeyType
+arrowKeyTypeFromKeyCode keyCode =
+    [ ( 38, ArrowUp )
+    , ( 40, ArrowDown )
+    , ( 37, ArrowLeft )
+    , ( 39, ArrowRight )
+    ]
+        |> Dict.fromList
+        |> Dict.get keyCode
 
 
 parseMemoryReadingFromJson : String -> Result Json.Decode.Error ParseMemoryReadingSuccess
@@ -1234,3 +1556,13 @@ describeHttpError { error, bodyString } =
 
         Http.BadBody errorMessage ->
             "BadPayload: " ++ errorMessage
+
+
+maybeWithMaybeDefault : Maybe a -> Maybe a -> Maybe a
+maybeWithMaybeDefault maybeB maybeA =
+    case maybeA of
+        Just a ->
+            Just a
+
+        Nothing ->
+            maybeB
