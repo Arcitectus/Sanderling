@@ -1,5 +1,6 @@
 module EveOnline.MemoryReading exposing
-    ( ChatUserEntry
+    ( AgentConversationWindow
+    , ChatUserEntry
     , ChatWindow
     , ChatWindowStack
     , ChildOfNodeWithDisplayRegion(..)
@@ -21,6 +22,7 @@ module EveOnline.MemoryReading exposing
     , InventoryItemsView(..)
     , InventoryWindow
     , InventoryWindowCapacityGauge
+    , MarketOrdersWindow
     , MaybeVisible(..)
     , MessageBox
     , ModuleButtonTooltip
@@ -31,6 +33,7 @@ module EveOnline.MemoryReading exposing
     , ParsedUserInterface
     , ProbeScanResult
     , ProbeScannerWindow
+    , SelectedItemWindow
     , ShipManeuverType(..)
     , ShipUI
     , ShipUIIndication
@@ -80,11 +83,14 @@ type alias ParsedUserInterface =
     , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
     , infoPanelRoute : MaybeVisible InfoPanelRoute
     , overviewWindow : MaybeVisible OverviewWindow
+    , selectedItemWindow : MaybeVisible SelectedItemWindow
     , dronesWindow : MaybeVisible DronesWindow
     , probeScannerWindow : MaybeVisible ProbeScannerWindow
     , stationWindow : MaybeVisible StationWindow
     , inventoryWindows : List InventoryWindow
     , chatWindowStacks : List ChatWindowStack
+    , agentConversationWindows : List AgentConversationWindow
+    , marketOrdersWindow : MaybeVisible MarketOrdersWindow
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
     , messageBoxes : List MessageBox
@@ -151,13 +157,16 @@ type alias ShipUI =
 
 
 type alias ShipUIIndication =
-    { maneuverType : MaybeVisible ShipManeuverType
+    { uiNode : UITreeNodeWithDisplayRegion
+    , maneuverType : MaybeVisible ShipManeuverType
     }
 
 
 type alias ShipUIModule =
     { uiNode : UITreeNodeWithDisplayRegion
+    , slotUINode : UITreeNodeWithDisplayRegion
     , isActive : Maybe Bool
+    , isHiliteVisible : Bool
     }
 
 
@@ -220,6 +229,17 @@ type alias OverviewWindowEntry =
     , distanceInMeters : Result String Int
     , iconSpriteColorPercent : Maybe ColorComponents
     , namesUnderSpaceObjectIcon : Set.Set String
+    }
+
+
+type alias SelectedItemWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , orbitButton : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
+type alias MarketOrdersWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
     }
 
 
@@ -345,6 +365,11 @@ type alias NeocomClock =
     }
 
 
+type alias AgentConversationWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    }
+
+
 type alias Expander =
     { uiNode : UITreeNodeWithDisplayRegion
     , texturePath : Maybe String
@@ -377,12 +402,15 @@ parseUserInterfaceFromUITree uiTree =
     , infoPanelLocationInfo = parseInfoPanelLocationInfoFromUITreeRoot uiTree
     , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
+    , selectedItemWindow = parseSelectedItemWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
     , probeScannerWindow = parseProbeScannerWindowFromUITreeRoot uiTree
     , stationWindow = parseStationWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
+    , agentConversationWindows = parseAgentConversationWindowsFromUITreeRoot uiTree
+    , marketOrdersWindow = parseMarketOrdersWindowFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     }
@@ -602,29 +630,44 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpeedGauge")
                         |> List.head
 
-                maybeIndicationElement =
-                    shipUINode.uiNode
-                        |> listDescendantsInUITreeNode
-                        |> List.filter (getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "indicationcontainer") >> Maybe.withDefault False)
+                maybeIndicationNode =
+                    shipUINode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "indicationcontainer") >> Maybe.withDefault False)
                         |> List.head
 
                 indication =
-                    maybeIndicationElement
+                    maybeIndicationNode
                         |> Maybe.map (parseShipUIIndication >> CanSee)
                         |> Maybe.withDefault CanNotSeeIt
 
                 modules =
                     shipUINode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButton")
-                        |> List.map
-                            (\moduleNode ->
-                                { uiNode = moduleNode
-                                , isActive =
-                                    moduleNode.uiNode.dictEntriesOfInterest
-                                        |> Dict.get "ramp_active"
-                                        |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
-                                }
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ShipSlot")
+                        |> List.filterMap
+                            (\slotNode ->
+                                slotNode
+                                    |> listDescendantsWithDisplayRegion
+                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButton")
+                                    |> List.head
+                                    |> Maybe.map
+                                        (\moduleNode ->
+                                            { uiNode = moduleNode
+                                            , slotUINode = slotNode
+                                            , isActive =
+                                                moduleNode.uiNode.dictEntriesOfInterest
+                                                    |> Dict.get "ramp_active"
+                                                    |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
+                                            , isHiliteVisible =
+                                                slotNode
+                                                    |> listDescendantsWithDisplayRegion
+                                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
+                                                    |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "hilite"))
+                                                    |> List.isEmpty
+                                                    |> not
+                                            }
+                                        )
                             )
 
                 getLastValuePercentFromGaugeName gaugeName =
@@ -690,11 +733,11 @@ parseTarget targetNode =
     }
 
 
-parseShipUIIndication : UITreeNode -> ShipUIIndication
+parseShipUIIndication : UITreeNodeWithDisplayRegion -> ShipUIIndication
 parseShipUIIndication indicationUINode =
     let
         displayTexts =
-            indicationUINode |> getAllContainedDisplayTexts
+            indicationUINode.uiNode |> getAllContainedDisplayTexts
 
         maneuverType =
             [ ( "Warp", ManeuverWarp )
@@ -713,7 +756,7 @@ parseShipUIIndication indicationUINode =
                 |> List.head
                 |> canNotSeeItFromMaybeNothing
     in
-    { maneuverType = maneuverType }
+    { uiNode = indicationUINode, maneuverType = maneuverType }
 
 
 parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible OverviewWindow
@@ -864,6 +907,36 @@ parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
 
                                 Nothing ->
                                     Err ("Text did not match expected number format: '" ++ distanceDisplayText ++ "'")
+
+
+parseSelectedItemWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible SelectedItemWindow
+parseSelectedItemWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ActiveItem")
+        |> List.head
+        |> Maybe.map parseSelectedItemWindow
+        |> canNotSeeItFromMaybeNothing
+
+
+parseSelectedItemWindow : UITreeNodeWithDisplayRegion -> SelectedItemWindow
+parseSelectedItemWindow windowNode =
+    let
+        actionButtonFromTexturePathEnding texturePathEnding =
+            windowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter
+                    (.uiNode
+                        >> getTexturePathFromDictEntries
+                        >> Maybe.map (String.toLower >> String.endsWith (String.toLower texturePathEnding))
+                        >> Maybe.withDefault False
+                    )
+                |> List.head
+
+        orbitButton =
+            actionButtonFromTexturePathEnding "44_32_21.png"
+    in
+    { uiNode = windowNode, orbitButton = orbitButton }
 
 
 parseDronesWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible DronesWindow
@@ -1317,6 +1390,36 @@ parseChatUserEntry chatUserUiNode =
     { uiNode = chatUserUiNode
     , name = name
     , standingIconHint = standingIconHint
+    }
+
+
+parseAgentConversationWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List AgentConversationWindow
+parseAgentConversationWindowsFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "AgentDialogueWindow")
+        |> List.map parseAgentConversationWindow
+
+
+parseAgentConversationWindow : UITreeNodeWithDisplayRegion -> AgentConversationWindow
+parseAgentConversationWindow windowUINode =
+    { uiNode = windowUINode
+    }
+
+
+parseMarketOrdersWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible MarketOrdersWindow
+parseMarketOrdersWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MarketOrdersWnd")
+        |> List.head
+        |> Maybe.map parseMarketOrdersWindow
+        |> canNotSeeItFromMaybeNothing
+
+
+parseMarketOrdersWindow : UITreeNodeWithDisplayRegion -> MarketOrdersWindow
+parseMarketOrdersWindow windowUINode =
+    { uiNode = windowUINode
     }
 
 

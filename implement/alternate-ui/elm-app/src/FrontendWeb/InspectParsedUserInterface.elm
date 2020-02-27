@@ -151,6 +151,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromOverviewWindow viewConfig
                         }
+                , parsedUserInterface.selectedItemWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "selectedItemWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromSelectedItemWindow viewConfig
+                        }
                 , parsedUserInterface.dronesWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "dronesWindow"
@@ -178,6 +184,17 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                     |> fieldFromListInstance
                         { fieldName = "chatWindowStacks"
                         , fieldValueChildren = treeNodeChildrenFromChatWindowStack viewConfig
+                        }
+                , parsedUserInterface.agentConversationWindows
+                    |> fieldFromListInstance
+                        { fieldName = "agentConversationWindows"
+                        , fieldValueChildren = treeNodeChildrenFromAgentConversationWindow viewConfig
+                        }
+                , parsedUserInterface.marketOrdersWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "marketOrdersWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeVisibleInstance
@@ -265,7 +282,13 @@ treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig parsedUserInterfa
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         parsedUserInterfaceShipUIModule.uiNode
-        [ parsedUserInterfaceShipUIModule.isActive |> fieldFromMaybeBool "isActive"
+        [ { fieldName = "slotUINode"
+          , fieldValueSummary = "..."
+          , fieldValueChildren =
+                always [ treeViewNodeFromUINode viewConfig parsedUserInterfaceShipUIModule.slotUINode ]
+          }
+        , parsedUserInterfaceShipUIModule.isActive |> fieldFromMaybeBool "isActive"
+        , parsedUserInterfaceShipUIModule.isHiliteVisible |> fieldFromBool "isHiliteVisible"
         ]
 
 
@@ -652,6 +675,39 @@ treeNodeChildrenFromModuleButtonTooltip viewConfig moduleButtonTooltip =
         []
 
 
+treeNodeChildrenFromAgentConversationWindow :
+    ViewConfig event
+    -> EveOnline.MemoryReading.AgentConversationWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromAgentConversationWindow viewConfig agentConversationWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        agentConversationWindow.uiNode
+        []
+
+
+treeNodeChildrenFromSelectedItemWindow :
+    ViewConfig event
+    -> EveOnline.MemoryReading.SelectedItemWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromSelectedItemWindow viewConfig selectedItemWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        selectedItemWindow.uiNode
+        []
+
+
+treeNodeChildrenFromMarketOrdersWindow :
+    ViewConfig event
+    -> EveOnline.MemoryReading.MarketOrdersWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        marketOrdersWindow.uiNode
+        []
+
+
 treeNodeChildrenFromNeocom :
     ViewConfig event
     -> EveOnline.MemoryReading.Neocom
@@ -944,6 +1000,17 @@ fieldFromListInstance listField list =
                         }
                     )
             )
+    }
+
+
+fieldFromBool :
+    String
+    -> Bool
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromBool fieldName fieldValue =
+    { fieldName = fieldName
+    , fieldValueSummary = Json.Encode.bool fieldValue |> Json.Encode.encode 0
+    , fieldValueChildren = always []
     }
 
 
