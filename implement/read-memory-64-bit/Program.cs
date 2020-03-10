@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-02-06";
+        static string AppVersionId => "2020-03-10";
 
         static int Main(string[] args)
         {
@@ -451,12 +451,12 @@ namespace read_memory_64_bit
 
                 if (readContent)
                 {
-                    int bytesRead = 0;
+                    UIntPtr bytesRead = UIntPtr.Zero;
                     var regionContentBuffer = new byte[(long)m.RegionSize];
 
-                    WinApi.ReadProcessMemory(processHandle, regionBaseAddress, regionContentBuffer, regionContentBuffer.Length, ref bytesRead);
+                    WinApi.ReadProcessMemory(processHandle, regionBaseAddress, regionContentBuffer, (UIntPtr)regionContentBuffer.LongLength, ref bytesRead);
 
-                    if (bytesRead != regionContentBuffer.Length)
+                    if (bytesRead.ToUInt64() != (ulong)regionContentBuffer.LongLength)
                         throw new Exception($"Failed to ReadProcessMemory at 0x{regionBaseAddress:X}: Only read " + bytesRead + " bytes.");
 
                     regionContent = regionContentBuffer;
@@ -876,6 +876,12 @@ namespace read_memory_64_bit
 
                 var numberOfSlots = (int)ma_mask + 1;
 
+                if (numberOfSlots < 0 || 10_000 < numberOfSlots)
+                {
+                    //  Avoid stalling the whole reading process when a single dictionary contains garbage.
+                    return null;
+                }
+
                 var slotsMemorySize = numberOfSlots * 8 * 3;
 
                 var slotsMemory = memoryReader.ReadBytes(ma_table, slotsMemorySize);
@@ -1189,18 +1195,23 @@ namespace read_memory_64_bit
         {
             var buffer = new byte[length];
 
-            int numberOfBytesRead = 0;
+            UIntPtr numberOfBytesReadAsPtr = UIntPtr.Zero;
 
-            if (!WinApi.ReadProcessMemory(processHandle, startAddress, buffer, buffer.Length, ref numberOfBytesRead))
+            if (!WinApi.ReadProcessMemory(processHandle, startAddress, buffer, (UIntPtr)buffer.LongLength, ref numberOfBytesReadAsPtr))
                 return null;
+
+            var numberOfBytesRead = numberOfBytesReadAsPtr.ToUInt64();
 
             if (numberOfBytesRead == 0)
                 return null;
 
-            if (numberOfBytesRead == buffer.Length)
+            if (int.MaxValue < numberOfBytesRead)
+                return null;
+
+            if (numberOfBytesRead == (ulong)buffer.LongLength)
                 return buffer;
 
-            return buffer.AsSpan(0, numberOfBytesRead).ToArray();
+            return buffer.AsSpan(0, (int)numberOfBytesRead).ToArray();
         }
     }
 
@@ -1213,7 +1224,7 @@ namespace read_memory_64_bit
         static public extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, uint dwLength);
 
         [DllImport("kernel32.dll")]
-        static public extern bool ReadProcessMemory(IntPtr hProcess, ulong lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
+        static public extern bool ReadProcessMemory(IntPtr hProcess, ulong lpBaseAddress, byte[] lpBuffer, UIntPtr nSize, ref UIntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static public extern bool CloseHandle(IntPtr hHandle);
