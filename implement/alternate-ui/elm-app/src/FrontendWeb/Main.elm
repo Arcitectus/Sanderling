@@ -42,7 +42,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-02-27"
+    "2020-03-10"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -76,7 +76,7 @@ type alias State =
 
 
 type alias ReadFromLiveProcessState =
-    { readEveOnlineClientProcessesIdsResult : Maybe (Result String (Set.Set Int))
+    { listEveOnlineClientProcessesResult : Maybe (Result String (List EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct))
     , searchUIRootAddressResult : Maybe ( EveOnline.VolatileHostInterface.SearchUIRootAddressStructure, Result String EveOnline.VolatileHostInterface.SearchUIRootAddressResultStructure )
     , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
     , lastPendingRequestToReadMemoryTimeMilli : Maybe Int
@@ -196,7 +196,7 @@ init _ url navigationKey =
     , timeMilli = 0
     , selectedSource = FromFile
     , readFromLiveProcess =
-        { readEveOnlineClientProcessesIdsResult = Nothing
+        { listEveOnlineClientProcessesResult = Nothing
         , searchUIRootAddressResult = Nothing
         , readMemoryResult = Nothing
         , lastPendingRequestToReadMemoryTimeMilli = Nothing
@@ -375,9 +375,9 @@ integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClie
 integrateBackendResponse { request, result } stateBefore =
     case request of
         -- TODO: Consolidate unpack response common parts.
-        InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.GetEveOnlineProcessesIds ->
+        InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.ListGameClientProcessesRequest ->
             let
-                getEveOnlineClientProcessesIdsResult =
+                listEveOnlineClientProcessesResult =
                     result
                         |> Result.mapError describeHttpError
                         |> Result.andThen
@@ -404,8 +404,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds processIds ->
-                                                                            Ok (processIds |> Set.fromList)
+                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse gameClientProcesses ->
+                                                                            Ok gameClientProcesses
 
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
@@ -421,7 +421,7 @@ integrateBackendResponse { request, result } stateBefore =
             { stateBefore
                 | readFromLiveProcess =
                     { readFromLiveProcessBefore
-                        | readEveOnlineClientProcessesIdsResult = Just getEveOnlineClientProcessesIdsResult
+                        | listEveOnlineClientProcessesResult = Just listEveOnlineClientProcessesResult
                     }
             }
 
@@ -454,8 +454,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds _ ->
-                                                                            Err "Unexpected response: EveOnlineProcessesIds"
+                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse _ ->
+                                                                            Err "Unexpected response: ListGameClientProcessesResponse"
 
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
@@ -525,8 +525,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.EveOnlineProcessesIds _ ->
-                                                                            Err "Unexpected response: EveOnlineProcessesIds"
+                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse _ ->
+                                                                            Err "Unexpected response: ListGameClientProcessesResponse"
 
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult searchUIRootAddressResult ->
                                                                             Ok searchUIRootAddressResult
@@ -563,17 +563,17 @@ decideNextStepToReadFromLiveProcess :
         )
 decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
     let
-        requestGetProcessesIds =
-            apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.GetEveOnlineProcessesIds)
+        requestListGameClientProcesses =
+            apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.ListGameClientProcessesRequest)
     in
     case stateBefore.searchUIRootAddressResult of
         Nothing ->
-            case stateBefore.readEveOnlineClientProcessesIdsResult of
+            case stateBefore.listEveOnlineClientProcessesResult of
                 Nothing ->
                     ( stateBefore
                     , { describeState = "Did not yet search for the IDs of the EVE Online client processes."
                       , lastMemoryReading = Nothing
-                      , nextCmd = requestGetProcessesIds
+                      , nextCmd = requestListGameClientProcesses
                       }
                     )
 
@@ -581,26 +581,29 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                     ( stateBefore
                     , { describeState = "Failed to get IDs of the EVE Online client processes: " ++ error
                       , lastMemoryReading = Nothing
-                      , nextCmd = requestGetProcessesIds
+                      , nextCmd = requestListGameClientProcesses
                       }
                     )
 
-                Just (Ok eveOnlineClientProcessesIds) ->
-                    case eveOnlineClientProcessesIds |> Set.toList of
-                        [] ->
+                Just (Ok eveOnlineClientProcesses) ->
+                    case eveOnlineClientProcesses |> selectGameClientProcess of
+                        Err error ->
                             ( stateBefore
-                            , { describeState = "Looks like there is no EVE Online client process started. I continue looking in case one is started..."
+                            , { describeState = error ++ " Looks like there is no EVE Online client process started. I continue looking in case one is started..."
                               , lastMemoryReading = Nothing
-                              , nextCmd = requestGetProcessesIds
+                              , nextCmd = requestListGameClientProcesses
                               }
                             )
 
-                        eveOnlineProcessId :: _ ->
+                        Ok selectGameClientResult ->
                             let
+                                gameClientProcessId =
+                                    selectGameClientResult.selectedProcess.processId
+
                                 requestSearchUIRoot =
                                     apiRequestCmd
                                         (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                            (EveOnline.VolatileHostInterface.SearchUIRootAddress { processId = eveOnlineProcessId })
+                                            (EveOnline.VolatileHostInterface.SearchUIRootAddress { processId = gameClientProcessId })
                                         )
 
                                 searchStillPending =
@@ -616,7 +619,9 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                                         ( { stateBefore | lastPendingRequestToReadMemoryTimeMilli = Just timeMilli }, requestSearchUIRoot )
                             in
                             ( state
-                            , { describeState = "Search the address of the UI root in process " ++ (eveOnlineProcessId |> String.fromInt)
+                            , { describeState =
+                                    (("Search the address of the UI root in process " ++ (gameClientProcessId |> String.fromInt)) :: selectGameClientResult.report)
+                                        |> String.join "\n"
                               , lastMemoryReading = Nothing
                               , nextCmd = nextCmd
                               }
@@ -689,6 +694,33 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                       , lastMemoryReading = lastMemoryReading
                       }
                     )
+
+
+selectGameClientProcess :
+    List EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct
+    -> Result String { selectedProcess : EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct, report : List String }
+selectGameClientProcess gameClientProcesses =
+    case gameClientProcesses |> List.sortBy .mainWindowZIndex |> List.head of
+        Nothing ->
+            Err "I did not find an EVE Online client process."
+
+        Just selectedProcess ->
+            let
+                report =
+                    if [ selectedProcess ] == gameClientProcesses then
+                        []
+
+                    else
+                        [ "I found "
+                            ++ (gameClientProcesses |> List.length |> String.fromInt)
+                            ++ " game client processes. I selected process "
+                            ++ (selectedProcess.processId |> String.fromInt)
+                            ++ " ('"
+                            ++ selectedProcess.mainWindowTitle
+                            ++ "') because its main window was the topmost."
+                        ]
+            in
+            Ok { selectedProcess = selectedProcess, report = report }
 
 
 view : State -> Browser.Document Event

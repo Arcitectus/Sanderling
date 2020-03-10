@@ -1,6 +1,7 @@
 module EveOnline.VolatileHostInterface exposing
     ( ConsoleBeepStructure
     , EffectOnWindowStructure(..)
+    , GameClientProcessSummaryStruct
     , GetMemoryReadingResultStructure(..)
     , Location2d
     , MouseButton(..)
@@ -23,7 +24,7 @@ import Json.Encode
 
 
 type RequestToVolatileHost
-    = GetEveOnlineProcessesIds
+    = ListGameClientProcessesRequest
     | SearchUIRootAddress SearchUIRootAddressStructure
     | GetMemoryReading GetMemoryReadingStructure
     | EffectOnWindow (TaskOnWindowStructure EffectOnWindowStructure)
@@ -31,9 +32,16 @@ type RequestToVolatileHost
 
 
 type ResponseFromVolatileHost
-    = EveOnlineProcessesIds (List Int)
+    = ListGameClientProcessesResponse (List GameClientProcessSummaryStruct)
     | SearchUIRootAddressResult SearchUIRootAddressResultStructure
     | GetMemoryReadingResult GetMemoryReadingResultStructure
+
+
+type alias GameClientProcessSummaryStruct =
+    { processId : Int
+    , mainWindowTitle : String
+    , mainWindowZIndex : Int
+    }
 
 
 type alias GetMemoryReadingStructure =
@@ -108,6 +116,7 @@ type VirtualKeyCode
     | VK_CONTROL
     | VK_MENU
     | VK_ESCAPE
+    | VK_SPACE
 
 
 type LocationRelativeToWindow
@@ -154,8 +163,8 @@ deserializeResponseFromVolatileHost =
 decodeResponseFromVolatileHost : Json.Decode.Decoder ResponseFromVolatileHost
 decodeResponseFromVolatileHost =
     Json.Decode.oneOf
-        [ Json.Decode.field "eveOnlineProcessesIds" (Json.Decode.list Json.Decode.int)
-            |> Json.Decode.map EveOnlineProcessesIds
+        [ Json.Decode.field "ListGameClientProcessesResponse" (Json.Decode.list jsonDecodeGameClientProcessSummary)
+            |> Json.Decode.map ListGameClientProcessesResponse
         , Json.Decode.field "SearchUIRootAddressResult" decodeSearchUIRootAddressResult
             |> Json.Decode.map SearchUIRootAddressResult
         , Json.Decode.field "GetMemoryReadingResult" decodeGetMemoryReadingResult
@@ -166,8 +175,8 @@ decodeResponseFromVolatileHost =
 encodeRequestToVolatileHost : RequestToVolatileHost -> Json.Encode.Value
 encodeRequestToVolatileHost request =
     case request of
-        GetEveOnlineProcessesIds ->
-            Json.Encode.object [ ( "GetEveOnlineProcessesIds", Json.Encode.object [] ) ]
+        ListGameClientProcessesRequest ->
+            Json.Encode.object [ ( "ListGameClientProcessesRequest", Json.Encode.object [] ) ]
 
         SearchUIRootAddress searchUIRootAddress ->
             Json.Encode.object [ ( "SearchUIRootAddress", searchUIRootAddress |> encodeSearchUIRootAddress ) ]
@@ -182,10 +191,18 @@ encodeRequestToVolatileHost request =
             Json.Encode.object [ ( "EffectConsoleBeepSequence", effectConsoleBeepSequence |> Json.Encode.list encodeConsoleBeep ) ]
 
 
+jsonDecodeGameClientProcessSummary : Json.Decode.Decoder GameClientProcessSummaryStruct
+jsonDecodeGameClientProcessSummary =
+    Json.Decode.map3 GameClientProcessSummaryStruct
+        (Json.Decode.field "processId" Json.Decode.int)
+        (Json.Decode.field "mainWindowTitle" Json.Decode.string)
+        (Json.Decode.field "mainWindowZIndex" Json.Decode.int)
+
+
 decodeRequestToVolatileHost : Json.Decode.Decoder RequestToVolatileHost
 decodeRequestToVolatileHost =
     Json.Decode.oneOf
-        [ Json.Decode.field "GetEveOnlineProcessesIds" (Json.Decode.succeed GetEveOnlineProcessesIds)
+        [ Json.Decode.field "ListGameClientProcessesRequest" (jsonDecodeSucceedWhenNotNull ListGameClientProcessesRequest)
         , Json.Decode.field "SearchUIRootAddress" (decodeSearchUIRootAddress |> Json.Decode.map SearchUIRootAddress)
         , Json.Decode.field "GetMemoryReading" (decodeGetMemoryReading |> Json.Decode.map GetMemoryReading)
         , Json.Decode.field "EffectOnWindow" (decodeTaskOnWindow decodeEffectOnWindowStructure |> Json.Decode.map EffectOnWindow)
@@ -409,3 +426,19 @@ virtualKeyCodeAsInteger keyCode =
 
         VK_ESCAPE ->
             0x1B
+
+        VK_SPACE ->
+            0x20
+
+
+jsonDecodeSucceedWhenNotNull : a -> Json.Decode.Decoder a
+jsonDecodeSucceedWhenNotNull valueIfNotNull =
+    Json.Decode.value
+        |> Json.Decode.andThen
+            (\asValue ->
+                if asValue == Json.Encode.null then
+                    Json.Decode.fail "Is null."
+
+                else
+                    Json.Decode.succeed valueIfNotNull
+            )

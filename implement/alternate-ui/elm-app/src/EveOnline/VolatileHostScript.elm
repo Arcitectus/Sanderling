@@ -1,4 +1,4 @@
-module EveOnline.VolatileHostScript exposing ( setupScript )
+module EveOnline.VolatileHostScript exposing (setupScript)
 
 
 setupScript : String
@@ -45,7 +45,7 @@ string ToStringBase16(byte[] array) => BitConverter.ToString(array).Replace("-",
 
 class Request
 {
-    public object GetEveOnlineProcessesIds;
+    public object ListGameClientProcessesRequest;
 
     public SearchUIRootAddressStructure SearchUIRootAddress;
 
@@ -128,13 +128,22 @@ class Request
 
 class Response
 {
-    public int[] eveOnlineProcessesIds;
+    public GameClientProcessSummaryStruct[] ListGameClientProcessesResponse;
 
     public SearchUIRootAddressResultStructure SearchUIRootAddressResult;
 
     public GetMemoryReadingResultStructure GetMemoryReadingResult;
 
     public object effectExecuted;
+
+    public class GameClientProcessSummaryStruct
+    {
+        public int processId;
+
+        public string mainWindowTitle;
+
+        public int mainWindowZIndex;
+    }
 
     public class SearchUIRootAddressResultStructure
     {
@@ -171,12 +180,12 @@ Response request(Request request)
 {
     SetProcessDPIAware();
 
-    if (request.GetEveOnlineProcessesIds != null)
+    if (request.ListGameClientProcessesRequest != null)
     {
         return new Response
         {
-            eveOnlineProcessesIds =
-                GetWindowsProcessesLookingLikeEVEOnlineClient().Select(proc => proc.Id).ToArray(),
+            ListGameClientProcessesResponse =
+                ListGameClientProcesses().ToArray(),
         };
     }
 
@@ -407,7 +416,7 @@ string SerializeToJsonForBot<T>(T value) =>
             //  Bot code does not expect properties with null values, see https://github.com/Viir/bots/blob/880d745b0aa8408a4417575d54ecf1f513e7aef4/explore/2019-05-14.eve-online-bot-framework/src/Sanderling_Interface_20190514.elm
             NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
 
-            //	https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type/18223985#18223985
+            // https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type/18223985#18223985
             ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
         });
 
@@ -424,6 +433,31 @@ static public class WinApi
 {
     [DllImport("user32.dll", SetLastError = true)]
     static public extern bool SetProcessDPIAware();
+
+    [DllImport("user32.dll")]
+    static public extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    /*
+    https://stackoverflow.com/questions/19867402/how-can-i-use-enumwindows-to-find-windows-with-a-specific-caption-title/20276701#20276701
+    https://stackoverflow.com/questions/295996/is-the-order-in-which-handles-are-returned-by-enumwindows-meaningful/296014#296014
+    */
+    public static System.Collections.Generic.IReadOnlyList<IntPtr> ListWindowHandlesInZOrder()
+    {
+        IntPtr found = IntPtr.Zero;
+        System.Collections.Generic.List<IntPtr> windowHandles = new System.Collections.Generic.List<IntPtr>();
+
+        EnumWindows(delegate (IntPtr wnd, IntPtr param)
+        {
+            windowHandles.Add(wnd);
+
+            // return true here so that we iterate all windows
+            return true;
+        }, IntPtr.Zero);
+
+        return windowHandles;
+    }
 }
 
 struct Rectangle
@@ -446,6 +480,32 @@ struct Rectangle
 System.Diagnostics.Process[] GetWindowsProcessesLookingLikeEVEOnlineClient() =>
     System.Diagnostics.Process.GetProcessesByName("exefile");
 
+
+System.Collections.Generic.IReadOnlyList<Response.GameClientProcessSummaryStruct> ListGameClientProcesses()
+{
+    var allWindowHandlesInZOrder = WinApi.ListWindowHandlesInZOrder();
+
+    int? zIndexFromWindowHandle(IntPtr windowHandleToSearch) =>
+        allWindowHandlesInZOrder
+        .Select((windowHandle, index) => (windowHandle, index: (int?)index))
+        .FirstOrDefault(handleAndIndex => handleAndIndex.windowHandle == windowHandleToSearch)
+        .index;
+
+    var processes =
+        GetWindowsProcessesLookingLikeEVEOnlineClient()
+        .Select(process =>
+        {
+            return new Response.GameClientProcessSummaryStruct
+            {
+                processId = process.Id,
+                mainWindowTitle = process.MainWindowTitle,
+                mainWindowZIndex = zIndexFromWindowHandle(process.MainWindowHandle) ?? 9999,
+            };
+        })
+        .ToList();
+
+    return processes;
+}
 
 string InterfaceToHost_Request(string request)
 {
