@@ -13,6 +13,7 @@ module EveOnline.MemoryReading exposing
     , DronesWindowDroneGroupHeader
     , DronesWindowEntry
     , Expander
+    , FittingWindow
     , Hitpoints
     , InfoPanelLocationInfo
     , InfoPanelLocationInfoExpandedContent
@@ -85,6 +86,7 @@ type alias ParsedUserInterface =
     , overviewWindow : MaybeVisible OverviewWindow
     , selectedItemWindow : MaybeVisible SelectedItemWindow
     , dronesWindow : MaybeVisible DronesWindow
+    , fittingWindow : MaybeVisible FittingWindow
     , probeScannerWindow : MaybeVisible ProbeScannerWindow
     , stationWindow : MaybeVisible StationWindow
     , inventoryWindows : List InventoryWindow
@@ -94,6 +96,7 @@ type alias ParsedUserInterface =
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
     , messageBoxes : List MessageBox
+    , layerAbovemain : MaybeVisible UITreeNodeWithDisplayRegion
     }
 
 
@@ -235,6 +238,11 @@ type alias OverviewWindowEntry =
 type alias SelectedItemWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , orbitButton : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
+type alias FittingWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
     }
 
 
@@ -404,6 +412,7 @@ parseUserInterfaceFromUITree uiTree =
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , selectedItemWindow = parseSelectedItemWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
+    , fittingWindow = parseFittingWindowFromUITreeRoot uiTree
     , probeScannerWindow = parseProbeScannerWindowFromUITreeRoot uiTree
     , stationWindow = parseStationWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
@@ -413,6 +422,7 @@ parseUserInterfaceFromUITree uiTree =
     , marketOrdersWindow = parseMarketOrdersWindowFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
+    , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
     }
 
 
@@ -1423,6 +1433,22 @@ parseMarketOrdersWindow windowUINode =
     }
 
 
+parseFittingWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible FittingWindow
+parseFittingWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "FittingWindow")
+        |> List.head
+        |> Maybe.map parseFittingWindow
+        |> canNotSeeItFromMaybeNothing
+
+
+parseFittingWindow : UITreeNodeWithDisplayRegion -> FittingWindow
+parseFittingWindow windowUINode =
+    { uiNode = windowUINode
+    }
+
+
 parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible Neocom
 parseNeocomFromUITreeRoot uiTreeRoot =
     case
@@ -1546,6 +1572,15 @@ parseMessageBox uiNode =
     { buttons = buttons
     , uiNode = uiNode
     }
+
+
+parseLayerAbovemainFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible UITreeNodeWithDisplayRegion
+parseLayerAbovemainFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "l_abovemain"))
+        |> List.head
+        |> canNotSeeItFromMaybeNothing
 
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int

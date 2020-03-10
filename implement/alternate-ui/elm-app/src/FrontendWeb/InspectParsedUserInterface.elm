@@ -16,7 +16,6 @@ import EveOnline.MemoryReading
     exposing
         ( MaybeVisible(..)
         , UITreeNodeWithDisplayRegion
-        , maybeVisibleMap
         )
 import Html
 import Html.Events as HE
@@ -163,6 +162,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromDronesWindow viewConfig
                         }
+                , parsedUserInterface.fittingWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "fittingWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
+                        }
                 , parsedUserInterface.probeScannerWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "probeScannerWindow"
@@ -212,6 +217,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                     |> fieldFromListInstance
                         { fieldName = "messageBoxes"
                         , fieldValueChildren = treeNodeChildrenFromMessageBox viewConfig
+                        }
+                , parsedUserInterface.layerAbovemain
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "layerAbovemain"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                         }
                 ]
     in
