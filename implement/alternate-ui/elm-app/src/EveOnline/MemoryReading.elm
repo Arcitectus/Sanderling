@@ -229,7 +229,9 @@ type alias OverviewWindowEntry =
     { uiNode : UITreeNodeWithDisplayRegion
     , textsLeftToRight : List String
     , cellsTexts : Dict.Dict String String
-    , distanceInMeters : Result String Int
+    , objectDistanceInMeters : Result String Int
+    , objectName : Maybe String
+    , objectType : Maybe String
     , iconSpriteColorPercent : Maybe ColorComponents
     , namesUnderSpaceObjectIcon : Set.Set String
     }
@@ -846,7 +848,7 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                     )
                 |> Dict.fromList
 
-        distanceInMeters =
+        objectDistanceInMeters =
             cellsTexts
                 |> Dict.get "Distance"
                 |> Maybe.map parseOverviewEntryDistanceInMetersFromText
@@ -876,7 +878,9 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
     , cellsTexts = cellsTexts
-    , distanceInMeters = distanceInMeters
+    , objectDistanceInMeters = objectDistanceInMeters
+    , objectName = cellsTexts |> Dict.get "Name"
+    , objectType = cellsTexts |> Dict.get "Type"
     , iconSpriteColorPercent = iconSpriteColorPercent
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     }
@@ -884,12 +888,12 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
 
 parseOverviewEntryDistanceInMetersFromText : String -> Result String Int
 parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
-    case "^[\\d\\,]+(?=\\s*m)" |> Regex.fromString of
+    case "^[\\d\\,\\.\\s]+(?=\\s*m)" |> Regex.fromString of
         Nothing ->
             Err "Regex code error"
 
         Just regexForUnitMeter ->
-            case "^[\\d\\,]+(?=\\s*km)" |> Regex.fromString of
+            case "^[\\d\\,\\.]+(?=\\s*km)" |> Regex.fromString of
                 Nothing ->
                     Err "Regex code error"
 
@@ -901,19 +905,15 @@ parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
                     case distanceDisplayText |> Regex.find regexForUnitMeter |> List.head of
                         Just match ->
                             match.match
-                                |> String.replace "," ""
-                                |> String.toInt
-                                |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+                                |> parseNumberTruncatingAfterOptionalDecimalSeparator
 
                         Nothing ->
                             case distanceDisplayText |> Regex.find regexForUnitKilometer |> List.head of
                                 Just match ->
                                     match.match
-                                        |> String.replace "," ""
-                                        |> String.toInt
+                                        |> parseNumberTruncatingAfterOptionalDecimalSeparator
                                         -- unit 'km'
-                                        |> Maybe.map ((*) 1000)
-                                        |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+                                        |> Result.map ((*) 1000)
 
                                 Nothing ->
                                     Err ("Text did not match expected number format: '" ++ distanceDisplayText ++ "'")
