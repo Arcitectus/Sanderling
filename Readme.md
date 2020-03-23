@@ -46,7 +46,7 @@ The UI tree in the EVE Online client can contain thousands of nodes and tens of 
 
 The input for this library is the JSON string, as we get it from the memory reading. In contrast to the memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
 
-Location in the repository: [/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm](/implement/alternate-ui/elm-app/src/EveOnline/MemoryReading.elm)
+Location in the repository: [/implement/alternate-ui/elm-app/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/elm-app/src/EveOnline/ParseUserInterface.elm)
 
 ### Alternate UI for EVE Online
 

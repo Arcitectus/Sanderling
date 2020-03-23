@@ -1,6 +1,6 @@
 module ParseMemoryReadingTest exposing (allTests)
 
-import EveOnline.MemoryReading exposing (MaybeVisible(..))
+import EveOnline.ParseUserInterface exposing (MaybeVisible(..))
 import Expect
 import Test exposing (..)
 
@@ -19,13 +19,19 @@ overview_entry_distance_text_to_meter =
     , ( "123 m", Ok 123 )
     , ( "16 km", Ok 16000 )
     , ( "   345 m  ", Ok 345 )
+
+    -- 2020-03-12 from TheRealManiac (https://forum.botengine.org/t/last-version-of-mining-bot/3149)
+    , ( "6.621 m  ", Ok 6621 )
+
+    -- 2020-03-22 from istu233 at https://forum.botengine.org/t/mining-bot-problem/3169
+    , ( "2 980 m", Ok 2980 )
     ]
         |> List.map
             (\( displayText, expectedResult ) ->
                 test displayText <|
                     \_ ->
                         displayText
-                            |> EveOnline.MemoryReading.parseOverviewEntryDistanceInMetersFromText
+                            |> EveOnline.ParseUserInterface.parseOverviewEntryDistanceInMetersFromText
                             |> Expect.equal expectedResult
             )
         |> describe "Overview entry distance text"
@@ -53,7 +59,7 @@ inventory_capacity_gauge_text =
                 test text <|
                     \_ ->
                         text
-                            |> EveOnline.MemoryReading.parseInventoryCapacityGaugeText
+                            |> EveOnline.ParseUserInterface.parseInventoryCapacityGaugeText
                             |> Expect.equal expectedResult
             )
         |> describe "Inventory capacity gauge text"

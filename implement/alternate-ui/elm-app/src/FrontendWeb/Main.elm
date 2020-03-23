@@ -5,6 +5,7 @@ import Browser.Dom
 import Browser.Navigation as Navigation
 import Dict
 import EveOnline.MemoryReading
+import EveOnline.ParseUserInterface
     exposing
         ( MaybeVisible(..)
         , UITreeNodeWithDisplayRegion
@@ -41,7 +42,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-03-22"
+    "2020-03-23"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -98,7 +99,7 @@ type alias ParseMemoryReadingSuccess =
     { uiTree : EveOnline.MemoryReading.UITreeNode
     , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
     , overviewWindow : MaybeVisible OverviewWindow
-    , parsedUserInterface : EveOnline.MemoryReading.ParsedUserInterface
+    , parsedUserInterface : EveOnline.ParseUserInterface.ParsedUserInterface
     }
 
 
@@ -137,7 +138,7 @@ type alias HttpRequestErrorStructure =
 
 
 type alias UserInputSendInputToUINodeStructure =
-    { uiNode : EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
+    { uiNode : EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion
     , input : InputOnUINode
     , windowId : EveOnline.VolatileHostInterface.WindowId
     , delayMilliseconds : Maybe Int
@@ -168,9 +169,9 @@ type alias OverviewWindow =
 
 
 type alias OverviewEntry =
-    { uiTreeNode : EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
+    { uiTreeNode : EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion
     , cellsContents : Dict.Dict String String
-    , iconSpriteColorPercent : Maybe EveOnline.MemoryReading.ColorComponents
+    , iconSpriteColorPercent : Maybe EveOnline.ParseUserInterface.ColorComponents
     }
 
 
@@ -322,7 +323,7 @@ update event stateBefore =
                 Nothing ->
                     let
                         uiNodeCenter =
-                            sendInput.uiNode.totalDisplayRegion |> EveOnline.MemoryReading.centerFromDisplayRegion
+                            sendInput.uiNode.totalDisplayRegion |> EveOnline.ParseUserInterface.centerFromDisplayRegion
 
                         volatileHostInterfaceTaskOnWindow =
                             case sendInput.input of
@@ -943,7 +944,7 @@ displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
                 |> Html.table []
 
 
-displayParsedContextMenus : Maybe InputRouteConfig -> List EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenus : Maybe InputRouteConfig -> List EveOnline.ParseUserInterface.ContextMenu -> Html.Html Event
 displayParsedContextMenus maybeInputRoute contextMenus =
     contextMenus
         |> List.indexedMap
@@ -956,7 +957,7 @@ displayParsedContextMenus maybeInputRoute contextMenus =
         |> Html.div []
 
 
-displayParsedContextMenu : Maybe InputRouteConfig -> EveOnline.MemoryReading.ContextMenu -> Html.Html Event
+displayParsedContextMenu : Maybe InputRouteConfig -> EveOnline.ParseUserInterface.ContextMenu -> Html.Html Event
 displayParsedContextMenu maybeInputRouteConfig contextMenu =
     contextMenu.entries
         |> List.map
@@ -1068,7 +1069,7 @@ viewTreeParsedUserInterface :
     Maybe InputRouteConfig
     -> Dict.Dict String UITreeNodeWithDisplayRegion
     -> ParsedUITreeViewState
-    -> EveOnline.MemoryReading.ParsedUserInterface
+    -> EveOnline.ParseUserInterface.ParsedUserInterface
     -> Html.Html Event
 viewTreeParsedUserInterface maybeInputRouteConfig uiNodesWithDisplayRegion viewState parsedUserInterface =
     let
@@ -1481,15 +1482,15 @@ parseMemoryReadingFromJson =
             (\uiTree ->
                 let
                     uiTreeWithDisplayRegion =
-                        uiTree |> EveOnline.MemoryReading.parseUITreeWithDisplayRegionFromUITree
+                        uiTree |> EveOnline.ParseUserInterface.parseUITreeWithDisplayRegionFromUITree
 
                     parsedUserInterface =
-                        EveOnline.MemoryReading.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
+                        EveOnline.ParseUserInterface.parseUserInterfaceFromUITree uiTreeWithDisplayRegion
                 in
                 { uiTree = uiTree
                 , uiNodesWithDisplayRegion =
                     uiTreeWithDisplayRegion
-                        :: (uiTreeWithDisplayRegion |> EveOnline.MemoryReading.listDescendantsWithDisplayRegion)
+                        :: (uiTreeWithDisplayRegion |> EveOnline.ParseUserInterface.listDescendantsWithDisplayRegion)
                         |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
                 , overviewWindow = parsedUserInterface.overviewWindow |> maybeVisibleMap parseOverviewWindow
@@ -1498,7 +1499,7 @@ parseMemoryReadingFromJson =
             )
 
 
-parseOverviewWindow : EveOnline.MemoryReading.OverviewWindow -> OverviewWindow
+parseOverviewWindow : EveOnline.ParseUserInterface.OverviewWindow -> OverviewWindow
 parseOverviewWindow overviewWindow =
     let
         mapEntry originalEntry =

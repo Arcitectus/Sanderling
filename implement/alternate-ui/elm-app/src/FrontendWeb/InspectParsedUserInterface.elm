@@ -13,6 +13,7 @@ module FrontendWeb.InspectParsedUserInterface exposing
 
 import Dict
 import EveOnline.MemoryReading
+import EveOnline.ParseUserInterface
     exposing
         ( MaybeVisible(..)
         , UITreeNodeWithDisplayRegion
@@ -47,7 +48,7 @@ type ParsedUITreeViewPathNode
 
 
 type alias InputRoute event =
-    EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> InputOnUINode -> event
+    EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion -> InputOnUINode -> event
 
 
 type ExpandableViewNode
@@ -67,7 +68,7 @@ type alias ViewConfig event =
     }
 
 
-maybeInputOfferHtml : Maybe (InputRoute event) -> List InputOnUINode -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion -> Html.Html event
+maybeInputOfferHtml : Maybe (InputRoute event) -> List InputOnUINode -> EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion -> Html.Html event
 maybeInputOfferHtml maybeInputRoute enabledInputKinds uiNode =
     maybeInputRoute
         |> Maybe.map
@@ -100,7 +101,7 @@ displayTextForInputKind inputKind =
 renderTreeNodeFromParsedUserInterface :
     Maybe (InputRoute event)
     -> Dict.Dict String UITreeNodeWithDisplayRegion
-    -> EveOnline.MemoryReading.ParsedUserInterface
+    -> EveOnline.ParseUserInterface.ParsedUserInterface
     -> TreeViewNode event ParsedUITreeViewPathNode
 renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion parsedUserInterface =
     let
@@ -233,7 +234,7 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
 
 treeNodeChildrenFromParsedUserInterfaceContextMenu :
     ViewConfig event
-    -> EveOnline.MemoryReading.ContextMenu
+    -> EveOnline.ParseUserInterface.ContextMenu
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceContextMenu viewConfig parsedUserInterfaceContextMenu =
     treeNodeChildrenFromRecordWithUINode
@@ -250,7 +251,7 @@ treeNodeChildrenFromParsedUserInterfaceContextMenu viewConfig parsedUserInterfac
 
 treeNodeChildrenFromParsedUserInterfaceContextMenuEntry :
     ViewConfig event
-    -> EveOnline.MemoryReading.ContextMenuEntry
+    -> EveOnline.ParseUserInterface.ContextMenuEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceContextMenuEntry viewConfig parsedUserInterfaceContextMenuEntry =
     treeNodeChildrenFromRecordWithUINode
@@ -265,7 +266,7 @@ treeNodeChildrenFromParsedUserInterfaceContextMenuEntry viewConfig parsedUserInt
 
 treeNodeChildrenFromParsedUserInterfaceShipUI :
     ViewConfig event
-    -> EveOnline.MemoryReading.ShipUI
+    -> EveOnline.ParseUserInterface.ShipUI
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShipUI =
     treeNodeChildrenFromRecordWithUINode
@@ -287,7 +288,7 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
 
 treeNodeChildrenFromParsedUserInterfaceShipUIModule :
     ViewConfig event
-    -> EveOnline.MemoryReading.ShipUIModule
+    -> EveOnline.ParseUserInterface.ShipUIModule
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig parsedUserInterfaceShipUIModule =
     treeNodeChildrenFromRecordWithUINode
@@ -304,7 +305,7 @@ treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig parsedUserInterfa
 
 
 treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints :
-    EveOnline.MemoryReading.Hitpoints
+    EveOnline.ParseUserInterface.Hitpoints
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints hitpoints =
     treeNodeChildrenFromRecord
@@ -325,7 +326,7 @@ treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints hitpoints =
 
 treeNodeChildrenFromParsedUserInterfaceTarget :
     ViewConfig event
-    -> EveOnline.MemoryReading.Target
+    -> EveOnline.ParseUserInterface.Target
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceTarget viewConfig parsedUserInterfaceTarget =
     treeNodeChildrenFromRecordWithUINode
@@ -356,7 +357,7 @@ treeNodeChildrenFromParsedUserInterfaceTarget viewConfig parsedUserInterfaceTarg
 
 treeNodeChildrenFromInfoPanelLocationInfo :
     ViewConfig event
-    -> EveOnline.MemoryReading.InfoPanelLocationInfo
+    -> EveOnline.ParseUserInterface.InfoPanelLocationInfo
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromInfoPanelLocationInfo viewConfig infoPanelLocationInfo =
     treeNodeChildrenFromRecordWithUINode
@@ -371,7 +372,7 @@ treeNodeChildrenFromInfoPanelLocationInfo viewConfig infoPanelLocationInfo =
 
 treeNodeChildrenFromInfoPanelRoute :
     ViewConfig event
-    -> EveOnline.MemoryReading.InfoPanelRoute
+    -> EveOnline.ParseUserInterface.InfoPanelRoute
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromInfoPanelRoute viewConfig infoPanelLocationRoute =
     treeNodeChildrenFromRecordWithUINode
@@ -387,7 +388,7 @@ treeNodeChildrenFromInfoPanelRoute viewConfig infoPanelLocationRoute =
 
 treeNodeChildrenFromOverviewWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.OverviewWindow
+    -> EveOnline.ParseUserInterface.OverviewWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromOverviewWindow viewConfig overviewWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -403,7 +404,7 @@ treeNodeChildrenFromOverviewWindow viewConfig overviewWindow =
 
 treeNodeChildrenFromOverviewWindowEntry :
     ViewConfig event
-    -> EveOnline.MemoryReading.OverviewWindowEntry
+    -> EveOnline.ParseUserInterface.OverviewWindowEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
     treeNodeChildrenFromRecordWithUINode
@@ -425,7 +426,7 @@ treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
 
 treeNodeChildrenFromDronesWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.DronesWindow
+    -> EveOnline.ParseUserInterface.DronesWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -453,7 +454,7 @@ treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
 
 treeNodeChildrenFromDronesWindowDroneGroup :
     ViewConfig event
-    -> EveOnline.MemoryReading.DronesWindowDroneGroup
+    -> EveOnline.ParseUserInterface.DronesWindowDroneGroup
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromDronesWindowDroneGroup viewConfig dronesWindowDroneGroup =
     treeNodeChildrenFromRecord
@@ -471,7 +472,7 @@ treeNodeChildrenFromDronesWindowDroneGroup viewConfig dronesWindowDroneGroup =
 
 treeNodeChildrenFromDronesWindowEntry :
     ViewConfig event
-    -> EveOnline.MemoryReading.DronesWindowEntry
+    -> EveOnline.ParseUserInterface.DronesWindowEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromDronesWindowEntry viewConfig dronesWindowEntry =
     treeNodeChildrenFromRecordWithUINode
@@ -483,7 +484,7 @@ treeNodeChildrenFromDronesWindowEntry viewConfig dronesWindowEntry =
 
 treeNodeChildrenFromDronesWindowDroneGroupHeader :
     ViewConfig event
-    -> EveOnline.MemoryReading.DronesWindowDroneGroupHeader
+    -> EveOnline.ParseUserInterface.DronesWindowDroneGroupHeader
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGroupHeader =
     treeNodeChildrenFromRecordWithUINode
@@ -496,7 +497,7 @@ treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGro
 
 treeNodeChildrenFromProbeScannerWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.ProbeScannerWindow
+    -> EveOnline.ParseUserInterface.ProbeScannerWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromProbeScannerWindow viewConfig probeScannerWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -512,7 +513,7 @@ treeNodeChildrenFromProbeScannerWindow viewConfig probeScannerWindow =
 
 treeNodeChildrenFromProbeScanResult :
     ViewConfig event
-    -> EveOnline.MemoryReading.ProbeScanResult
+    -> EveOnline.ParseUserInterface.ProbeScanResult
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromProbeScanResult viewConfig probeScanResult =
     treeNodeChildrenFromRecordWithUINode
@@ -528,7 +529,7 @@ treeNodeChildrenFromProbeScanResult viewConfig probeScanResult =
 
 treeNodeChildrenFromStationWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.StationWindow
+    -> EveOnline.ParseUserInterface.StationWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromStationWindow viewConfig stationWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -539,7 +540,7 @@ treeNodeChildrenFromStationWindow viewConfig stationWindow =
 
 treeNodeChildrenFromParsedUserInterfaceInventoryWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.InventoryWindow
+    -> EveOnline.ParseUserInterface.InventoryWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInterfaceInventoryWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -565,7 +566,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
 
 treeNodeChildrenFromParsedUserInterfaceInventory :
     ViewConfig event
-    -> EveOnline.MemoryReading.Inventory
+    -> EveOnline.ParseUserInterface.Inventory
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceInventory viewConfig parsedUserInterfaceInventory =
     treeNodeChildrenFromRecordWithUINode
@@ -582,7 +583,7 @@ treeNodeChildrenFromParsedUserInterfaceInventory viewConfig parsedUserInterfaceI
 
 
 treeNodeChildrenFromParsedUserInterfaceInventoryCapacityGauge :
-    EveOnline.MemoryReading.InventoryWindowCapacityGauge
+    EveOnline.ParseUserInterface.InventoryWindowCapacityGauge
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceInventoryCapacityGauge parsedUserInterfaceInventoryCapacityGauge =
     treeNodeChildrenFromRecord
@@ -597,7 +598,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryCapacityGauge parsedUserInterfac
 
 treeNodeChildrenFromParsedUserInterfaceInventoryItemsView :
     ViewConfig event
-    -> EveOnline.MemoryReading.InventoryItemsView
+    -> EveOnline.ParseUserInterface.InventoryItemsView
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserInterfaceInventoryItemsView =
     let
@@ -621,16 +622,16 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserI
                 ]
     in
     case parsedUserInterfaceInventoryItemsView of
-        EveOnline.MemoryReading.InventoryItemsListView { items } ->
+        EveOnline.ParseUserInterface.InventoryItemsListView { items } ->
             continueWithTagName "InventoryItemsListView" items
 
-        EveOnline.MemoryReading.InventoryItemsNotListView { items } ->
+        EveOnline.ParseUserInterface.InventoryItemsNotListView { items } ->
             continueWithTagName "InventoryItemsNotListView" items
 
 
 treeNodeChildrenFromChatWindowStack :
     ViewConfig event
-    -> EveOnline.MemoryReading.ChatWindowStack
+    -> EveOnline.ParseUserInterface.ChatWindowStack
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromChatWindowStack viewConfig chatWindowStack =
     treeNodeChildrenFromRecordWithUINode
@@ -647,7 +648,7 @@ treeNodeChildrenFromChatWindowStack viewConfig chatWindowStack =
 
 treeNodeChildrenFromChatWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.ChatWindow
+    -> EveOnline.ParseUserInterface.ChatWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromChatWindow viewConfig chatWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -664,7 +665,7 @@ treeNodeChildrenFromChatWindow viewConfig chatWindow =
 
 treeNodeChildrenFromChatUserEntry :
     ViewConfig event
-    -> EveOnline.MemoryReading.ChatUserEntry
+    -> EveOnline.ParseUserInterface.ChatUserEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromChatUserEntry viewConfig chatUserEntry =
     treeNodeChildrenFromRecordWithUINode
@@ -677,7 +678,7 @@ treeNodeChildrenFromChatUserEntry viewConfig chatUserEntry =
 
 treeNodeChildrenFromModuleButtonTooltip :
     ViewConfig event
-    -> EveOnline.MemoryReading.ModuleButtonTooltip
+    -> EveOnline.ParseUserInterface.ModuleButtonTooltip
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromModuleButtonTooltip viewConfig moduleButtonTooltip =
     treeNodeChildrenFromRecordWithUINode
@@ -688,7 +689,7 @@ treeNodeChildrenFromModuleButtonTooltip viewConfig moduleButtonTooltip =
 
 treeNodeChildrenFromAgentConversationWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.AgentConversationWindow
+    -> EveOnline.ParseUserInterface.AgentConversationWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromAgentConversationWindow viewConfig agentConversationWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -699,7 +700,7 @@ treeNodeChildrenFromAgentConversationWindow viewConfig agentConversationWindow =
 
 treeNodeChildrenFromSelectedItemWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.SelectedItemWindow
+    -> EveOnline.ParseUserInterface.SelectedItemWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromSelectedItemWindow viewConfig selectedItemWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -710,7 +711,7 @@ treeNodeChildrenFromSelectedItemWindow viewConfig selectedItemWindow =
 
 treeNodeChildrenFromMarketOrdersWindow :
     ViewConfig event
-    -> EveOnline.MemoryReading.MarketOrdersWindow
+    -> EveOnline.ParseUserInterface.MarketOrdersWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
     treeNodeChildrenFromRecordWithUINode
@@ -721,7 +722,7 @@ treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
 
 treeNodeChildrenFromNeocom :
     ViewConfig event
-    -> EveOnline.MemoryReading.Neocom
+    -> EveOnline.ParseUserInterface.Neocom
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromNeocom viewConfig neocom =
     treeNodeChildrenFromRecordWithUINode
@@ -732,7 +733,7 @@ treeNodeChildrenFromNeocom viewConfig neocom =
 
 treeNodeChildrenFromMessageBox :
     ViewConfig event
-    -> EveOnline.MemoryReading.MessageBox
+    -> EveOnline.ParseUserInterface.MessageBox
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromMessageBox viewConfig messageBox =
     treeNodeChildrenFromRecordWithUINode
@@ -748,7 +749,7 @@ treeNodeChildrenFromMessageBox viewConfig messageBox =
 
 treeViewNodeFromUINode :
     ViewConfig event
-    -> EveOnline.MemoryReading.UITreeNodeWithDisplayRegion
+    -> EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion
     -> TreeViewNode event ParsedUITreeViewPathNode
 treeViewNodeFromUINode viewConfig parsedUserInterfaceUINode =
     treeViewNodeFromMemoryReadingUITreeNode viewConfig.inputRoute viewConfig.uiNodesWithDisplayRegion parsedUserInterfaceUINode.uiNode
@@ -811,7 +812,7 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                     { selfHtml = childrenNodeText |> Html.text, children = childrenNodeChildren }
 
                 allContainedDisplayTexts =
-                    EveOnline.MemoryReading.getAllContainedDisplayTexts treeNode
+                    EveOnline.ParseUserInterface.getAllContainedDisplayTexts treeNode
 
                 allContainedDisplayTextsChildren =
                     ExpandableChildren
@@ -1091,7 +1092,7 @@ fieldFromMaybeVisibleInstance maybeField maybeValue =
     let
         ( valueSummary, children ) =
             maybeValue
-                |> EveOnline.MemoryReading.maybeNothingFromCanNotSeeIt
+                |> EveOnline.ParseUserInterface.maybeNothingFromCanNotSeeIt
                 |> Maybe.map
                     (\just ->
                         ( "CanSee " ++ maybeField.fieldValueSummary just
