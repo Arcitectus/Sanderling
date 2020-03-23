@@ -68,6 +68,8 @@ And these are some bots using Sanderling:
 
 + Mining asteroids: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md)
 
++ Anomaly ratting: [https://github.com/Viir/bots/blob/master/guide/eve-online/eve-online-anomaly-ratting-bot.md](https://github.com/Viir/bots/blob/master/guide/eve-online/eve-online-anomaly-ratting-bot.md)
+
 + List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
 + Most up-to-date list of bots: [https://botcatalog.org/](https://botcatalog.org/)
