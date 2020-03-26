@@ -174,6 +174,7 @@ type alias OverviewWindowEntry =
     , objectType : Maybe String
     , iconSpriteColorPercent : Maybe ColorComponents
     , namesUnderSpaceObjectIcon : Set.Set String
+    , bgColorFillsPercent : List ColorComponents
     }
 
 
@@ -889,6 +890,13 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> Maybe.withDefault []
                 |> List.filterMap getNameFromDictEntries
                 |> Set.fromList
+
+        bgColorFillsPercent =
+            overviewEntryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Fill")
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "bgColor") >> Maybe.withDefault False)
+                |> List.filterMap (\fillUiNode -> fillUiNode.uiNode |> getColorPercentFromDictEntries)
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
@@ -898,6 +906,7 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     , objectType = cellsTexts |> Dict.get "Type"
     , iconSpriteColorPercent = iconSpriteColorPercent
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
+    , bgColorFillsPercent = bgColorFillsPercent
     }
 
 

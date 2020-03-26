@@ -172,6 +172,7 @@ type alias OverviewEntry =
     { uiTreeNode : EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion
     , cellsContents : Dict.Dict String String
     , iconSpriteColorPercent : Maybe EveOnline.ParseUserInterface.ColorComponents
+    , bgColorFillsPercent : List EveOnline.ParseUserInterface.ColorComponents
     }
 
 
@@ -928,6 +929,21 @@ displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
                         |> List.map
                             (\overviewEntry ->
                                 let
+                                    bgFillsColors =
+                                        overviewEntry.bgColorFillsPercent
+                                            |> List.map
+                                                (\colorPercent ->
+                                                    let
+                                                        colorString =
+                                                            ([ colorPercent.r, colorPercent.g, colorPercent.b ]
+                                                                |> List.map (\percent -> ((percent * 255) // 100) |> String.fromInt)
+                                                            )
+                                                                ++ [ (colorPercent.a |> toFloat) / 100 |> String.fromFloat ]
+                                                                |> String.join ","
+                                                    in
+                                                    "rgba(" ++ colorString ++ ")"
+                                                )
+
                                     columnsHtml =
                                         columns
                                             |> List.map
@@ -936,7 +952,8 @@ displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
                                     inputHtml =
                                         maybeInputOfferHtml (maybeInputRouteConfig |> Maybe.map inputRouteFromInputConfig) [ MouseClickLeft, MouseClickRight ] overviewEntry.uiTreeNode
                                 in
-                                (columnsHtml ++ [ inputHtml ]) |> Html.tr []
+                                (columnsHtml ++ [ inputHtml ])
+                                    |> Html.tr [ HA.style "background" (bgFillsColors |> String.join " ") ]
                             )
             in
             headersHtml
@@ -1506,6 +1523,7 @@ parseOverviewWindow overviewWindow =
             { uiTreeNode = originalEntry.uiNode
             , cellsContents = originalEntry.cellsTexts
             , iconSpriteColorPercent = originalEntry.iconSpriteColorPercent
+            , bgColorFillsPercent = originalEntry.bgColorFillsPercent
             }
 
         headers =
