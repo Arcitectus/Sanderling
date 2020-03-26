@@ -83,6 +83,7 @@ type alias ShipUI =
     , modules : List ShipUIModule
     , hitpointsPercent : Hitpoints
     , capacitor : MaybeVisible ShipUICapacitor
+    , offensiveBuffButtonNames : List String
     }
 
 
@@ -169,12 +170,14 @@ type alias OverviewWindowEntry =
     { uiNode : UITreeNodeWithDisplayRegion
     , textsLeftToRight : List String
     , cellsTexts : Dict.Dict String String
+    , objectDistance : Maybe String
     , objectDistanceInMeters : Result String Int
     , objectName : Maybe String
     , objectType : Maybe String
     , iconSpriteColorPercent : Maybe ColorComponents
     , namesUnderSpaceObjectIcon : Set.Set String
     , bgColorFillsPercent : List ColorComponents
+    , rightAlignedIconsHints : List String
     }
 
 
@@ -677,6 +680,12 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CapacitorContainer")
                         |> List.head
+
+                offensiveBuffButtonNames =
+                    shipUINode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OffensiveBuffButton")
+                        |> List.filterMap (.uiNode >> getNameFromDictEntries)
             in
             maybeHitpointsPercent
                 |> Maybe.map
@@ -686,6 +695,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                         , modules = modules
                         , hitpointsPercent = hitpointsPercent
                         , capacitor = maybeCapacitorUINode |> Maybe.map parseShipUICapacitorFromUINode |> canNotSeeItFromMaybeNothing
+                        , offensiveBuffButtonNames = offensiveBuffButtonNames
                         }
                     )
                 |> canNotSeeItFromMaybeNothing
@@ -864,9 +874,12 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                     )
                 |> Dict.fromList
 
-        objectDistanceInMeters =
+        objectDistance =
             cellsTexts
                 |> Dict.get "Distance"
+
+        objectDistanceInMeters =
+            objectDistance
                 |> Maybe.map parseOverviewEntryDistanceInMetersFromText
                 |> Maybe.withDefault (Err "Did not find the 'Distance' cell text.")
 
@@ -897,16 +910,25 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Fill")
                 |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "bgColor") >> Maybe.withDefault False)
                 |> List.filterMap (\fillUiNode -> fillUiNode.uiNode |> getColorPercentFromDictEntries)
+
+        rightAlignedIconsHints =
+            overviewEntryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "rightAlignedIconContainer") >> Maybe.withDefault False)
+                |> List.concatMap listDescendantsWithDisplayRegion
+                |> List.filterMap (.uiNode >> getHintTextFromDictEntries)
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
     , cellsTexts = cellsTexts
+    , objectDistance = objectDistance
     , objectDistanceInMeters = objectDistanceInMeters
     , objectName = cellsTexts |> Dict.get "Name"
     , objectType = cellsTexts |> Dict.get "Type"
     , iconSpriteColorPercent = iconSpriteColorPercent
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     , bgColorFillsPercent = bgColorFillsPercent
+    , rightAlignedIconsHints = rightAlignedIconsHints
     }
 
 

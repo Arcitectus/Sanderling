@@ -289,6 +289,11 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig
                 }
+        , parsedUserInterfaceShipUI.offensiveBuffButtonNames
+            |> fieldFromPrimitiveListInstance
+                { fieldName = "offensiveBuffButtonNames"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
         ]
 
 
@@ -437,6 +442,17 @@ treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
         , overviewWindowEntry.cellsTexts
             |> fieldFromPrimitiveStringDictInstance
                 { fieldName = "cellsTexts"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        , overviewWindowEntry.objectDistance |> fieldFromMaybeString "objectDistance"
+        , overviewWindowEntry.objectDistanceInMeters
+            |> fieldFromResultPrimitive
+                { fieldName = "objectDistanceInMeters", errValueSummary = Json.Encode.string, okValueSummary = Json.Encode.int }
+        , overviewWindowEntry.objectName |> fieldFromMaybeString "objectName"
+        , overviewWindowEntry.objectType |> fieldFromMaybeString "objectType"
+        , overviewWindowEntry.rightAlignedIconsHints
+            |> fieldFromPrimitiveListInstance
+                { fieldName = "rightAlignedIconsHints"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
                 }
         ]
@@ -1078,6 +1094,26 @@ fieldFromMaybePrimitive { fieldName, fieldValueSummary } =
         , fieldValueSummary = fieldValueSummary >> Json.Encode.encode 0
         , fieldValueChildren = always []
         }
+
+
+fieldFromResultPrimitive :
+    { fieldName : String, errValueSummary : err -> Json.Encode.Value, okValueSummary : ok -> Json.Encode.Value }
+    -> Result err ok
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromResultPrimitive maybeField maybeValue =
+    let
+        valueSummary =
+            case maybeValue of
+                Err err ->
+                    "Err " ++ Json.Encode.encode 0 (maybeField.errValueSummary err)
+
+                Ok ok ->
+                    "Ok " ++ Json.Encode.encode 0 (maybeField.okValueSummary ok)
+    in
+    { fieldName = maybeField.fieldName
+    , fieldValueSummary = valueSummary
+    , fieldValueChildren = always []
+    }
 
 
 fieldFromMaybeInstance :
