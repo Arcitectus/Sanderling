@@ -251,6 +251,7 @@ type alias StationWindow =
 type alias InventoryWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , leftTreeEntries : List InventoryWindowLeftTreeEntry
+    , subCaptionLabelText : Maybe String
     , selectedContainerCapacityGauge : Maybe (Result String InventoryWindowCapacityGauge)
     , selectedContainerInventory : Maybe Inventory
     , buttonToSwitchToListView : Maybe UITreeNodeWithDisplayRegion
@@ -270,8 +271,14 @@ type InventoryItemsView
 
 type alias InventoryWindowLeftTreeEntry =
     { uiNode : UITreeNodeWithDisplayRegion
+    , toggleBtn : Maybe UITreeNodeWithDisplayRegion
     , text : String
+    , children : List InventoryWindowLeftTreeEntryChild
     }
+
+
+type InventoryWindowLeftTreeEntryChild
+    = InventoryWindowLeftTreeEntryChild InventoryWindowLeftTreeEntry
 
 
 type alias InventoryWindowCapacityGauge =
@@ -1234,28 +1241,11 @@ parseInventoryWindow windowUiNode =
                 |> List.head
                 |> Maybe.map parseInventoryCapacityGaugeText
 
-        leftTreeEntries =
-            windowUiNode
-                |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.startsWith "TreeViewEntry")
-                |> List.map
-                    (\treeEntryNode ->
-                        let
-                            displayTextsWithRegion =
-                                treeEntryNode
-                                    |> getAllContainedDisplayTextsWithRegion
+        leftTreeEntriesRootNodes =
+            windowUiNode |> getContainedTreeViewEntryRootNodes
 
-                            text =
-                                displayTextsWithRegion
-                                    |> List.sortBy (\( _, textNode ) -> textNode.totalDisplayRegion.x + textNode.totalDisplayRegion.y)
-                                    |> List.head
-                                    |> Maybe.map Tuple.first
-                                    |> Maybe.withDefault ""
-                        in
-                        { uiNode = treeEntryNode
-                        , text = text
-                        }
-                    )
+        leftTreeEntries =
+            leftTreeEntriesRootNodes |> List.map parseInventoryWindowTreeViewEntry
 
         rightContainerNode =
             windowUiNode
@@ -1265,6 +1255,14 @@ parseInventoryWindow windowUiNode =
                         (uiNode.uiNode.pythonObjectTypeName == "Container")
                             && (uiNode.uiNode |> getNameFromDictEntries |> Maybe.map (String.contains "right") |> Maybe.withDefault False)
                     )
+                |> List.head
+
+        subCaptionLabelText =
+            rightContainerNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.startsWith "subCaptionLabel") >> Maybe.withDefault False)
+                |> List.concatMap (.uiNode >> getAllContainedDisplayTexts)
                 |> List.head
 
         maybeSelectedContainerInventoryNode =
@@ -1318,10 +1316,74 @@ parseInventoryWindow windowUiNode =
     in
     { uiNode = windowUiNode
     , leftTreeEntries = leftTreeEntries
+    , subCaptionLabelText = subCaptionLabelText
     , selectedContainerCapacityGauge = selectedContainerCapacityGauge
     , selectedContainerInventory = selectedContainerInventory
     , buttonToSwitchToListView = buttonToSwitchToListView
     }
+
+
+getContainedTreeViewEntryRootNodes : UITreeNodeWithDisplayRegion -> List UITreeNodeWithDisplayRegion
+getContainedTreeViewEntryRootNodes parentNode =
+    let
+        leftTreeEntriesAllNodes =
+            parentNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.startsWith "TreeViewEntry")
+
+        isContainedInTreeEntry candidate =
+            leftTreeEntriesAllNodes
+                |> List.concatMap listDescendantsWithDisplayRegion
+                |> List.member candidate
+    in
+    leftTreeEntriesAllNodes
+        |> List.filter (isContainedInTreeEntry >> not)
+
+
+parseInventoryWindowTreeViewEntry : UITreeNodeWithDisplayRegion -> InventoryWindowLeftTreeEntry
+parseInventoryWindowTreeViewEntry treeEntryNode =
+    let
+        topContNode =
+            treeEntryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.startsWith "topCont_") >> Maybe.withDefault False)
+                |> List.sortBy (.totalDisplayRegion >> .y)
+                |> List.head
+
+        toggleBtn =
+            topContNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "toggleBtn") >> Maybe.withDefault False)
+                |> List.head
+
+        text =
+            topContNode
+                |> Maybe.map getAllContainedDisplayTextsWithRegion
+                |> Maybe.withDefault []
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .y)
+                |> List.head
+                |> Maybe.map Tuple.first
+                |> Maybe.withDefault ""
+
+        childrenNodes =
+            treeEntryNode |> getContainedTreeViewEntryRootNodes
+
+        children =
+            childrenNodes |> List.map (parseInventoryWindowTreeViewEntry >> InventoryWindowLeftTreeEntryChild)
+    in
+    { uiNode = treeEntryNode
+    , toggleBtn = toggleBtn
+    , text = text
+    , children = children
+    }
+
+
+unwrapInventoryWindowLeftTreeEntryChild : InventoryWindowLeftTreeEntryChild -> InventoryWindowLeftTreeEntry
+unwrapInventoryWindowLeftTreeEntryChild child =
+    case child of
+        InventoryWindowLeftTreeEntryChild unpacked ->
+            unpacked
 
 
 parseInventoryCapacityGaugeText : String -> Result String InventoryWindowCapacityGauge

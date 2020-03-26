@@ -580,7 +580,8 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         parsedUserInterfaceInventoryWindow.uiNode
-        [ parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
+        [ parsedUserInterfaceInventoryWindow.subCaptionLabelText |> fieldFromMaybeString "subCaptionLabelText"
+        , parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
             |> Maybe.andThen Result.toMaybe
             |> fieldFromMaybeInstance
                 { fieldName = "selectedContainerCapacityGauge"
