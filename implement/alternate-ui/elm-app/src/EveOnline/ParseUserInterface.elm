@@ -3,6 +3,7 @@ module EveOnline.ParseUserInterface exposing (..)
 import Dict
 import EveOnline.MemoryReading
 import Json.Decode
+import Maybe.Extra
 import Regex
 import Set
 
@@ -81,6 +82,7 @@ type alias ShipUI =
     , indication : MaybeVisible ShipUIIndication
     , modules : List ShipUIModule
     , hitpointsPercent : Hitpoints
+    , capacitor : MaybeVisible ShipUICapacitor
     }
 
 
@@ -95,6 +97,19 @@ type alias ShipUIModule =
     , slotUINode : UITreeNodeWithDisplayRegion
     , isActive : Maybe Bool
     , isHiliteVisible : Bool
+    }
+
+
+type alias ShipUICapacitor =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , pmarks : List ShipUICapacitorPmark
+    , levelFromPmarksPercent : Maybe Int
+    }
+
+
+type alias ShipUICapacitorPmark =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , colorPercent : Maybe ColorComponents
     }
 
 
@@ -325,16 +340,10 @@ type MaybeVisible feature
 
 groupShipUIModulesIntoRows : ShipUI -> Maybe ShipUIModulesGroupedIntoRows
 groupShipUIModulesIntoRows shipUI =
-    let
-        maybeCapacitorUINode =
-            shipUI.uiNode
-                |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CapacitorContainer")
-                |> List.head
-    in
-    maybeCapacitorUINode
+    shipUI.capacitor
+        |> maybeNothingFromCanNotSeeIt
         |> Maybe.map
-            (\capacitorUINode ->
+            (\capacitor ->
                 let
                     verticalDistanceThreshold =
                         20
@@ -343,7 +352,7 @@ groupShipUIModulesIntoRows shipUI =
                         uiNode.totalDisplayRegion.y + uiNode.totalDisplayRegion.height // 2
 
                     capacitorVerticalCenter =
-                        verticalCenterOfUINode capacitorUINode
+                        verticalCenterOfUINode capacitor.uiNode
                 in
                 shipUI.modules
                     |> List.foldr
@@ -661,6 +670,12 @@ parseShipUIFromUITreeRoot uiTreeRoot =
 
                         _ ->
                             Nothing
+
+                maybeCapacitorUINode =
+                    shipUINode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CapacitorContainer")
+                        |> List.head
             in
             maybeHitpointsPercent
                 |> Maybe.map
@@ -669,9 +684,46 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                         , indication = indication
                         , modules = modules
                         , hitpointsPercent = hitpointsPercent
+                        , capacitor = maybeCapacitorUINode |> Maybe.map parseShipUICapacitorFromUINode |> canNotSeeItFromMaybeNothing
                         }
                     )
                 |> canNotSeeItFromMaybeNothing
+
+
+parseShipUICapacitorFromUINode : UITreeNodeWithDisplayRegion -> ShipUICapacitor
+parseShipUICapacitorFromUINode capacitorUINode =
+    let
+        pmarks =
+            capacitorUINode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "pmark") >> Maybe.withDefault False)
+                |> List.map
+                    (\pmarkUINode ->
+                        { uiNode = pmarkUINode
+                        , colorPercent = pmarkUINode.uiNode |> getColorPercentFromDictEntries
+                        }
+                    )
+
+        maybePmarksFills =
+            pmarks
+                |> List.map (.colorPercent >> Maybe.map (\colorPercent -> colorPercent.a < 20))
+                |> Maybe.Extra.combine
+
+        levelFromPmarksPercent =
+            maybePmarksFills
+                |> Maybe.andThen
+                    (\pmarksFills ->
+                        if (pmarksFills |> List.length) < 1 then
+                            Nothing
+
+                        else
+                            Just (((pmarksFills |> List.filter identity |> List.length) * 100) // (pmarksFills |> List.length))
+                    )
+    in
+    { uiNode = capacitorUINode
+    , pmarks = pmarks
+    , levelFromPmarksPercent = levelFromPmarksPercent
+    }
 
 
 parseTargetsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List Target

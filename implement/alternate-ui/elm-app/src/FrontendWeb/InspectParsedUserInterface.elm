@@ -283,6 +283,12 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
           , fieldValueChildren =
                 always (treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints parsedUserInterfaceShipUI.hitpointsPercent)
           }
+        , parsedUserInterfaceShipUI.capacitor
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "capacitor"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig
+                }
         ]
 
 
@@ -321,6 +327,18 @@ treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints hitpoints =
           , fieldValueSummary = String.fromInt hitpoints.shield
           , fieldValueChildren = always []
           }
+        ]
+
+
+treeNodeChildrenFromParsedUserInterfaceShipUICapacitor :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ShipUICapacitor
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig parsedUserInterfaceShipUICapacitor =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        parsedUserInterfaceShipUICapacitor.uiNode
+        [ parsedUserInterfaceShipUICapacitor.levelFromPmarksPercent |> fieldFromMaybeInt "levelFromPmarksPercent"
         ]
 
 
