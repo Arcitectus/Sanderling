@@ -133,17 +133,11 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         { fieldName = "targets"
                         , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceTarget viewConfig
                         }
-                , parsedUserInterface.infoPanelLocationInfo
+                , parsedUserInterface.infoPanelContainer
                     |> fieldFromMaybeVisibleInstance
-                        { fieldName = "infoPanelLocationInfo"
+                        { fieldName = "infoPanelContainer"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo viewConfig
-                        }
-                , parsedUserInterface.infoPanelRoute
-                    |> fieldFromMaybeVisibleInstance
-                        { fieldName = "infoPanelRoute"
-                        , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute viewConfig
+                        , fieldValueChildren = treeNodeChildrenFromInfoPanelContainer viewConfig
                         }
                 , parsedUserInterface.overviewWindow
                     |> fieldFromMaybeVisibleInstance
@@ -375,6 +369,70 @@ treeNodeChildrenFromParsedUserInterfaceTarget viewConfig parsedUserInterfaceTarg
                     "False"
           , fieldValueChildren = always []
           }
+        ]
+
+
+treeNodeChildrenFromInfoPanelContainer :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.InfoPanelContainer
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelContainer viewConfig infoPanelContainer =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        infoPanelContainer.uiNode
+        [ infoPanelContainer.icons
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "icons"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromInfoPanelIcons viewConfig
+                }
+        , infoPanelContainer.infoPanelLocationInfo
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "infoPanelLocationInfo"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo viewConfig
+                }
+        , infoPanelContainer.infoPanelRoute
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "infoPanelRoute"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromInfoPanelIcons :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.InfoPanelIcons
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelIcons viewConfig infoPanelIcons =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        infoPanelIcons.uiNode
+        [ infoPanelIcons.search
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "search"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , infoPanelIcons.locationInfo
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "locationInfo"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , infoPanelIcons.route
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "route"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , infoPanelIcons.dailyChallenge
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "dailyChallenge"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
         ]
 
 

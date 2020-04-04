@@ -13,8 +13,7 @@ type alias ParsedUserInterface =
     , contextMenus : List ContextMenu
     , shipUI : MaybeVisible ShipUI
     , targets : List Target
-    , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
-    , infoPanelRoute : MaybeVisible InfoPanelRoute
+    , infoPanelContainer : MaybeVisible InfoPanelContainer
     , overviewWindow : MaybeVisible OverviewWindow
     , selectedItemWindow : MaybeVisible SelectedItemWindow
     , dronesWindow : MaybeVisible DronesWindow
@@ -126,6 +125,23 @@ type ShipManeuverType
     | ManeuverJump
     | ManeuverOrbit
     | ManeuverApproach
+
+
+type alias InfoPanelContainer =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , icons : MaybeVisible InfoPanelIcons
+    , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
+    , infoPanelRoute : MaybeVisible InfoPanelRoute
+    }
+
+
+type alias InfoPanelIcons =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , search : MaybeVisible UITreeNodeWithDisplayRegion
+    , locationInfo : MaybeVisible UITreeNodeWithDisplayRegion
+    , route : MaybeVisible UITreeNodeWithDisplayRegion
+    , dailyChallenge : MaybeVisible UITreeNodeWithDisplayRegion
+    }
 
 
 type alias InfoPanelRoute =
@@ -392,8 +408,7 @@ parseUserInterfaceFromUITree uiTree =
     , contextMenus = parseContextMenusFromUITreeRoot uiTree
     , shipUI = parseShipUIFromUITreeRoot uiTree
     , targets = parseTargetsFromUITreeRoot uiTree
-    , infoPanelLocationInfo = parseInfoPanelLocationInfoFromUITreeRoot uiTree
-    , infoPanelRoute = parseInfoPanelRouteFromUITreeRoot uiTree
+    , infoPanelContainer = parseInfoPanelContainerFromUIRoot uiTree
     , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
     , selectedItemWindow = parseSelectedItemWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
@@ -479,10 +494,65 @@ parseContextMenusFromUITreeRoot uiTreeRoot =
                 |> List.map parseContextMenu
 
 
-parseInfoPanelLocationInfoFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelLocationInfo
-parseInfoPanelLocationInfoFromUITreeRoot uiTreeRoot =
+parseInfoPanelContainerFromUIRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelContainer
+parseInfoPanelContainerFromUIRoot uiTreeRoot =
     case
         uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelContainer")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just containerNode ->
+            CanSee
+                { uiNode = containerNode
+                , icons = parseInfoPanelIconsFromInfoPanelContainer containerNode
+                , infoPanelLocationInfo = parseInfoPanelLocationInfoFromInfoPanelContainer containerNode
+                , infoPanelRoute = parseInfoPanelRouteFromInfoPanelContainer containerNode
+                }
+
+
+parseInfoPanelIconsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelIcons
+parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
+    case
+        infoPanelContainerNode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "iconCont") >> Maybe.withDefault False)
+            |> List.sortBy (.totalDisplayRegion >> .y)
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just iconContainerNode ->
+            let
+                iconNodeFromTexturePathEnd texturePathEnd =
+                    iconContainerNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter
+                            (.uiNode
+                                >> getTexturePathFromDictEntries
+                                >> Maybe.map (String.endsWith texturePathEnd)
+                                >> Maybe.withDefault False
+                            )
+                        |> List.head
+                        |> canNotSeeItFromMaybeNothing
+            in
+            CanSee
+                { uiNode = iconContainerNode
+                , search = iconNodeFromTexturePathEnd "search.png"
+                , locationInfo = iconNodeFromTexturePathEnd "LocationInfo.png"
+                , route = iconNodeFromTexturePathEnd "Route.png"
+                , dailyChallenge = iconNodeFromTexturePathEnd "dailyChallenge.png"
+                }
+
+
+parseInfoPanelLocationInfoFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelLocationInfo
+parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
+    case
+        infoPanelContainerNode
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelLocationInfo")
             |> List.head
@@ -552,10 +622,10 @@ parseCurrentStationNameFromInfoPanelLocationInfoLabelText labelText =
             |> Maybe.map String.trim
 
 
-parseInfoPanelRouteFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelRoute
-parseInfoPanelRouteFromUITreeRoot uiTreeRoot =
+parseInfoPanelRouteFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelRoute
+parseInfoPanelRouteFromInfoPanelContainer infoPanelContainerNode =
     case
-        uiTreeRoot
+        infoPanelContainerNode
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelRoute")
             |> List.head
