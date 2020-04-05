@@ -194,6 +194,15 @@ type alias OverviewWindowEntry =
     , namesUnderSpaceObjectIcon : Set.Set String
     , bgColorFillsPercent : List ColorComponents
     , rightAlignedIconsHints : List String
+    , commonIndications : OverviewWindowEntryCommonIndications
+    }
+
+
+type alias OverviewWindowEntryCommonIndications =
+    { targeting : Bool
+    , targetedByMe : Bool
+    , isJammingMe : Bool
+    , isWarpDisruptingMe : Bool
     }
 
 
@@ -994,6 +1003,16 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "rightAlignedIconContainer") >> Maybe.withDefault False)
                 |> List.concatMap listDescendantsWithDisplayRegion
                 |> List.filterMap (.uiNode >> getHintTextFromDictEntries)
+
+        rightAlignedIconsHintsContainsTextIgnoringCase textToSearch =
+            rightAlignedIconsHints |> List.any (String.toLower >> String.contains (textToSearch |> String.toLower))
+
+        commonIndications =
+            { targeting = namesUnderSpaceObjectIcon |> Set.member "targeting"
+            , targetedByMe = namesUnderSpaceObjectIcon |> Set.member "targetedByMeIndicator"
+            , isJammingMe = rightAlignedIconsHintsContainsTextIgnoringCase "is jamming me"
+            , isWarpDisruptingMe = rightAlignedIconsHintsContainsTextIgnoringCase "is warp disrupting me"
+            }
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
@@ -1006,6 +1025,7 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     , bgColorFillsPercent = bgColorFillsPercent
     , rightAlignedIconsHints = rightAlignedIconsHints
+    , commonIndications = commonIndications
     }
 
 

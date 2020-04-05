@@ -513,6 +513,22 @@ treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
                 { fieldName = "rightAlignedIconsHints"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
                 }
+        , { fieldName = "commonIndications"
+          , fieldValueSummary = "..."
+          , fieldValueChildren = always (treeNodeChildrenFromOverviewWindowEntryCommonIndications overviewWindowEntry.commonIndications)
+          }
+        ]
+
+
+treeNodeChildrenFromOverviewWindowEntryCommonIndications :
+    EveOnline.ParseUserInterface.OverviewWindowEntryCommonIndications
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromOverviewWindowEntryCommonIndications indications =
+    treeNodeChildrenFromRecord
+        [ indications.targeting |> fieldFromBool "targeting"
+        , indications.targetedByMe |> fieldFromBool "targetedByMe"
+        , indications.isJammingMe |> fieldFromBool "isJammingMe"
+        , indications.isWarpDisruptingMe |> fieldFromBool "isWarpDisruptingMe"
         ]
 
 
