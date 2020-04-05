@@ -398,6 +398,12 @@ treeNodeChildrenFromInfoPanelContainer viewConfig infoPanelContainer =
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute viewConfig
                 }
+        , infoPanelContainer.infoPanelAgentMissions
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "infoPanelAgentMissions"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromInfoPanelAgentMissions viewConfig
+                }
         ]
 
 
@@ -424,6 +430,12 @@ treeNodeChildrenFromInfoPanelIcons viewConfig infoPanelIcons =
         , infoPanelIcons.route
             |> fieldFromMaybeVisibleInstance
                 { fieldName = "route"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , infoPanelIcons.agentMissions
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "agentMissions"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
@@ -455,13 +467,29 @@ treeNodeChildrenFromInfoPanelRoute :
     ViewConfig event
     -> EveOnline.ParseUserInterface.InfoPanelRoute
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromInfoPanelRoute viewConfig infoPanelLocationRoute =
+treeNodeChildrenFromInfoPanelRoute viewConfig infoPanelRoute =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
-        infoPanelLocationRoute.uiNode
-        [ infoPanelLocationRoute.routeElementMarker
+        infoPanelRoute.uiNode
+        [ infoPanelRoute.routeElementMarker
             |> fieldFromListInstance
                 { fieldName = "routeElementMarker"
+                , fieldValueChildren = .uiNode >> treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromInfoPanelAgentMissions :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.InfoPanelAgentMissions
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelAgentMissions viewConfig infoPanelAgentMissions =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        infoPanelAgentMissions.uiNode
+        [ infoPanelAgentMissions.entries
+            |> fieldFromListInstance
+                { fieldName = "entries"
                 , fieldValueChildren = .uiNode >> treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]

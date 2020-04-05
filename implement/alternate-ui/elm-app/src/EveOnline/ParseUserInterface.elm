@@ -132,6 +132,7 @@ type alias InfoPanelContainer =
     , icons : MaybeVisible InfoPanelIcons
     , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
     , infoPanelRoute : MaybeVisible InfoPanelRoute
+    , infoPanelAgentMissions : MaybeVisible InfoPanelAgentMissions
     }
 
 
@@ -140,6 +141,7 @@ type alias InfoPanelIcons =
     , search : MaybeVisible UITreeNodeWithDisplayRegion
     , locationInfo : MaybeVisible UITreeNodeWithDisplayRegion
     , route : MaybeVisible UITreeNodeWithDisplayRegion
+    , agentMissions : MaybeVisible UITreeNodeWithDisplayRegion
     , dailyChallenge : MaybeVisible UITreeNodeWithDisplayRegion
     }
 
@@ -164,6 +166,17 @@ type alias InfoPanelLocationInfo =
 
 type alias InfoPanelLocationInfoExpandedContent =
     { currentStationName : Maybe String
+    }
+
+
+type alias InfoPanelAgentMissions =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , entries : List InfoPanelAgentMissionsEntry
+    }
+
+
+type alias InfoPanelAgentMissionsEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
     }
 
 
@@ -520,6 +533,7 @@ parseInfoPanelContainerFromUIRoot uiTreeRoot =
                 , icons = parseInfoPanelIconsFromInfoPanelContainer containerNode
                 , infoPanelLocationInfo = parseInfoPanelLocationInfoFromInfoPanelContainer containerNode
                 , infoPanelRoute = parseInfoPanelRouteFromInfoPanelContainer containerNode
+                , infoPanelAgentMissions = parseInfoPanelAgentMissionsFromInfoPanelContainer containerNode
                 }
 
 
@@ -554,6 +568,7 @@ parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
                 , search = iconNodeFromTexturePathEnd "search.png"
                 , locationInfo = iconNodeFromTexturePathEnd "LocationInfo.png"
                 , route = iconNodeFromTexturePathEnd "Route.png"
+                , agentMissions = iconNodeFromTexturePathEnd "Missions.png"
                 , dailyChallenge = iconNodeFromTexturePathEnd "dailyChallenge.png"
                 }
 
@@ -651,6 +666,31 @@ parseInfoPanelRouteFromInfoPanelContainer infoPanelContainerNode =
                         |> List.map (\uiNode -> { uiNode = uiNode })
             in
             CanSee { uiNode = infoPanelRouteNode, routeElementMarker = routeElementMarker }
+
+
+parseInfoPanelAgentMissionsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelAgentMissions
+parseInfoPanelAgentMissionsFromInfoPanelContainer infoPanelContainerNode =
+    case
+        infoPanelContainerNode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelAgentMissions")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just infoPanelNode ->
+            let
+                entries =
+                    infoPanelNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MissionEntry")
+                        |> List.map (\uiNode -> { uiNode = uiNode })
+            in
+            CanSee
+                { uiNode = infoPanelNode
+                , entries = entries
+                }
 
 
 parseContextMenu : UITreeNodeWithDisplayRegion -> ContextMenu
