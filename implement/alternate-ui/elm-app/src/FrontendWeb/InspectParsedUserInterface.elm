@@ -855,7 +855,28 @@ treeNodeChildrenFromModuleButtonTooltip viewConfig moduleButtonTooltip =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         moduleButtonTooltip.uiNode
-        []
+        [ moduleButtonTooltip.optimalRange
+            |> fieldFromMaybeInstance
+                { fieldName = "optimalRange"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromOptimalRange
+                }
+        ]
+
+
+treeNodeChildrenFromOptimalRange :
+    { asString : String, inMeters : Result String Int }
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromOptimalRange optimalRange =
+    treeNodeChildrenFromRecord
+        [ { fieldName = "asString"
+          , fieldValueSummary = optimalRange.asString
+          , fieldValueChildren = always []
+          }
+        , optimalRange.inMeters
+            |> fieldFromResultPrimitive
+                { fieldName = "inMeters", errValueSummary = Json.Encode.string, okValueSummary = Json.Encode.int }
+        ]
 
 
 treeNodeChildrenFromAgentConversationWindow :

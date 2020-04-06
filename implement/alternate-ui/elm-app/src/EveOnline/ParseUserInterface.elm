@@ -346,6 +346,7 @@ type alias ChatUserEntry =
 
 type alias ModuleButtonTooltip =
     { uiNode : UITreeNodeWithDisplayRegion
+    , optimalRange : Maybe { asString : String, inMeters : Result String Int }
     }
 
 
@@ -1579,7 +1580,33 @@ parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
             CanNotSeeIt
 
         Just uiNode ->
-            CanSee { uiNode = uiNode }
+            CanSee (parseModuleButtonTooltip uiNode)
+
+
+parseModuleButtonTooltip : UITreeNodeWithDisplayRegion -> ModuleButtonTooltip
+parseModuleButtonTooltip tooltipUINode =
+    let
+        optimalRangeString =
+            tooltipUINode.uiNode
+                |> getAllContainedDisplayTexts
+                |> List.filterMap
+                    (\text ->
+                        "Optimal range (|within)\\s*([\\d\\.]+\\s*[km]+)"
+                            |> Regex.fromString
+                            |> Maybe.andThen (\regex -> text |> Regex.find regex |> List.head)
+                            |> Maybe.andThen (.submatches >> List.drop 1 >> List.head)
+                            |> Maybe.andThen identity
+                            |> Maybe.map String.trim
+                    )
+                |> List.head
+
+        optimalRange =
+            optimalRangeString
+                |> Maybe.map (\asString -> { asString = asString, inMeters = asString |> parseOverviewEntryDistanceInMetersFromText })
+    in
+    { uiNode = tooltipUINode
+    , optimalRange = optimalRange
+    }
 
 
 parseChatWindowStacksFromUITreeRoot : UITreeNodeWithDisplayRegion -> List ChatWindowStack
