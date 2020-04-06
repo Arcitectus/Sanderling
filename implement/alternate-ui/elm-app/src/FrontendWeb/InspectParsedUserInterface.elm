@@ -266,27 +266,57 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         parsedUserInterfaceShipUI.uiNode
-        [ parsedUserInterfaceShipUI.modules
-            |> fieldFromListInstance
-                { fieldName = "modules"
-                , fieldValueChildren =
-                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
-                }
+        [ { fieldName = "capacitor"
+          , fieldValueSummary = "..."
+          , fieldValueChildren = always (parsedUserInterfaceShipUI.capacitor |> treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig)
+          }
         , { fieldName = "hitpointsPercent"
           , fieldValueSummary = "..."
           , fieldValueChildren =
                 always (treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints parsedUserInterfaceShipUI.hitpointsPercent)
           }
-        , parsedUserInterfaceShipUI.capacitor
-            |> fieldFromMaybeVisibleInstance
-                { fieldName = "capacitor"
-                , fieldValueSummary = always "..."
-                , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig
+        , parsedUserInterfaceShipUI.modules
+            |> fieldFromListInstance
+                { fieldName = "modules"
+                , fieldValueChildren =
+                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
                 }
+        , { fieldName = "modulesRows"
+          , fieldValueSummary = "..."
+          , fieldValueChildren =
+                always (parsedUserInterfaceShipUI.modulesRows |> treeNodeChildrenFromShipUIModulesRows viewConfig)
+          }
         , parsedUserInterfaceShipUI.offensiveBuffButtonNames
             |> fieldFromPrimitiveListInstance
                 { fieldName = "offensiveBuffButtonNames"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        ]
+
+
+treeNodeChildrenFromShipUIModulesRows :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ShipUIModulesGroupedIntoRows
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUIModulesRows viewConfig shipUIModulesRows =
+    treeNodeChildrenFromRecord
+        [ shipUIModulesRows.top
+            |> fieldFromListInstance
+                { fieldName = "top"
+                , fieldValueChildren =
+                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
+                }
+        , shipUIModulesRows.middle
+            |> fieldFromListInstance
+                { fieldName = "middle"
+                , fieldValueChildren =
+                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
+                }
+        , shipUIModulesRows.bottom
+            |> fieldFromListInstance
+                { fieldName = "bottom"
+                , fieldValueChildren =
+                    treeNodeChildrenFromParsedUserInterfaceShipUIModule viewConfig
                 }
         ]
 

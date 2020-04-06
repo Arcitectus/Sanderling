@@ -78,10 +78,15 @@ type alias ContextMenuEntry =
 
 type alias ShipUI =
     { uiNode : UITreeNodeWithDisplayRegion
+    , capacitor : ShipUICapacitor
+    , hitpointsPercent : Hitpoints
     , indication : MaybeVisible ShipUIIndication
     , modules : List ShipUIModule
-    , hitpointsPercent : Hitpoints
-    , capacitor : MaybeVisible ShipUICapacitor
+    , modulesRows :
+        { top : List ShipUIModule
+        , middle : List ShipUIModule
+        , bottom : List ShipUIModule
+        }
     , offensiveBuffButtonNames : List String
     }
 
@@ -385,38 +390,6 @@ type alias MessageBox =
 type MaybeVisible feature
     = CanNotSeeIt
     | CanSee feature
-
-
-groupShipUIModulesIntoRows : ShipUI -> Maybe ShipUIModulesGroupedIntoRows
-groupShipUIModulesIntoRows shipUI =
-    shipUI.capacitor
-        |> maybeNothingFromCanNotSeeIt
-        |> Maybe.map
-            (\capacitor ->
-                let
-                    verticalDistanceThreshold =
-                        20
-
-                    verticalCenterOfUINode uiNode =
-                        uiNode.totalDisplayRegion.y + uiNode.totalDisplayRegion.height // 2
-
-                    capacitorVerticalCenter =
-                        verticalCenterOfUINode capacitor.uiNode
-                in
-                shipUI.modules
-                    |> List.foldr
-                        (\shipModule previousRows ->
-                            if verticalCenterOfUINode shipModule.uiNode < capacitorVerticalCenter - verticalDistanceThreshold then
-                                { previousRows | top = shipModule :: previousRows.top }
-
-                            else if verticalCenterOfUINode shipModule.uiNode > capacitorVerticalCenter + verticalDistanceThreshold then
-                                { previousRows | bottom = shipModule :: previousRows.bottom }
-
-                            else
-                                { previousRows | middle = shipModule :: previousRows.middle }
-                        )
-                        { top = [], middle = [], bottom = [] }
-            )
 
 
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
@@ -737,94 +710,102 @@ parseShipUIFromUITreeRoot uiTreeRoot =
             CanNotSeeIt
 
         Just shipUINode ->
-            let
-                speedGaugeElement =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpeedGauge")
-                        |> List.head
+            case
+                shipUINode
+                    |> listDescendantsWithDisplayRegion
+                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CapacitorContainer")
+                    |> List.head
+            of
+                Nothing ->
+                    CanNotSeeIt
 
-                maybeIndicationNode =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "indicationcontainer") >> Maybe.withDefault False)
-                        |> List.head
+                Just capacitorUINode ->
+                    let
+                        capacitor =
+                            capacitorUINode |> parseShipUICapacitorFromUINode
 
-                indication =
-                    maybeIndicationNode
-                        |> Maybe.map (parseShipUIIndication >> CanSee)
-                        |> Maybe.withDefault CanNotSeeIt
+                        speedGaugeElement =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpeedGauge")
+                                |> List.head
 
-                modules =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ShipSlot")
-                        |> List.filterMap
-                            (\slotNode ->
-                                slotNode
-                                    |> listDescendantsWithDisplayRegion
-                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButton")
-                                    |> List.head
-                                    |> Maybe.map
-                                        (\moduleNode ->
-                                            { uiNode = moduleNode
-                                            , slotUINode = slotNode
-                                            , isActive =
-                                                moduleNode.uiNode.dictEntriesOfInterest
-                                                    |> Dict.get "ramp_active"
-                                                    |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
-                                            , isHiliteVisible =
-                                                slotNode
-                                                    |> listDescendantsWithDisplayRegion
-                                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
-                                                    |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "hilite"))
-                                                    |> List.isEmpty
-                                                    |> not
-                                            }
-                                        )
+                        maybeIndicationNode =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "indicationcontainer") >> Maybe.withDefault False)
+                                |> List.head
+
+                        indication =
+                            maybeIndicationNode
+                                |> Maybe.map (parseShipUIIndication >> CanSee)
+                                |> Maybe.withDefault CanNotSeeIt
+
+                        modules =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ShipSlot")
+                                |> List.filterMap
+                                    (\slotNode ->
+                                        slotNode
+                                            |> listDescendantsWithDisplayRegion
+                                            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ModuleButton")
+                                            |> List.head
+                                            |> Maybe.map
+                                                (\moduleNode ->
+                                                    { uiNode = moduleNode
+                                                    , slotUINode = slotNode
+                                                    , isActive =
+                                                        moduleNode.uiNode.dictEntriesOfInterest
+                                                            |> Dict.get "ramp_active"
+                                                            |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
+                                                    , isHiliteVisible =
+                                                        slotNode
+                                                            |> listDescendantsWithDisplayRegion
+                                                            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
+                                                            |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "hilite"))
+                                                            |> List.isEmpty
+                                                            |> not
+                                                    }
+                                                )
+                                    )
+
+                        getLastValuePercentFromGaugeName gaugeName =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) gaugeName) >> Maybe.withDefault False)
+                                |> List.head
+                                |> Maybe.andThen (.uiNode >> .dictEntriesOfInterest >> Dict.get "_lastValue")
+                                |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
+                                |> Maybe.map ((*) 100 >> round)
+
+                        maybeHitpointsPercent =
+                            case ( getLastValuePercentFromGaugeName "structureGauge", getLastValuePercentFromGaugeName "armorGauge", getLastValuePercentFromGaugeName "shieldGauge" ) of
+                                ( Just structure, Just armor, Just shield ) ->
+                                    Just { structure = structure, armor = armor, shield = shield }
+
+                                _ ->
+                                    Nothing
+
+                        offensiveBuffButtonNames =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OffensiveBuffButton")
+                                |> List.filterMap (.uiNode >> getNameFromDictEntries)
+                    in
+                    maybeHitpointsPercent
+                        |> Maybe.map
+                            (\hitpointsPercent ->
+                                { uiNode = shipUINode
+                                , capacitor = capacitor
+                                , hitpointsPercent = hitpointsPercent
+                                , indication = indication
+                                , modules = modules
+                                , modulesRows = groupShipUIModulesIntoRows capacitor modules
+                                , offensiveBuffButtonNames = offensiveBuffButtonNames
+                                }
                             )
-
-                getLastValuePercentFromGaugeName gaugeName =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) gaugeName) >> Maybe.withDefault False)
-                        |> List.head
-                        |> Maybe.andThen (.uiNode >> .dictEntriesOfInterest >> Dict.get "_lastValue")
-                        |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
-                        |> Maybe.map ((*) 100 >> round)
-
-                maybeHitpointsPercent =
-                    case ( getLastValuePercentFromGaugeName "structureGauge", getLastValuePercentFromGaugeName "armorGauge", getLastValuePercentFromGaugeName "shieldGauge" ) of
-                        ( Just structure, Just armor, Just shield ) ->
-                            Just { structure = structure, armor = armor, shield = shield }
-
-                        _ ->
-                            Nothing
-
-                maybeCapacitorUINode =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CapacitorContainer")
-                        |> List.head
-
-                offensiveBuffButtonNames =
-                    shipUINode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OffensiveBuffButton")
-                        |> List.filterMap (.uiNode >> getNameFromDictEntries)
-            in
-            maybeHitpointsPercent
-                |> Maybe.map
-                    (\hitpointsPercent ->
-                        { uiNode = shipUINode
-                        , indication = indication
-                        , modules = modules
-                        , hitpointsPercent = hitpointsPercent
-                        , capacitor = maybeCapacitorUINode |> Maybe.map parseShipUICapacitorFromUINode |> canNotSeeItFromMaybeNothing
-                        , offensiveBuffButtonNames = offensiveBuffButtonNames
-                        }
-                    )
-                |> canNotSeeItFromMaybeNothing
+                        |> canNotSeeItFromMaybeNothing
 
 
 parseShipUICapacitorFromUINode : UITreeNodeWithDisplayRegion -> ShipUICapacitor
@@ -861,6 +842,33 @@ parseShipUICapacitorFromUINode capacitorUINode =
     , pmarks = pmarks
     , levelFromPmarksPercent = levelFromPmarksPercent
     }
+
+
+groupShipUIModulesIntoRows : ShipUICapacitor -> List ShipUIModule -> ShipUIModulesGroupedIntoRows
+groupShipUIModulesIntoRows capacitor modules =
+    let
+        verticalDistanceThreshold =
+            20
+
+        verticalCenterOfUINode uiNode =
+            uiNode.totalDisplayRegion.y + uiNode.totalDisplayRegion.height // 2
+
+        capacitorVerticalCenter =
+            verticalCenterOfUINode capacitor.uiNode
+    in
+    modules
+        |> List.foldr
+            (\shipModule previousRows ->
+                if verticalCenterOfUINode shipModule.uiNode < capacitorVerticalCenter - verticalDistanceThreshold then
+                    { previousRows | top = shipModule :: previousRows.top }
+
+                else if verticalCenterOfUINode shipModule.uiNode > capacitorVerticalCenter + verticalDistanceThreshold then
+                    { previousRows | bottom = shipModule :: previousRows.bottom }
+
+                else
+                    { previousRows | middle = shipModule :: previousRows.middle }
+            )
+            { top = [], middle = [], bottom = [] }
 
 
 parseTargetsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List Target
