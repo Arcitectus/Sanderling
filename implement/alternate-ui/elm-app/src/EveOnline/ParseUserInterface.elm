@@ -57,13 +57,6 @@ type alias Location2d =
     }
 
 
-type alias ShipUIModulesGroupedIntoRows =
-    { top : List ShipUIModule
-    , middle : List ShipUIModule
-    , bottom : List ShipUIModule
-    }
-
-
 type alias ContextMenu =
     { uiNode : UITreeNodeWithDisplayRegion
     , entries : List ContextMenuEntry
@@ -81,11 +74,11 @@ type alias ShipUI =
     , capacitor : ShipUICapacitor
     , hitpointsPercent : Hitpoints
     , indication : MaybeVisible ShipUIIndication
-    , modules : List ShipUIModule
-    , modulesRows :
-        { top : List ShipUIModule
-        , middle : List ShipUIModule
-        , bottom : List ShipUIModule
+    , moduleButtons : List ShipUIModuleButton
+    , moduleButtonsRows :
+        { top : List ShipUIModuleButton
+        , middle : List ShipUIModuleButton
+        , bottom : List ShipUIModuleButton
         }
     , offensiveBuffButtonNames : List String
     }
@@ -97,7 +90,7 @@ type alias ShipUIIndication =
     }
 
 
-type alias ShipUIModule =
+type alias ShipUIModuleButton =
     { uiNode : UITreeNodeWithDisplayRegion
     , slotUINode : UITreeNodeWithDisplayRegion
     , isActive : Maybe Bool
@@ -741,7 +734,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 |> Maybe.map (parseShipUIIndication >> CanSee)
                                 |> Maybe.withDefault CanNotSeeIt
 
-                        modules =
+                        moduleButtons =
                             shipUINode
                                 |> listDescendantsWithDisplayRegion
                                 |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ShipSlot")
@@ -800,8 +793,8 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , capacitor = capacitor
                                 , hitpointsPercent = hitpointsPercent
                                 , indication = indication
-                                , modules = modules
-                                , modulesRows = groupShipUIModulesIntoRows capacitor modules
+                                , moduleButtons = moduleButtons
+                                , moduleButtonsRows = groupShipUIModulesIntoRows capacitor moduleButtons
                                 , offensiveBuffButtonNames = offensiveBuffButtonNames
                                 }
                             )
@@ -844,7 +837,10 @@ parseShipUICapacitorFromUINode capacitorUINode =
     }
 
 
-groupShipUIModulesIntoRows : ShipUICapacitor -> List ShipUIModule -> ShipUIModulesGroupedIntoRows
+groupShipUIModulesIntoRows :
+    ShipUICapacitor
+    -> List ShipUIModuleButton
+    -> { top : List ShipUIModuleButton, middle : List ShipUIModuleButton, bottom : List ShipUIModuleButton }
 groupShipUIModulesIntoRows capacitor modules =
     let
         verticalDistanceThreshold =
