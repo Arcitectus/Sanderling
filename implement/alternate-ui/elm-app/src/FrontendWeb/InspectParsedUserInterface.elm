@@ -329,17 +329,18 @@ treeNodeChildrenFromShipUIModuleButton :
     ViewConfig event
     -> EveOnline.ParseUserInterface.ShipUIModuleButton
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromShipUIModuleButton viewConfig parsedUserInterfaceShipUIModule =
+treeNodeChildrenFromShipUIModuleButton viewConfig shipUIModuleButton =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
-        parsedUserInterfaceShipUIModule.uiNode
+        shipUIModuleButton.uiNode
         [ { fieldName = "slotUINode"
           , fieldValueSummary = "..."
           , fieldValueChildren =
-                always [ treeViewNodeFromUINode viewConfig parsedUserInterfaceShipUIModule.slotUINode ]
+                always [ treeViewNodeFromUINode viewConfig shipUIModuleButton.slotUINode ]
           }
-        , parsedUserInterfaceShipUIModule.isActive |> fieldFromMaybeBool "isActive"
-        , parsedUserInterfaceShipUIModule.isHiliteVisible |> fieldFromBool "isHiliteVisible"
+        , shipUIModuleButton.isActive |> fieldFromMaybeBool "isActive"
+        , shipUIModuleButton.isHiliteVisible |> fieldFromBool "isHiliteVisible"
+        , shipUIModuleButton.rampRotationMilli |> fieldFromMaybeInt "rampRotationMilli"
         ]
 
 

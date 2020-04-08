@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-03-10";
+        static string AppVersionId => "2020-04-08";
 
         static int Main(string[] args)
         {
@@ -651,6 +651,9 @@ namespace read_memory_64_bit
 
             //  Found in "ModuleButton"
             "ramp_active",
+
+            //  Found in the Transforms contained in "ShipModuleButtonRamps"
+            "_rotation",
 
             //  Found under OverviewEntry in Sprite named "iconSprite"
             "_color"
