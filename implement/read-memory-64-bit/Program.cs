@@ -656,7 +656,13 @@ namespace read_memory_64_bit
             "_rotation",
 
             //  Found under OverviewEntry in Sprite named "iconSprite"
-            "_color"
+            "_color",
+
+            //  Found in "SE_TextlineCore"
+            "_sr",
+
+            //  Found in "_sr" Bunch
+            "htmlstr"
         );
 
         struct LocalMemoryReadingTools
@@ -664,6 +670,10 @@ namespace read_memory_64_bit
             public IMemoryReader memoryReader;
 
             public Func<ulong, IImmutableDictionary<string, ulong>> getDictionaryEntriesWithStringKeys;
+
+            public Func<ulong, string> GetPythonTypeNameFromPythonObjectAddress;
+
+            public Func<ulong, object> GetDictEntryValueRepresentation;
         }
 
         static readonly IImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>> specializedReadingFromPythonType =
@@ -759,6 +769,39 @@ namespace read_memory_64_bit
                     rPercent = readValuePercentFromDictEntryKey("_r"),
                     gPercent = readValuePercentFromDictEntryKey("_g"),
                     bPercent = readValuePercentFromDictEntryKey("_b"),
+                };
+            }))
+            .Add("Bunch", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
+            {
+                var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(address);
+
+                if (dictionaryEntries == null)
+                    return "Failed to read dictionary entries.";
+
+                var entriesOfInterest = new List<UITreeNode.DictEntry>();
+
+                foreach (var entry in dictionaryEntries)
+                {
+                    if (!DictEntriesOfInterestKeys.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+
+                    entriesOfInterest.Add(new UITreeNode.DictEntry
+                    {
+                        key = entry.Key,
+                        value = memoryReadingTools.GetDictEntryValueRepresentation(entry.Value)
+                    });
+                }
+
+                var entriesOfInterestJObject =
+                    new Newtonsoft.Json.Linq.JObject(
+                        entriesOfInterest.Select(dictEntry =>
+                            new Newtonsoft.Json.Linq.JProperty(dictEntry.key, Newtonsoft.Json.Linq.JToken.FromObject(dictEntry.value))));
+
+                return new UITreeNode.Bunch
+                {
+                    entriesOfInterest = entriesOfInterestJObject,
                 };
             }));
 
@@ -929,7 +972,8 @@ namespace read_memory_64_bit
             var localMemoryReadingTools = new LocalMemoryReadingTools
             {
                 memoryReader = memoryReader,
-                getDictionaryEntriesWithStringKeys = GetDictionaryEntriesWithStringKeys
+                getDictionaryEntriesWithStringKeys = GetDictionaryEntriesWithStringKeys,
+                GetPythonTypeNameFromPythonObjectAddress = getPythonTypeNameFromPythonObjectAddress,
             };
 
             var pythonObjectTypeName = getPythonTypeNameFromPythonObjectAddress(nodeAddress);
@@ -948,6 +992,34 @@ namespace read_memory_64_bit
 
             var otherDictEntriesKeys = new List<string>();
 
+            object GetDictEntryValueRepresentation(ulong valueOjectAddress)
+            {
+                return cache.GetDictEntryValueRepresentation(valueOjectAddress, valueOjectAddress =>
+                {
+                    var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
+                    {
+                        address = valueOjectAddress,
+                        pythonObjectTypeName = null
+                    };
+
+                    var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
+
+                    genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
+
+                    if (value_pythonTypeName == null)
+                        return genericRepresentation;
+
+                    specializedReadingFromPythonType.TryGetValue(value_pythonTypeName, out var specializedRepresentation);
+
+                    if (specializedRepresentation == null)
+                        return genericRepresentation;
+
+                    return specializedRepresentation(genericRepresentation.address, localMemoryReadingTools);
+                });
+            }
+
+            localMemoryReadingTools.GetDictEntryValueRepresentation = GetDictEntryValueRepresentation;
+
             foreach (var dictionaryEntry in dictionaryEntries)
             {
                 var keyObject_type_name = getPythonTypeNameFromPythonObjectAddress(dictionaryEntry.key);
@@ -965,36 +1037,10 @@ namespace read_memory_64_bit
                     continue;
                 }
 
-                object getValueRepresentation(ulong valueOjectAddress)
-                {
-                    return cache.GetDictEntryValueRepresentation(valueOjectAddress, valueOjectAddress =>
-                    {
-                        var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
-                        {
-                            address = valueOjectAddress,
-                            pythonObjectTypeName = null
-                        };
-
-                        var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
-
-                        genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
-
-                        if (value_pythonTypeName == null)
-                            return genericRepresentation;
-
-                        specializedReadingFromPythonType.TryGetValue(value_pythonTypeName, out var specializedRepresentation);
-
-                        if (specializedRepresentation == null)
-                            return genericRepresentation;
-
-                        return specializedRepresentation(genericRepresentation.address, localMemoryReadingTools);
-                    });
-                }
-
                 dictEntriesOfInterest.Add(new UITreeNode.DictEntry
                 {
                     key = keyString,
-                    value = getValueRepresentation(dictionaryEntry.value)
+                    value = GetDictEntryValueRepresentation(dictionaryEntry.value)
                 });
             }
 
@@ -1380,6 +1426,11 @@ namespace read_memory_64_bit
         {
             public string key { set; get; }
             public object value { set; get; }
+        }
+
+        public class Bunch
+        {
+            public Newtonsoft.Json.Linq.JObject entriesOfInterest { set; get; }
         }
 
         public IEnumerable<UITreeNode> EnumerateSelfAndDescendants() =>
