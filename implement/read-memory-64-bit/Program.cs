@@ -9,7 +9,7 @@ namespace read_memory_64_bit
 {
     class Program
     {
-        static string AppVersionId => "2020-04-08";
+        static string AppVersionId => "2020-04-12";
 
         static int Main(string[] args)
         {
