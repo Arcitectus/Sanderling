@@ -404,6 +404,17 @@ treeNodeChildrenFromParsedUserInterfaceTarget viewConfig parsedUserInterfaceTarg
                     "False"
           , fieldValueChildren = always []
           }
+        , parsedUserInterfaceTarget.assignedContainerNode
+            |> fieldFromMaybeInstance
+                { fieldName = "assignedContainerNode"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , parsedUserInterfaceTarget.assignedIcons
+            |> fieldFromListInstance
+                { fieldName = "assignedIcons"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
         ]
 
 

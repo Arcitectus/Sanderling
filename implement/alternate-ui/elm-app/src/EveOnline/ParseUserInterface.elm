@@ -184,6 +184,8 @@ type alias Target =
     , barAndImageCont : Maybe UITreeNodeWithDisplayRegion
     , textsTopToBottom : List String
     , isActiveTarget : Bool
+    , assignedContainerNode : Maybe UITreeNodeWithDisplayRegion
+    , assignedIcons : List UITreeNodeWithDisplayRegion
     }
 
 
@@ -924,11 +926,26 @@ parseTarget targetNode =
             targetNode.uiNode
                 |> EveOnline.MemoryReading.listDescendantsInUITreeNode
                 |> List.any (.pythonObjectTypeName >> (==) "ActiveTargetOnBracket")
+
+        assignedContainerNode =
+            targetNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "assigned") >> Maybe.withDefault False)
+                |> List.sortBy (.totalDisplayRegion >> .width)
+                |> List.head
+
+        assignedIcons =
+            assignedContainerNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (\uiNode -> [ "Sprite", "Icon" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
     in
     { uiNode = targetNode
     , barAndImageCont = barAndImageCont
     , textsTopToBottom = textsTopToBottom
     , isActiveTarget = isActiveTarget
+    , assignedContainerNode = assignedContainerNode
+    , assignedIcons = assignedIcons
     }
 
 
