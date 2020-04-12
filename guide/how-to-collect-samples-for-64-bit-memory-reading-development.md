@@ -6,11 +6,11 @@ The tool we use in this guide works only for 64-bit processes.
 
 The tool copies the memory contents of a chosen Windows process (such as a game client) and takes a screenshot from its main window and writes those to a file. This data is used in development to correlate screen contents with memory contents.
 
-Here you can see a typical scenario where we this tool: https://forum.botengine.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101
+Here you can see a typical scenario where we use this tool: https://forum.botengine.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101
 
 **Steps to collect a sample:**
 
-+ Download and unpack the zip-archive from [https://github.com/Arcitectus/Sanderling/releases/download/v2020-03-10/2020-03-10-read-memory-64.zip](https://github.com/Arcitectus/Sanderling/releases/download/v2020-03-10/2020-03-10-read-memory-64.zip)
++ Download and unpack the zip-archive from [https://github.com/Arcitectus/Sanderling/releases/download/v2020-04-12/2020-04-12-read-memory-64.zip](https://github.com/Arcitectus/Sanderling/releases/download/v2020-04-12/2020-04-12-read-memory-64.zip)
 + Find the game client in the Windows Task Manager.
 + Make sure the name of the game client displayed in the Windows Task Manager does not contain `(32 bit)`.
 + Read the process ID of the game client process in the `PID` column in the Task Manager.
