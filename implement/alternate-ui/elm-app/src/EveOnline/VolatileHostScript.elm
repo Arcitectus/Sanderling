@@ -78,6 +78,8 @@ class Request
 
     public class EffectOnWindowStructure
     {
+        public MouseMoveToStructure mouseMoveTo;
+
         public SimpleMouseClickAtLocation simpleMouseClickAtLocation;
 
         public SimpleDragAndDrop simpleDragAndDrop;
@@ -90,6 +92,11 @@ class Request
     public class KeyboardKey
     {
         public int virtualKeyCode;
+    }
+
+    public class MouseMoveToStructure
+    {
+        public Location2d location;
     }
 
     public class SimpleMouseClickAtLocation
@@ -304,7 +311,33 @@ void ExecuteEffectOnWindow(
     if (bringWindowToForeground)
         EnsureWindowIsForeground(windowHandle);
 
-    //  TODO: Consolidate simpleMouseClickAtLocation and simpleDragAndDrop?
+    //  TODO: Consolidate mouseMoveTo and simpleMouseClickAtLocation and simpleDragAndDrop?
+
+    if (effectOnWindow?.mouseMoveTo != null)
+    {
+        //  Build motion description based on https://github.com/Arcitectus/Sanderling/blob/ada11c9f8df2367976a6bcc53efbe9917107bfa7/src/Sanderling/Sanderling/Motor/Extension.cs#L24-L131
+
+        var mousePosition = new Bib3.Geometrik.Vektor2DInt(
+            effectOnWindow.mouseMoveTo.location.x,
+            effectOnWindow.mouseMoveTo.location.y);
+
+        var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]{};
+
+        var windowMotor = new Sanderling.Motor.WindowMotor(windowHandle);
+
+        var motionSequence = new BotEngine.Motor.Motion[]{
+            new BotEngine.Motor.Motion(
+                mousePosition: mousePosition,
+                mouseButtonDown: mouseButtons,
+                windowToForeground: bringWindowToForeground),
+            new BotEngine.Motor.Motion(
+                mousePosition: mousePosition,
+                mouseButtonUp: mouseButtons,
+                windowToForeground: bringWindowToForeground),
+        };
+
+        windowMotor.ActSequenceMotion(motionSequence);
+    }
 
     if (effectOnWindow?.simpleMouseClickAtLocation != null)
     {

@@ -93,14 +93,15 @@ type
        | KeyboardKeyUp VirtualKeyCode
        | TextEntry String
     -}
-    = SimpleMouseClickAtLocation MouseClickAtLocation
+    = MouseMoveTo MouseMoveToStructure
+    | SimpleMouseClickAtLocation MouseClickAtLocation
     | SimpleDragAndDrop SimpleDragAndDropStructure
     | KeyDown VirtualKeyCode
     | KeyUp VirtualKeyCode
 
 
 type alias MouseMoveToStructure =
-    { location : LocationRelativeToWindow }
+    { location : Location2d }
 
 
 type alias MouseButtonChangeStructure =
@@ -230,6 +231,11 @@ decodeTaskOnWindow taskDecoder =
 encodeEffectOnWindowStructure : EffectOnWindowStructure -> Json.Encode.Value
 encodeEffectOnWindowStructure effectOnWindow =
     case effectOnWindow of
+        MouseMoveTo mouseMoveTo ->
+            Json.Encode.object
+                [ ( "MouseMoveTo", mouseMoveTo |> encodeMouseMoveTo )
+                ]
+
         SimpleMouseClickAtLocation mouseClickAtLocation ->
             Json.Encode.object
                 [ ( "simpleMouseClickAtLocation", mouseClickAtLocation |> encodeMouseClickAtLocation )
@@ -261,6 +267,13 @@ decodeEffectOnWindowStructure =
 encodeKey : VirtualKeyCode -> Json.Encode.Value
 encodeKey virtualKeyCode =
     Json.Encode.object [ ( "virtualKeyCode", virtualKeyCode |> virtualKeyCodeAsInteger |> Json.Encode.int ) ]
+
+
+encodeMouseMoveTo : MouseMoveToStructure -> Json.Encode.Value
+encodeMouseMoveTo mouseMoveTo =
+    Json.Encode.object
+        [ ( "location", mouseMoveTo.location |> encodeLocation2d )
+        ]
 
 
 encodeMouseClickAtLocation : MouseClickAtLocation -> Json.Encode.Value
