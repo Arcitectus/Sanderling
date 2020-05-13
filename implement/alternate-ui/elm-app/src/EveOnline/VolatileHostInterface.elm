@@ -15,7 +15,21 @@ module EveOnline.VolatileHostInterface exposing
     , decodeRequestToVolatileHost
     , deserializeResponseFromVolatileHost
     , effectMouseClickAtLocation
+    , effectsForDragAndDrop
     , encodeRequestToVolatileHost
+    , key_F1
+    , key_F10
+    , key_F11
+    , key_F12
+    , key_F2
+    , key_F3
+    , key_F4
+    , key_F5
+    , key_F6
+    , key_F7
+    , key_F8
+    , key_F9
+    , virtualKeyCodeFromMouseButton
     )
 
 import Json.Decode
@@ -95,19 +109,12 @@ type
     -}
     = MouseMoveTo MouseMoveToStructure
     | SimpleMouseClickAtLocation MouseClickAtLocation
-    | SimpleDragAndDrop SimpleDragAndDropStructure
     | KeyDown VirtualKeyCode
     | KeyUp VirtualKeyCode
 
 
 type alias MouseMoveToStructure =
     { location : Location2d }
-
-
-type alias MouseButtonChangeStructure =
-    { location : LocationRelativeToWindow
-    , button : MouseButton
-    }
 
 
 type VirtualKeyCode
@@ -118,10 +125,8 @@ type VirtualKeyCode
     | VK_MENU
     | VK_ESCAPE
     | VK_SPACE
-
-
-type LocationRelativeToWindow
-    = ClientArea Location2d -- https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-clienttoscreen
+    | VK_LCONTROL
+    | VK_LMENU
 
 
 type alias WindowId =
@@ -131,13 +136,6 @@ type alias WindowId =
 type alias MouseClickAtLocation =
     { location : Location2d
     , mouseButton : MouseButton
-    }
-
-
-type alias SimpleDragAndDropStructure =
-    { startLocation : Location2d
-    , mouseButton : MouseButton
-    , endLocation : Location2d
     }
 
 
@@ -154,6 +152,25 @@ type alias ConsoleBeepStructure =
     { frequency : Int
     , durationInMs : Int
     }
+
+
+effectsForDragAndDrop : { startLocation : Location2d, mouseButton : MouseButton, endLocation : Location2d } -> List EffectOnWindowStructure
+effectsForDragAndDrop { startLocation, mouseButton, endLocation } =
+    [ MouseMoveTo { location = startLocation }
+    , KeyDown (virtualKeyCodeFromMouseButton mouseButton)
+    , MouseMoveTo { location = endLocation }
+    , KeyUp (virtualKeyCodeFromMouseButton mouseButton)
+    ]
+
+
+virtualKeyCodeFromMouseButton : MouseButton -> VirtualKeyCode
+virtualKeyCodeFromMouseButton mouseButton =
+    case mouseButton of
+        MouseButtonLeft ->
+            VirtualKeyCodeFromInt 1
+
+        MouseButtonRight ->
+            VirtualKeyCodeFromInt 1
 
 
 deserializeResponseFromVolatileHost : String -> Result Json.Decode.Error ResponseFromVolatileHost
@@ -241,11 +258,6 @@ encodeEffectOnWindowStructure effectOnWindow =
                 [ ( "simpleMouseClickAtLocation", mouseClickAtLocation |> encodeMouseClickAtLocation )
                 ]
 
-        SimpleDragAndDrop dragAndDrop ->
-            Json.Encode.object
-                [ ( "simpleDragAndDrop", dragAndDrop |> encodeSimpleDragAndDrop )
-                ]
-
         KeyDown virtualKeyCode ->
             Json.Encode.object
                 [ ( "keyDown", virtualKeyCode |> encodeKey )
@@ -289,15 +301,6 @@ decodeMouseClickAtLocation =
     Json.Decode.map2 MouseClickAtLocation
         (Json.Decode.field "location" jsonDecodeLocation2d)
         (Json.Decode.field "mouseButton" jsonDecodeMouseButton)
-
-
-encodeSimpleDragAndDrop : SimpleDragAndDropStructure -> Json.Encode.Value
-encodeSimpleDragAndDrop simpleDragAndDrop =
-    Json.Encode.object
-        [ ( "startLocation", simpleDragAndDrop.startLocation |> encodeLocation2d )
-        , ( "mouseButton", simpleDragAndDrop.mouseButton |> encodeMouseButton )
-        , ( "endLocation", simpleDragAndDrop.endLocation |> encodeLocation2d )
-        ]
 
 
 encodeLocation2d : Location2d -> Json.Encode.Value
@@ -442,6 +445,72 @@ virtualKeyCodeAsInteger keyCode =
 
         VK_SPACE ->
             0x20
+
+        VK_LCONTROL ->
+            0xA2
+
+        VK_LMENU ->
+            0xA4
+
+
+key_F1 : VirtualKeyCode
+key_F1 =
+    VirtualKeyCodeFromInt 0x70
+
+
+key_F2 : VirtualKeyCode
+key_F2 =
+    VirtualKeyCodeFromInt 0x71
+
+
+key_F3 : VirtualKeyCode
+key_F3 =
+    VirtualKeyCodeFromInt 0x72
+
+
+key_F4 : VirtualKeyCode
+key_F4 =
+    VirtualKeyCodeFromInt 0x73
+
+
+key_F5 : VirtualKeyCode
+key_F5 =
+    VirtualKeyCodeFromInt 0x74
+
+
+key_F6 : VirtualKeyCode
+key_F6 =
+    VirtualKeyCodeFromInt 0x75
+
+
+key_F7 : VirtualKeyCode
+key_F7 =
+    VirtualKeyCodeFromInt 0x76
+
+
+key_F8 : VirtualKeyCode
+key_F8 =
+    VirtualKeyCodeFromInt 0x77
+
+
+key_F9 : VirtualKeyCode
+key_F9 =
+    VirtualKeyCodeFromInt 0x78
+
+
+key_F10 : VirtualKeyCode
+key_F10 =
+    VirtualKeyCodeFromInt 0x79
+
+
+key_F11 : VirtualKeyCode
+key_F11 =
+    VirtualKeyCodeFromInt 0x7A
+
+
+key_F12 : VirtualKeyCode
+key_F12 =
+    VirtualKeyCodeFromInt 0x7B
 
 
 jsonDecodeSucceedWhenNotNull : a -> Json.Decode.Decoder a
