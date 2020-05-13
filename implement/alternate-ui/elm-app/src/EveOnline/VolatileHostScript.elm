@@ -418,13 +418,44 @@ void ExecuteEffectOnWindow(
 
     if (effectOnWindow?.keyDown != null)
     {
-        new WindowsInput.InputSimulator().Keyboard.KeyDown((WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyDown.virtualKeyCode);
+        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyDown.virtualKeyCode;
+
+        (MouseActionForKeyUpOrDown(keyCode: virtualKeyCode, buttonUp: false)
+        ??
+        (() => new WindowsInput.InputSimulator().Keyboard.KeyDown(virtualKeyCode)))();
     }
 
     if (effectOnWindow?.keyUp != null)
     {
-        new WindowsInput.InputSimulator().Keyboard.KeyUp((WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyUp.virtualKeyCode);
+        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyUp.virtualKeyCode;
+
+        (MouseActionForKeyUpOrDown(keyCode: virtualKeyCode, buttonUp: true)
+        ??
+        (() => new WindowsInput.InputSimulator().Keyboard.KeyUp(virtualKeyCode)))();
     }
+}
+
+static System.Action MouseActionForKeyUpOrDown(WindowsInput.Native.VirtualKeyCode keyCode, bool buttonUp)
+{
+    WindowsInput.IMouseSimulator mouseSimulator() => new WindowsInput.InputSimulator().Mouse;
+
+    var method = keyCode switch
+    {
+        WindowsInput.Native.VirtualKeyCode.LBUTTON =>
+            buttonUp ?
+            (System.Func<WindowsInput.IMouseSimulator>)mouseSimulator().LeftButtonUp
+            : mouseSimulator().LeftButtonDown,
+        WindowsInput.Native.VirtualKeyCode.RBUTTON =>
+            buttonUp ?
+            (System.Func<WindowsInput.IMouseSimulator>)mouseSimulator().RightButtonUp
+            : mouseSimulator().RightButtonDown,
+        _ => null
+    };
+
+    if (method != null)
+        return () => method();
+
+    return null;
 }
 
 static void EnsureWindowIsForeground(
