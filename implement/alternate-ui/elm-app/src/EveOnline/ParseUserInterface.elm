@@ -1,5 +1,6 @@
 module EveOnline.ParseUserInterface exposing (..)
 
+import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
 import Json.Decode
@@ -349,6 +350,7 @@ type alias ChatUserEntry =
 
 type alias ModuleButtonTooltip =
     { uiNode : UITreeNodeWithDisplayRegion
+    , shortcut : Maybe { text : String, parseResult : Result String (List Common.EffectOnWindow.VirtualKeyCode) }
     , optimalRange : Maybe { asString : String, inMeters : Result String Int }
     }
 
@@ -1633,6 +1635,39 @@ parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
 parseModuleButtonTooltip : UITreeNodeWithDisplayRegion -> ModuleButtonTooltip
 parseModuleButtonTooltip tooltipUINode =
     let
+        upperRightCornerFromDisplayRegion region =
+            { x = region.x + region.width, y = region.y }
+
+        distanceSquared a b =
+            let
+                distanceX =
+                    a.x - b.x
+
+                distanceY =
+                    a.y - b.y
+            in
+            distanceX * distanceX + distanceY * distanceY
+
+        shortcutCandidates =
+            tooltipUINode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.map
+                    (\( text, textUINode ) ->
+                        { text = text
+                        , distanceUpperRightCornerSquared =
+                            distanceSquared
+                                (textUINode.totalDisplayRegion |> upperRightCornerFromDisplayRegion)
+                                (tooltipUINode.totalDisplayRegion |> upperRightCornerFromDisplayRegion)
+                        }
+                    )
+                |> List.sortBy .distanceUpperRightCornerSquared
+
+        shortcut =
+            shortcutCandidates
+                |> List.filter (\textAndDistance -> textAndDistance.distanceUpperRightCornerSquared < 1000)
+                |> List.head
+                |> Maybe.map (\{ text } -> { text = text, parseResult = text |> parseModuleButtonTooltipShortcut })
+
         optimalRangeString =
             tooltipUINode.uiNode
                 |> getAllContainedDisplayTexts
@@ -1652,8 +1687,57 @@ parseModuleButtonTooltip tooltipUINode =
                 |> Maybe.map (\asString -> { asString = asString, inMeters = asString |> parseOverviewEntryDistanceInMetersFromText })
     in
     { uiNode = tooltipUINode
+    , shortcut = shortcut
     , optimalRange = optimalRange
     }
+
+
+parseModuleButtonTooltipShortcut : String -> Result String (List Common.EffectOnWindow.VirtualKeyCode)
+parseModuleButtonTooltipShortcut shortcutText =
+    shortcutText
+        |> String.split "-"
+        |> List.concatMap (String.split "+")
+        |> List.map String.trim
+        |> List.filter (String.length >> (<) 0)
+        |> List.foldl
+            (\nextKeyText previousResult ->
+                previousResult
+                    |> Result.andThen
+                        (\previousKeys ->
+                            case nextKeyText |> parseKeyShortcutText of
+                                Just nextKey ->
+                                    Ok (nextKey :: previousKeys)
+
+                                Nothing ->
+                                    Err ("Unknown key text: '" ++ nextKeyText ++ "'")
+                        )
+            )
+            (Ok [])
+        |> Result.map List.reverse
+
+
+parseKeyShortcutText : String -> Maybe Common.EffectOnWindow.VirtualKeyCode
+parseKeyShortcutText keyText =
+    [ ( "CTRL", Common.EffectOnWindow.VK_LCONTROL )
+    , ( "STRG", Common.EffectOnWindow.VK_LCONTROL )
+    , ( "ALT", Common.EffectOnWindow.VK_LMENU )
+    , ( "SHIFT", Common.EffectOnWindow.VK_LSHIFT )
+    , ( "UMSCH", Common.EffectOnWindow.VK_LSHIFT )
+    , ( "F1", Common.EffectOnWindow.key_F1 )
+    , ( "F2", Common.EffectOnWindow.key_F2 )
+    , ( "F3", Common.EffectOnWindow.key_F3 )
+    , ( "F4", Common.EffectOnWindow.key_F4 )
+    , ( "F5", Common.EffectOnWindow.key_F5 )
+    , ( "F6", Common.EffectOnWindow.key_F6 )
+    , ( "F7", Common.EffectOnWindow.key_F7 )
+    , ( "F8", Common.EffectOnWindow.key_F8 )
+    , ( "F9", Common.EffectOnWindow.key_F9 )
+    , ( "F10", Common.EffectOnWindow.key_F10 )
+    , ( "F11", Common.EffectOnWindow.key_F11 )
+    , ( "F12", Common.EffectOnWindow.key_F12 )
+    ]
+        |> Dict.fromList
+        |> Dict.get (keyText |> String.toUpper)
 
 
 parseChatWindowStacksFromUITreeRoot : UITreeNodeWithDisplayRegion -> List ChatWindowStack

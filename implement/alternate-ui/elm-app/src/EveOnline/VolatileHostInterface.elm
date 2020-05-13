@@ -4,12 +4,10 @@ module EveOnline.VolatileHostInterface exposing
     , GameClientProcessSummaryStruct
     , GetMemoryReadingResultStructure(..)
     , Location2d
-    , MouseButton(..)
     , RequestToVolatileHost(..)
     , ResponseFromVolatileHost(..)
     , SearchUIRootAddressResultStructure
     , SearchUIRootAddressStructure
-    , VirtualKeyCode(..)
     , WindowId
     , buildRequestStringToGetResponseFromVolatileHost
     , decodeRequestToVolatileHost
@@ -17,21 +15,9 @@ module EveOnline.VolatileHostInterface exposing
     , effectMouseClickAtLocation
     , effectsForDragAndDrop
     , encodeRequestToVolatileHost
-    , key_F1
-    , key_F10
-    , key_F11
-    , key_F12
-    , key_F2
-    , key_F3
-    , key_F4
-    , key_F5
-    , key_F6
-    , key_F7
-    , key_F8
-    , key_F9
-    , virtualKeyCodeFromMouseButton
     )
 
+import Common.EffectOnWindow exposing (MouseButton(..), VirtualKeyCode(..), virtualKeyCodeAsInteger, virtualKeyCodeFromMouseButton)
 import Json.Decode
 import Json.Decode.Extra
 import Json.Encode
@@ -117,18 +103,6 @@ type alias MouseMoveToStructure =
     { location : Location2d }
 
 
-type VirtualKeyCode
-    = VirtualKeyCodeFromInt Int
-      -- Names from https://docs.microsoft.com/en-us/windows/desktop/inputdev/virtual-key-codes
-    | VK_SHIFT
-    | VK_CONTROL
-    | VK_MENU
-    | VK_ESCAPE
-    | VK_SPACE
-    | VK_LCONTROL
-    | VK_LMENU
-
-
 type alias WindowId =
     String
 
@@ -137,11 +111,6 @@ type alias MouseClickAtLocation =
     { location : Location2d
     , mouseButton : MouseButton
     }
-
-
-type MouseButton
-    = MouseButtonLeft
-    | MouseButtonRight
 
 
 type alias Location2d =
@@ -161,16 +130,6 @@ effectsForDragAndDrop { startLocation, mouseButton, endLocation } =
     , MouseMoveTo { location = endLocation }
     , KeyUp (virtualKeyCodeFromMouseButton mouseButton)
     ]
-
-
-virtualKeyCodeFromMouseButton : MouseButton -> VirtualKeyCode
-virtualKeyCodeFromMouseButton mouseButton =
-    case mouseButton of
-        MouseButtonLeft ->
-            VirtualKeyCodeFromInt 1
-
-        MouseButtonRight ->
-            VirtualKeyCodeFromInt 1
 
 
 deserializeResponseFromVolatileHost : String -> Result Json.Decode.Error ResponseFromVolatileHost
@@ -422,95 +381,6 @@ effectMouseClickAtLocation : MouseButton -> Location2d -> EffectOnWindowStructur
 effectMouseClickAtLocation mouseButton location =
     SimpleMouseClickAtLocation
         { location = location, mouseButton = mouseButton }
-
-
-virtualKeyCodeAsInteger : VirtualKeyCode -> Int
-virtualKeyCodeAsInteger keyCode =
-    -- Mapping from https://docs.microsoft.com/en-us/windows/desktop/inputdev/virtual-key-codes
-    case keyCode of
-        VirtualKeyCodeFromInt asInt ->
-            asInt
-
-        VK_SHIFT ->
-            0x10
-
-        VK_CONTROL ->
-            0x11
-
-        VK_MENU ->
-            0x12
-
-        VK_ESCAPE ->
-            0x1B
-
-        VK_SPACE ->
-            0x20
-
-        VK_LCONTROL ->
-            0xA2
-
-        VK_LMENU ->
-            0xA4
-
-
-key_F1 : VirtualKeyCode
-key_F1 =
-    VirtualKeyCodeFromInt 0x70
-
-
-key_F2 : VirtualKeyCode
-key_F2 =
-    VirtualKeyCodeFromInt 0x71
-
-
-key_F3 : VirtualKeyCode
-key_F3 =
-    VirtualKeyCodeFromInt 0x72
-
-
-key_F4 : VirtualKeyCode
-key_F4 =
-    VirtualKeyCodeFromInt 0x73
-
-
-key_F5 : VirtualKeyCode
-key_F5 =
-    VirtualKeyCodeFromInt 0x74
-
-
-key_F6 : VirtualKeyCode
-key_F6 =
-    VirtualKeyCodeFromInt 0x75
-
-
-key_F7 : VirtualKeyCode
-key_F7 =
-    VirtualKeyCodeFromInt 0x76
-
-
-key_F8 : VirtualKeyCode
-key_F8 =
-    VirtualKeyCodeFromInt 0x77
-
-
-key_F9 : VirtualKeyCode
-key_F9 =
-    VirtualKeyCodeFromInt 0x78
-
-
-key_F10 : VirtualKeyCode
-key_F10 =
-    VirtualKeyCodeFromInt 0x79
-
-
-key_F11 : VirtualKeyCode
-key_F11 =
-    VirtualKeyCodeFromInt 0x7A
-
-
-key_F12 : VirtualKeyCode
-key_F12 =
-    VirtualKeyCodeFromInt 0x7B
 
 
 jsonDecodeSucceedWhenNotNull : a -> Json.Decode.Decoder a

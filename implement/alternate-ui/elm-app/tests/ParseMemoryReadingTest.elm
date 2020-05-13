@@ -1,5 +1,6 @@
 module ParseMemoryReadingTest exposing (allTests)
 
+import Common.EffectOnWindow
 import EveOnline.ParseUserInterface exposing (MaybeVisible(..))
 import Expect
 import Test exposing (..)
@@ -10,6 +11,7 @@ allTests =
     describe "Parse memory reading"
         [ overview_entry_distance_text_to_meter
         , inventory_capacity_gauge_text
+        , parse_module_button_tooltip_shortcut
         ]
 
 
@@ -63,3 +65,23 @@ inventory_capacity_gauge_text =
                             |> Expect.equal expectedResult
             )
         |> describe "Inventory capacity gauge text"
+
+
+parse_module_button_tooltip_shortcut : Test
+parse_module_button_tooltip_shortcut =
+    [ ( " F1 ", [ Common.EffectOnWindow.key_F1 ] )
+    , ( " CTRL-F3 ", [ Common.EffectOnWindow.VK_LCONTROL, Common.EffectOnWindow.key_F3 ] )
+    , ( " STRG-F4 ", [ Common.EffectOnWindow.VK_LCONTROL, Common.EffectOnWindow.key_F4 ] )
+    , ( " ALT+F4 ", [ Common.EffectOnWindow.VK_LMENU, Common.EffectOnWindow.key_F4 ] )
+    , ( " SHIFT - F5 ", [ Common.EffectOnWindow.VK_LSHIFT, Common.EffectOnWindow.key_F5 ] )
+    , ( " UMSCH-F6 ", [ Common.EffectOnWindow.VK_LSHIFT, Common.EffectOnWindow.key_F6 ] )
+    ]
+        |> List.map
+            (\( text, expectedResult ) ->
+                test text <|
+                    \_ ->
+                        text
+                            |> EveOnline.ParseUserInterface.parseModuleButtonTooltipShortcut
+                            |> Expect.equal (Ok expectedResult)
+            )
+        |> describe "Parse module button tooltip shortcut"

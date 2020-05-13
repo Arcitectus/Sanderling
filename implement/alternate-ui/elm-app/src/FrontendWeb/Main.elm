@@ -3,6 +3,7 @@ module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
 import Browser
 import Browser.Dom
 import Browser.Navigation as Navigation
+import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
 import EveOnline.ParseUserInterface
@@ -42,7 +43,7 @@ import Url
 
 versionId : String
 versionId =
-    "2020-04-12 🐰"
+    "2020-05-13"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -330,11 +331,11 @@ update event stateBefore =
                             case sendInput.input of
                                 MouseClickLeft ->
                                     EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
-                                        { location = uiNodeCenter, mouseButton = EveOnline.VolatileHostInterface.MouseButtonLeft }
+                                        { location = uiNodeCenter, mouseButton = Common.EffectOnWindow.MouseButtonLeft }
 
                                 MouseClickRight ->
                                     EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
-                                        { location = uiNodeCenter, mouseButton = EveOnline.VolatileHostInterface.MouseButtonRight }
+                                        { location = uiNodeCenter, mouseButton = Common.EffectOnWindow.MouseButtonRight }
 
                         requestSendInputToGameClient =
                             apiRequestCmd
