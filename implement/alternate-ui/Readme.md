@@ -33,22 +33,22 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://botengine.blob.core.windows.net/blob-library/by-name/2020-02-12-elm-fullstack-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-05-28/elm-fullstack-bin-3b7f24fa14f0baca0269081226fdcb1b5228fe0a-win10-x64.zip and unpack it.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ Navigate to the directory `alternate-ui`. This directory also contains the subdirectory `elm-app` and the `elm-fullstack.json` file.
 + In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --process-store-directory-path=./process-store  --delete-previous-backend-state
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --process-store-directory-path=./process-store  --delete-previous-process  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/5039cd2aa57d07de5374433772ec730c427f9fce/implement/alternate-ui
 ```
 + The command starts a web server and the shell window will display an output like this:
 ```PowerShell
-Now listening on: http://[::]:80
-Application started. Press Ctrl+C to shut down.
+Completed starting the web server with the admin interface at 'http://*:4000'.
+info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
+      Started the public app at 'http://*:80'.
 ```
 + As the program keeps running, it will eventually write more to the same shell window, so the last output there can become something else.
 + With the command above, the program will try to use network port 80 on your system. In case this network port is already in use by another process, the command fails. In this case you get an error message containing the following text:
@@ -57,7 +57,7 @@ Application started. Press Ctrl+C to shut down.
 
 After starting the web server, you don't need to look at the shell window anymore, but leave it in the background. Closing the shell window would also stop the web server process.
 
-Use a web browser (only tested with Chrome) to navigate to http://localhost/
+Use a web browser (only tested with Chrome) to navigate to http://localhost:80/
 There you find the Alternate EVE Online UI.
 
 At the top, you find a section titled 'Select a source for the memory reading'. Here are two radio buttons to choose between the two possible sources:

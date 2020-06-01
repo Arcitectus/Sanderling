@@ -72,7 +72,7 @@ And these are some bots using Sanderling:
 
 + List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
-+ Most up-to-date list of bots: [https://botcatalog.org/](https://botcatalog.org/)
++ Most up-to-date list of bots and intel-tools: [https://catalog.botengine.org](https://catalog.botengine.org)
 
 ## Contributing
 
