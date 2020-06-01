@@ -16,6 +16,8 @@ module Backend.InterfaceToHost exposing
     , wrapForSerialInterface_processEvent
     )
 
+import Base64
+import Bytes
 import Json.Decode
 import Json.Encode
 
@@ -104,7 +106,7 @@ type alias HttpRequestContext =
 type alias HttpRequestProperties =
     { method : String
     , uri : String
-    , bodyAsString : Maybe String
+    , body : Maybe Bytes.Bytes
     , headers : List HttpHeader
     }
 
@@ -122,7 +124,7 @@ type alias HttpResponseRequest =
 
 type alias HttpResponse =
     { statusCode : Int
-    , bodyAsString : Maybe String
+    , body : Maybe Bytes.Bytes
     , headersToAdd : List HttpHeader
     }
 
@@ -230,7 +232,12 @@ decodeHttpRequest =
     Json.Decode.map4 HttpRequestProperties
         (Json.Decode.field "method" Json.Decode.string)
         (Json.Decode.field "uri" Json.Decode.string)
-        (decodeOptionalField "bodyAsString" Json.Decode.string)
+        (decodeOptionalField "bodyAsBase64"
+            (Json.Decode.string
+                |> Json.Decode.andThen
+                    (Base64.toBytes >> Maybe.map Json.Decode.succeed >> Maybe.withDefault (Json.Decode.fail "Failed to decode base64."))
+            )
+        )
         (Json.Decode.field "headers" (Json.Decode.list decodeHttpHeader))
 
 
@@ -334,7 +341,7 @@ encodeHttpResponse : HttpResponse -> Json.Encode.Value
 encodeHttpResponse httpResponse =
     [ ( "statusCode", httpResponse.statusCode |> Json.Encode.int |> Just )
     , ( "headersToAdd", httpResponse.headersToAdd |> Json.Encode.list encodeHttpHeader |> Just )
-    , ( "bodyAsString", httpResponse.bodyAsString |> Maybe.map Json.Encode.string )
+    , ( "bodyAsBase64", httpResponse.body |> Maybe.map (Base64.fromBytes >> Maybe.withDefault "Error encoding to base64" >> Json.Encode.string) )
     ]
         |> filterTakeOnlyWhereTupleSecondNotNothing
         |> Json.Encode.object

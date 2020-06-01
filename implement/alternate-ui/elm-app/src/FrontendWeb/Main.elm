@@ -3,6 +3,7 @@ module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
 import Browser
 import Browser.Dom
 import Browser.Navigation as Navigation
+import Common.App
 import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
@@ -39,11 +40,6 @@ import Process
 import Task
 import Time
 import Url
-
-
-versionId : String
-versionId =
-    "2020-05-13"
 
 
 {-| 2020-01-29 Observation: In this case, I used the alternate UI on the same desktop as the game client. When using a mouse button to click the HTML button, it seemed like sometimes that click interfered with the click on the game client. Using keyboard input on the web page might be sufficient to avoid this issue.
@@ -752,7 +748,7 @@ view state =
             , sourceSpecificHtml
             ]
     in
-    { title = "Alternate EVE Online UI version " ++ versionId, body = body }
+    { title = "Alternate EVE Online UI version " ++ Common.App.versionId, body = body }
 
 
 viewSourceFromFile : State -> Html.Html Event

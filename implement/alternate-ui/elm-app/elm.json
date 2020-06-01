@@ -6,8 +6,10 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "danfishgold/base64-bytes": "1.0.3",
             "dillonkearns/elm-markdown": "1.1.1",
             "elm/browser": "1.0.2",
+            "elm/bytes": "1.0.8",
             "elm/core": "1.0.2",
             "elm/file": "1.0.5",
             "elm/html": "1.0.0",
@@ -24,7 +26,6 @@
             "fapian/elm-html-aria": "1.4.0"
         },
         "indirect": {
-            "elm/bytes": "1.0.8",
             "elm/parser": "1.1.0",
             "elm/virtual-dom": "1.0.2",
             "rtfeldman/elm-hex": "1.0.0",

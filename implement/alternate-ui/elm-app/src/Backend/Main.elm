@@ -6,6 +6,9 @@ module Backend.Main exposing
     )
 
 import Backend.InterfaceToHost as InterfaceToHost
+import Bytes
+import Bytes.Decode
+import Bytes.Encode
 import EveOnline.VolatileHostInterface
 import EveOnline.VolatileHostScript as VolatileHostScript
 import InterfaceToFrontendClient
@@ -108,15 +111,22 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
     case hostEvent of
         InterfaceToHost.HttpRequest httpRequestEvent ->
             -- TODO: Consolidate the different branches to reduce duplication.
-            case httpRequestEvent.request.bodyAsString |> Maybe.withDefault "" |> Json.Decode.decodeString InterfaceToFrontendClient.jsonDecodeRequestFromClient of
+            case
+                httpRequestEvent.request.body
+                    |> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string")
+                    |> Maybe.withDefault "Missing HTTP body"
+                    |> Json.Decode.decodeString InterfaceToFrontendClient.jsonDecodeRequestFromClient
+            of
                 Err decodeError ->
                     let
                         httpResponse =
                             { httpRequestId = httpRequestEvent.httpRequestId
                             , response =
                                 { statusCode = 400
-                                , bodyAsString =
-                                    Just ("Failed to decode request: " ++ (decodeError |> Json.Decode.errorToString))
+                                , body =
+                                    ("Failed to decode request: " ++ (decodeError |> Json.Decode.errorToString))
+                                        |> encodeStringToBytes
+                                        |> Just
                                 , headersToAdd = []
                                 }
                             }
@@ -132,9 +142,11 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
                                     { httpRequestId = httpRequestEvent.httpRequestId
                                     , response =
                                         { statusCode = 200
-                                        , bodyAsString =
+                                        , body =
                                             -- TODO: Also transmit time of log entry.
-                                            Just (stateBefore.log |> List.map .message |> String.join "\n")
+                                            (stateBefore.log |> List.map .message |> String.join "\n")
+                                                |> encodeStringToBytes
+                                                |> Just
                                         , headersToAdd = []
                                         }
                                     }
@@ -193,7 +205,10 @@ processEventExceptVolatileHostMaintenance hostEvent stateBefore =
                                             { httpRequestId = httpRequestEvent.httpRequestId
                                             , response =
                                                 { statusCode = 200
-                                                , bodyAsString = Just (InterfaceToFrontendClient.SetupNotCompleteResponse setupStatusDescription |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
+                                                , body =
+                                                    (InterfaceToFrontendClient.SetupNotCompleteResponse setupStatusDescription |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
+                                                        |> encodeStringToBytes
+                                                        |> Just
                                                 , headersToAdd = []
                                                 }
                                             }
@@ -239,7 +254,7 @@ processTaskCompleteEvent taskComplete stateBefore =
                     { httpRequestId = httpRequestId
                     , response =
                         { statusCode = 200
-                        , bodyAsString = Just httpResponseBody
+                        , body = httpResponseBody |> encodeStringToBytes |> Just
                         , headersToAdd = []
                         }
                     }
@@ -308,6 +323,16 @@ addLogEntry logMessage stateBefore =
             { posixTimeMilli = stateBefore.posixTimeMilli, message = logMessage } :: stateBefore.log |> List.take 10
     in
     { stateBefore | log = log }
+
+
+decodeBytesToString : Bytes.Bytes -> Maybe String
+decodeBytesToString bytes =
+    bytes |> Bytes.Decode.decode (Bytes.Decode.string (bytes |> Bytes.width))
+
+
+encodeStringToBytes : String -> Bytes.Bytes
+encodeStringToBytes =
+    Bytes.Encode.string >> Bytes.Encode.encode
 
 
 interfaceToHost_initState : State
