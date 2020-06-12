@@ -2,7 +2,7 @@
 
 ![Alternate UI for EVE Online, this part shows the Overview.](./../../guide/image/2020-01-30.eve-online-overview-alternate-ui-and-game-client.png)
 
-The alternate UI is a web-based user interface for the EVE Online client, helping blind people to play the game. Because of the HTML based rendering, this user interface is better accessible with screen-readers. For more information about the origins and history of the project, see [https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950](https://forum.botengine.org/t/using-bots-for-eve-accessibility/2950)
+The alternate UI is a web-based user interface for the EVE Online client. Because of the HTML based rendering, this user interface is better accessible with screen-readers.
 
 The alternate UI also lets you play the game from other devices that cannot run the EVE Online client but have a web browser. This way, you can play the game from your android smartphone or iPhone. This remote-play is possible because of the division into a frontend and backend, which communicate only via HTTP. The backend runs on the same machine as the EVE Online client and runs an HTTP server. The web-based frontend then connects to this HTTP server to read the game client's contents and send input commands.
 
@@ -33,7 +33,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-05-28/elm-fullstack-bin-3b7f24fa14f0baca0269081226fdcb1b5228fe0a-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-06-11/elm-fullstack-bin-9c33a38bd57be4b46c56e2acc07f9497ee4e860e-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -41,15 +41,26 @@ To start the software:
 
 + Start PowerShell.
 + In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
+
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --process-store-directory-path=./process-store  --delete-previous-process  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/5039cd2aa57d07de5374433772ec730c427f9fce/implement/alternate-ui
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/master/implement/alternate-ui/source
 ```
+
 + The command starts a web server and the shell window will display an output like this:
-```PowerShell
+
+```txt
+I got no path to a persistent store for the process. This process will not be persisted!
+Loading app config to deploy...
+Loaded source composition 0264fccaec0fe82b20ced301f17b07df76405cbdfb11934973a29a98b1a442cf from 'https://github.com/Arcitectus/Sanderling/tree/master/implement/alternate-ui/source'.
+Starting the web server with the admin interface...
+info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
+      Begin to build the process volatile representation.
+[...]
 Completed starting the web server with the admin interface at 'http://*:4000'.
 info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
       Started the public app at 'http://*:80'.
 ```
+
 + As the program keeps running, it will eventually write more to the same shell window, so the last output there can become something else.
 + With the command above, the program will try to use network port 80 on your system. In case this network port is already in use by another process, the command fails. In this case you get an error message containing the following text:
 
@@ -57,7 +68,7 @@ info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
 
 After starting the web server, you don't need to look at the shell window anymore, but leave it in the background. Closing the shell window would also stop the web server process.
 
-Use a web browser (only tested with Chrome) to navigate to http://localhost:80/
+Use a web browser (tested with Chrome and Firefox) to navigate to http://localhost:80/
 There you find the Alternate EVE Online UI.
 
 At the top, you find a section titled 'Select a source for the memory reading'. Here are two radio buttons to choose between the two possible sources:
