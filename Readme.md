@@ -60,19 +60,19 @@ Location of the alternate UI in the repository: [/implement/alternate-ui/](/impl
 
 Bots are not in the scope of this repository, but I sure have some links with further information.
 
-Guide on developing bots for EVE Online: [https://github.com/Viir/bots/blob/master/guide/eve-online/developing-bots-for-eve-online.md](https://github.com/Viir/bots/blob/master/guide/eve-online/developing-bots-for-eve-online.md)
+Guide on developing for EVE Online: [https://to.botengine.org/guide/developing-for-eve-online](https://to.botengine.org/guide/developing-for-eve-online)
 
 And these are some bots using Sanderling:
 
-+ Warp-To-0 Autopilot: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-traveling-in-eve-online-using-a-warp-to-0-autopilot.md)
++ Warp-To-0 Autopilot: [https://to.botengine.org/guide/app/eve-online-autopilot-bot](https://to.botengine.org/guide/app/eve-online-autopilot-bot)
 
-+ Mining asteroids: [https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md](https://github.com/Viir/bots/blob/master/guide/eve-online/how-to-automate-mining-asteroids-in-eve-online.md)
++ Mining asteroids: [https://to.botengine.org/guide/app/eve-online-mining-bot](https://to.botengine.org/guide/app/eve-online-mining-bot)
 
-+ Anomaly ratting: [https://github.com/Viir/bots/blob/master/guide/eve-online/eve-online-anomaly-ratting-bot.md](https://github.com/Viir/bots/blob/master/guide/eve-online/eve-online-anomaly-ratting-bot.md)
++ Anomaly ratting: [https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot](https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot)
 
 + List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
-+ Most up-to-date list of bots and intel-tools: [https://catalog.botengine.org](https://catalog.botengine.org)
++ Most up-to-date list of bots and intel-tools: [https://catalog.botengine.org/?q=eve%20online](https://catalog.botengine.org/?q=eve%20online)
 
 ## Contributing
 
