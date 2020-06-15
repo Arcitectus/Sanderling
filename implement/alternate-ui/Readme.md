@@ -109,3 +109,12 @@ Under the save button, you get tools for closer examination of the memory readin
 
 > Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes.
 
+### Enabling the Elm Inspection ('Debugger') Tool
+
+In case we want to enable the [Elm inspection tool](https://youtu.be/NaIfq89UZ2U) in the frontend, we make a change to the `Backend.Main` module, replacing the `elm_make_frontendWeb_html` with `elm_make_frontendWeb_html_debug`, as shown in this commit: https://github.com/Arcitectus/Sanderling/commit/7418e02e464042d149de664c1e24039f91dc8a59
+
+You don't have to edit the file yourself, because you can start the adapted version from Github with the following command:
+
+```PowerShell
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/7418e02e464042d149de664c1e24039f91dc8a59/implement/alternate-ui/source
+```
