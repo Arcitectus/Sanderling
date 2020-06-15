@@ -130,7 +130,7 @@ processEventHttpRequest httpRequestEvent stateBefore =
         , [ { httpRequestId = httpRequestEvent.httpRequestId
             , response =
                 { statusCode = 200
-                , body = Just ElmFullstackCompilerInterface.ElmMakeFrontendWeb.elm_make_frontendWeb_html
+                , body = Just ElmFullstackCompilerInterface.ElmMakeFrontendWeb.elm_make_frontendWeb_html_debug
                 , headersToAdd = []
                 }
             }
