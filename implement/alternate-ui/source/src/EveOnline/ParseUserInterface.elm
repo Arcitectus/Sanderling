@@ -25,6 +25,7 @@ type alias ParsedUserInterface =
     , chatWindowStacks : List ChatWindowStack
     , agentConversationWindows : List AgentConversationWindow
     , marketOrdersWindow : MaybeVisible MarketOrdersWindow
+    , surveyScanWindow : MaybeVisible SurveyScanWindow
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
     , messageBoxes : List MessageBox
@@ -237,6 +238,12 @@ type alias MarketOrdersWindow =
     }
 
 
+type alias SurveyScanWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , scanEntries : List UITreeNodeWithDisplayRegion
+    }
+
+
 type alias ColorComponents =
     { a : Int, r : Int, g : Int, b : Int }
 
@@ -414,6 +421,7 @@ parseUserInterfaceFromUITree uiTree =
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
     , agentConversationWindows = parseAgentConversationWindowsFromUITreeRoot uiTree
     , marketOrdersWindow = parseMarketOrdersWindowFromUITreeRoot uiTree
+    , surveyScanWindow = parseSurveyScanWindowFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
@@ -1846,6 +1854,26 @@ parseFittingWindowFromUITreeRoot uiTreeRoot =
 parseFittingWindow : UITreeNodeWithDisplayRegion -> FittingWindow
 parseFittingWindow windowUINode =
     { uiNode = windowUINode
+    }
+
+
+parseSurveyScanWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible SurveyScanWindow
+parseSurveyScanWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SurveyScanView")
+        |> List.head
+        |> Maybe.map parseSurveyScanWindow
+        |> canNotSeeItFromMaybeNothing
+
+
+parseSurveyScanWindow : UITreeNodeWithDisplayRegion -> SurveyScanWindow
+parseSurveyScanWindow windowUINode =
+    { uiNode = windowUINode
+    , scanEntries =
+        windowUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SurveyScanEntry")
     }
 
 
