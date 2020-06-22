@@ -28,3 +28,19 @@ Since this tool does not interfere with the game client's operation, the game cl
 
 + Using more samples to increase the chance that one is good.
 + Reducing the time needed to copy the memory contents. You can achieve this by reducing the memory usage of the game client. Memory usage is often affected by settings, such as the resolution or quality of textures used for graphics rendering. Reducing memory use has the added benefit of smaller sample files.
+
+
+### Troubleshooting
+
+#### `Parameter is not valid` in `Bitmap..ctor`
+
+```txt
+Unhandled exception. System.ArgumentException: Parameter is not valid.
+   at System.Drawing.SafeNativeMethods.Gdip.CheckStatus(Int32 status)
+   at System.Drawing.Bitmap..ctor(Int32 width, Int32 height, PixelFormat format)
+   at read_memory_64_bit.Program.GetScreenshotOfWindowClientAreaAsBitmap(IntPtr windowHandle) 
+```
+
+This error happens when the main window of the chosen process is minimized.
+
+To avoid the error, ensure the game client window is visible and not minimized.
