@@ -206,6 +206,7 @@ type alias OverviewWindowEntry =
     , objectDistanceInMeters : Result String Int
     , objectName : Maybe String
     , objectType : Maybe String
+    , objectAlliance : Maybe String
     , iconSpriteColorPercent : Maybe ColorComponents
     , namesUnderSpaceObjectIcon : Set.Set String
     , bgColorFillsPercent : List ColorComponents
@@ -1123,6 +1124,7 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     , objectDistanceInMeters = objectDistanceInMeters
     , objectName = cellsTexts |> Dict.get "Name"
     , objectType = cellsTexts |> Dict.get "Type"
+    , objectAlliance = cellsTexts |> Dict.get "Alliance"
     , iconSpriteColorPercent = iconSpriteColorPercent
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     , bgColorFillsPercent = bgColorFillsPercent
