@@ -6,10 +6,11 @@ module Backend.Main exposing
     )
 
 import Backend.InterfaceToHost as InterfaceToHost
+import Base64
 import Bytes
 import Bytes.Decode
 import Bytes.Encode
-import ElmFullstackCompilerInterface.ElmMakeFrontendWeb
+import ElmFullstackCompilerInterface.ElmMake
 import EveOnline.VolatileHostInterface
 import EveOnline.VolatileHostScript as VolatileHostScript
 import InterfaceToFrontendClient
@@ -17,6 +18,7 @@ import Json.Decode
 import Json.Encode
 import Result.Extra
 import Url
+import Url.Parser
 
 
 type alias State =
@@ -41,6 +43,21 @@ type alias LogEntry =
     }
 
 
+type Route
+    = ApiRoute
+    | FrontendWithInspectorRoute
+
+
+routeFromUrl : Url.Url -> Maybe Route
+routeFromUrl =
+    Url.Parser.parse
+        (Url.Parser.oneOf
+            [ Url.Parser.map ApiRoute (Url.Parser.s "api")
+            , Url.Parser.map FrontendWithInspectorRoute (Url.Parser.s "with-inspector")
+            ]
+        )
+
+
 initSetup : SetupState
 initSetup =
     { volatileHostId = Nothing
@@ -54,10 +71,10 @@ interfaceToHost_processEvent =
     InterfaceToHost.wrapForSerialInterface_processEvent processEvent
 
 
-processEvent : InterfaceToHost.ProcessEvent -> State -> ( State, List InterfaceToHost.ProcessRequest )
+processEvent : InterfaceToHost.AppEvent -> State -> ( State, InterfaceToHost.AppEventResponse )
 processEvent hostEvent stateBefore =
     let
-        ( state, responses ) =
+        ( state, responseExceptMaintainVolatileHost ) =
             stateBefore
                 |> updateVolatileHostIdForHostEvent hostEvent
                 |> processEventExceptVolatileHostMaintenance hostEvent
@@ -65,16 +82,18 @@ processEvent hostEvent stateBefore =
         maintainVolatileHostTasks =
             state
                 |> maintainVolatileHostTaskFromState
-                |> Maybe.map (InterfaceToHost.StartTask >> List.singleton)
+                |> Maybe.map List.singleton
                 |> Maybe.withDefault []
     in
-    ( state, responses ++ maintainVolatileHostTasks )
+    ( state
+    , responseExceptMaintainVolatileHost |> InterfaceToHost.withStartTasksAdded maintainVolatileHostTasks
+    )
 
 
-updateVolatileHostIdForHostEvent : InterfaceToHost.ProcessEvent -> State -> State
+updateVolatileHostIdForHostEvent : InterfaceToHost.AppEvent -> State -> State
 updateVolatileHostIdForHostEvent hostEvent stateBefore =
     case hostEvent of
-        InterfaceToHost.TaskComplete { taskResult } ->
+        InterfaceToHost.TaskCompleteEvent { taskResult } ->
             case taskResult of
                 InterfaceToHost.CreateVolatileHostResponse (Ok { hostId }) ->
                     { stateBefore | setup = { initSetup | volatileHostId = Just hostId } }
@@ -91,7 +110,10 @@ updateVolatileHostIdForHostEvent hostEvent stateBefore =
                 InterfaceToHost.CompleteWithoutResult ->
                     stateBefore
 
-        InterfaceToHost.HttpRequest _ ->
+        InterfaceToHost.HttpRequestEvent _ ->
+            stateBefore
+
+        InterfaceToHost.ArrivedAtTimeEvent _ ->
             stateBefore
 
 
@@ -108,142 +130,163 @@ maintainVolatileHostTaskFromState state =
             }
 
 
-processEventExceptVolatileHostMaintenance : InterfaceToHost.ProcessEvent -> State -> ( State, List InterfaceToHost.ProcessRequest )
+processEventExceptVolatileHostMaintenance : InterfaceToHost.AppEvent -> State -> ( State, InterfaceToHost.AppEventResponse )
 processEventExceptVolatileHostMaintenance hostEvent stateBefore =
     case hostEvent of
-        InterfaceToHost.HttpRequest httpRequestEvent ->
+        InterfaceToHost.HttpRequestEvent httpRequestEvent ->
             processEventHttpRequest httpRequestEvent stateBefore
 
-        InterfaceToHost.TaskComplete taskComplete ->
+        InterfaceToHost.TaskCompleteEvent taskComplete ->
             stateBefore |> processTaskCompleteEvent taskComplete
 
+        InterfaceToHost.ArrivedAtTimeEvent _ ->
+            ( stateBefore, InterfaceToHost.passiveAppEventResponse )
 
-processEventHttpRequest : InterfaceToHost.HttpRequestEvent -> State -> ( State, List InterfaceToHost.ProcessRequest )
+
+processEventHttpRequest : InterfaceToHost.HttpRequestEventStructure -> State -> ( State, InterfaceToHost.AppEventResponse )
 processEventHttpRequest httpRequestEvent stateBefore =
-    if
-        httpRequestEvent.request.uri
-            |> Url.fromString
-            |> Maybe.map urlLeadsToFrontendHtmlDocument
-            |> Maybe.withDefault False
-    then
-        ( stateBefore
-        , [ { httpRequestId = httpRequestEvent.httpRequestId
-            , response =
-                { statusCode = 200
-                , body = Just ElmFullstackCompilerInterface.ElmMakeFrontendWeb.elm_make_frontendWeb_html
-                , headersToAdd = []
-                }
-            }
-                |> InterfaceToHost.CompleteHttpResponse
-          ]
-        )
+    let
+        respondWithFrontendHtmlDocument { enableInspector } =
+            ( stateBefore
+            , InterfaceToHost.passiveAppEventResponse
+                |> InterfaceToHost.withCompleteHttpResponsesAdded
+                    [ { httpRequestId = httpRequestEvent.httpRequestId
+                      , response =
+                            { statusCode = 200
+                            , bodyAsBase64 =
+                                Just
+                                    (if enableInspector then
+                                        ElmFullstackCompilerInterface.ElmMake.elm_make__debug__base64____src_FrontendWeb_Main_elm
 
-    else
-        -- TODO: Consolidate the different branches to reduce duplication.
-        case
-            httpRequestEvent.request.body
-                |> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string")
-                |> Maybe.withDefault "Missing HTTP body"
-                |> Json.Decode.decodeString InterfaceToFrontendClient.jsonDecodeRequestFromClient
-        of
-            Err decodeError ->
-                let
-                    httpResponse =
-                        { httpRequestId = httpRequestEvent.httpRequestId
-                        , response =
-                            { statusCode = 400
-                            , body =
-                                ("Failed to decode request: " ++ (decodeError |> Json.Decode.errorToString))
-                                    |> encodeStringToBytes
-                                    |> Just
+                                     else
+                                        ElmFullstackCompilerInterface.ElmMake.elm_make__base64____src_FrontendWeb_Main_elm
+                                    )
                             , headersToAdd = []
                             }
-                        }
-                            |> InterfaceToHost.CompleteHttpResponse
-                in
-                ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }, [ httpResponse ] )
+                      }
+                    ]
+            )
+    in
+    case httpRequestEvent.request.uri |> Url.fromString |> Maybe.andThen routeFromUrl of
+        Nothing ->
+            respondWithFrontendHtmlDocument { enableInspector = False }
 
-            Ok requestFromClient ->
-                case requestFromClient of
-                    InterfaceToFrontendClient.ReadLogRequest ->
-                        let
-                            httpResponse =
-                                { httpRequestId = httpRequestEvent.httpRequestId
-                                , response =
-                                    { statusCode = 200
-                                    , body =
-                                        -- TODO: Also transmit time of log entry.
-                                        (stateBefore.log |> List.map .message |> String.join "\n")
-                                            |> encodeStringToBytes
-                                            |> Just
-                                    , headersToAdd = []
-                                    }
+        Just FrontendWithInspectorRoute ->
+            respondWithFrontendHtmlDocument { enableInspector = True }
+
+        Just ApiRoute ->
+            -- TODO: Consolidate the different branches to reduce duplication.
+            case
+                httpRequestEvent.request.bodyAsBase64
+                    |> Maybe.map (Base64.toBytes >> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string") >> Maybe.withDefault "Failed to decode from base64")
+                    |> Maybe.withDefault "Missing HTTP body"
+                    |> Json.Decode.decodeString InterfaceToFrontendClient.jsonDecodeRequestFromClient
+            of
+                Err decodeError ->
+                    let
+                        httpResponse =
+                            { httpRequestId = httpRequestEvent.httpRequestId
+                            , response =
+                                { statusCode = 400
+                                , bodyAsBase64 =
+                                    ("Failed to decode request: " ++ (decodeError |> Json.Decode.errorToString))
+                                        |> encodeStringToBytes
+                                        |> Base64.fromBytes
+                                , headersToAdd = []
                                 }
-                                    |> InterfaceToHost.CompleteHttpResponse
-                        in
-                        ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }, [ httpResponse ] )
+                            }
+                    in
+                    ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
+                    , InterfaceToHost.passiveAppEventResponse
+                        |> InterfaceToHost.withCompleteHttpResponsesAdded [ httpResponse ]
+                    )
 
-                    InterfaceToFrontendClient.RunInVolatileHostRequest runInVolatileHostRequest ->
-                        case stateBefore.setup.volatileHostId of
-                            Just volatileHostId ->
-                                let
-                                    taskId =
-                                        "task-for-client-" ++ ((stateBefore.lastTaskIndex + 1) |> String.fromInt)
-
-                                    httpRequestsTasks =
-                                        { httpRequestId = httpRequestEvent.httpRequestId
-                                        , taskId = taskId
+                Ok requestFromClient ->
+                    case requestFromClient of
+                        InterfaceToFrontendClient.ReadLogRequest ->
+                            let
+                                httpResponse =
+                                    { httpRequestId = httpRequestEvent.httpRequestId
+                                    , response =
+                                        { statusCode = 200
+                                        , bodyAsBase64 =
+                                            -- TODO: Also transmit time of log entry.
+                                            (stateBefore.log |> List.map .message |> String.join "\n")
+                                                |> encodeStringToBytes
+                                                |> Base64.fromBytes
+                                        , headersToAdd = []
                                         }
-                                            :: stateBefore.httpRequestsTasks
+                                    }
+                            in
+                            ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
+                            , InterfaceToHost.passiveAppEventResponse
+                                |> InterfaceToHost.withCompleteHttpResponsesAdded [ httpResponse ]
+                            )
 
-                                    setupScriptTask =
-                                        { taskId = taskId
-                                        , task =
-                                            InterfaceToHost.RequestToVolatileHost
-                                                { hostId = volatileHostId
-                                                , request = EveOnline.VolatileHostInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileHostRequest
-                                                }
-                                        }
-                                in
-                                ( { stateBefore
-                                    | posixTimeMilli = httpRequestEvent.posixTimeMilli
-                                    , httpRequestsTasks = httpRequestsTasks
-                                    , lastTaskIndex = stateBefore.lastTaskIndex + 1
-                                  }
-                                , [ setupScriptTask |> InterfaceToHost.StartTask ]
-                                )
+                        InterfaceToFrontendClient.RunInVolatileHostRequest runInVolatileHostRequest ->
+                            case stateBefore.setup.volatileHostId of
+                                Just volatileHostId ->
+                                    let
+                                        taskId =
+                                            "task-for-client-" ++ ((stateBefore.lastTaskIndex + 1) |> String.fromInt)
 
-                            _ ->
-                                let
-                                    setupStatusDescription =
-                                        "Last run script result: "
-                                            ++ (stateBefore.setup.lastRunScriptResult
-                                                    |> Maybe.map
-                                                        (\result ->
-                                                            case result of
-                                                                Ok okResult ->
-                                                                    "Ok: " ++ (okResult |> Maybe.withDefault "")
-
-                                                                Err errorResult ->
-                                                                    "Err: " ++ errorResult
-                                                        )
-                                                    |> Maybe.withDefault "Nothing"
-                                               )
-
-                                    httpResponse =
-                                        { httpRequestId = httpRequestEvent.httpRequestId
-                                        , response =
-                                            { statusCode = 200
-                                            , body =
-                                                (InterfaceToFrontendClient.SetupNotCompleteResponse setupStatusDescription |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
-                                                    |> encodeStringToBytes
-                                                    |> Just
-                                            , headersToAdd = []
+                                        httpRequestsTasks =
+                                            { httpRequestId = httpRequestEvent.httpRequestId
+                                            , taskId = taskId
                                             }
-                                        }
-                                            |> InterfaceToHost.CompleteHttpResponse
-                                in
-                                ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }, [ httpResponse ] )
+                                                :: stateBefore.httpRequestsTasks
+
+                                        setupScriptTask =
+                                            { taskId = taskId
+                                            , task =
+                                                InterfaceToHost.RequestToVolatileHost
+                                                    { hostId = volatileHostId
+                                                    , request = EveOnline.VolatileHostInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileHostRequest
+                                                    }
+                                            }
+                                    in
+                                    ( { stateBefore
+                                        | posixTimeMilli = httpRequestEvent.posixTimeMilli
+                                        , httpRequestsTasks = httpRequestsTasks
+                                        , lastTaskIndex = stateBefore.lastTaskIndex + 1
+                                      }
+                                    , InterfaceToHost.passiveAppEventResponse
+                                        |> InterfaceToHost.withStartTasksAdded [ setupScriptTask ]
+                                    )
+
+                                _ ->
+                                    let
+                                        setupStatusDescription =
+                                            "Last run script result: "
+                                                ++ (stateBefore.setup.lastRunScriptResult
+                                                        |> Maybe.map
+                                                            (\result ->
+                                                                case result of
+                                                                    Ok okResult ->
+                                                                        "Ok: " ++ (okResult |> Maybe.withDefault "")
+
+                                                                    Err errorResult ->
+                                                                        "Err: " ++ errorResult
+                                                            )
+                                                        |> Maybe.withDefault "Nothing"
+                                                   )
+
+                                        httpResponse =
+                                            { httpRequestId = httpRequestEvent.httpRequestId
+                                            , response =
+                                                { statusCode = 200
+                                                , bodyAsBase64 =
+                                                    (InterfaceToFrontendClient.SetupNotCompleteResponse setupStatusDescription |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
+                                                        |> encodeStringToBytes
+                                                        |> Base64.fromBytes
+                                                , headersToAdd = []
+                                                }
+                                            }
+                                    in
+                                    ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
+                                    , InterfaceToHost.passiveAppEventResponse
+                                        |> InterfaceToHost.withCompleteHttpResponsesAdded [ httpResponse ]
+                                    )
 
 
 urlLeadsToFrontendHtmlDocument : Url.Url -> Bool
@@ -251,7 +294,7 @@ urlLeadsToFrontendHtmlDocument url =
     not (url.path == "/api" || (url.path |> String.startsWith "/api/"))
 
 
-processTaskCompleteEvent : InterfaceToHost.TaskCompleteStructure -> State -> ( State, List InterfaceToHost.ProcessRequest )
+processTaskCompleteEvent : InterfaceToHost.TaskCompleteEventStructure -> State -> ( State, InterfaceToHost.AppEventResponse )
 processTaskCompleteEvent taskComplete stateBefore =
     let
         maybeHttpRequestId =
@@ -285,20 +328,23 @@ processTaskCompleteEvent taskComplete stateBefore =
                     { httpRequestId = httpRequestId
                     , response =
                         { statusCode = 200
-                        , body = httpResponseBody |> encodeStringToBytes |> Just
+                        , bodyAsBase64 = httpResponseBody |> encodeStringToBytes |> Base64.fromBytes
                         , headersToAdd = []
                         }
                     }
             in
             ( { stateBefore | httpRequestsTasks = httpRequestsTasks }
-            , [ httpResponse |> InterfaceToHost.CompleteHttpResponse ]
+            , InterfaceToHost.passiveAppEventResponse
+                |> InterfaceToHost.withCompleteHttpResponsesAdded [ httpResponse ]
             )
 
         Nothing ->
-            ( processFrameworkTaskCompleteEvent taskComplete stateBefore, [] )
+            ( processFrameworkTaskCompleteEvent taskComplete stateBefore
+            , InterfaceToHost.passiveAppEventResponse
+            )
 
 
-processFrameworkTaskCompleteEvent : InterfaceToHost.TaskCompleteStructure -> State -> State
+processFrameworkTaskCompleteEvent : InterfaceToHost.TaskCompleteEventStructure -> State -> State
 processFrameworkTaskCompleteEvent taskComplete stateBefore =
     case taskComplete.taskResult of
         InterfaceToHost.CompleteWithoutResult ->

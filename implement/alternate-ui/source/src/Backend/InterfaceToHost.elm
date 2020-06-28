@@ -1,38 +1,23 @@
-module Backend.InterfaceToHost exposing
-    ( HttpHeader
-    , HttpRequestContext
-    , HttpRequestEvent
-    , HttpRequestProperties
-    , HttpResponse
-    , HttpResponseRequest
-    , ProcessEvent(..)
-    , ProcessRequest(..)
-    , RequestToVolatileHostError(..)
-    , StartTaskStructure
-    , Task(..)
-    , TaskCompleteStructure
-    , TaskResultStructure(..)
-    , decodeOptionalField
-    , wrapForSerialInterface_processEvent
-    )
+module Backend.InterfaceToHost exposing (..)
 
-import Base64
-import Bytes
 import Json.Decode
 import Json.Encode
 
 
-type ProcessEvent
-    = HttpRequest HttpRequestEvent
-    | TaskComplete TaskCompleteStructure
+type AppEvent
+    = HttpRequestEvent HttpRequestEventStructure
+    | TaskCompleteEvent TaskCompleteEventStructure
+    | ArrivedAtTimeEvent { posixTimeMilli : Int }
 
 
-type ProcessRequest
-    = CompleteHttpResponse HttpResponseRequest
-    | StartTask StartTaskStructure
+type alias AppEventResponse =
+    { startTasks : List StartTaskStructure
+    , notifyWhenArrivedAtTime : Maybe { posixTimeMilli : Int }
+    , completeHttpResponses : List HttpResponseRequest
+    }
 
 
-type alias TaskCompleteStructure =
+type alias TaskCompleteEventStructure =
     { taskId : TaskId
     , taskResult : TaskResultStructure
     }
@@ -90,7 +75,7 @@ type alias ReleaseVolatileHostStructure =
     { hostId : String }
 
 
-type alias HttpRequestEvent =
+type alias HttpRequestEventStructure =
     { httpRequestId : String
     , posixTimeMilli : Int
     , requestContext : HttpRequestContext
@@ -106,14 +91,14 @@ type alias HttpRequestContext =
 type alias HttpRequestProperties =
     { method : String
     , uri : String
-    , body : Maybe Bytes.Bytes
+    , bodyAsBase64 : Maybe String
     , headers : List HttpHeader
     }
 
 
 type ResponseOverSerialInterface
     = DecodeEventError String
-    | DecodeEventSuccess (List ProcessRequest)
+    | DecodeEventSuccess AppEventResponse
 
 
 type alias HttpResponseRequest =
@@ -124,7 +109,7 @@ type alias HttpResponseRequest =
 
 type alias HttpResponse =
     { statusCode : Int
-    , body : Maybe Bytes.Bytes
+    , bodyAsBase64 : Maybe String
     , headersToAdd : List HttpHeader
     }
 
@@ -139,7 +124,54 @@ type alias TaskId =
     String
 
 
-wrapForSerialInterface_processEvent : (ProcessEvent -> state -> ( state, List ProcessRequest )) -> String -> state -> ( state, String )
+passiveAppEventResponse : AppEventResponse
+passiveAppEventResponse =
+    { startTasks = []
+    , completeHttpResponses = []
+    , notifyWhenArrivedAtTime = Nothing
+    }
+
+
+withStartTasksAdded : List StartTaskStructure -> AppEventResponse -> AppEventResponse
+withStartTasksAdded startTasksToAdd responseBefore =
+    { responseBefore | startTasks = responseBefore.startTasks ++ startTasksToAdd }
+
+
+withCompleteHttpResponsesAdded : List HttpResponseRequest -> AppEventResponse -> AppEventResponse
+withCompleteHttpResponsesAdded httpResponsesToAdd responseBefore =
+    { responseBefore | completeHttpResponses = responseBefore.completeHttpResponses ++ httpResponsesToAdd }
+
+
+concatAppEventResponse : List AppEventResponse -> AppEventResponse
+concatAppEventResponse responses =
+    let
+        notifyWhenArrivedAtTimePosixMilli =
+            responses
+                |> List.filterMap .notifyWhenArrivedAtTime
+                |> List.map .posixTimeMilli
+                |> List.minimum
+
+        notifyWhenArrivedAtTime =
+            case notifyWhenArrivedAtTimePosixMilli of
+                Nothing ->
+                    Nothing
+
+                Just posixTimeMilli ->
+                    Just { posixTimeMilli = posixTimeMilli }
+
+        startTasks =
+            responses |> List.concatMap .startTasks
+
+        completeHttpResponses =
+            responses |> List.concatMap .completeHttpResponses
+    in
+    { notifyWhenArrivedAtTime = notifyWhenArrivedAtTime
+    , startTasks = startTasks
+    , completeHttpResponses = completeHttpResponses
+    }
+
+
+wrapForSerialInterface_processEvent : (AppEvent -> state -> ( state, AppEventResponse )) -> String -> state -> ( state, String )
 wrapForSerialInterface_processEvent update serializedEvent stateBefore =
     let
         ( state, response ) =
@@ -158,18 +190,19 @@ wrapForSerialInterface_processEvent update serializedEvent stateBefore =
     ( state, response |> encodeResponseOverSerialInterface |> Json.Encode.encode 0 )
 
 
-decodeProcessEvent : Json.Decode.Decoder ProcessEvent
+decodeProcessEvent : Json.Decode.Decoder AppEvent
 decodeProcessEvent =
     Json.Decode.oneOf
-        [ Json.Decode.field "httpRequest" decodeHttpRequestEvent |> Json.Decode.map HttpRequest
-        , Json.Decode.field "taskComplete" decodeTaskComplete
-            |> Json.Decode.map TaskComplete
+        [ Json.Decode.field "ArrivedAtTimeEvent" (Json.Decode.field "posixTimeMilli" Json.Decode.int)
+            |> Json.Decode.map (\posixTimeMilli -> ArrivedAtTimeEvent { posixTimeMilli = posixTimeMilli })
+        , Json.Decode.field "TaskCompleteEvent" decodeTaskCompleteEventStructure |> Json.Decode.map TaskCompleteEvent
+        , Json.Decode.field "HttpRequestEvent" decodeHttpRequestEventStructure |> Json.Decode.map HttpRequestEvent
         ]
 
 
-decodeTaskComplete : Json.Decode.Decoder TaskCompleteStructure
-decodeTaskComplete =
-    Json.Decode.map2 TaskCompleteStructure
+decodeTaskCompleteEventStructure : Json.Decode.Decoder TaskCompleteEventStructure
+decodeTaskCompleteEventStructure =
+    Json.Decode.map2 TaskCompleteEventStructure
         (Json.Decode.field "taskId" Json.Decode.string)
         (Json.Decode.field "taskResult" decodeTaskResult)
 
@@ -212,9 +245,9 @@ decodeRequestToVolatileHostError =
         ]
 
 
-decodeHttpRequestEvent : Json.Decode.Decoder HttpRequestEvent
-decodeHttpRequestEvent =
-    Json.Decode.map4 HttpRequestEvent
+decodeHttpRequestEventStructure : Json.Decode.Decoder HttpRequestEventStructure
+decodeHttpRequestEventStructure =
+    Json.Decode.map4 HttpRequestEventStructure
         (Json.Decode.field "httpRequestId" Json.Decode.string)
         (Json.Decode.field "posixTimeMilli" Json.Decode.int)
         (Json.Decode.field "requestContext" decodeHttpRequestContext)
@@ -232,12 +265,7 @@ decodeHttpRequest =
     Json.Decode.map4 HttpRequestProperties
         (Json.Decode.field "method" Json.Decode.string)
         (Json.Decode.field "uri" Json.Decode.string)
-        (decodeOptionalField "bodyAsBase64"
-            (Json.Decode.string
-                |> Json.Decode.andThen
-                    (Base64.toBytes >> Maybe.map Json.Decode.succeed >> Maybe.withDefault (Json.Decode.fail "Failed to decode base64."))
-            )
-        )
+        (decodeOptionalField "bodyAsBase64" Json.Decode.string)
         (Json.Decode.field "headers" (Json.Decode.list decodeHttpHeader))
 
 
@@ -253,7 +281,7 @@ decodeOptionalField fieldName decoder =
     let
         finishDecoding json =
             case Json.Decode.decodeValue (Json.Decode.field fieldName Json.Decode.value) json of
-                Ok val ->
+                Ok _ ->
                     -- The field is present, so run the decoder on it.
                     Json.Decode.map Just (Json.Decode.field fieldName decoder)
 
@@ -269,24 +297,25 @@ encodeResponseOverSerialInterface : ResponseOverSerialInterface -> Json.Encode.V
 encodeResponseOverSerialInterface responseOverSerialInterface =
     (case responseOverSerialInterface of
         DecodeEventError error ->
-            [ ( "decodeEventError", error |> Json.Encode.string ) ]
+            [ ( "DecodeEventError", error |> Json.Encode.string ) ]
 
         DecodeEventSuccess response ->
-            [ ( "decodeEventSuccess", response |> Json.Encode.list encodeProcessRequest ) ]
+            [ ( "DecodeEventSuccess", response |> encodeAppEventResponse ) ]
     )
         |> Json.Encode.object
 
 
-encodeProcessRequest : ProcessRequest -> Json.Encode.Value
-encodeProcessRequest request =
-    case request of
-        CompleteHttpResponse httpResponse ->
-            [ ( "CompleteHttpResponse", httpResponse |> encodeHttpResponseRequest )
-            ]
-                |> Json.Encode.object
-
-        StartTask startTask ->
-            Json.Encode.object [ ( "startTask", startTask |> encodeStartTask ) ]
+encodeAppEventResponse : AppEventResponse -> Json.Encode.Value
+encodeAppEventResponse request =
+    [ ( "notifyWhenArrivedAtTime"
+      , request.notifyWhenArrivedAtTime
+            |> Maybe.map (\time -> [ ( "posixTimeMilli", time.posixTimeMilli |> Json.Encode.int ) ] |> Json.Encode.object)
+            |> Maybe.withDefault Json.Encode.null
+      )
+    , ( "startTasks", request.startTasks |> Json.Encode.list encodeStartTask )
+    , ( "completeHttpResponses", request.completeHttpResponses |> Json.Encode.list encodeHttpResponseRequest )
+    ]
+        |> Json.Encode.object
 
 
 encodeStartTask : StartTaskStructure -> Json.Encode.Value
@@ -339,11 +368,10 @@ encodeHttpResponseRequest httpResponseRequest =
 
 encodeHttpResponse : HttpResponse -> Json.Encode.Value
 encodeHttpResponse httpResponse =
-    [ ( "statusCode", httpResponse.statusCode |> Json.Encode.int |> Just )
-    , ( "headersToAdd", httpResponse.headersToAdd |> Json.Encode.list encodeHttpHeader |> Just )
-    , ( "bodyAsBase64", httpResponse.body |> Maybe.map (Base64.fromBytes >> Maybe.withDefault "Error encoding to base64" >> Json.Encode.string) )
+    [ ( "statusCode", httpResponse.statusCode |> Json.Encode.int )
+    , ( "headersToAdd", httpResponse.headersToAdd |> Json.Encode.list encodeHttpHeader )
+    , ( "bodyAsBase64", httpResponse.bodyAsBase64 |> Maybe.map Json.Encode.string |> Maybe.withDefault Json.Encode.null )
     ]
-        |> filterTakeOnlyWhereTupleSecondNotNothing
         |> Json.Encode.object
 
 
@@ -353,14 +381,6 @@ encodeHttpHeader httpHeader =
     , ( "values", httpHeader.values |> Json.Encode.list Json.Encode.string )
     ]
         |> Json.Encode.object
-
-
-filterTakeOnlyWhereTupleSecondNotNothing : List ( first, Maybe second ) -> List ( first, second )
-filterTakeOnlyWhereTupleSecondNotNothing =
-    List.filterMap
-        (\( first, maybeSecond ) ->
-            maybeSecond |> Maybe.map (\second -> ( first, second ))
-        )
 
 
 decodeResult : Json.Decode.Decoder error -> Json.Decode.Decoder ok -> Json.Decode.Decoder (Result error ok)
