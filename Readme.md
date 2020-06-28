@@ -14,7 +14,7 @@ Sanderling is the eyes of bots and monitoring tools. It helps programs see the g
 
 + **safe**: does not inject into or write to the EVE Online client. That is why using it with EVE Online is not detectable.
 + **accurate & robust**: Sanderling uses memory reading to get information about the game state and user interface. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-+ **comprehensive**: Sanderling memory reading is used in [mining](https://github.com/Viir/bots/blob/master/guide/eve-online/eve-online-mining-bot.md), trading, mission running and [anomaly ratting](https://github.com/botengine-de/A-Bot) bots.
++ **comprehensive**: Sanderling memory reading is used in [mining](https://to.botengine.org/guide/app/eve-online-mining-bot), trading, mission running and [ratting](https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot) bots.
 
 ## Repository contents
 
@@ -46,7 +46,7 @@ The UI tree in the EVE Online client can contain thousands of nodes and tens of 
 
 The input for this library is the JSON string, as we get it from the memory reading. In contrast to the memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
 
-Location in the repository: [/implement/alternate-ui/elm-app/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/elm-app/src/EveOnline/ParseUserInterface.elm)
+Location in the repository: [/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm)
 
 ### Alternate UI for EVE Online
 
