@@ -33,7 +33,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-06-11/elm-fullstack-bin-9c33a38bd57be4b46c56e2acc07f9497ee4e860e-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-06-27/elm-fullstack-bin-1ab87314ca59b2630493514be443d6007c86941e-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -43,7 +43,7 @@ To start the software:
 + In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/d5d80bdb672052896be1c0c2bf727017b006665b/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/8939f96d812186078720f786d2f4550341d47d37/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -51,7 +51,7 @@ To start the software:
 ```txt
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
-Loaded source composition 0264fccaec0fe82b20ced301f17b07df76405cbdfb11934973a29a98b1a442cf from 'https://github.com/Arcitectus/Sanderling/tree/d5d80bdb672052896be1c0c2bf727017b006665b/implement/alternate-ui/source'.
+Loaded source composition 91b9154ffc70ca35959100f4911d9c113d46fe3ce038c004ea5d852d345d373c from 'https://github.com/Arcitectus/Sanderling/tree/8939f96d812186078720f786d2f4550341d47d37/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
       Begin to build the process volatile representation.
@@ -81,7 +81,7 @@ At the top, you find a section titled 'Select a source for the memory reading'. 
 Here you can load memory readings from JSON files.
 After loading a memory reading, you can inspect it:
 
-> Successfully read the memory reading from the file. Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes.
+> Successfully read the reading from the file. Below is an interactive tree view to explore this reading. You can expand and collapse individual nodes.
 
 ### Reading from live process
 
@@ -97,24 +97,18 @@ As long as reading from live process is selected, the program tries once per sec
 
 When setup is complete you see following message:
 
-> Successfully read from the memory of the live process.
+> Successfully read from the memory of the live process
 
 Below is a button labeled:
 
-> Click here to download this memory measurement to a JSON file.
+> Click here to download this reading to a JSON file.
 
 The memory reading file you can download here is useful for collaboration: In the 'Reading from file' section, people can load this file into the UI to see the same memory reading that you had on your system. 
 
 Under the save button, you get tools for closer examination of the memory reading:
 
-> Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes.
+> Below is an interactive tree view to explore this reading. You can expand and collapse individual nodes.
 
 ### Enabling the Elm Inspection ('Debugger') Tool
 
-In case we want to enable the [Elm inspection tool](https://youtu.be/NaIfq89UZ2U) in the frontend, we make a change to the `Backend.Main` module, replacing the `elm_make_frontendWeb_html` with `elm_make_frontendWeb_html_debug`, as shown in this commit: https://github.com/Arcitectus/Sanderling/commit/7418e02e464042d149de664c1e24039f91dc8a59
-
-You don't have to edit the file yourself, because you can start the adapted version from Github with the following command:
-
-```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/7418e02e464042d149de664c1e24039f91dc8a59/implement/alternate-ui/source
-```
+To use the [Elm inspection tool](https://youtu.be/NaIfq89UZ2U) in the frontend, open the page http://localhost:80/with-inspector instead of http://localhost:80
