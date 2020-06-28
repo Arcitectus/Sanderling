@@ -344,7 +344,7 @@ update event stateBefore =
                                     )
                                 )
 
-                        -- TODO: Remember sending input, to syncronize with get next memory reading.
+                        -- TODO: Remember sending input, to syncronize with get next reading.
                     in
                     ( stateBefore, requestSendInputToGameClient )
 
@@ -663,10 +663,10 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                                     ( "", Nothing )
 
                                 Just (Err error) ->
-                                    ( "The last attempt to read from the process memory failed: " ++ error, Nothing )
+                                    ( "The last attempt to read from the game client process failed: " ++ error, Nothing )
 
                                 Just (Ok lastMemoryReadingCompleted) ->
-                                    ( "The last attempt to read from the process memory was successful.", Just lastMemoryReadingCompleted )
+                                    ( "The last attempt to read from the game client process was successful.", Just lastMemoryReadingCompleted )
 
                         memoryReadingStillPending =
                             stateBefore.lastPendingRequestToReadMemoryTimeMilli
@@ -755,21 +755,21 @@ viewSourceFromFile : State -> Html.Html Event
 viewSourceFromFile state =
     let
         buttonLoadFromFileHtml =
-            [ "Click here to load a memory reading from a JSON file" |> Html.text ]
+            [ "Click here to load a reading from a JSON file" |> Html.text ]
                 |> Html.button [ HE.onClick (UserInputSelectMemoryReadingFile Nothing) ]
 
         memoryReadingFromFileHtml =
             case state.readFromFileResult of
                 Nothing ->
-                    "No memory reading loaded" |> Html.text
+                    "No reading loaded" |> Html.text
 
                 Just memoryReadingCompleted ->
                     case memoryReadingCompleted.parseResult of
                         Err error ->
-                            ("Failed to decode memory reading loaded from file: " ++ (error |> Json.Decode.errorToString)) |> Html.text
+                            ("Failed to decode reading loaded from file: " ++ (error |> Json.Decode.errorToString)) |> Html.text
 
                         Ok parseSuccess ->
-                            [ "Successfully read the memory reading from the file." |> Html.text
+                            [ "Successfully read the reading from the file." |> Html.text
                             , presentParsedMemoryReading Nothing parseSuccess state
                             ]
                                 |> List.map (List.singleton >> Html.div [])
@@ -796,7 +796,7 @@ viewSourceFromLiveProcess state =
                 Just parsedReadMemoryResult ->
                     let
                         downloadButton =
-                            [ "Click here to download this memory reading to a JSON file." |> Html.text ]
+                            [ "Click here to download this reading to a JSON file." |> Html.text ]
                                 |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.serialRepresentationJson) ]
 
                         inputRoute =
@@ -805,7 +805,7 @@ viewSourceFromLiveProcess state =
                         parsedHtml =
                             case parsedReadMemoryResult.memoryReading.parseResult of
                                 Err parseError ->
-                                    ("Failed to parse this memory reading: " ++ (parseError |> Json.Decode.errorToString)) |> Html.text
+                                    ("Failed to parse this reading: " ++ (parseError |> Json.Decode.errorToString)) |> Html.text
 
                                 Ok parseSuccess ->
                                     presentParsedMemoryReading (Just inputRoute) parseSuccess state
@@ -846,7 +846,7 @@ presentParsedMemoryReading maybeInputRoute memoryReading state =
                 ViewUITree ->
                     continueWithTitle
                         "Inspecting the UI tree"
-                        [ "Below is an interactive tree view to explore this memory reading. You can expand and collapse individual nodes." |> Html.text
+                        [ "Below is an interactive tree view to explore this reading. You can expand and collapse individual nodes." |> Html.text
                         , viewTreeMemoryReadingUITreeNode maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.uiTreeView memoryReading.uiTree
                         ]
 
@@ -984,7 +984,7 @@ displayParsedContextMenu maybeInputRouteConfig contextMenu =
 
 selectSourceHtml : State -> Html.Html Event
 selectSourceHtml state =
-    (([ "Select a source for the memory reading" |> Html.text ] |> Html.legend [])
+    (([ "Select a source for the reading" |> Html.text ] |> Html.legend [])
         :: ([ ( "From file", FromFile )
             , ( "From live game client process", FromLiveProcess )
             ]
