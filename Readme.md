@@ -14,7 +14,7 @@ Sanderling is the eyes of bots and monitoring tools. It helps programs see the g
 
 + **safe**: does not inject into or write to the EVE Online client. That is why using it with EVE Online is not detectable.
 + **accurate & robust**: Sanderling uses memory reading to get information about the game state and user interface. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-+ **comprehensive**: Sanderling memory reading is used in [mining](https://to.botengine.org/guide/app/eve-online-mining-bot), trading, mission running and [ratting](https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot) bots.
++ **comprehensive**: Sanderling memory reading is used in [mining](https://to.botengine.org/guide/app/eve-online-mining-bot), trading, mission running and [anomaly](https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot) bots.
 
 ## Repository contents
 
@@ -68,7 +68,7 @@ And these are some bots using Sanderling:
 
 + Mining asteroids: [https://to.botengine.org/guide/app/eve-online-mining-bot](https://to.botengine.org/guide/app/eve-online-mining-bot)
 
-+ Anomaly ratting: [https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot](https://to.botengine.org/guide/app/eve-online-anomaly-ratting-bot)
++ Combat anomalies: [https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot](https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot)
 
 + List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
 
