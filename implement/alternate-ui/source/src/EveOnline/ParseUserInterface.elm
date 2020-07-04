@@ -286,6 +286,7 @@ type alias ProbeScannerWindow =
 type alias ProbeScanResult =
     { uiNode : UITreeNodeWithDisplayRegion
     , textsLeftToRight : List String
+    , cellsTexts : Dict.Dict String String
     , warpButton : Maybe UITreeNodeWithDisplayRegion
     }
 
@@ -1345,30 +1346,79 @@ parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ScanResultNew")
 
+                scrollNode =
+                    windowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.contains "ResultsContainer") >> Maybe.withDefault False)
+                        |> List.concatMap listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                        |> List.head
+
+                headersContainerNode =
+                    scrollNode
+                        |> Maybe.map listDescendantsWithDisplayRegion
+                        |> Maybe.withDefault []
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "header")
+                        |> List.head
+
+                entriesHeaders =
+                    headersContainerNode
+                        |> Maybe.map getAllContainedDisplayTextsWithRegion
+                        |> Maybe.withDefault []
+
                 scanResults =
                     scanResultsNodes
-                        |> List.map parseProbeScanResult
+                        |> List.map (parseProbeScanResult entriesHeaders)
             in
             CanSee { uiNode = windowNode, scanResults = scanResults }
 
 
-parseProbeScanResult : UITreeNodeWithDisplayRegion -> ProbeScanResult
-parseProbeScanResult scanResultUiNode =
+parseProbeScanResult : List ( String, UITreeNodeWithDisplayRegion ) -> UITreeNodeWithDisplayRegion -> ProbeScanResult
+parseProbeScanResult entriesHeaders scanResultNode =
     let
         textsLeftToRight =
-            scanResultUiNode
+            scanResultNode
                 |> getAllContainedDisplayTextsWithRegion
                 |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
                 |> List.map Tuple.first
 
+        cellsTexts =
+            scanResultNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.filterMap
+                    (\( cellText, cell ) ->
+                        let
+                            cellMiddle =
+                                cell.totalDisplayRegion.x + (cell.totalDisplayRegion.width // 2)
+
+                            maybeHeader =
+                                entriesHeaders
+                                    |> List.filter
+                                        (\( _, header ) ->
+                                            header.totalDisplayRegion.x
+                                                < cellMiddle
+                                                + 1
+                                                && cellMiddle
+                                                < header.totalDisplayRegion.x
+                                                + header.totalDisplayRegion.width
+                                                - 1
+                                        )
+                                    |> List.head
+                        in
+                        maybeHeader
+                            |> Maybe.map (\( headerText, _ ) -> ( headerText, cellText ))
+                    )
+                |> Dict.fromList
+
         warpButton =
-            scanResultUiNode
+            scanResultNode
                 |> listDescendantsWithDisplayRegion
                 |> List.filter (.uiNode >> getTexturePathFromDictEntries >> Maybe.map (String.endsWith "44_32_18.png") >> Maybe.withDefault False)
                 |> List.head
     in
-    { uiNode = scanResultUiNode
+    { uiNode = scanResultNode
     , textsLeftToRight = textsLeftToRight
+    , cellsTexts = cellsTexts
     , warpButton = warpButton
     }
 

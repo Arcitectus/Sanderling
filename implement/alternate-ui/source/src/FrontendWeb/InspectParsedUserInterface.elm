@@ -706,6 +706,11 @@ treeNodeChildrenFromProbeScanResult viewConfig probeScanResult =
                 { fieldName = "textsLeftToRight"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
                 }
+        , probeScanResult.cellsTexts
+            |> fieldFromPrimitiveStringDictInstance
+                { fieldName = "cellsTexts"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
         ]
 
 
