@@ -76,7 +76,7 @@ decodeOptionalField fieldName decoder =
     let
         finishDecoding json =
             case Json.Decode.decodeValue (Json.Decode.field fieldName Json.Decode.value) json of
-                Ok val ->
+                Ok _ ->
                     -- The field is present, so run the decoder on it.
                     Json.Decode.map Just (Json.Decode.field fieldName decoder)
 

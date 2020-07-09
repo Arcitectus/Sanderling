@@ -733,12 +733,13 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                         capacitor =
                             capacitorUINode |> parseShipUICapacitorFromUINode
 
-                        speedGaugeElement =
-                            shipUINode
-                                |> listDescendantsWithDisplayRegion
-                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpeedGauge")
-                                |> List.head
-
+                        {-
+                           speedGaugeElement =
+                               shipUINode
+                                   |> listDescendantsWithDisplayRegion
+                                   |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SpeedGauge")
+                                   |> List.head
+                        -}
                         maybeIndicationNode =
                             shipUINode
                                 |> listDescendantsWithDisplayRegion
@@ -1210,12 +1211,13 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
 
         Just windowNode ->
             let
-                scrollNode =
-                    windowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
-                        |> List.head
-
+                {-
+                   scrollNode =
+                       windowNode
+                           |> listDescendantsWithDisplayRegion
+                           |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                           |> List.head
+                -}
                 droneGroupHeaders =
                     windowNode
                         |> listDescendantsWithDisplayRegion
