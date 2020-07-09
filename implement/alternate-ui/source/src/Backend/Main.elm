@@ -289,11 +289,6 @@ processEventHttpRequest httpRequestEvent stateBefore =
                                     )
 
 
-urlLeadsToFrontendHtmlDocument : Url.Url -> Bool
-urlLeadsToFrontendHtmlDocument url =
-    not (url.path == "/api" || (url.path |> String.startsWith "/api/"))
-
-
 processTaskCompleteEvent : InterfaceToHost.TaskCompleteEventStructure -> State -> ( State, InterfaceToHost.AppEventResponse )
 processTaskCompleteEvent taskComplete stateBefore =
     let
