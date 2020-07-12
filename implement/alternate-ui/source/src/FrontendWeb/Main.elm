@@ -896,16 +896,6 @@ displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
                                 }
                             )
 
-                cssColorFromColorPercent colorPercent =
-                    "rgba("
-                        ++ (([ colorPercent.r, colorPercent.g, colorPercent.b ]
-                                |> List.map (\rgbComponent -> String.fromInt ((rgbComponent * 255) // 100))
-                            )
-                                ++ [ String.fromFloat ((colorPercent.a |> toFloat) / 100) ]
-                                |> String.join ","
-                           )
-                        ++ ")"
-
                 iconColumn =
                     { header = ""
                     , cellHtmlFromEntry =
@@ -965,6 +955,18 @@ displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
             headersHtml
                 :: entriesHtml
                 |> Html.table []
+
+
+cssColorFromColorPercent : EveOnline.ParseUserInterface.ColorComponents -> String
+cssColorFromColorPercent colorPercent =
+    "rgba("
+        ++ (([ colorPercent.r, colorPercent.g, colorPercent.b ]
+                |> List.map (\rgbComponent -> String.fromInt ((rgbComponent * 255) // 100))
+            )
+                ++ [ String.fromFloat ((colorPercent.a |> toFloat) / 100) ]
+                |> String.join ","
+           )
+        ++ ")"
 
 
 displayParsedContextMenus : Maybe InputRouteConfig -> List EveOnline.ParseUserInterface.ContextMenu -> Html.Html Event
@@ -1534,18 +1536,40 @@ svgFromUINodeRecursive uiNode =
                         ]
                         [ Svg.text displayText ]
 
+        regionRectPlacementAttributes =
+            [ Svg.Attributes.x "0"
+            , Svg.Attributes.y "0"
+            , Svg.Attributes.width (uiNode.selfDisplayRegion.width |> String.fromInt)
+            , Svg.Attributes.height (uiNode.selfDisplayRegion.height |> String.fromInt)
+            ]
+
         regionSvg =
             Svg.rect
-                [ Svg.Attributes.x "0"
-                , Svg.Attributes.y "0"
-                , Svg.Attributes.width (uiNode.selfDisplayRegion.width |> String.fromInt)
-                , Svg.Attributes.height (uiNode.selfDisplayRegion.height |> String.fromInt)
-                , HA.style "fill" "transparent"
-                , HA.style "stroke-width" "1"
-                , HA.style "stroke" "#7AB8FF"
-                , HA.style "stroke-opacity" "0.3"
-                ]
+                (regionRectPlacementAttributes
+                    ++ [ HA.style "fill" "transparent"
+                       , HA.style "stroke-width" "1"
+                       , HA.style "stroke" "#7AB8FF"
+                       , HA.style "stroke-opacity" "0.3"
+                       ]
+                )
                 []
+
+        colorIndicationSvg =
+            case uiNode.uiNode |> EveOnline.ParseUserInterface.getColorPercentFromDictEntries of
+                Nothing ->
+                    Html.text ""
+
+                Just colorPercent ->
+                    Svg.rect
+                        (regionRectPlacementAttributes
+                            ++ [ Svg.Attributes.height (uiNode.selfDisplayRegion.height |> String.fromInt)
+                               , HA.style "fill" "transparent"
+                               , HA.style "stroke-width" "3"
+                               , HA.style "stroke" (cssColorFromColorPercent colorPercent)
+                               , HA.style "stroke-opacity" "0.5"
+                               ]
+                        )
+                        []
 
         transformTranslateText =
             [ uiNode.selfDisplayRegion.x, uiNode.selfDisplayRegion.y ]
@@ -1553,7 +1577,7 @@ svgFromUINodeRecursive uiNode =
                 |> String.join " "
     in
     Svg.g [ Svg.Attributes.transform ("translate(" ++ transformTranslateText ++ ")") ]
-        (regionSvg :: displayTextSvg :: childrenSvg)
+        (regionSvg :: colorIndicationSvg :: displayTextSvg :: childrenSvg)
 
 
 type ArrowKeyType
