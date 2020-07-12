@@ -6,7 +6,7 @@ Sanderling is the eyes of bots and monitoring tools. It helps programs see the g
 
 <br>
 
-![Visualization of data read from the EVE Online client memory.](guide/image/2015-12-13.uitree.extract.png)
+![Visualization of data read from the EVE Online client memory.](guide/image/2020-07-12-visualize-ui-tree.png)
 
 <br>
 
