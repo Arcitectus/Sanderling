@@ -36,6 +36,7 @@ type alias ParsedUserInterface =
 type alias UITreeNodeWithDisplayRegion =
     { uiNode : EveOnline.MemoryReading.UITreeNode
     , children : Maybe (List ChildOfNodeWithDisplayRegion)
+    , selfDisplayRegion : DisplayRegion
     , totalDisplayRegion : DisplayRegion
     }
 
@@ -402,7 +403,15 @@ type MaybeVisible feature
 
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
 parseUITreeWithDisplayRegionFromUITree uiTree =
-    uiTree |> asUITreeNodeWithTotalDisplayRegion (uiTree |> getDisplayRegionFromDictEntries |> Maybe.withDefault { x = 0, y = 0, width = 0, height = 0 })
+    let
+        selfDisplayRegion =
+            uiTree |> getDisplayRegionFromDictEntries |> Maybe.withDefault { x = 0, y = 0, width = 0, height = 0 }
+    in
+    uiTree
+        |> asUITreeNodeWithDisplayRegion
+            { selfDisplayRegion = selfDisplayRegion
+            , totalDisplayRegion = selfDisplayRegion
+            }
 
 
 parseUserInterfaceFromUITree : UITreeNodeWithDisplayRegion -> ParsedUserInterface
@@ -430,10 +439,11 @@ parseUserInterfaceFromUITree uiTree =
     }
 
 
-asUITreeNodeWithTotalDisplayRegion : DisplayRegion -> EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
-asUITreeNodeWithTotalDisplayRegion totalDisplayRegion uiNode =
+asUITreeNodeWithDisplayRegion : { selfDisplayRegion : DisplayRegion, totalDisplayRegion : DisplayRegion } -> EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
+asUITreeNodeWithDisplayRegion { selfDisplayRegion, totalDisplayRegion } uiNode =
     { uiNode = uiNode
     , children = uiNode.children |> Maybe.map (List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> asUITreeNodeWithInheritedOffset { x = totalDisplayRegion.x, y = totalDisplayRegion.y }))
+    , selfDisplayRegion = selfDisplayRegion
     , totalDisplayRegion = totalDisplayRegion
     }
 
@@ -446,8 +456,11 @@ asUITreeNodeWithInheritedOffset inheritedOffset rawNode =
 
         Just selfRegion ->
             ChildWithRegion
-                (asUITreeNodeWithTotalDisplayRegion
-                    { selfRegion | x = inheritedOffset.x + selfRegion.x, y = inheritedOffset.y + selfRegion.y }
+                (asUITreeNodeWithDisplayRegion
+                    { selfDisplayRegion = selfRegion
+                    , totalDisplayRegion =
+                        { selfRegion | x = inheritedOffset.x + selfRegion.x, y = inheritedOffset.y + selfRegion.y }
+                    }
                     rawNode
                 )
 

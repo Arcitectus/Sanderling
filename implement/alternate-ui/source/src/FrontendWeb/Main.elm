@@ -37,6 +37,8 @@ import InterfaceToFrontendClient
 import Json.Decode
 import List.Extra
 import Process
+import Svg
+import Svg.Attributes
 import Task
 import Time
 import Url
@@ -856,11 +858,18 @@ presentParsedMemoryReading maybeInputRoute memoryReading state =
                         [ "Below is an interactive tree view to explore the parsed user interface. You can expand and collapse individual nodes." |> Html.text
                         , viewTreeParsedUserInterface maybeInputRoute memoryReading.uiNodesWithDisplayRegion state.parsedUITreeView memoryReading.parsedUserInterface
                         ]
+
+        uiTreeSvg =
+            viewUITreeSvg memoryReading.parsedUserInterface.uiTree
+
+        visualSectionHtml =
+            continueWithTitle "Visualization of the UI tree" [ uiTreeSvg ]
     in
     [ selectViewModeHtml state
     , selectedViewHtml
         |> List.map (List.singleton >> Html.div [])
         |> Html.div []
+    , visualSectionHtml |> Html.div []
     ]
         |> Html.div []
 
@@ -1469,6 +1478,82 @@ searchImmediateNeighborsPaths pathToSearch tree fromParent =
 
                 _ ->
                     Nothing
+
+
+viewUITreeSvg : UITreeNodeWithDisplayRegion -> Svg.Svg e
+viewUITreeSvg uiTree =
+    let
+        viewBox =
+            [ uiTree.totalDisplayRegion.x
+            , uiTree.totalDisplayRegion.y
+            , uiTree.totalDisplayRegion.width
+            , uiTree.totalDisplayRegion.height
+            ]
+                |> List.map String.fromInt
+                |> String.join " "
+    in
+    Svg.svg
+        [ Svg.Attributes.viewBox viewBox
+        , HA.style "background" "#111"
+        , HA.style "font-size" "60%"
+        ]
+        [ uiTree |> svgFromUINodeRecursive ]
+
+
+svgFromUINodeRecursive : UITreeNodeWithDisplayRegion -> Svg.Svg e
+svgFromUINodeRecursive uiNode =
+    let
+        childrenSvg =
+            uiNode.children
+                |> Maybe.withDefault []
+                |> List.filterMap
+                    (\child ->
+                        case child of
+                            EveOnline.ParseUserInterface.ChildWithRegion childWithRegion ->
+                                Just childWithRegion
+
+                            EveOnline.ParseUserInterface.ChildWithoutRegion _ ->
+                                Nothing
+                    )
+                |> List.map svgFromUINodeRecursive
+
+        displayTextSvg =
+            case uiNode.uiNode |> EveOnline.ParseUserInterface.getDisplayText of
+                Nothing ->
+                    Html.text ""
+
+                Just displayText ->
+                    Svg.text_
+                        [ Svg.Attributes.textLength (uiNode.selfDisplayRegion.width |> String.fromInt)
+                        , Svg.Attributes.lengthAdjust "spacing"
+                        , HA.style "fill" "grey"
+                        , Svg.Attributes.x ((uiNode.selfDisplayRegion.width // 2) |> String.fromInt)
+                        , Svg.Attributes.y ((uiNode.selfDisplayRegion.height // 2) |> String.fromInt)
+                        , Svg.Attributes.dominantBaseline "middle"
+                        , Svg.Attributes.textAnchor "middle"
+                        ]
+                        [ Svg.text displayText ]
+
+        regionSvg =
+            Svg.rect
+                [ Svg.Attributes.x "0"
+                , Svg.Attributes.y "0"
+                , Svg.Attributes.width (uiNode.selfDisplayRegion.width |> String.fromInt)
+                , Svg.Attributes.height (uiNode.selfDisplayRegion.height |> String.fromInt)
+                , HA.style "fill" "transparent"
+                , HA.style "stroke-width" "1"
+                , HA.style "stroke" "#7AB8FF"
+                , HA.style "stroke-opacity" "0.3"
+                ]
+                []
+
+        transformTranslateText =
+            [ uiNode.selfDisplayRegion.x, uiNode.selfDisplayRegion.y ]
+                |> List.map String.fromInt
+                |> String.join " "
+    in
+    Svg.g [ Svg.Attributes.transform ("translate(" ++ transformTranslateText ++ ")") ]
+        (regionSvg :: displayTextSvg :: childrenSvg)
 
 
 type ArrowKeyType
