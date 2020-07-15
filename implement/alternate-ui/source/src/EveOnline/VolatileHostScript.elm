@@ -82,8 +82,6 @@ class Request
 
         public SimpleMouseClickAtLocation simpleMouseClickAtLocation;
 
-        public SimpleDragAndDrop simpleDragAndDrop;
-
         public KeyboardKey keyDown;
 
         public KeyboardKey keyUp;
@@ -104,15 +102,6 @@ class Request
         public Location2d location;
 
         public MouseButton mouseButton;
-    }
-
-    public class SimpleDragAndDrop
-    {
-        public Location2d startLocation;
-
-        public MouseButton mouseButton;
-
-        public Location2d endLocation;
     }
 
     public class Location2d
@@ -311,7 +300,7 @@ void ExecuteEffectOnWindow(
     if (bringWindowToForeground)
         EnsureWindowIsForeground(windowHandle);
 
-    //  TODO: Consolidate mouseMoveTo and simpleMouseClickAtLocation and simpleDragAndDrop?
+    //  TODO: Consolidate mouseMoveTo and simpleMouseClickAtLocation?
 
     if (effectOnWindow?.mouseMoveTo != null)
     {
@@ -365,50 +354,6 @@ void ExecuteEffectOnWindow(
                 windowToForeground: bringWindowToForeground),
             new BotEngine.Motor.Motion(
                 mousePosition: mousePosition,
-                mouseButtonUp: mouseButtons,
-                windowToForeground: bringWindowToForeground),
-        };
-
-        windowMotor.ActSequenceMotion(motionSequence);
-    }
-
-    if (effectOnWindow?.simpleDragAndDrop != null)
-    {
-        //  Build motion description based on https://github.com/Arcitectus/Sanderling/blob/ada11c9f8df2367976a6bcc53efbe9917107bfa7/src/Sanderling/Sanderling/Motor/Extension.cs#L24-L131
-
-        var startMousePosition = new Bib3.Geometrik.Vektor2DInt(
-            effectOnWindow.simpleDragAndDrop.startLocation.x,
-            effectOnWindow.simpleDragAndDrop.startLocation.y);
-
-        var endMousePosition = new Bib3.Geometrik.Vektor2DInt(
-            effectOnWindow.simpleDragAndDrop.endLocation.x,
-            effectOnWindow.simpleDragAndDrop.endLocation.y);
-
-        var mouseButton =
-            effectOnWindow.simpleDragAndDrop.mouseButton == Request.MouseButton.right
-            ? BotEngine.Motor.MouseButtonIdEnum.Right : BotEngine.Motor.MouseButtonIdEnum.Left;
-
-        var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]
-        {
-            mouseButton,
-        };
-
-        var windowMotor = new Sanderling.Motor.WindowMotor(windowHandle);
-
-        var motionSequence = new BotEngine.Motor.Motion[]{
-
-            new BotEngine.Motor.Motion(
-                mousePosition: startMousePosition,
-                mouseButtonDown: mouseButtons,
-                windowToForeground: bringWindowToForeground),
-
-            new BotEngine.Motor.Motion(
-                mousePosition: endMousePosition,
-                mouseButtonDown: new BotEngine.Motor.MouseButtonIdEnum[]{},
-                windowToForeground: bringWindowToForeground),
-
-            new BotEngine.Motor.Motion(
-                mousePosition: endMousePosition,
                 mouseButtonUp: mouseButtons,
                 windowToForeground: bringWindowToForeground),
         };
