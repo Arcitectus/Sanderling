@@ -554,6 +554,12 @@ treeNodeChildrenFromOverviewWindow viewConfig overviewWindow =
                 { fieldName = "entries"
                 , fieldValueChildren = treeNodeChildrenFromOverviewWindowEntry viewConfig
                 }
+        , overviewWindow.scrollControls
+            |> fieldFromMaybeInstance
+                { fieldName = "scrollControls"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromScrollControls viewConfig
+                }
         ]
 
 
@@ -767,6 +773,12 @@ treeNodeChildrenFromParsedUserInterfaceInventory viewConfig parsedUserInterfaceI
                 , fieldValueChildren =
                     treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig
                 }
+        , parsedUserInterfaceInventory.scrollControls
+            |> fieldFromMaybeInstance
+                { fieldName = "scrollControls"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromScrollControls viewConfig
+                }
         ]
 
 
@@ -843,10 +855,33 @@ treeNodeChildrenFromChatWindow viewConfig chatWindow =
         viewConfig
         chatWindow.uiNode
         [ chatWindow.name |> fieldFromMaybeString "name"
-        , chatWindow.visibleUsers
+        , chatWindow.userlist
+            |> fieldFromMaybeInstance
+                { fieldName = "userlist"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromChatWindowUserlist viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromChatWindowUserlist :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ChatWindowUserlist
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromChatWindowUserlist viewConfig userlist =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        userlist.uiNode
+        [ userlist.visibleUsers
             |> fieldFromListInstance
                 { fieldName = "visibleUsers "
                 , fieldValueChildren = treeNodeChildrenFromChatUserEntry viewConfig
+                }
+        , userlist.scrollControls
+            |> fieldFromMaybeInstance
+                { fieldName = "scrollControls"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromScrollControls viewConfig
                 }
         ]
 
@@ -861,6 +896,23 @@ treeNodeChildrenFromChatUserEntry viewConfig chatUserEntry =
         chatUserEntry.uiNode
         [ chatUserEntry.name |> fieldFromMaybeString "name"
         , chatUserEntry.standingIconHint |> fieldFromMaybeString "standingIconHint"
+        ]
+
+
+treeNodeChildrenFromScrollControls :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ScrollControls
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromScrollControls viewConfig scrollControls =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        scrollControls.uiNode
+        [ scrollControls.scrollHandle
+            |> fieldFromMaybeInstance
+                { fieldName = "scrollHandle"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
         ]
 
 
