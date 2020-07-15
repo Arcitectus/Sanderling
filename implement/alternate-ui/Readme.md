@@ -45,7 +45,7 @@ To start the software:
 + In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/8939f96d812186078720f786d2f4550341d47d37/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/c7e227d801f6d3f1cd9dd46ae62060f2942ddf60/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -53,7 +53,7 @@ To start the software:
 ```txt
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
-Loaded source composition 91b9154ffc70ca35959100f4911d9c113d46fe3ce038c004ea5d852d345d373c from 'https://github.com/Arcitectus/Sanderling/tree/8939f96d812186078720f786d2f4550341d47d37/implement/alternate-ui/source'.
+Loaded source composition 02b33e5a7179bc1146244979141be073e6c4d942cc447e00d60996471d6c2fbd from 'https://github.com/Arcitectus/Sanderling/tree/c7e227d801f6d3f1cd9dd46ae62060f2942ddf60/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
       Begin to build the process volatile representation.
