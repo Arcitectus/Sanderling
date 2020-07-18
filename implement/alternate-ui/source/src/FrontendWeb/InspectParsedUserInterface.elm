@@ -728,7 +728,19 @@ treeNodeChildrenFromStationWindow viewConfig stationWindow =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         stationWindow.uiNode
-        []
+        [ stationWindow.undockButton
+            |> fieldFromMaybeInstance
+                { fieldName = "undockButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , stationWindow.abortUndockButton
+            |> fieldFromMaybeInstance
+                { fieldName = "abortUndockButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
 
 
 treeNodeChildrenFromParsedUserInterfaceInventoryWindow :

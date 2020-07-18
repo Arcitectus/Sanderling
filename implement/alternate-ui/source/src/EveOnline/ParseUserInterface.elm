@@ -295,7 +295,8 @@ type alias ProbeScanResult =
 
 type alias StationWindow =
     { uiNode : UITreeNodeWithDisplayRegion
-    , undockButton : Maybe { uiNode : UITreeNodeWithDisplayRegion, mainText : String }
+    , undockButton : Maybe UITreeNodeWithDisplayRegion
+    , abortUndockButton : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -1478,27 +1479,28 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
 
         Just windowNode ->
             let
-                maybeUndockButton =
+                buttons =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.contains "undock") >> Maybe.withDefault False)
-                        |> List.filterMap
-                            (\undockNodeCandidate ->
-                                let
-                                    maybeMainText =
-                                        undockNodeCandidate
-                                            |> getAllContainedDisplayTextsWithRegion
-                                            |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-                                            |> List.reverse
-                                            |> List.head
-                                            |> Maybe.map Tuple.first
-                                in
-                                maybeMainText
-                                    |> Maybe.map (\mainText -> { uiNode = undockNodeCandidate, mainText = mainText })
-                            )
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Button")
+
+                buttonFromDisplayText textToSearch =
+                    let
+                        textToSearchLowercase =
+                            String.toLower textToSearch
+
+                        textMatches text =
+                            text == textToSearchLowercase || (text |> String.contains (">" ++ textToSearchLowercase ++ "<"))
+                    in
+                    buttons
+                        |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.toLower >> String.trim) >> List.any textMatches)
                         |> List.head
             in
-            CanSee { uiNode = windowNode, undockButton = maybeUndockButton }
+            CanSee
+                { uiNode = windowNode
+                , undockButton = buttonFromDisplayText "undock"
+                , abortUndockButton = buttonFromDisplayText "undocking"
+                }
 
 
 parseInventoryWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List InventoryWindow
