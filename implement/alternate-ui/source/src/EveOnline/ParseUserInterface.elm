@@ -163,6 +163,7 @@ type alias InfoPanelLocationInfo =
     { uiNode : UITreeNodeWithDisplayRegion
     , listSurroundingsButton : UITreeNodeWithDisplayRegion
     , expandedContent : MaybeVisible InfoPanelLocationInfoExpandedContent
+    , securityStatusPercent : Maybe Int
     }
 
 
@@ -597,6 +598,20 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
 
         Just infoPanelNode ->
             let
+                getSecurityStatusPercentFromUINodeText : String -> Maybe Int
+                getSecurityStatusPercentFromUINodeText text =
+                    "(?<=='Security status'>)\\s*(|-)\\d+(|\\.\\d+)\\s*(?=\\<)"
+                        |> Regex.fromString
+                        |> Maybe.andThen (\regex -> text |> Regex.find regex |> List.head)
+                        |> Maybe.andThen (.match >> String.trim >> String.replace "," "." >> String.toFloat)
+                        |> Maybe.map ((*) 100 >> round)
+
+                securityStatusPercent =
+                    infoPanelNode.uiNode
+                        |> getAllContainedDisplayTexts
+                        |> List.filterMap getSecurityStatusPercentFromUINodeText
+                        |> List.head
+
                 maybeListSurroundingsButton =
                     infoPanelNode
                         |> listDescendantsWithDisplayRegion
@@ -629,6 +644,7 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                         { uiNode = infoPanelNode
                         , listSurroundingsButton = listSurroundingsButton
                         , expandedContent = expandedContent
+                        , securityStatusPercent = securityStatusPercent
                         }
                     )
                 |> canNotSeeItFromMaybeNothing

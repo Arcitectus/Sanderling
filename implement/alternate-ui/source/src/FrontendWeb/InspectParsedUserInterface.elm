@@ -506,6 +506,7 @@ treeNodeChildrenFromInfoPanelLocationInfo viewConfig infoPanelLocationInfo =
           , fieldValueSummary = "..."
           , fieldValueChildren = always [ treeViewNodeFromUINode viewConfig infoPanelLocationInfo.listSurroundingsButton ]
           }
+        , infoPanelLocationInfo.securityStatusPercent |> fieldFromMaybeInt "securityStatusPercent"
         ]
 
 
