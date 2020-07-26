@@ -55,6 +55,9 @@ inventory_capacity_gauge_text =
 
     -- 2020-02-23 process-sample-FFE3312944 contributed by ORly (https://forum.botengine.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101/5?u=viir)
     , ( "0/5\u{00A0}000,0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
+
+    -- 2020-07-26 scenario shared by neolexo at https://forum.botengine.org/t/issue-with-mining/3469/3?u=viir
+    , ( "0/5’000.0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
     ]
         |> List.map
             (\( text, expectedResult ) ->

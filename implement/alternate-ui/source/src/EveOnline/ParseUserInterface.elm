@@ -2165,7 +2165,7 @@ parseLayerAbovemainFromUITreeRoot uiTreeRoot =
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
 parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
-    case "^(\\d+(\\s*[\\s\\,\\.]\\d{3})*?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
+    case "^(\\d+(\\s*[\\s\\,\\.’]\\d{3})*?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
         Nothing ->
             Err "Regex code error"
 
@@ -2178,6 +2178,7 @@ parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
                     match.match
                         |> String.replace "," ""
                         |> String.replace "." ""
+                        |> String.replace "’" ""
                         |> String.replace " " ""
                         |> String.replace "\u{00A0}" ""
                         |> String.replace "\u{202F}" ""
