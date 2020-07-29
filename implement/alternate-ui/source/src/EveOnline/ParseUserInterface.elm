@@ -26,6 +26,7 @@ type alias ParsedUserInterface =
     , agentConversationWindows : List AgentConversationWindow
     , marketOrdersWindow : MaybeVisible MarketOrdersWindow
     , surveyScanWindow : MaybeVisible SurveyScanWindow
+    , repairShopWindow : MaybeVisible RepairShopWindow
     , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
     , neocom : MaybeVisible Neocom
     , messageBoxes : List MessageBox
@@ -248,6 +249,15 @@ type alias SurveyScanWindow =
     }
 
 
+type alias RepairShopWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , items : List UITreeNodeWithDisplayRegion
+    , repairItemButton : MaybeVisible UITreeNodeWithDisplayRegion
+    , pickNewItemButton : MaybeVisible UITreeNodeWithDisplayRegion
+    , repairAllButton : MaybeVisible UITreeNodeWithDisplayRegion
+    }
+
+
 type alias ColorComponents =
     { a : Int, r : Int, g : Int, b : Int }
 
@@ -450,6 +460,7 @@ parseUserInterfaceFromUITree uiTree =
     , agentConversationWindows = parseAgentConversationWindowsFromUITreeRoot uiTree
     , marketOrdersWindow = parseMarketOrdersWindowFromUITreeRoot uiTree
     , surveyScanWindow = parseSurveyScanWindowFromUITreeRoot uiTree
+    , repairShopWindow = parseRepairShopWindowFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
@@ -2012,6 +2023,38 @@ parseSurveyScanWindow windowUINode =
         windowUINode
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SurveyScanEntry")
+    }
+
+
+parseRepairShopWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible RepairShopWindow
+parseRepairShopWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "RepairShopWindow")
+        |> List.head
+        |> Maybe.map parseRepairShopWindow
+        |> canNotSeeItFromMaybeNothing
+
+
+parseRepairShopWindow : UITreeNodeWithDisplayRegion -> RepairShopWindow
+parseRepairShopWindow windowUINode =
+    let
+        buttonFromLabelText labelText =
+            windowUINode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+                |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
+                |> List.head
+                |> canNotSeeItFromMaybeNothing
+    in
+    { uiNode = windowUINode
+    , items =
+        windowUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
+    , repairItemButton = buttonFromLabelText "repair item"
+    , pickNewItemButton = buttonFromLabelText "pick new item"
+    , repairAllButton = buttonFromLabelText "repair all"
     }
 
 

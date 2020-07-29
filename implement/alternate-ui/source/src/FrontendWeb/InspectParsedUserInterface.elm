@@ -196,6 +196,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
+                , parsedUserInterface.repairShopWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "repairShopWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromRepairShopWindow viewConfig
+                        }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "moduleButtonTooltip"
@@ -992,6 +998,40 @@ treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
         viewConfig
         marketOrdersWindow.uiNode
         []
+
+
+treeNodeChildrenFromRepairShopWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.RepairShopWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromRepairShopWindow viewConfig repairShopWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        repairShopWindow.uiNode
+        [ repairShopWindow.items
+            |> fieldFromListInstance
+                { fieldName = "items"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , repairShopWindow.repairItemButton
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "repairItemButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , repairShopWindow.pickNewItemButton
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "pickNewItemButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , repairShopWindow.repairAllButton
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "repairAllButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
 
 
 treeNodeChildrenFromNeocom :
