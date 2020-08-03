@@ -610,12 +610,15 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
         Just infoPanelNode ->
             let
                 getSecurityStatusPercentFromUINodeText : String -> Maybe Int
-                getSecurityStatusPercentFromUINodeText text =
-                    "(?<=='Security status'>)\\s*(|-)\\d+(|\\.\\d+)\\s*(?=\\<)"
-                        |> Regex.fromString
-                        |> Maybe.andThen (\regex -> text |> Regex.find regex |> List.head)
-                        |> Maybe.andThen (.match >> String.trim >> String.replace "," "." >> String.toFloat)
-                        |> Maybe.map ((*) 100 >> round)
+                getSecurityStatusPercentFromUINodeText =
+                    String.replace " " ""
+                        >> String.toLower
+                        >> String.split "<hint='securitystatus'>"
+                        >> List.drop 1
+                        >> List.head
+                        >> Maybe.andThen (String.split "<" >> List.head)
+                        >> Maybe.andThen (String.trim >> String.toFloat)
+                        >> Maybe.map ((*) 100 >> round)
 
                 securityStatusPercent =
                     infoPanelNode.uiNode
