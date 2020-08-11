@@ -297,6 +297,12 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 { fieldName = "offensiveBuffButtonNames"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
                 }
+        , parsedUserInterfaceShipUI.squadronsUI
+            |> fieldFromMaybeVisibleInstance
+                { fieldName = "squadronsUI"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromShipUISquadronsUI viewConfig
+                }
         ]
 
 
@@ -379,6 +385,58 @@ treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig parsedUserInte
         viewConfig
         parsedUserInterfaceShipUICapacitor.uiNode
         [ parsedUserInterfaceShipUICapacitor.levelFromPmarksPercent |> fieldFromMaybeInt "levelFromPmarksPercent"
+        ]
+
+
+treeNodeChildrenFromShipUISquadronsUI :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.SquadronsUI
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUISquadronsUI viewConfig squadronsUI =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        squadronsUI.uiNode
+        [ squadronsUI.squadrons
+            |> fieldFromListInstance
+                { fieldName = "squadrons"
+                , fieldValueChildren =
+                    treeNodeChildrenFromShipUISquadronUI viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromShipUISquadronUI :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.SquadronUI
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUISquadronUI viewConfig squadronUI =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        squadronUI.uiNode
+        [ squadronUI.abilities
+            |> fieldFromListInstance
+                { fieldName = "abilities"
+                , fieldValueChildren = treeNodeChildrenFromShipUISquadronAbilityIcon viewConfig
+                }
+        , squadronUI.actionLabel
+            |> fieldFromMaybeInstance
+                { fieldName = "actionLabel"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromShipUISquadronAbilityIcon :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.SquadronAbilityIcon
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUISquadronAbilityIcon viewConfig abilityIcon =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        abilityIcon.uiNode
+        [ abilityIcon.quantity |> fieldFromMaybeInt "quantity"
+        , abilityIcon.ramp_active |> fieldFromMaybeBool "ramp_active"
         ]
 
 

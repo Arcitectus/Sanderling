@@ -85,6 +85,7 @@ type alias ShipUI =
         , bottom : List ShipUIModuleButton
         }
     , offensiveBuffButtonNames : List String
+    , squadronsUI : MaybeVisible SquadronsUI
     }
 
 
@@ -128,6 +129,26 @@ type ShipManeuverType
     | ManeuverJump
     | ManeuverOrbit
     | ManeuverApproach
+
+
+type alias SquadronsUI =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , squadrons : List SquadronUI
+    }
+
+
+type alias SquadronUI =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , abilities : List SquadronAbilityIcon
+    , actionLabel : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
+type alias SquadronAbilityIcon =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , quantity : Maybe Int
+    , ramp_active : Maybe Bool
+    }
 
 
 type alias InfoPanelContainer =
@@ -848,6 +869,14 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 |> listDescendantsWithDisplayRegion
                                 |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OffensiveBuffButton")
                                 |> List.filterMap (.uiNode >> getNameFromDictEntries)
+
+                        squadronsUI =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SquadronsUI")
+                                |> List.head
+                                |> Maybe.map parseSquadronsUI
+                                |> canNotSeeItFromMaybeNothing
                     in
                     maybeHitpointsPercent
                         |> Maybe.map
@@ -859,6 +888,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , moduleButtons = moduleButtons
                                 , moduleButtonsRows = groupShipUIModulesIntoRows capacitor moduleButtons
                                 , offensiveBuffButtonNames = offensiveBuffButtonNames
+                                , squadronsUI = squadronsUI
                                 }
                             )
                         |> canNotSeeItFromMaybeNothing
@@ -972,6 +1002,76 @@ groupShipUIModulesIntoRows capacitor modules =
             { top = [], middle = [], bottom = [] }
 
 
+parseShipUIIndication : UITreeNodeWithDisplayRegion -> ShipUIIndication
+parseShipUIIndication indicationUINode =
+    let
+        displayTexts =
+            indicationUINode.uiNode |> getAllContainedDisplayTexts
+
+        maneuverType =
+            [ ( "Warp", ManeuverWarp )
+            , ( "Jump", ManeuverJump )
+            , ( "Orbit", ManeuverOrbit )
+            , ( "Approach", ManeuverApproach )
+            ]
+                |> List.filterMap
+                    (\( pattern, candidateManeuverType ) ->
+                        if displayTexts |> List.any (String.contains pattern) then
+                            Just candidateManeuverType
+
+                        else
+                            Nothing
+                    )
+                |> List.head
+                |> canNotSeeItFromMaybeNothing
+    in
+    { uiNode = indicationUINode, maneuverType = maneuverType }
+
+
+parseSquadronsUI : UITreeNodeWithDisplayRegion -> SquadronsUI
+parseSquadronsUI squadronsUINode =
+    { uiNode = squadronsUINode
+    , squadrons =
+        squadronsUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SquadronUI")
+            |> List.map parseSquadronUI
+    }
+
+
+parseSquadronUI : UITreeNodeWithDisplayRegion -> SquadronUI
+parseSquadronUI squadronUINode =
+    { uiNode = squadronUINode
+    , abilities =
+        squadronUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "AbilityIcon")
+            |> List.map parseSquadronAbilityIcon
+    , actionLabel =
+        squadronUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SquadronActionLabel")
+            |> List.head
+    }
+
+
+parseSquadronAbilityIcon : UITreeNodeWithDisplayRegion -> SquadronAbilityIcon
+parseSquadronAbilityIcon abilityIconUINode =
+    { uiNode = abilityIconUINode
+    , quantity =
+        abilityIconUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map (String.toLower >> String.contains "quantity") >> Maybe.withDefault False)
+            |> List.concatMap (.uiNode >> getAllContainedDisplayTexts)
+            |> List.head
+            |> Maybe.andThen (String.trim >> String.toInt)
+    , ramp_active =
+        abilityIconUINode.uiNode.dictEntriesOfInterest
+            |> Dict.get "ramp_active"
+            |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.bool >> Result.toMaybe)
+    }
+
+
 parseTargetsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List Target
 parseTargetsFromUITreeRoot =
     listDescendantsWithDisplayRegion
@@ -1019,32 +1119,6 @@ parseTarget targetNode =
     , assignedContainerNode = assignedContainerNode
     , assignedIcons = assignedIcons
     }
-
-
-parseShipUIIndication : UITreeNodeWithDisplayRegion -> ShipUIIndication
-parseShipUIIndication indicationUINode =
-    let
-        displayTexts =
-            indicationUINode.uiNode |> getAllContainedDisplayTexts
-
-        maneuverType =
-            [ ( "Warp", ManeuverWarp )
-            , ( "Jump", ManeuverJump )
-            , ( "Orbit", ManeuverOrbit )
-            , ( "Approach", ManeuverApproach )
-            ]
-                |> List.filterMap
-                    (\( pattern, candidateManeuverType ) ->
-                        if displayTexts |> List.any (String.contains pattern) then
-                            Just candidateManeuverType
-
-                        else
-                            Nothing
-                    )
-                |> List.head
-                |> canNotSeeItFromMaybeNothing
-    in
-    { uiNode = indicationUINode, maneuverType = maneuverType }
 
 
 parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible OverviewWindow
