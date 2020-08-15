@@ -51,6 +51,7 @@ inputDelayDefaultMilliseconds =
     300
 
 
+main : Program () State Event
 main =
     Browser.application
         { init = init
