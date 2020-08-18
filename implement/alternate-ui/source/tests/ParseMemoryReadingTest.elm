@@ -1,7 +1,7 @@
 module ParseMemoryReadingTest exposing (allTests)
 
 import Common.EffectOnWindow
-import EveOnline.ParseUserInterface exposing (MaybeVisible(..))
+import EveOnline.ParseUserInterface
 import Expect
 import Test exposing (..)
 
@@ -72,12 +72,12 @@ inventory_capacity_gauge_text =
 
 parse_module_button_tooltip_shortcut : Test
 parse_module_button_tooltip_shortcut =
-    [ ( " F1 ", [ Common.EffectOnWindow.key_F1 ] )
-    , ( " CTRL-F3 ", [ Common.EffectOnWindow.VK_LCONTROL, Common.EffectOnWindow.key_F3 ] )
-    , ( " STRG-F4 ", [ Common.EffectOnWindow.VK_LCONTROL, Common.EffectOnWindow.key_F4 ] )
-    , ( " ALT+F4 ", [ Common.EffectOnWindow.VK_LMENU, Common.EffectOnWindow.key_F4 ] )
-    , ( " SHIFT - F5 ", [ Common.EffectOnWindow.VK_LSHIFT, Common.EffectOnWindow.key_F5 ] )
-    , ( " UMSCH-F6 ", [ Common.EffectOnWindow.VK_LSHIFT, Common.EffectOnWindow.key_F6 ] )
+    [ ( " F1 ", [ Common.EffectOnWindow.vkey_F1 ] )
+    , ( " CTRL-F3 ", [ Common.EffectOnWindow.vkey_LCONTROL, Common.EffectOnWindow.vkey_F3 ] )
+    , ( " STRG-F4 ", [ Common.EffectOnWindow.vkey_LCONTROL, Common.EffectOnWindow.vkey_F4 ] )
+    , ( " ALT+F4 ", [ Common.EffectOnWindow.vkey_LMENU, Common.EffectOnWindow.vkey_F4 ] )
+    , ( " SHIFT - F5 ", [ Common.EffectOnWindow.vkey_LSHIFT, Common.EffectOnWindow.vkey_F5 ] )
+    , ( " UMSCH-F6 ", [ Common.EffectOnWindow.vkey_LSHIFT, Common.EffectOnWindow.vkey_F6 ] )
     ]
         |> List.map
             (\( text, expectedResult ) ->

@@ -13,11 +13,7 @@ module FrontendWeb.InspectParsedUserInterface exposing
 
 import Dict
 import EveOnline.MemoryReading
-import EveOnline.ParseUserInterface
-    exposing
-        ( MaybeVisible(..)
-        , UITreeNodeWithDisplayRegion
-        )
+import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
 import Html
 import Html.Events as HE
 import Json.Encode
@@ -123,7 +119,7 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceContextMenu viewConfig
                         }
                 , parsedUserInterface.shipUI
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "shipUI"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig
@@ -134,49 +130,49 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueChildren = treeNodeChildrenFromParsedUserInterfaceTarget viewConfig
                         }
                 , parsedUserInterface.infoPanelContainer
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "infoPanelContainer"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromInfoPanelContainer viewConfig
                         }
                 , parsedUserInterface.overviewWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "overviewWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromOverviewWindow viewConfig
                         }
                 , parsedUserInterface.selectedItemWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "selectedItemWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromSelectedItemWindow viewConfig
                         }
                 , parsedUserInterface.dronesWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "dronesWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromDronesWindow viewConfig
                         }
                 , parsedUserInterface.fittingWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "fittingWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
                 , parsedUserInterface.probeScannerWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "probeScannerWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromProbeScannerWindow viewConfig
                         }
                 , parsedUserInterface.directionalScannerWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "directionalScannerWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromDirectionalScannerWindow viewConfig
                         }
                 , parsedUserInterface.stationWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "stationWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromStationWindow viewConfig
@@ -197,25 +193,25 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueChildren = treeNodeChildrenFromAgentConversationWindow viewConfig
                         }
                 , parsedUserInterface.marketOrdersWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "marketOrdersWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
                 , parsedUserInterface.repairShopWindow
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "repairShopWindow"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromRepairShopWindow viewConfig
                         }
                 , parsedUserInterface.moduleButtonTooltip
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "moduleButtonTooltip"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromModuleButtonTooltip viewConfig
                         }
                 , parsedUserInterface.neocom
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "neocom"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromNeocom viewConfig
@@ -226,7 +222,7 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueChildren = treeNodeChildrenFromMessageBox viewConfig
                         }
                 , parsedUserInterface.layerAbovemain
-                    |> fieldFromMaybeVisibleInstance
+                    |> fieldFromMaybeInstance
                         { fieldName = "layerAbovemain"
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
@@ -304,7 +300,7 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
                 }
         , parsedUserInterfaceShipUI.squadronsUI
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "squadronsUI"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromShipUISquadronsUI viewConfig
@@ -497,25 +493,25 @@ treeNodeChildrenFromInfoPanelContainer viewConfig infoPanelContainer =
         viewConfig
         infoPanelContainer.uiNode
         [ infoPanelContainer.icons
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "icons"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromInfoPanelIcons viewConfig
                 }
         , infoPanelContainer.infoPanelLocationInfo
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "infoPanelLocationInfo"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfo viewConfig
                 }
         , infoPanelContainer.infoPanelRoute
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "infoPanelRoute"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromInfoPanelRoute viewConfig
                 }
         , infoPanelContainer.infoPanelAgentMissions
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "infoPanelAgentMissions"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromInfoPanelAgentMissions viewConfig
@@ -532,31 +528,31 @@ treeNodeChildrenFromInfoPanelIcons viewConfig infoPanelIcons =
         viewConfig
         infoPanelIcons.uiNode
         [ infoPanelIcons.search
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "search"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , infoPanelIcons.locationInfo
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "locationInfo"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , infoPanelIcons.route
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "route"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , infoPanelIcons.agentMissions
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "agentMissions"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , infoPanelIcons.dailyChallenge
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "dailyChallenge"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
@@ -1100,19 +1096,19 @@ treeNodeChildrenFromRepairShopWindow viewConfig repairShopWindow =
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , repairShopWindow.repairItemButton
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "repairItemButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , repairShopWindow.pickNewItemButton
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "pickNewItemButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         , repairShopWindow.repairAllButton
-            |> fieldFromMaybeVisibleInstance
+            |> fieldFromMaybeInstance
                 { fieldName = "repairAllButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
@@ -1497,29 +1493,6 @@ fieldFromMaybeInstance maybeField maybeValue =
                         )
                     )
                 |> Maybe.withDefault ( "Nothing", [] )
-    in
-    { fieldName = maybeField.fieldName
-    , fieldValueSummary = valueSummary
-    , fieldValueChildren = always children
-    }
-
-
-fieldFromMaybeVisibleInstance :
-    { fieldName : String, fieldValueSummary : element -> String, fieldValueChildren : element -> List (TreeViewNode event ParsedUITreeViewPathNode) }
-    -> MaybeVisible element
-    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
-fieldFromMaybeVisibleInstance maybeField maybeValue =
-    let
-        ( valueSummary, children ) =
-            maybeValue
-                |> EveOnline.ParseUserInterface.maybeNothingFromCanNotSeeIt
-                |> Maybe.map
-                    (\just ->
-                        ( "CanSee " ++ maybeField.fieldValueSummary just
-                        , maybeField.fieldValueChildren just
-                        )
-                    )
-                |> Maybe.withDefault ( "CanNotSeeIt", [] )
     in
     { fieldName = maybeField.fieldName
     , fieldValueSummary = valueSummary

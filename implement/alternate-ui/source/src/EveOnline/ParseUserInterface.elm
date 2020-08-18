@@ -12,26 +12,26 @@ import Set
 type alias ParsedUserInterface =
     { uiTree : UITreeNodeWithDisplayRegion
     , contextMenus : List ContextMenu
-    , shipUI : MaybeVisible ShipUI
+    , shipUI : Maybe ShipUI
     , targets : List Target
-    , infoPanelContainer : MaybeVisible InfoPanelContainer
-    , overviewWindow : MaybeVisible OverviewWindow
-    , selectedItemWindow : MaybeVisible SelectedItemWindow
-    , dronesWindow : MaybeVisible DronesWindow
-    , fittingWindow : MaybeVisible FittingWindow
-    , probeScannerWindow : MaybeVisible ProbeScannerWindow
-    , directionalScannerWindow : MaybeVisible DirectionalScannerWindow
-    , stationWindow : MaybeVisible StationWindow
+    , infoPanelContainer : Maybe InfoPanelContainer
+    , overviewWindow : Maybe OverviewWindow
+    , selectedItemWindow : Maybe SelectedItemWindow
+    , dronesWindow : Maybe DronesWindow
+    , fittingWindow : Maybe FittingWindow
+    , probeScannerWindow : Maybe ProbeScannerWindow
+    , directionalScannerWindow : Maybe DirectionalScannerWindow
+    , stationWindow : Maybe StationWindow
     , inventoryWindows : List InventoryWindow
     , chatWindowStacks : List ChatWindowStack
     , agentConversationWindows : List AgentConversationWindow
-    , marketOrdersWindow : MaybeVisible MarketOrdersWindow
-    , surveyScanWindow : MaybeVisible SurveyScanWindow
-    , repairShopWindow : MaybeVisible RepairShopWindow
-    , moduleButtonTooltip : MaybeVisible ModuleButtonTooltip
-    , neocom : MaybeVisible Neocom
+    , marketOrdersWindow : Maybe MarketOrdersWindow
+    , surveyScanWindow : Maybe SurveyScanWindow
+    , repairShopWindow : Maybe RepairShopWindow
+    , moduleButtonTooltip : Maybe ModuleButtonTooltip
+    , neocom : Maybe Neocom
     , messageBoxes : List MessageBox
-    , layerAbovemain : MaybeVisible UITreeNodeWithDisplayRegion
+    , layerAbovemain : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -78,7 +78,7 @@ type alias ShipUI =
     { uiNode : UITreeNodeWithDisplayRegion
     , capacitor : ShipUICapacitor
     , hitpointsPercent : Hitpoints
-    , indication : MaybeVisible ShipUIIndication
+    , indication : Maybe ShipUIIndication
     , moduleButtons : List ShipUIModuleButton
     , moduleButtonsRows :
         { top : List ShipUIModuleButton
@@ -86,13 +86,13 @@ type alias ShipUI =
         , bottom : List ShipUIModuleButton
         }
     , offensiveBuffButtonNames : List String
-    , squadronsUI : MaybeVisible SquadronsUI
+    , squadronsUI : Maybe SquadronsUI
     }
 
 
 type alias ShipUIIndication =
     { uiNode : UITreeNodeWithDisplayRegion
-    , maneuverType : MaybeVisible ShipManeuverType
+    , maneuverType : Maybe ShipManeuverType
     }
 
 
@@ -154,20 +154,20 @@ type alias SquadronAbilityIcon =
 
 type alias InfoPanelContainer =
     { uiNode : UITreeNodeWithDisplayRegion
-    , icons : MaybeVisible InfoPanelIcons
-    , infoPanelLocationInfo : MaybeVisible InfoPanelLocationInfo
-    , infoPanelRoute : MaybeVisible InfoPanelRoute
-    , infoPanelAgentMissions : MaybeVisible InfoPanelAgentMissions
+    , icons : Maybe InfoPanelIcons
+    , infoPanelLocationInfo : Maybe InfoPanelLocationInfo
+    , infoPanelRoute : Maybe InfoPanelRoute
+    , infoPanelAgentMissions : Maybe InfoPanelAgentMissions
     }
 
 
 type alias InfoPanelIcons =
     { uiNode : UITreeNodeWithDisplayRegion
-    , search : MaybeVisible UITreeNodeWithDisplayRegion
-    , locationInfo : MaybeVisible UITreeNodeWithDisplayRegion
-    , route : MaybeVisible UITreeNodeWithDisplayRegion
-    , agentMissions : MaybeVisible UITreeNodeWithDisplayRegion
-    , dailyChallenge : MaybeVisible UITreeNodeWithDisplayRegion
+    , search : Maybe UITreeNodeWithDisplayRegion
+    , locationInfo : Maybe UITreeNodeWithDisplayRegion
+    , route : Maybe UITreeNodeWithDisplayRegion
+    , agentMissions : Maybe UITreeNodeWithDisplayRegion
+    , dailyChallenge : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -185,7 +185,7 @@ type alias InfoPanelRouteRouteElementMarker =
 type alias InfoPanelLocationInfo =
     { uiNode : UITreeNodeWithDisplayRegion
     , listSurroundingsButton : UITreeNodeWithDisplayRegion
-    , expandedContent : MaybeVisible InfoPanelLocationInfoExpandedContent
+    , expandedContent : Maybe InfoPanelLocationInfoExpandedContent
     , securityStatusPercent : Maybe Int
     }
 
@@ -274,9 +274,9 @@ type alias SurveyScanWindow =
 type alias RepairShopWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , items : List UITreeNodeWithDisplayRegion
-    , repairItemButton : MaybeVisible UITreeNodeWithDisplayRegion
-    , pickNewItemButton : MaybeVisible UITreeNodeWithDisplayRegion
-    , repairAllButton : MaybeVisible UITreeNodeWithDisplayRegion
+    , repairItemButton : Maybe UITreeNodeWithDisplayRegion
+    , pickNewItemButton : Maybe UITreeNodeWithDisplayRegion
+    , repairAllButton : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -301,7 +301,7 @@ type alias DronesWindowDroneGroup =
 type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
-    , expander : MaybeVisible Expander
+    , expander : Maybe Expander
     , quantityFromTitle : Maybe Int
     }
 
@@ -417,7 +417,7 @@ type alias ModuleButtonTooltip =
 
 type alias Neocom =
     { uiNode : UITreeNodeWithDisplayRegion
-    , clock : MaybeVisible NeocomClock
+    , clock : Maybe NeocomClock
     }
 
 
@@ -450,11 +450,6 @@ type alias ScrollControls =
     { uiNode : UITreeNodeWithDisplayRegion
     , scrollHandle : Maybe UITreeNodeWithDisplayRegion
     }
-
-
-type MaybeVisible feature
-    = CanNotSeeIt
-    | CanSee feature
 
 
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
@@ -569,7 +564,7 @@ parseContextMenusFromUITreeRoot uiTreeRoot =
                 |> List.map parseContextMenu
 
 
-parseInfoPanelContainerFromUIRoot : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelContainer
+parseInfoPanelContainerFromUIRoot : UITreeNodeWithDisplayRegion -> Maybe InfoPanelContainer
 parseInfoPanelContainerFromUIRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -578,10 +573,10 @@ parseInfoPanelContainerFromUIRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just containerNode ->
-            CanSee
+            Just
                 { uiNode = containerNode
                 , icons = parseInfoPanelIconsFromInfoPanelContainer containerNode
                 , infoPanelLocationInfo = parseInfoPanelLocationInfoFromInfoPanelContainer containerNode
@@ -590,7 +585,7 @@ parseInfoPanelContainerFromUIRoot uiTreeRoot =
                 }
 
 
-parseInfoPanelIconsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelIcons
+parseInfoPanelIconsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> Maybe InfoPanelIcons
 parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
     case
         infoPanelContainerNode
@@ -600,7 +595,7 @@ parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just iconContainerNode ->
             let
@@ -614,9 +609,8 @@ parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
                                 >> Maybe.withDefault False
                             )
                         |> List.head
-                        |> canNotSeeItFromMaybeNothing
             in
-            CanSee
+            Just
                 { uiNode = iconContainerNode
                 , search = iconNodeFromTexturePathEnd "search.png"
                 , locationInfo = iconNodeFromTexturePathEnd "LocationInfo.png"
@@ -626,7 +620,7 @@ parseInfoPanelIconsFromInfoPanelContainer infoPanelContainerNode =
                 }
 
 
-parseInfoPanelLocationInfoFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelLocationInfo
+parseInfoPanelLocationInfoFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> Maybe InfoPanelLocationInfo
 parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
     case
         infoPanelContainerNode
@@ -635,7 +629,7 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just infoPanelNode ->
             let
@@ -680,7 +674,6 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                                         |> List.head
                                 }
                             )
-                        |> canNotSeeItFromMaybeNothing
             in
             maybeListSurroundingsButton
                 |> Maybe.map
@@ -691,7 +684,6 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                         , securityStatusPercent = securityStatusPercent
                         }
                     )
-                |> canNotSeeItFromMaybeNothing
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
@@ -717,7 +709,7 @@ parseCurrentStationNameFromInfoPanelLocationInfoLabelText labelText =
             |> Maybe.map String.trim
 
 
-parseInfoPanelRouteFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelRoute
+parseInfoPanelRouteFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> Maybe InfoPanelRoute
 parseInfoPanelRouteFromInfoPanelContainer infoPanelContainerNode =
     case
         infoPanelContainerNode
@@ -726,7 +718,7 @@ parseInfoPanelRouteFromInfoPanelContainer infoPanelContainerNode =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just infoPanelRouteNode ->
             let
@@ -736,10 +728,10 @@ parseInfoPanelRouteFromInfoPanelContainer infoPanelContainerNode =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "AutopilotDestinationIcon")
                         |> List.map (\uiNode -> { uiNode = uiNode })
             in
-            CanSee { uiNode = infoPanelRouteNode, routeElementMarker = routeElementMarker }
+            Just { uiNode = infoPanelRouteNode, routeElementMarker = routeElementMarker }
 
 
-parseInfoPanelAgentMissionsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> MaybeVisible InfoPanelAgentMissions
+parseInfoPanelAgentMissionsFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> Maybe InfoPanelAgentMissions
 parseInfoPanelAgentMissionsFromInfoPanelContainer infoPanelContainerNode =
     case
         infoPanelContainerNode
@@ -748,7 +740,7 @@ parseInfoPanelAgentMissionsFromInfoPanelContainer infoPanelContainerNode =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just infoPanelNode ->
             let
@@ -758,7 +750,7 @@ parseInfoPanelAgentMissionsFromInfoPanelContainer infoPanelContainerNode =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MissionEntry")
                         |> List.map (\uiNode -> { uiNode = uiNode })
             in
-            CanSee
+            Just
                 { uiNode = infoPanelNode
                 , entries = entries
                 }
@@ -796,7 +788,7 @@ parseContextMenu contextMenuUINode =
     }
 
 
-parseShipUIFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ShipUI
+parseShipUIFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe ShipUI
 parseShipUIFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -805,7 +797,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just shipUINode ->
             case
@@ -815,7 +807,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                     |> List.head
             of
                 Nothing ->
-                    CanNotSeeIt
+                    Nothing
 
                 Just capacitorUINode ->
                     let
@@ -837,8 +829,8 @@ parseShipUIFromUITreeRoot uiTreeRoot =
 
                         indication =
                             maybeIndicationNode
-                                |> Maybe.map (parseShipUIIndication >> CanSee)
-                                |> Maybe.withDefault CanNotSeeIt
+                                |> Maybe.map (parseShipUIIndication >> Just)
+                                |> Maybe.withDefault Nothing
 
                         moduleButtons =
                             shipUINode
@@ -885,7 +877,6 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SquadronsUI")
                                 |> List.head
                                 |> Maybe.map parseSquadronsUI
-                                |> canNotSeeItFromMaybeNothing
                     in
                     maybeHitpointsPercent
                         |> Maybe.map
@@ -900,7 +891,6 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , squadronsUI = squadronsUI
                                 }
                             )
-                        |> canNotSeeItFromMaybeNothing
 
 
 parseShipUIModuleButton : { slotNode : UITreeNodeWithDisplayRegion, moduleButtonNode : UITreeNodeWithDisplayRegion } -> ShipUIModuleButton
@@ -1032,7 +1022,6 @@ parseShipUIIndication indicationUINode =
                             Nothing
                     )
                 |> List.head
-                |> canNotSeeItFromMaybeNothing
     in
     { uiNode = indicationUINode, maneuverType = maneuverType }
 
@@ -1130,7 +1119,7 @@ parseTarget targetNode =
     }
 
 
-parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible OverviewWindow
+parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe OverviewWindow
 parseOverviewWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1139,7 +1128,7 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just overviewWindowNode ->
             let
@@ -1174,7 +1163,7 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
                         |> List.map (parseOverviewWindowEntry entriesHeaders)
             in
-            CanSee
+            Just
                 { uiNode = overviewWindowNode
                 , entriesHeaders = entriesHeaders
                 , entries = entries
@@ -1322,14 +1311,13 @@ parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
                                     Err ("Text did not match expected number format: '" ++ distanceDisplayText ++ "'")
 
 
-parseSelectedItemWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible SelectedItemWindow
+parseSelectedItemWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe SelectedItemWindow
 parseSelectedItemWindowFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ActiveItem")
         |> List.head
         |> Maybe.map parseSelectedItemWindow
-        |> canNotSeeItFromMaybeNothing
 
 
 parseSelectedItemWindow : UITreeNodeWithDisplayRegion -> SelectedItemWindow
@@ -1352,7 +1340,7 @@ parseSelectedItemWindow windowNode =
     { uiNode = windowNode, orbitButton = orbitButton }
 
 
-parseDronesWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible DronesWindow
+parseDronesWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe DronesWindow
 parseDronesWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1361,7 +1349,7 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just windowNode ->
             let
@@ -1406,7 +1394,7 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                         |> List.sortBy (.header >> .mainText >> Maybe.map String.length >> Maybe.withDefault 999)
                         |> List.head
             in
-            CanSee
+            Just
                 { uiNode = windowNode
                 , droneGroups = droneGroups
                 , droneGroupInBay = droneGroupFromHeaderTextPart "in Bay"
@@ -1439,7 +1427,7 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
     in
     { uiNode = groupHeaderUiNode
     , mainText = mainText
-    , expander = expanderNode |> Maybe.map parseExpander |> canNotSeeItFromMaybeNothing
+    , expander = expanderNode |> Maybe.map parseExpander
     , quantityFromTitle = quantityFromTitle
     }
 
@@ -1484,7 +1472,7 @@ parseDronesWindowEntry droneEntryNode =
     }
 
 
-parseProbeScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ProbeScannerWindow
+parseProbeScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe ProbeScannerWindow
 parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1493,7 +1481,7 @@ parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just windowNode ->
             let
@@ -1526,7 +1514,7 @@ parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
                     scanResultsNodes
                         |> List.map (parseProbeScanResult entriesHeaders)
             in
-            CanSee { uiNode = windowNode, scanResults = scanResults }
+            Just { uiNode = windowNode, scanResults = scanResults }
 
 
 parseProbeScanResult : List ( String, UITreeNodeWithDisplayRegion ) -> UITreeNodeWithDisplayRegion -> ProbeScanResult
@@ -1579,7 +1567,7 @@ parseProbeScanResult entriesHeaders scanResultNode =
     }
 
 
-parseDirectionalScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible DirectionalScannerWindow
+parseDirectionalScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe DirectionalScannerWindow
 parseDirectionalScannerWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1588,7 +1576,7 @@ parseDirectionalScannerWindowFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just windowNode ->
             let
@@ -1605,14 +1593,14 @@ parseDirectionalScannerWindowFromUITreeRoot uiTreeRoot =
                         |> Maybe.withDefault []
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DirectionalScanResultEntry")
             in
-            CanSee
+            Just
                 { uiNode = windowNode
                 , scrollNode = scrollNode
                 , scanResults = scanResultsNodes
                 }
 
 
-parseStationWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible StationWindow
+parseStationWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe StationWindow
 parseStationWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1621,7 +1609,7 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just windowNode ->
             let
@@ -1642,7 +1630,7 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
                         |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.toLower >> String.trim) >> List.any textMatches)
                         |> List.head
             in
-            CanSee
+            Just
                 { uiNode = windowNode
                 , undockButton = buttonFromDisplayText "undock"
                 , abortUndockButton = buttonFromDisplayText "undocking"
@@ -1874,7 +1862,7 @@ parseInventoryCapacityGaugeText capacityText =
             Err ("Unexpected number of components in capacityText '" ++ capacityText ++ "'")
 
 
-parseModuleButtonTooltipFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible ModuleButtonTooltip
+parseModuleButtonTooltipFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe ModuleButtonTooltip
 parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -1883,10 +1871,10 @@ parseModuleButtonTooltipFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just uiNode ->
-            CanSee (parseModuleButtonTooltip uiNode)
+            Just (parseModuleButtonTooltip uiNode)
 
 
 parseModuleButtonTooltip : UITreeNodeWithDisplayRegion -> ModuleButtonTooltip
@@ -2093,14 +2081,13 @@ parseAgentConversationWindow windowUINode =
     }
 
 
-parseMarketOrdersWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible MarketOrdersWindow
+parseMarketOrdersWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe MarketOrdersWindow
 parseMarketOrdersWindowFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MarketOrdersWnd")
         |> List.head
         |> Maybe.map parseMarketOrdersWindow
-        |> canNotSeeItFromMaybeNothing
 
 
 parseMarketOrdersWindow : UITreeNodeWithDisplayRegion -> MarketOrdersWindow
@@ -2109,14 +2096,13 @@ parseMarketOrdersWindow windowUINode =
     }
 
 
-parseFittingWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible FittingWindow
+parseFittingWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe FittingWindow
 parseFittingWindowFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "FittingWindow")
         |> List.head
         |> Maybe.map parseFittingWindow
-        |> canNotSeeItFromMaybeNothing
 
 
 parseFittingWindow : UITreeNodeWithDisplayRegion -> FittingWindow
@@ -2125,14 +2111,13 @@ parseFittingWindow windowUINode =
     }
 
 
-parseSurveyScanWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible SurveyScanWindow
+parseSurveyScanWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe SurveyScanWindow
 parseSurveyScanWindowFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SurveyScanView")
         |> List.head
         |> Maybe.map parseSurveyScanWindow
-        |> canNotSeeItFromMaybeNothing
 
 
 parseSurveyScanWindow : UITreeNodeWithDisplayRegion -> SurveyScanWindow
@@ -2145,14 +2130,13 @@ parseSurveyScanWindow windowUINode =
     }
 
 
-parseRepairShopWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible RepairShopWindow
+parseRepairShopWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe RepairShopWindow
 parseRepairShopWindowFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "RepairShopWindow")
         |> List.head
         |> Maybe.map parseRepairShopWindow
-        |> canNotSeeItFromMaybeNothing
 
 
 parseRepairShopWindow : UITreeNodeWithDisplayRegion -> RepairShopWindow
@@ -2164,7 +2148,6 @@ parseRepairShopWindow windowUINode =
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
                 |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
                 |> List.head
-                |> canNotSeeItFromMaybeNothing
     in
     { uiNode = windowUINode
     , items =
@@ -2177,7 +2160,7 @@ parseRepairShopWindow windowUINode =
     }
 
 
-parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible Neocom
+parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe Neocom
 parseNeocomFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
@@ -2186,10 +2169,10 @@ parseNeocomFromUITreeRoot uiTreeRoot =
             |> List.head
     of
         Nothing ->
-            CanNotSeeIt
+            Nothing
 
         Just uiNode ->
-            CanSee (parseNeocom uiNode)
+            Just (parseNeocom uiNode)
 
 
 parseNeocom : UITreeNodeWithDisplayRegion -> Neocom
@@ -2211,7 +2194,6 @@ parseNeocom neocomUiNode =
                         , parsedText = parseNeocomClockText clockText
                         }
                     )
-                |> canNotSeeItFromMaybeNothing
     in
     { uiNode = neocomUiNode
     , clock = clock
@@ -2316,13 +2298,12 @@ parseScrollControls scrollControlsNode =
     }
 
 
-parseLayerAbovemainFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible UITreeNodeWithDisplayRegion
+parseLayerAbovemainFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
 parseLayerAbovemainFromUITreeRoot uiTreeRoot =
     uiTreeRoot
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "l_abovemain"))
         |> List.head
-        |> canNotSeeItFromMaybeNothing
 
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
@@ -2513,43 +2494,3 @@ listChildrenWithDisplayRegion parent =
                     ChildWithRegion childWithRegion ->
                         Just childWithRegion
             )
-
-
-canNotSeeItFromMaybeNothing : Maybe a -> MaybeVisible a
-canNotSeeItFromMaybeNothing maybe =
-    case maybe of
-        Nothing ->
-            CanNotSeeIt
-
-        Just feature ->
-            CanSee feature
-
-
-maybeNothingFromCanNotSeeIt : MaybeVisible a -> Maybe a
-maybeNothingFromCanNotSeeIt maybeVisible =
-    case maybeVisible of
-        CanNotSeeIt ->
-            Nothing
-
-        CanSee feature ->
-            Just feature
-
-
-maybeVisibleAndThen : (a -> MaybeVisible b) -> MaybeVisible a -> MaybeVisible b
-maybeVisibleAndThen map maybeVisible =
-    case maybeVisible of
-        CanNotSeeIt ->
-            CanNotSeeIt
-
-        CanSee visible ->
-            map visible
-
-
-maybeVisibleMap : (a -> b) -> MaybeVisible a -> MaybeVisible b
-maybeVisibleMap map maybeVisible =
-    case maybeVisible of
-        CanNotSeeIt ->
-            CanNotSeeIt
-
-        CanSee visible ->
-            CanSee (map visible)

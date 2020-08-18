@@ -7,12 +7,7 @@ import Common.App
 import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
-import EveOnline.ParseUserInterface
-    exposing
-        ( MaybeVisible(..)
-        , UITreeNodeWithDisplayRegion
-        , maybeVisibleMap
-        )
+import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
 import EveOnline.VolatileHostInterface
 import File
 import File.Download
@@ -98,7 +93,7 @@ type alias ParseMemoryReadingCompleted =
 type alias ParseMemoryReadingSuccess =
     { uiTree : EveOnline.MemoryReading.UITreeNode
     , uiNodesWithDisplayRegion : Dict.Dict String UITreeNodeWithDisplayRegion
-    , overviewWindow : MaybeVisible OverviewWindow
+    , overviewWindow : Maybe OverviewWindow
     , parsedUserInterface : EveOnline.ParseUserInterface.ParsedUserInterface
     }
 
@@ -875,13 +870,13 @@ presentParsedMemoryReading maybeInputRoute memoryReading state =
         |> Html.div []
 
 
-displayReadOverviewWindowResult : Maybe InputRouteConfig -> MaybeVisible OverviewWindow -> Html.Html Event
+displayReadOverviewWindowResult : Maybe InputRouteConfig -> Maybe OverviewWindow -> Html.Html Event
 displayReadOverviewWindowResult maybeInputRouteConfig maybeOverviewWindow =
     case maybeOverviewWindow of
-        CanNotSeeIt ->
+        Nothing ->
             "Can not see the overview window" |> Html.text
 
-        CanSee overviewWindow ->
+        Just overviewWindow ->
             let
                 columnsFromHeaders =
                     overviewWindow.headers
@@ -1617,7 +1612,7 @@ parseMemoryReadingFromJson =
                         :: (uiTreeWithDisplayRegion |> EveOnline.ParseUserInterface.listDescendantsWithDisplayRegion)
                         |> List.map (\uiNodeWithRegion -> ( uiNodeWithRegion.uiNode.pythonObjectAddress, uiNodeWithRegion ))
                         |> Dict.fromList
-                , overviewWindow = parsedUserInterface.overviewWindow |> maybeVisibleMap parseOverviewWindow
+                , overviewWindow = parsedUserInterface.overviewWindow |> Maybe.map parseOverviewWindow
                 , parsedUserInterface = parsedUserInterface
                 }
             )
