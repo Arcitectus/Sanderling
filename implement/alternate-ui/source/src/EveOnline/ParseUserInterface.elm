@@ -20,6 +20,7 @@ type alias ParsedUserInterface =
     , dronesWindow : MaybeVisible DronesWindow
     , fittingWindow : MaybeVisible FittingWindow
     , probeScannerWindow : MaybeVisible ProbeScannerWindow
+    , directionalScannerWindow : MaybeVisible DirectionalScannerWindow
     , stationWindow : MaybeVisible StationWindow
     , inventoryWindows : List InventoryWindow
     , chatWindowStacks : List ChatWindowStack
@@ -325,6 +326,13 @@ type alias ProbeScanResult =
     }
 
 
+type alias DirectionalScannerWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , scrollNode : Maybe UITreeNodeWithDisplayRegion
+    , scanResults : List UITreeNodeWithDisplayRegion
+    }
+
+
 type alias StationWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , undockButton : Maybe UITreeNodeWithDisplayRegion
@@ -474,6 +482,7 @@ parseUserInterfaceFromUITree uiTree =
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
     , fittingWindow = parseFittingWindowFromUITreeRoot uiTree
     , probeScannerWindow = parseProbeScannerWindowFromUITreeRoot uiTree
+    , directionalScannerWindow = parseDirectionalScannerWindowFromUITreeRoot uiTree
     , stationWindow = parseStationWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
@@ -1568,6 +1577,39 @@ parseProbeScanResult entriesHeaders scanResultNode =
     , cellsTexts = cellsTexts
     , warpButton = warpButton
     }
+
+
+parseDirectionalScannerWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible DirectionalScannerWindow
+parseDirectionalScannerWindowFromUITreeRoot uiTreeRoot =
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DirectionalScanner")
+            |> List.head
+    of
+        Nothing ->
+            CanNotSeeIt
+
+        Just windowNode ->
+            let
+                scrollNode =
+                    windowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                        |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0 >> negate)
+                        |> List.head
+
+                scanResultsNodes =
+                    scrollNode
+                        |> Maybe.map listDescendantsWithDisplayRegion
+                        |> Maybe.withDefault []
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DirectionalScanResultEntry")
+            in
+            CanSee
+                { uiNode = windowNode
+                , scrollNode = scrollNode
+                , scanResults = scanResultsNodes
+                }
 
 
 parseStationWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> MaybeVisible StationWindow

@@ -169,6 +169,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromProbeScannerWindow viewConfig
                         }
+                , parsedUserInterface.directionalScannerWindow
+                    |> fieldFromMaybeVisibleInstance
+                        { fieldName = "directionalScannerWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromDirectionalScannerWindow viewConfig
+                        }
                 , parsedUserInterface.stationWindow
                     |> fieldFromMaybeVisibleInstance
                         { fieldName = "stationWindow"
@@ -781,6 +787,28 @@ treeNodeChildrenFromProbeScanResult viewConfig probeScanResult =
             |> fieldFromPrimitiveStringDictInstance
                 { fieldName = "cellsTexts"
                 , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        ]
+
+
+treeNodeChildrenFromDirectionalScannerWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.DirectionalScannerWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDirectionalScannerWindow viewConfig directionalScannerWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        directionalScannerWindow.uiNode
+        [ directionalScannerWindow.scrollNode
+            |> fieldFromMaybeInstance
+                { fieldName = "scrollNode"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , directionalScannerWindow.scanResults
+            |> fieldFromListInstance
+                { fieldName = "scanResults"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
 
