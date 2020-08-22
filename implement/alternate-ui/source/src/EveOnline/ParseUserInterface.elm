@@ -2182,6 +2182,7 @@ parseRepairShopWindow windowUINode =
                 |> listDescendantsWithDisplayRegion
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
                 |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
+                |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
                 |> List.head
     in
     { uiNode = windowUINode
