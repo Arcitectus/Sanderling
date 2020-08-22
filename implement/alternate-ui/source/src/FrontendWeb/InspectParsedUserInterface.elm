@@ -198,6 +198,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
+                , parsedUserInterface.bookmarkLocationWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "bookmarkLocationWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromBookmarkLocationWindow viewConfig
+                        }
                 , parsedUserInterface.repairShopWindow
                     |> fieldFromMaybeInstance
                         { fieldName = "repairShopWindow"
@@ -1080,6 +1086,29 @@ treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
         viewConfig
         marketOrdersWindow.uiNode
         []
+
+
+treeNodeChildrenFromBookmarkLocationWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.BookmarkLocationWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromBookmarkLocationWindow viewConfig bookmarkLocationWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        bookmarkLocationWindow.uiNode
+        [ bookmarkLocationWindow.submitButton
+            |> fieldFromMaybeInstance
+                { fieldName = "submitButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , bookmarkLocationWindow.cancelButton
+            |> fieldFromMaybeInstance
+                { fieldName = "cancelButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
 
 
 treeNodeChildrenFromRepairShopWindow :
