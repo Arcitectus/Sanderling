@@ -198,6 +198,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromMarketOrdersWindow viewConfig
                         }
+                , parsedUserInterface.surveyScanWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "surveyScanWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromSurveyScanWindow viewConfig
+                        }
                 , parsedUserInterface.bookmarkLocationWindow
                     |> fieldFromMaybeInstance
                         { fieldName = "bookmarkLocationWindow"
@@ -1088,6 +1094,22 @@ treeNodeChildrenFromMarketOrdersWindow viewConfig marketOrdersWindow =
         []
 
 
+treeNodeChildrenFromSurveyScanWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.SurveyScanWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromSurveyScanWindow viewConfig surveyScanWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        surveyScanWindow.uiNode
+        [ surveyScanWindow.scanEntries
+            |> fieldFromListInstance
+                { fieldName = "scanEntries"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
 treeNodeChildrenFromBookmarkLocationWindow :
     ViewConfig event
     -> EveOnline.ParseUserInterface.BookmarkLocationWindow
@@ -1153,7 +1175,25 @@ treeNodeChildrenFromNeocom viewConfig neocom =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         neocom.uiNode
-        []
+        [ neocom.clock
+            |> fieldFromMaybeInstance
+                { fieldName = "clock"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromNeocomClock viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromNeocomClock :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.NeocomClock
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromNeocomClock viewConfig neocomClock =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        neocomClock.uiNode
+        [ neocomClock.text |> fieldFromString "text"
+        ]
 
 
 treeNodeChildrenFromMessageBox :
@@ -1447,6 +1487,17 @@ fieldFromBool :
 fieldFromBool fieldName fieldValue =
     { fieldName = fieldName
     , fieldValueSummary = Json.Encode.bool fieldValue |> Json.Encode.encode 0
+    , fieldValueChildren = always []
+    }
+
+
+fieldFromString :
+    String
+    -> String
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromString fieldName fieldValue =
+    { fieldName = fieldName
+    , fieldValueSummary = Json.Encode.string fieldValue |> Json.Encode.encode 0
     , fieldValueChildren = always []
     }
 
