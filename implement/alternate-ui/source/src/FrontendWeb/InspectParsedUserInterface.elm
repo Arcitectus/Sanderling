@@ -584,7 +584,23 @@ treeNodeChildrenFromInfoPanelLocationInfo viewConfig infoPanelLocationInfo =
           , fieldValueSummary = "..."
           , fieldValueChildren = always [ treeViewNodeFromUINode viewConfig infoPanelLocationInfo.listSurroundingsButton ]
           }
+        , infoPanelLocationInfo.currentSolarSystemName |> fieldFromMaybeString "currentSolarSystemName"
         , infoPanelLocationInfo.securityStatusPercent |> fieldFromMaybeInt "securityStatusPercent"
+        , infoPanelLocationInfo.expandedContent
+            |> fieldFromMaybeInstance
+                { fieldName = "expandedContent"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromInfoPanelLocationInfoExpandedContent
+                }
+        ]
+
+
+treeNodeChildrenFromInfoPanelLocationInfoExpandedContent :
+    EveOnline.ParseUserInterface.InfoPanelLocationInfoExpandedContent
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInfoPanelLocationInfoExpandedContent expandedContent =
+    treeNodeChildrenFromRecord
+        [ expandedContent.currentStationName |> fieldFromMaybeString "currentStationName"
         ]
 
 

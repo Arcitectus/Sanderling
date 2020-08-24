@@ -186,8 +186,9 @@ type alias InfoPanelRouteRouteElementMarker =
 type alias InfoPanelLocationInfo =
     { uiNode : UITreeNodeWithDisplayRegion
     , listSurroundingsButton : UITreeNodeWithDisplayRegion
-    , expandedContent : Maybe InfoPanelLocationInfoExpandedContent
+    , currentSolarSystemName : Maybe String
     , securityStatusPercent : Maybe Int
+    , expandedContent : Maybe InfoPanelLocationInfoExpandedContent
     }
 
 
@@ -644,12 +645,7 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
             let
                 getSecurityStatusPercentFromUINodeText : String -> Maybe Int
                 getSecurityStatusPercentFromUINodeText =
-                    String.replace " " ""
-                        >> String.toLower
-                        >> String.split "<hint='securitystatus'>"
-                        >> List.drop 1
-                        >> List.head
-                        >> Maybe.andThen (String.split "<" >> List.head)
+                    getSubstringBetweenXmlTagsAfterMarker "hint='Security status'"
                         >> Maybe.andThen (String.trim >> String.toFloat)
                         >> Maybe.map ((*) 100 >> round)
 
@@ -658,6 +654,13 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                         |> getAllContainedDisplayTexts
                         |> List.filterMap getSecurityStatusPercentFromUINodeText
                         |> List.head
+
+                currentSolarSystemName =
+                    infoPanelNode.uiNode
+                        |> getAllContainedDisplayTexts
+                        |> List.filterMap (getSubstringBetweenXmlTagsAfterMarker "alt='Current Solar System'")
+                        |> List.head
+                        |> Maybe.map String.trim
 
                 maybeListSurroundingsButton =
                     infoPanelNode
@@ -689,33 +692,17 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                     (\listSurroundingsButton ->
                         { uiNode = infoPanelNode
                         , listSurroundingsButton = listSurroundingsButton
-                        , expandedContent = expandedContent
+                        , currentSolarSystemName = currentSolarSystemName
                         , securityStatusPercent = securityStatusPercent
+                        , expandedContent = expandedContent
                         }
                     )
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
-parseCurrentStationNameFromInfoPanelLocationInfoLabelText labelText =
-    if labelText |> String.toLower |> String.contains "alt='current station'" |> not then
-        Nothing
-
-    else
-        {- Note: 2019-12-10 with 'JavaScriptEngineSwitcher.ChakraCore.Native.win-x64', the following regex pattern led to failing 'Regex.fromString': '(?<=\\>).+?(?=\\<)'
-              (The same pattern worked in chrome)
-           case "(?<=\\>).+?(?=\\<)" |> Regex.fromString of
-               Nothing ->
-                   Just "Regex code error"
-
-               Just regex ->
-                   labelText |> Regex.find regex |> List.map .match |> List.head
-        -}
-        labelText
-            |> String.split ">"
-            |> List.drop 1
-            |> List.head
-            |> Maybe.andThen (String.split "<" >> List.head)
-            |> Maybe.map String.trim
+parseCurrentStationNameFromInfoPanelLocationInfoLabelText =
+    getSubstringBetweenXmlTagsAfterMarker "alt='Current Station'"
+        >> Maybe.map String.trim
 
 
 parseInfoPanelRouteFromInfoPanelContainer : UITreeNodeWithDisplayRegion -> Maybe InfoPanelRoute
@@ -2340,6 +2327,15 @@ parseLayerAbovemainFromUITreeRoot uiTreeRoot =
         |> listDescendantsWithDisplayRegion
         |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "l_abovemain"))
         |> List.head
+
+
+getSubstringBetweenXmlTagsAfterMarker : String -> String -> Maybe String
+getSubstringBetweenXmlTagsAfterMarker marker =
+    String.split marker
+        >> List.drop 1
+        >> List.head
+        >> Maybe.andThen (String.split ">" >> List.drop 1 >> List.head)
+        >> Maybe.andThen (String.split "<" >> List.head)
 
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
