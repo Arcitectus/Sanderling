@@ -216,6 +216,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromRepairShopWindow viewConfig
                         }
+                , parsedUserInterface.characterSheetWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "characterSheetWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromCharacterSheetWindow viewConfig
+                        }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeInstance
                         { fieldName = "moduleButtonTooltip"
@@ -1183,6 +1189,22 @@ treeNodeChildrenFromRepairShopWindow viewConfig repairShopWindow =
         ]
 
 
+treeNodeChildrenFromCharacterSheetWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.CharacterSheetWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromCharacterSheetWindow viewConfig characterSheetWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        characterSheetWindow.uiNode
+        [ characterSheetWindow.skillGroups
+            |> fieldFromListInstance
+                { fieldName = "skillGroups"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
 treeNodeChildrenFromNeocom :
     ViewConfig event
     -> EveOnline.ParseUserInterface.Neocom
@@ -1191,7 +1213,13 @@ treeNodeChildrenFromNeocom viewConfig neocom =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         neocom.uiNode
-        [ neocom.clock
+        [ neocom.iconInventory
+            |> fieldFromMaybeInstance
+                { fieldName = "iconInventory"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , neocom.clock
             |> fieldFromMaybeInstance
                 { fieldName = "clock"
                 , fieldValueSummary = always "..."
