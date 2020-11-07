@@ -30,6 +30,8 @@ type alias ParsedUserInterface =
     , bookmarkLocationWindow : Maybe BookmarkLocationWindow
     , repairShopWindow : Maybe RepairShopWindow
     , characterSheetWindow : Maybe CharacterSheetWindow
+    , fleetWindow : Maybe FleetWindow
+    , watchListPanel : Maybe WatchListPanel
     , moduleButtonTooltip : Maybe ModuleButtonTooltip
     , neocom : Maybe Neocom
     , messageBoxes : List MessageBox
@@ -469,6 +471,18 @@ type alias ScrollControls =
     }
 
 
+type alias FleetWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , fleetMembers : List UITreeNodeWithDisplayRegion
+    }
+
+
+type alias WatchListPanel =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , entries : List UITreeNodeWithDisplayRegion
+    }
+
+
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
 parseUITreeWithDisplayRegionFromUITree uiTree =
     let
@@ -505,6 +519,8 @@ parseUserInterfaceFromUITree uiTree =
     , bookmarkLocationWindow = parseBookmarkLocationWindowFromUITreeRoot uiTree
     , repairShopWindow = parseRepairShopWindowFromUITreeRoot uiTree
     , characterSheetWindow = parseCharacterSheetWindowFromUITreeRoot uiTree
+    , fleetWindow = parseFleetWindowFromUITreeRoot uiTree
+    , watchListPanel = parseWatchListPanelFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
@@ -2211,6 +2227,50 @@ parseCharacterSheetWindow windowUINode =
     in
     { uiNode = windowUINode
     , skillGroups = skillGroups
+    }
+
+
+parseFleetWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe FleetWindow
+parseFleetWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "FleetWindow")
+        |> List.head
+        |> Maybe.map parseFleetWindow
+
+
+parseFleetWindow : UITreeNodeWithDisplayRegion -> FleetWindow
+parseFleetWindow windowUINode =
+    let
+        fleetMembers =
+            windowUINode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "FleetMember")
+    in
+    { uiNode = windowUINode
+    , fleetMembers = fleetMembers
+    }
+
+
+parseWatchListPanelFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe WatchListPanel
+parseWatchListPanelFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "WatchListPanel")
+        |> List.head
+        |> Maybe.map parseWatchListPanel
+
+
+parseWatchListPanel : UITreeNodeWithDisplayRegion -> WatchListPanel
+parseWatchListPanel windowUINode =
+    let
+        entries =
+            windowUINode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "WatchListEntry")
+    in
+    { uiNode = windowUINode
+    , entries = entries
     }
 
 

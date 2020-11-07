@@ -222,6 +222,18 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromCharacterSheetWindow viewConfig
                         }
+                , parsedUserInterface.fleetWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "fleetWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromFleetWindow viewConfig
+                        }
+                , parsedUserInterface.watchListPanel
+                    |> fieldFromMaybeInstance
+                        { fieldName = "watchListPanel"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromWatchListPanel viewConfig
+                        }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeInstance
                         { fieldName = "moduleButtonTooltip"
@@ -1200,6 +1212,38 @@ treeNodeChildrenFromCharacterSheetWindow viewConfig characterSheetWindow =
         [ characterSheetWindow.skillGroups
             |> fieldFromListInstance
                 { fieldName = "skillGroups"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromFleetWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.FleetWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromFleetWindow viewConfig fleetWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        fleetWindow.uiNode
+        [ fleetWindow.fleetMembers
+            |> fieldFromListInstance
+                { fieldName = "fleetMembers"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromWatchListPanel :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.WatchListPanel
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromWatchListPanel viewConfig watchListPanel =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        watchListPanel.uiNode
+        [ watchListPanel.entries
+            |> fieldFromListInstance
+                { fieldName = "entries"
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
