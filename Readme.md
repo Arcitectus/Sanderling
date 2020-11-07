@@ -1,6 +1,6 @@
 # Sanderling
 
-**Sanderling helps you read information from the [EVE Online](https://www.eveonline.com) game client.**
+**Sanderling helps you read information from the [EVE Online](https://www.eveonline.com) game client using memory reading.**
 
 Sanderling is the eyes of bots and monitoring tools. It helps programs see the game client in a structured way, detecting objects and reading information about the game world. It also reads the locations of elements in the game clients' graphical user interface (e.g., in-game windows, overview entries, buttons, etc.). You can use this information to interact with the game client using mouse input.
 
@@ -42,11 +42,15 @@ Location in the repository: [/implement/read-memory-64-bit](/implement/read-memo
 
 This library takes the result of an EVE Online memory reading and transforms it into a format that is easier to use for integrating applications like bots.
 
-The UI tree in the EVE Online client can contain thousands of nodes and tens of thousands of individual properties. Because of this vast amount of data, navigating in there can be time-consuming. To make this easier, this library filters and transforms the memory reading result into a form that contains less redundant information and uses names more closely related to the experience of players; for example, the overview window or ship modules.
+When programming an app, we use functions to reach into the UI tree and extract the parts needed for our app. Sometimes the information we need is buried somewhere deep in the tree, contained in other nodes with redundant data. The structure we find in the UI tree is what CCP uses to build a visual representation of the game. It is not designed to be easily accessible to us, so it is not surprising to find many things there that we don't need for our applications and want to filter out.
 
-The input for this library is the JSON string, as we get it from the memory reading. In contrast to the memory reading library, it is written in a high-level language better suited for the development of user interfaces and bots.
+To find things faster and automatically detect program code errors, we also use types adapted to the user interface's shape. We use the type system of the Elm programming language to assign names to parts of the UI tree describe the values that we expect in certain parts of the UI. The types provide us with names more closely related to players' experience, such as the overview window or ship modules.
 
-Location in the repository: [/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm)
+The input for this library is the JSON string, as we get it from the memory reading.
+
+For an overview of the building blocks that you can find in the memory reading parsing library, see https://to.botengine.org/guide/parsed-user-interface-of-the-eve-online-game-client
+
+Location of the implementation in the repository: [/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm)
 
 ### Alternate UI for EVE Online
 
@@ -58,7 +62,7 @@ Location of the alternate UI in the repository: [/implement/alternate-ui/](/impl
 
 ## Bots
 
-Bots are not in the scope of this repository, but I sure have some links with further information.
+This repository few bots, if any at all. Below are some links to bots and guides in other repositories.
 
 Guide on developing for EVE Online: [https://to.botengine.org/guide/developing-for-eve-online](https://to.botengine.org/guide/developing-for-eve-online)
 
