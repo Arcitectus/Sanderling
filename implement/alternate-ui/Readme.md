@@ -35,7 +35,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-08-22/elm-fullstack-bin-33dde927b7eba99db55eff1c3cd0ca49cdfd55fa-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-11-14/elm-fullstack-bin-f5cb6c6d5932197897806abf3a14efc71ce067b7-win10-x64.zip and unpack it.
 
 ## Usage
 
