@@ -62,7 +62,7 @@ Location of the alternate UI in the repository: [/implement/alternate-ui/](/impl
 
 ## Bots
 
-This repository few bots, if any at all. Below are some links to bots and guides in other repositories.
+This repository contains few bots if any at all. Below are some links to bots and guides in other repositories.
 
 Guide on developing for EVE Online: [https://to.botengine.org/guide/developing-for-eve-online](https://to.botengine.org/guide/developing-for-eve-online)
 
