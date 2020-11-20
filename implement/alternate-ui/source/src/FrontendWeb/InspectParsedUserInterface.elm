@@ -234,6 +234,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromWatchListPanel viewConfig
                         }
+                , parsedUserInterface.standaloneBookmarkWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "standaloneBookmarkWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromStandaloneBookmarkWindow viewConfig
+                        }
                 , parsedUserInterface.moduleButtonTooltip
                     |> fieldFromMaybeInstance
                         { fieldName = "moduleButtonTooltip"
@@ -1242,6 +1248,22 @@ treeNodeChildrenFromWatchListPanel viewConfig watchListPanel =
         viewConfig
         watchListPanel.uiNode
         [ watchListPanel.entries
+            |> fieldFromListInstance
+                { fieldName = "entries"
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromStandaloneBookmarkWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.StandaloneBookmarkWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromStandaloneBookmarkWindow viewConfig standaloneBookmarkWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        standaloneBookmarkWindow.uiNode
+        [ standaloneBookmarkWindow.entries
             |> fieldFromListInstance
                 { fieldName = "entries"
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
