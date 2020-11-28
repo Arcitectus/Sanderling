@@ -51,7 +51,7 @@ class Request
 
     public GetMemoryReadingStructure GetMemoryReading;
 
-    public TaskOnWindow<EffectOnWindowStructure> EffectOnWindow;
+    public TaskOnWindow<EffectSequenceElement[]> EffectSequenceOnWindow;
 
     public ConsoleBeepStructure[] EffectConsoleBeepSequence;
 
@@ -76,15 +76,22 @@ class Request
         public Task task;
     }
 
+    public class EffectSequenceElement
+    {
+        public EffectOnWindowStructure Effect;
+
+        public int? DelayMilliseconds;
+    }
+
     public class EffectOnWindowStructure
     {
-        public MouseMoveToStructure mouseMoveTo;
+        public MouseMoveToStructure MouseMoveTo;
 
         public SimpleMouseClickAtLocation simpleMouseClickAtLocation;
 
-        public KeyboardKey keyDown;
+        public KeyboardKey KeyDown;
 
-        public KeyboardKey keyUp;
+        public KeyboardKey KeyUp;
     }
 
     public class KeyboardKey
@@ -241,11 +248,18 @@ Response request(Request request)
         };
     }
 
-    if (request?.EffectOnWindow?.task != null)
+    if (request?.EffectSequenceOnWindow?.task != null)
     {
-        var windowHandle = new IntPtr(long.Parse(request.EffectOnWindow.windowId));
+        var windowHandle = new IntPtr(long.Parse(request.EffectSequenceOnWindow.windowId));
 
-        ExecuteEffectOnWindow(request.EffectOnWindow.task, windowHandle, request.EffectOnWindow.bringWindowToForeground);
+        foreach(var sequenceElement in request.EffectSequenceOnWindow.task)
+        {
+            if(sequenceElement?.Effect != null)
+                ExecuteEffectOnWindow(sequenceElement.Effect, windowHandle, request.EffectSequenceOnWindow.bringWindowToForeground);
+
+            if(sequenceElement?.DelayMilliseconds != null)
+                System.Threading.Thread.Sleep(sequenceElement.DelayMilliseconds.Value);
+        }
 
         return new Response
         {
@@ -300,15 +314,15 @@ void ExecuteEffectOnWindow(
     if (bringWindowToForeground)
         EnsureWindowIsForeground(windowHandle);
 
-    //  TODO: Consolidate mouseMoveTo and simpleMouseClickAtLocation?
+    //  TODO: Consolidate MouseMoveTo and simpleMouseClickAtLocation?
 
-    if (effectOnWindow?.mouseMoveTo != null)
+    if (effectOnWindow?.MouseMoveTo != null)
     {
         //  Build motion description based on https://github.com/Arcitectus/Sanderling/blob/ada11c9f8df2367976a6bcc53efbe9917107bfa7/src/Sanderling/Sanderling/Motor/Extension.cs#L24-L131
 
         var mousePosition = new Bib3.Geometrik.Vektor2DInt(
-            effectOnWindow.mouseMoveTo.location.x,
-            effectOnWindow.mouseMoveTo.location.y);
+            effectOnWindow.MouseMoveTo.location.x,
+            effectOnWindow.MouseMoveTo.location.y);
 
         var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]{};
 
@@ -361,18 +375,18 @@ void ExecuteEffectOnWindow(
         windowMotor.ActSequenceMotion(motionSequence);
     }
 
-    if (effectOnWindow?.keyDown != null)
+    if (effectOnWindow?.KeyDown != null)
     {
-        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyDown.virtualKeyCode;
+        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.KeyDown.virtualKeyCode;
 
         (MouseActionForKeyUpOrDown(keyCode: virtualKeyCode, buttonUp: false)
         ??
         (() => new WindowsInput.InputSimulator().Keyboard.KeyDown(virtualKeyCode)))();
     }
 
-    if (effectOnWindow?.keyUp != null)
+    if (effectOnWindow?.KeyUp != null)
     {
-        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.keyUp.virtualKeyCode;
+        var virtualKeyCode = (WindowsInput.Native.VirtualKeyCode)effectOnWindow.KeyUp.virtualKeyCode;
 
         (MouseActionForKeyUpOrDown(keyCode: virtualKeyCode, buttonUp: true)
         ??

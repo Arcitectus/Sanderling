@@ -46,6 +46,11 @@ inputDelayDefaultMilliseconds =
     300
 
 
+effectSequenceSpacingMilliseconds : Int
+effectSequenceSpacingMilliseconds =
+    30
+
+
 main : Program () State Event
 main =
     Browser.application
@@ -321,23 +326,28 @@ update event stateBefore =
                         uiNodeCenter =
                             sendInput.uiNode.totalDisplayRegion |> EveOnline.ParseUserInterface.centerFromDisplayRegion
 
-                        volatileHostInterfaceTaskOnWindow =
+                        volatileHostInterfaceEffects =
                             case sendInput.input of
                                 MouseClickLeft ->
-                                    EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
-                                        { location = uiNodeCenter, mouseButton = Common.EffectOnWindow.MouseButtonLeft }
+                                    Common.EffectOnWindow.effectsMouseClickAtLocation
+                                        Common.EffectOnWindow.MouseButtonLeft
+                                        uiNodeCenter
 
                                 MouseClickRight ->
-                                    EveOnline.VolatileHostInterface.SimpleMouseClickAtLocation
-                                        { location = uiNodeCenter, mouseButton = Common.EffectOnWindow.MouseButtonRight }
+                                    Common.EffectOnWindow.effectsMouseClickAtLocation
+                                        Common.EffectOnWindow.MouseButtonRight
+                                        uiNodeCenter
 
                         requestSendInputToGameClient =
                             apiRequestCmd
                                 (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (EveOnline.VolatileHostInterface.EffectOnWindow
+                                    (EveOnline.VolatileHostInterface.EffectSequenceOnWindow
                                         { windowId = sendInput.windowId
                                         , bringWindowToForeground = True
-                                        , task = volatileHostInterfaceTaskOnWindow
+                                        , task =
+                                            volatileHostInterfaceEffects
+                                                |> List.map (effectOnWindowAsVolatileHostEffectOnWindow >> EveOnline.VolatileHostInterface.Effect)
+                                                |> List.intersperse (EveOnline.VolatileHostInterface.DelayMilliseconds effectSequenceSpacingMilliseconds)
                                         }
                                     )
                                 )
@@ -365,6 +375,19 @@ update event stateBefore =
 
         DiscardEvent ->
             ( stateBefore, Cmd.none )
+
+
+effectOnWindowAsVolatileHostEffectOnWindow : Common.EffectOnWindow.EffectOnWindowStructure -> EveOnline.VolatileHostInterface.EffectOnWindowStructure
+effectOnWindowAsVolatileHostEffectOnWindow effectOnWindow =
+    case effectOnWindow of
+        Common.EffectOnWindow.MouseMoveTo mouseMoveTo ->
+            EveOnline.VolatileHostInterface.MouseMoveTo { location = mouseMoveTo }
+
+        Common.EffectOnWindow.KeyDown key ->
+            EveOnline.VolatileHostInterface.KeyDown key
+
+        Common.EffectOnWindow.KeyUp key ->
+            EveOnline.VolatileHostInterface.KeyUp key
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer } -> State -> State

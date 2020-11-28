@@ -4,6 +4,22 @@ module Common.EffectOnWindow exposing (..)
 -}
 
 
+type EffectOnWindowStructure
+    = MouseMoveTo Location2d
+    | KeyDown VirtualKeyCode
+    | KeyUp VirtualKeyCode
+
+
+type alias MouseClickAtLocation =
+    { location : Location2d
+    , mouseButton : MouseButton
+    }
+
+
+type alias Location2d =
+    { x : Int, y : Int }
+
+
 type VirtualKeyCode
     = VirtualKeyCodeFromInt Int
 
@@ -11,6 +27,23 @@ type VirtualKeyCode
 type MouseButton
     = MouseButtonLeft
     | MouseButtonRight
+
+
+effectsMouseClickAtLocation : MouseButton -> Location2d -> List EffectOnWindowStructure
+effectsMouseClickAtLocation mouseButton location =
+    [ MouseMoveTo location
+    , KeyDown (virtualKeyCodeFromMouseButton mouseButton)
+    , KeyUp (virtualKeyCodeFromMouseButton mouseButton)
+    ]
+
+
+effectsForDragAndDrop : { startLocation : Location2d, mouseButton : MouseButton, endLocation : Location2d } -> List EffectOnWindowStructure
+effectsForDragAndDrop { startLocation, mouseButton, endLocation } =
+    [ MouseMoveTo startLocation
+    , KeyDown (virtualKeyCodeFromMouseButton mouseButton)
+    , MouseMoveTo endLocation
+    , KeyUp (virtualKeyCodeFromMouseButton mouseButton)
+    ]
 
 
 virtualKeyCodeFromMouseButton : MouseButton -> VirtualKeyCode
