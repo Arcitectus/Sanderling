@@ -87,8 +87,6 @@ class Request
     {
         public MouseMoveToStructure MouseMoveTo;
 
-        public SimpleMouseClickAtLocation simpleMouseClickAtLocation;
-
         public KeyboardKey KeyDown;
 
         public KeyboardKey KeyUp;
@@ -102,13 +100,6 @@ class Request
     public class MouseMoveToStructure
     {
         public Location2d location;
-    }
-
-    public class SimpleMouseClickAtLocation
-    {
-        public Location2d location;
-
-        public MouseButton mouseButton;
     }
 
     public class Location2d
@@ -314,8 +305,6 @@ void ExecuteEffectOnWindow(
     if (bringWindowToForeground)
         EnsureWindowIsForeground(windowHandle);
 
-    //  TODO: Consolidate MouseMoveTo and simpleMouseClickAtLocation?
-
     if (effectOnWindow?.MouseMoveTo != null)
     {
         //  Build motion description based on https://github.com/Arcitectus/Sanderling/blob/ada11c9f8df2367976a6bcc53efbe9917107bfa7/src/Sanderling/Sanderling/Motor/Extension.cs#L24-L131
@@ -325,39 +314,6 @@ void ExecuteEffectOnWindow(
             effectOnWindow.MouseMoveTo.location.y);
 
         var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]{};
-
-        var windowMotor = new Sanderling.Motor.WindowMotor(windowHandle);
-
-        var motionSequence = new BotEngine.Motor.Motion[]{
-            new BotEngine.Motor.Motion(
-                mousePosition: mousePosition,
-                mouseButtonDown: mouseButtons,
-                windowToForeground: bringWindowToForeground),
-            new BotEngine.Motor.Motion(
-                mousePosition: mousePosition,
-                mouseButtonUp: mouseButtons,
-                windowToForeground: bringWindowToForeground),
-        };
-
-        windowMotor.ActSequenceMotion(motionSequence);
-    }
-
-    if (effectOnWindow?.simpleMouseClickAtLocation != null)
-    {
-        //  Build motion description based on https://github.com/Arcitectus/Sanderling/blob/ada11c9f8df2367976a6bcc53efbe9917107bfa7/src/Sanderling/Sanderling/Motor/Extension.cs#L24-L131
-
-        var mousePosition = new Bib3.Geometrik.Vektor2DInt(
-            effectOnWindow.simpleMouseClickAtLocation.location.x,
-            effectOnWindow.simpleMouseClickAtLocation.location.y);
-
-        var mouseButton =
-            effectOnWindow.simpleMouseClickAtLocation.mouseButton == Request.MouseButton.right
-            ? BotEngine.Motor.MouseButtonIdEnum.Right : BotEngine.Motor.MouseButtonIdEnum.Left;
-
-        var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]
-        {
-            mouseButton,
-        };
 
         var windowMotor = new Sanderling.Motor.WindowMotor(windowHandle);
 
