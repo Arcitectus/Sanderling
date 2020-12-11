@@ -341,6 +341,18 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromShipUISquadronsUI viewConfig
                 }
+        , parsedUserInterfaceShipUI.stopButton
+            |> fieldFromMaybeInstance
+                { fieldName = "stopButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , parsedUserInterfaceShipUI.maxSpeedButton
+            |> fieldFromMaybeInstance
+                { fieldName = "maxSpeedButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
         ]
 
 

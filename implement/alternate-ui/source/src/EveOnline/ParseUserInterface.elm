@@ -92,6 +92,8 @@ type alias ShipUI =
         }
     , offensiveBuffButtonNames : List String
     , squadronsUI : Maybe SquadronsUI
+    , stopButton : Maybe UITreeNodeWithDisplayRegion
+    , maxSpeedButton : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -840,6 +842,11 @@ parseShipUIFromUITreeRoot uiTreeRoot =
 
                 Just capacitorUINode ->
                     let
+                        descendantNodesFromPythonObjectTypeNameEqual pythonObjectTypeName =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) pythonObjectTypeName)
+
                         capacitor =
                             capacitorUINode |> parseShipUICapacitorFromUINode
 
@@ -918,6 +925,8 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , moduleButtonsRows = groupShipUIModulesIntoRows capacitor moduleButtons
                                 , offensiveBuffButtonNames = offensiveBuffButtonNames
                                 , squadronsUI = squadronsUI
+                                , stopButton = descendantNodesFromPythonObjectTypeNameEqual "StopButton" |> List.head
+                                , maxSpeedButton = descendantNodesFromPythonObjectTypeNameEqual "MaxSpeedButton" |> List.head
                                 }
                             )
 
