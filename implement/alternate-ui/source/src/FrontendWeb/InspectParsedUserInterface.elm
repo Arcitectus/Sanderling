@@ -317,7 +317,7 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
         , { fieldName = "hitpointsPercent"
           , fieldValueSummary = "..."
           , fieldValueChildren =
-                always (treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints parsedUserInterfaceShipUI.hitpointsPercent)
+                always (treeNodeChildrenFromHitpoints parsedUserInterfaceShipUI.hitpointsPercent)
           }
         , parsedUserInterfaceShipUI.moduleButtons
             |> fieldFromListInstance
@@ -406,10 +406,10 @@ treeNodeChildrenFromShipUIModuleButton viewConfig shipUIModuleButton =
         ]
 
 
-treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints :
+treeNodeChildrenFromHitpoints :
     EveOnline.ParseUserInterface.Hitpoints
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceShipUIHitpoints hitpoints =
+treeNodeChildrenFromHitpoints hitpoints =
     treeNodeChildrenFromRecord
         [ { fieldName = "structure"
           , fieldValueSummary = String.fromInt hitpoints.structure
@@ -798,6 +798,12 @@ treeNodeChildrenFromDronesWindowEntry viewConfig dronesWindowEntry =
         viewConfig
         dronesWindowEntry.uiNode
         [ dronesWindowEntry.mainText |> fieldFromMaybeString "mainText"
+        , dronesWindowEntry.hitpointsPercent
+            |> fieldFromMaybeInstance
+                { fieldName = "hitpointsPercent"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromHitpoints
+                }
         ]
 
 
@@ -905,6 +911,12 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
         viewConfig
         parsedUserInterfaceInventoryWindow.uiNode
         [ parsedUserInterfaceInventoryWindow.subCaptionLabelText |> fieldFromMaybeString "subCaptionLabelText"
+        , parsedUserInterfaceInventoryWindow.leftTreeEntries
+            |> fieldFromListInstance
+                { fieldName = "leftTreeEntries "
+                , fieldValueChildren =
+                    treeNodeChildrenFromInventoryWindowLeftTreeEntry viewConfig
+                }
         , parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
             |> Maybe.andThen Result.toMaybe
             |> fieldFromMaybeInstance
@@ -919,6 +931,37 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
                 , fieldValueSummary = always "..."
                 , fieldValueChildren =
                     treeNodeChildrenFromParsedUserInterfaceInventory viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromInventoryWindowLeftTreeEntry :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.InventoryWindowLeftTreeEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromInventoryWindowLeftTreeEntry viewConfig inventoryWindowLeftTreeEntry =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        inventoryWindowLeftTreeEntry.uiNode
+        [ inventoryWindowLeftTreeEntry.toggleBtn
+            |> fieldFromMaybeInstance
+                { fieldName = "toggleBtn"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , inventoryWindowLeftTreeEntry.selectRegion
+            |> fieldFromMaybeInstance
+                { fieldName = "selectRegion"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , inventoryWindowLeftTreeEntry.text |> fieldFromString "text"
+        , inventoryWindowLeftTreeEntry.children
+            |> List.map EveOnline.ParseUserInterface.unwrapInventoryWindowLeftTreeEntryChild
+            |> fieldFromListInstance
+                { fieldName = "children"
+                , fieldValueChildren =
+                    treeNodeChildrenFromInventoryWindowLeftTreeEntry viewConfig
                 }
         ]
 
@@ -1329,8 +1372,20 @@ treeNodeChildrenFromMessageBox viewConfig messageBox =
         [ messageBox.buttons
             |> fieldFromListInstance
                 { fieldName = "buttons"
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry viewConfig
+                , fieldValueChildren = treeNodeChildrenFromUINodeWithMainText viewConfig
                 }
+        ]
+
+
+treeNodeChildrenFromUINodeWithMainText :
+    ViewConfig event
+    -> { uiNode : UITreeNodeWithDisplayRegion, mainText : Maybe String }
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromUINodeWithMainText viewConfig node =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        node.uiNode
+        [ node.mainText |> fieldFromMaybeString "mainText"
         ]
 
 

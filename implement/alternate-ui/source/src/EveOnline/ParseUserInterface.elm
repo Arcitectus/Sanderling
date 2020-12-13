@@ -323,6 +323,7 @@ type alias DronesWindowDroneGroupHeader =
 type alias DronesWindowEntry =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
+    , hitpointsPercent : Maybe Hitpoints
     }
 
 
@@ -379,6 +380,7 @@ type InventoryItemsView
 type alias InventoryWindowLeftTreeEntry =
     { uiNode : UITreeNodeWithDisplayRegion
     , toggleBtn : Maybe UITreeNodeWithDisplayRegion
+    , selectRegion : Maybe UITreeNodeWithDisplayRegion
     , text : String
     , children : List InventoryWindowLeftTreeEntryChild
     }
@@ -1504,9 +1506,54 @@ parseDronesWindowEntry droneEntryNode =
                 |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
                 |> List.map Tuple.first
                 |> List.head
+
+        gaugeValuePercentFromContainerName containerName =
+            droneEntryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just containerName))
+                |> List.head
+                |> Maybe.andThen
+                    (\gaugeNode ->
+                        let
+                            gaudeDescendantFromName gaugeDescendantName =
+                                gaugeNode
+                                    |> listDescendantsWithDisplayRegion
+                                    |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just gaugeDescendantName))
+                                    |> List.head
+                        in
+                        gaudeDescendantFromName "droneGaugeBar"
+                            |> Maybe.andThen
+                                (\gaugeBar ->
+                                    gaudeDescendantFromName "droneGaugeBarDmg"
+                                        |> Maybe.map
+                                            (\droneGaugeBarDmg ->
+                                                ((gaugeBar.totalDisplayRegion.width - droneGaugeBarDmg.totalDisplayRegion.width) * 100)
+                                                    // gaugeBar.totalDisplayRegion.width
+                                            )
+                                )
+                    )
+
+        hitpointsPercent =
+            gaugeValuePercentFromContainerName "gauge_shield"
+                |> Maybe.andThen
+                    (\shieldPercent ->
+                        gaugeValuePercentFromContainerName "gauge_armor"
+                            |> Maybe.andThen
+                                (\armorPercent ->
+                                    gaugeValuePercentFromContainerName "gauge_struct"
+                                        |> Maybe.map
+                                            (\structPercent ->
+                                                { shield = shieldPercent
+                                                , armor = armorPercent
+                                                , structure = structPercent
+                                                }
+                                            )
+                                )
+                    )
     in
     { uiNode = droneEntryNode
     , mainText = mainText
+    , hitpointsPercent = hitpointsPercent
     }
 
 
@@ -1729,7 +1776,11 @@ parseInventoryWindow windowUiNode =
             rightContainerNode
                 |> Maybe.andThen
                     (listDescendantsWithDisplayRegion
-                        >> List.filter (\uiNode -> [ "ShipCargo", "ShipDroneBay", "ShipOreHold", "StationItems" ] |> List.member uiNode.uiNode.pythonObjectTypeName)
+                        >> List.filter
+                            (\uiNode ->
+                                [ "ShipCargo", "ShipDroneBay", "ShipOreHold", "StationItems", "ShipFleetHangar" ]
+                                    |> List.member uiNode.uiNode.pythonObjectTypeName
+                            )
                         >> List.head
                     )
 
@@ -1841,6 +1892,7 @@ parseInventoryWindowTreeViewEntry treeEntryNode =
     in
     { uiNode = treeEntryNode
     , toggleBtn = toggleBtn
+    , selectRegion = topContNode
     , text = text
     , children = children
     }
