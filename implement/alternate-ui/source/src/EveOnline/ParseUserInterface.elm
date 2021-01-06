@@ -1320,35 +1320,37 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
 
 parseOverviewEntryDistanceInMetersFromText : String -> Result String Int
 parseOverviewEntryDistanceInMetersFromText distanceDisplayTextBeforeTrim =
-    case "^[\\d\\,\\.\\s]+(?=\\s*m)" |> Regex.fromString of
-        Nothing ->
-            Err "Regex code error"
-
-        Just regexForUnitMeter ->
-            case "^[\\d\\,\\.]+(?=\\s*km)" |> Regex.fromString of
+    case distanceDisplayTextBeforeTrim |> String.trim |> String.split " " |> List.reverse of
+        unitText :: reversedNumberTexts ->
+            case parseDistanceUnitInMeters unitText of
                 Nothing ->
-                    Err "Regex code error"
+                    Err ("Failed to parse distance unit text of '" ++ unitText ++ "'")
 
-                Just regexForUnitKilometer ->
-                    let
-                        distanceDisplayText =
-                            distanceDisplayTextBeforeTrim |> String.trim
-                    in
-                    case distanceDisplayText |> Regex.find regexForUnitMeter |> List.head of
-                        Just match ->
-                            match.match
-                                |> parseNumberTruncatingAfterOptionalDecimalSeparator
+                Just unitInMeters ->
+                    case
+                        reversedNumberTexts |> List.reverse |> String.join " " |> parseNumberTruncatingAfterOptionalDecimalSeparator
+                    of
+                        Err parseNumberError ->
+                            Err ("Failed to parse number: " ++ parseNumberError)
 
-                        Nothing ->
-                            case distanceDisplayText |> Regex.find regexForUnitKilometer |> List.head of
-                                Just match ->
-                                    match.match
-                                        |> parseNumberTruncatingAfterOptionalDecimalSeparator
-                                        -- unit 'km'
-                                        |> Result.map ((*) 1000)
+                        Ok parsedNumber ->
+                            Ok (parsedNumber * unitInMeters)
 
-                                Nothing ->
-                                    Err ("Text did not match expected number format: '" ++ distanceDisplayText ++ "'")
+        _ ->
+            Err "Expecting at least one whitespace character separating number and unit."
+
+
+parseDistanceUnitInMeters : String -> Maybe Int
+parseDistanceUnitInMeters unitText =
+    case String.trim unitText of
+        "m" ->
+            Just 1
+
+        "km" ->
+            Just 1000
+
+        _ ->
+            Nothing
 
 
 parseSelectedItemWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe SelectedItemWindow
@@ -1474,27 +1476,20 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
 
 parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
 parseQuantityFromDroneGroupTitleText droneGroupTitleText =
-    case "\\(\\s*(\\d+)\\s*\\)*$" |> Regex.fromString of
-        Nothing ->
-            Err "Regex code error"
+    case droneGroupTitleText |> String.split "(" |> List.drop 1 of
+        [] ->
+            Ok Nothing
 
-        Just regex ->
-            case droneGroupTitleText |> String.trim |> Regex.find regex |> List.head of
-                Nothing ->
-                    Ok Nothing
+        [ textAfterOpeningParenthesis ] ->
+            textAfterOpeningParenthesis
+                |> String.split ")"
+                |> List.head
+                |> Maybe.andThen (String.trim >> String.toInt)
+                |> Result.fromMaybe ("Failed to parse to integer from '" ++ textAfterOpeningParenthesis ++ "'")
+                |> Result.map Just
 
-                Just match ->
-                    case match.submatches of
-                        [ quantityText ] ->
-                            quantityText
-                                |> Maybe.withDefault ""
-                                |> String.trim
-                                |> String.toInt
-                                |> Maybe.map (Just >> Ok)
-                                |> Maybe.withDefault (Err ("Failed to parse to integer: " ++ match.match))
-
-                        _ ->
-                            Err "Unexpected number of text elements."
+        _ ->
+            Err "Found unexpected number of parentheses."
 
 
 parseDronesWindowEntry : UITreeNodeWithDisplayRegion -> DronesWindowEntry
@@ -2419,32 +2414,22 @@ parseNeocom neocomUiNode =
 
 parseNeocomClockText : String -> Result String { hour : Int, minute : Int }
 parseNeocomClockText clockText =
-    case "(\\d+)\\:(\\d+)" |> Regex.fromString of
-        Nothing ->
-            Err "Regex code error"
-
-        Just regex ->
-            case clockText |> Regex.find regex |> List.head of
+    case clockText |> String.split ":" of
+        [ hourText, minuteText ] ->
+            case hourText |> String.trim |> String.toInt of
                 Nothing ->
-                    Err ("Text did not match expected format: '" ++ clockText ++ "'")
+                    Err ("Failed to parse hour: '" ++ hourText ++ "'")
 
-                Just match ->
-                    case match.submatches of
-                        [ Just hourText, Just minuteText ] ->
-                            case hourText |> String.toInt of
-                                Nothing ->
-                                    Err ("Failed to parse hour: '" ++ hourText ++ "'")
+                Just hour ->
+                    case minuteText |> String.trim |> String.toInt of
+                        Nothing ->
+                            Err ("Failed to parse minute: '" ++ minuteText ++ "'")
 
-                                Just hour ->
-                                    case minuteText |> String.toInt of
-                                        Nothing ->
-                                            Err ("Failed to parse minute: '" ++ minuteText ++ "'")
+                        Just minute ->
+                            Ok { hour = hour, minute = minute }
 
-                                        Just minute ->
-                                            Ok { hour = hour, minute = minute }
-
-                        _ ->
-                            Err "Unexpected number of text elements."
+        _ ->
+            Err "Expecting exactly two substrings separated by a colon (:)."
 
 
 parseExpander : UITreeNodeWithDisplayRegion -> Expander
@@ -2534,25 +2519,35 @@ getSubstringBetweenXmlTagsAfterMarker marker =
 
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
 parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
-    case "^(\\d+(\\s*[\\s\\,\\.’]\\d{3})*?)(?=(|[,\\.]\\d)$)" |> Regex.fromString of
-        Nothing ->
-            Err "Regex code error"
+    let
+        expectedSeparators =
+            [ ",", ".", "’", " ", "\u{00A0}", "\u{202F}" ]
 
-        Just regex ->
-            case numberDisplayText |> String.trim |> Regex.find regex |> List.head of
-                Nothing ->
-                    Err ("Text did not match expected number format: '" ++ numberDisplayText ++ "'")
+        groupsTexts =
+            expectedSeparators
+                |> List.foldl (\separator -> List.concatMap (String.split separator))
+                    [ String.trim numberDisplayText ]
 
-                Just match ->
-                    match.match
-                        |> String.replace "," ""
-                        |> String.replace "." ""
-                        |> String.replace "’" ""
-                        |> String.replace " " ""
-                        |> String.replace "\u{00A0}" ""
-                        |> String.replace "\u{202F}" ""
-                        |> String.toInt
-                        |> Result.fromMaybe ("Failed to parse to integer: " ++ match.match)
+        lastGroupIsFraction =
+            case List.reverse groupsTexts of
+                lastGroupText :: _ :: _ ->
+                    String.length lastGroupText < 3
+
+                _ ->
+                    False
+
+        integerText =
+            String.join ""
+                (if lastGroupIsFraction then
+                    groupsTexts |> List.reverse |> List.drop 1 |> List.reverse
+
+                 else
+                    groupsTexts
+                )
+    in
+    integerText
+        |> String.toInt
+        |> Result.fromMaybe ("Failed to parse to integer: " ++ integerText)
 
 
 centerFromDisplayRegion : DisplayRegion -> Location2d

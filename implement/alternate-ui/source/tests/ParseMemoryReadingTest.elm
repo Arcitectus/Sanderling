@@ -12,6 +12,7 @@ allTests =
         [ overview_entry_distance_text_to_meter
         , inventory_capacity_gauge_text
         , parse_module_button_tooltip_shortcut
+        , parse_neocom_clock_text
         ]
 
 
@@ -27,6 +28,9 @@ overview_entry_distance_text_to_meter =
 
     -- 2020-03-22 from istu233 at https://forum.botengine.org/t/mining-bot-problem/3169
     , ( "2 980 m", Ok 2980 )
+
+    -- Add case with more than two groups in number
+    , ( " 3.444.555,6 m ", Ok 3444555 )
     ]
         |> List.map
             (\( displayText, expectedResult ) ->
@@ -58,6 +62,9 @@ inventory_capacity_gauge_text =
 
     -- 2020-07-26 scenario shared by neolexo at https://forum.botengine.org/t/issue-with-mining/3469/3?u=viir
     , ( "0/5’000.0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
+
+    -- Add case with more than two groups in number
+    , ( " 3.444.555,0 / 12.333.444,6 m³", Ok { used = 3444555, maximum = Just 12333444, selected = Nothing } )
     ]
         |> List.map
             (\( text, expectedResult ) ->
@@ -88,3 +95,21 @@ parse_module_button_tooltip_shortcut =
                             |> Expect.equal (Ok expectedResult)
             )
         |> Test.describe "Parse module button tooltip shortcut"
+
+
+parse_neocom_clock_text : Test.Test
+parse_neocom_clock_text =
+    [ ( " 0:00 ", { hour = 0, minute = 0 } )
+    , ( " 0:01 ", { hour = 0, minute = 1 } )
+    , ( " 3 : 17 ", { hour = 3, minute = 17 } )
+    , ( " 24 : 00 ", { hour = 24, minute = 0 } )
+    ]
+        |> List.map
+            (\( text, expectedResult ) ->
+                Test.test text <|
+                    \_ ->
+                        text
+                            |> EveOnline.ParseUserInterface.parseNeocomClockText
+                            |> Expect.equal (Ok expectedResult)
+            )
+        |> Test.describe "Parse neocom clock text"
