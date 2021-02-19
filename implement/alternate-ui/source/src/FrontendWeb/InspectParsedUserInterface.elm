@@ -263,6 +263,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                         }
+                , parsedUserInterface.keyActivationWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "keyActivationWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromKeyActivationWindow viewConfig
+                        }
                 ]
     in
     { selfHtml = commonSummaryHtml
@@ -1373,6 +1379,23 @@ treeNodeChildrenFromMessageBox viewConfig messageBox =
             |> fieldFromListInstance
                 { fieldName = "buttons"
                 , fieldValueChildren = treeNodeChildrenFromUINodeWithMainText viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromKeyActivationWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.KeyActivationWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromKeyActivationWindow viewConfig keyActivationWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        keyActivationWindow.uiNode
+        [ keyActivationWindow.activateButton
+            |> fieldFromMaybeInstance
+                { fieldName = "activateButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
 

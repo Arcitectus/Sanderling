@@ -37,6 +37,7 @@ type alias ParsedUserInterface =
     , neocom : Maybe Neocom
     , messageBoxes : List MessageBox
     , layerAbovemain : Maybe UITreeNodeWithDisplayRegion
+    , keyActivationWindow : Maybe KeyActivationWindow
     }
 
 
@@ -494,6 +495,12 @@ type alias StandaloneBookmarkWindow =
     }
 
 
+type alias KeyActivationWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , activateButton : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
 parseUITreeWithDisplayRegionFromUITree uiTree =
     let
@@ -536,6 +543,7 @@ parseUserInterfaceFromUITree uiTree =
     , neocom = parseNeocomFromUITreeRoot uiTree
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
+    , keyActivationWindow = parseKeyActivationWindowFromUITreeRoot uiTree
     }
 
 
@@ -2430,6 +2438,29 @@ parseNeocomClockText clockText =
 
         _ ->
             Err "Expecting exactly two substrings separated by a colon (:)."
+
+
+parseKeyActivationWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe KeyActivationWindow
+parseKeyActivationWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "KeyActivationWindow")
+        |> List.head
+        |> Maybe.map parseKeyActivationWindow
+
+
+parseKeyActivationWindow : UITreeNodeWithDisplayRegion -> KeyActivationWindow
+parseKeyActivationWindow windowUiNode =
+    let
+        activateButton =
+            windowUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ActivateButton")
+                |> List.head
+    in
+    { uiNode = windowUiNode
+    , activateButton = activateButton
+    }
 
 
 parseExpander : UITreeNodeWithDisplayRegion -> Expander
