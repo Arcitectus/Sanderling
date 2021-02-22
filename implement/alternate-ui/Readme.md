@@ -35,17 +35,17 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2020-11-14/elm-fullstack-bin-f5cb6c6d5932197897806abf3a14efc71ce067b7-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-02-19/elm-fullstack-bin-4dc13c37736b40461ff7ab8953736d2185c35bc3-win10-x64.zip and unpack it.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ In the next command, we use the `elm-fullstack.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
++ In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fullstack.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/a8273bfa657e11593c70c928b5bd478f1903cf60/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/587f8ad1a44cd7fc38332fc0efafd352d089f1a3/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -53,7 +53,7 @@ To start the software:
 ```txt
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
-Loaded source composition 2ce1c99d13f6532c2019ba97071912e090e992a6b027dacc932980aeb2cb0f3a from 'https://github.com/Arcitectus/Sanderling/tree/a8273bfa657e11593c70c928b5bd478f1903cf60/implement/alternate-ui/source'.
+Loaded source composition eb34e00413c779dd2034ab552ca4a6396f942710ca7c3b79de0cd1f82d717a8c from 'https://github.com/Arcitectus/Sanderling/tree/587f8ad1a44cd7fc38332fc0efafd352d089f1a3/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
       Begin to build the process volatile representation.
