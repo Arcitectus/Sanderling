@@ -779,7 +779,7 @@ treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
 
 treeNodeChildrenFromDronesWindowDroneGroup :
     ViewConfig event
-    -> EveOnline.ParseUserInterface.DronesWindowDroneGroup
+    -> EveOnline.ParseUserInterface.DronesWindowEntryGroupStructure
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromDronesWindowDroneGroup viewConfig dronesWindowDroneGroup =
     treeNodeChildrenFromRecord
@@ -787,19 +787,41 @@ treeNodeChildrenFromDronesWindowDroneGroup viewConfig dronesWindowDroneGroup =
           , fieldValueSummary = "..."
           , fieldValueChildren = always (treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGroup.header)
           }
-        , dronesWindowDroneGroup.drones
+        , dronesWindowDroneGroup.children
             |> fieldFromListInstance
-                { fieldName = "drones"
-                , fieldValueChildren = treeNodeChildrenFromDronesWindowEntry viewConfig
+                { fieldName = "children"
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroupEntry viewConfig
                 }
         ]
 
 
-treeNodeChildrenFromDronesWindowEntry :
+treeNodeChildrenFromDronesWindowDroneGroupEntry :
     ViewConfig event
     -> EveOnline.ParseUserInterface.DronesWindowEntry
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromDronesWindowEntry viewConfig dronesWindowEntry =
+treeNodeChildrenFromDronesWindowDroneGroupEntry viewConfig droneGroupEntry =
+    let
+        continueWithTagName tagName items =
+            treeNodeChildrenFromRecord
+                [ { fieldName = tagName
+                  , fieldValueSummary = ""
+                  , fieldValueChildren = always items
+                  }
+                ]
+    in
+    case droneGroupEntry of
+        EveOnline.ParseUserInterface.DronesWindowEntryDrone drone ->
+            continueWithTagName "Drone" (treeNodeChildrenFromDronesWindowEntryDrone viewConfig drone)
+
+        EveOnline.ParseUserInterface.DronesWindowEntryGroup group ->
+            continueWithTagName "Group" (treeNodeChildrenFromDronesWindowDroneGroup viewConfig group)
+
+
+treeNodeChildrenFromDronesWindowEntryDrone :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.DronesWindowEntryDroneStructure
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindowEntryDrone viewConfig dronesWindowEntry =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         dronesWindowEntry.uiNode
