@@ -1537,6 +1537,20 @@ dronesGroupTreesFromFlatListOfEntries entriesBeforeOrdering =
         |> Maybe.withDefault []
 
 
+enumerateAllDronesFromDronesGroup : DronesWindowEntryGroupStructure -> List DronesWindowEntryDroneStructure
+enumerateAllDronesFromDronesGroup =
+    enumerateDescendantsOfDronesGroup
+        >> List.filterMap
+            (\entry ->
+                case entry of
+                    DronesWindowEntryDrone drone ->
+                        Just drone
+
+                    DronesWindowEntryGroup _ ->
+                        Nothing
+            )
+
+
 enumerateDescendantsOfDronesGroup : DronesWindowEntryGroupStructure -> List DronesWindowEntry
 enumerateDescendantsOfDronesGroup group =
     group.children
