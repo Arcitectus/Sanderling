@@ -20,6 +20,7 @@ import Common.EffectOnWindow exposing (MouseButton(..), VirtualKeyCode(..), virt
 import Json.Decode
 import Json.Decode.Extra
 import Json.Encode
+import Maybe.Extra
 
 
 type RequestToVolatileHost
@@ -34,6 +35,8 @@ type ResponseFromVolatileHost
     = ListGameClientProcessesResponse (List GameClientProcessSummaryStruct)
     | SearchUIRootAddressResult SearchUIRootAddressResultStructure
     | GetMemoryReadingResult GetMemoryReadingResultStructure
+    | FailedToBringWindowToFront String
+    | CompletedEffectSequenceOnWindow
 
 
 type alias GameClientProcessSummaryStruct =
@@ -134,6 +137,8 @@ decodeResponseFromVolatileHost =
             |> Json.Decode.map SearchUIRootAddressResult
         , Json.Decode.field "GetMemoryReadingResult" decodeGetMemoryReadingResult
             |> Json.Decode.map GetMemoryReadingResult
+        , Json.Decode.field "FailedToBringWindowToFront" (Json.Decode.map FailedToBringWindowToFront Json.Decode.string)
+        , Json.Decode.field "CompletedEffectSequenceOnWindow" (jsonDecodeSucceedWhenNotNull CompletedEffectSequenceOnWindow)
         ]
 
 
@@ -311,7 +316,7 @@ decodeSearchUIRootAddressResult : Json.Decode.Decoder SearchUIRootAddressResultS
 decodeSearchUIRootAddressResult =
     Json.Decode.map2 SearchUIRootAddressResultStructure
         (Json.Decode.field "processId" Json.Decode.int)
-        (Json.Decode.field "uiRootAddress" (Json.Decode.maybe Json.Decode.string))
+        (Json.Decode.Extra.optionalField "uiRootAddress" (Json.Decode.nullable Json.Decode.string) |> Json.Decode.map Maybe.Extra.join)
 
 
 decodeGetMemoryReadingResult : Json.Decode.Decoder GetMemoryReadingResultStructure

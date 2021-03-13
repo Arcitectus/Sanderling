@@ -128,7 +128,11 @@ class Response
 
     public GetMemoryReadingResultStructure GetMemoryReadingResult;
 
-    public object effectExecuted;
+    public string FailedToBringWindowToFront;
+
+    public object CompletedEffectSequenceOnWindow;
+
+    public object CompletedOtherEffect;
 
     public class GameClientProcessSummaryStruct
     {
@@ -243,6 +247,19 @@ Response request(Request request)
     {
         var windowHandle = new IntPtr(long.Parse(request.EffectSequenceOnWindow.windowId));
 
+        if (request.EffectSequenceOnWindow.bringWindowToForeground)
+        {
+            var setForegroundWindowError = SetForegroundWindowInWindows.TrySetForegroundWindow(windowHandle);
+
+            if(setForegroundWindowError != null)
+            {
+                return new Response
+                {
+                    FailedToBringWindowToFront = setForegroundWindowError,
+                };
+            }
+        }
+
         foreach(var sequenceElement in request.EffectSequenceOnWindow.task)
         {
             if(sequenceElement?.Effect != null)
@@ -254,7 +271,7 @@ Response request(Request request)
 
         return new Response
         {
-            effectExecuted = new object(),
+            CompletedEffectSequenceOnWindow = new object(),
         };
     }
 
@@ -270,7 +287,7 @@ Response request(Request request)
 
         return new Response
         {
-            effectExecuted = new object(),
+            CompletedOtherEffect = new object(),
         };
     }
 
@@ -303,7 +320,7 @@ void ExecuteEffectOnWindow(
     bool bringWindowToForeground)
 {
     if (bringWindowToForeground)
-        EnsureWindowIsForeground(windowHandle);
+        BotEngine.WinApi.User32.SetForegroundWindow(windowHandle);
 
     if (effectOnWindow?.MouseMoveTo != null)
     {
@@ -373,19 +390,6 @@ static System.Action MouseActionForKeyUpOrDown(WindowsInput.Native.VirtualKeyCod
     return null;
 }
 
-static void EnsureWindowIsForeground(
-    IntPtr windowHandle)
-{
-    var PreviousForegroundWindowHandle = BotEngine.WinApi.User32.GetForegroundWindow();
-
-    if (PreviousForegroundWindowHandle == windowHandle)
-    {
-        return;
-    }
-
-    BotEngine.WinApi.User32.SetForegroundWindow(windowHandle);
-}
-
 string SerializeToJsonForBot<T>(T value) =>
     Newtonsoft.Json.JsonConvert.SerializeObject(
         value,
@@ -436,6 +440,55 @@ static public class WinApi
         }, IntPtr.Zero);
 
         return windowHandles;
+    }
+}
+
+static public class SetForegroundWindowInWindows
+{
+    static public int AltKeyPlusSetForegroundWindowWaitTimeMilliseconds = 60;
+
+    /// <summary>
+    /// </summary>
+    /// <param name="windowHandle"></param>
+    /// <returns>null in case of success</returns>
+    static public string TrySetForegroundWindow(IntPtr windowHandle)
+    {
+        try
+        {
+            /*
+            * For the conditions for `SetForegroundWindow` to work, see https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow
+            * */
+            BotEngine.WinApi.User32.SetForegroundWindow(windowHandle);
+
+            if (BotEngine.WinApi.User32.GetForegroundWindow() == windowHandle)
+                return null;
+
+            var windowsInZOrder = WinApi.ListWindowHandlesInZOrder();
+
+            var windowIndex = windowsInZOrder.ToList().IndexOf(windowHandle);
+
+            if (windowIndex < 0)
+                return "Did not find window for this handle";
+
+            {
+                var simulator = new WindowsInput.InputSimulator();
+
+                simulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.MENU);
+                BotEngine.WinApi.User32.SetForegroundWindow(windowHandle);
+                simulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.MENU);
+
+                System.Threading.Thread.Sleep(AltKeyPlusSetForegroundWindowWaitTimeMilliseconds);
+
+                if (BotEngine.WinApi.User32.GetForegroundWindow() == windowHandle)
+                    return null;
+
+                return "Alt key plus SetForegroundWindow approach was not successful.";
+            }
+        }
+        catch (Exception e)
+        {
+            return "Exception: " + e.ToString();
+        }
     }
 }
 

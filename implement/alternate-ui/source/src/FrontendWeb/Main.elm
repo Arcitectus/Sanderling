@@ -431,6 +431,12 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                         EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
                                                                             Err "Unexpected response: GetMemoryReadingResult"
+
+                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                            Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
+
+                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                            Err "Unexpected response: CompletedEffectSequenceOnWindow"
                                                                 )
                             )
 
@@ -486,6 +492,12 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                                 EveOnline.VolatileHostInterface.Completed memoryReadingCompleted ->
                                                                                     Ok memoryReadingCompleted
+
+                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                            Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
+
+                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                            Err "Unexpected response: CompletedEffectSequenceOnWindow"
                                                                 )
                             )
                         |> Result.andThen
@@ -552,6 +564,12 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                         EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
                                                                             Err "Unexpected response: GetMemoryReadingResult"
+
+                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                            Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
+
+                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                            Err "Unexpected response: CompletedEffectSequenceOnWindow"
                                                                 )
                             )
 
