@@ -83,7 +83,7 @@ And these are some bots using Sanderling:
 ### Issues and other Feedback
 
 Spotted a bug or have a feature request? Post on the [BotEngine forum](https://forum.botengine.org) or file an issue [on GitHub](https://github.com/Arcitectus/Sanderling/issues).
-For communication here, supported languages are English, Spanish, and German.
+For communication here, supported languages are English, Italian, Spanish, and German.
 
 
 ### Pull Requests
