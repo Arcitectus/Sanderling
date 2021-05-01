@@ -79,12 +79,12 @@ type alias ReadFromLiveProcessState =
     { listEveOnlineClientProcessesResult : Maybe (Result String (List EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct))
     , searchUIRootAddressResult : Maybe ( EveOnline.VolatileHostInterface.SearchUIRootAddressStructure, Result String EveOnline.VolatileHostInterface.SearchUIRootAddressResultStructure )
     , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
-    , lastPendingRequestToReadMemoryTimeMilli : Maybe Int
+    , lastPendingRequestToReadFromGameClientTimeMilli : Maybe Int
     }
 
 
 type alias ReadFromLiveProcessCompleted =
-    { mainWindowId : String
+    { windowId : String
     , memoryReading : ParseMemoryReadingCompleted
     }
 
@@ -200,7 +200,7 @@ init _ url navigationKey =
         { listEveOnlineClientProcessesResult = Nothing
         , searchUIRootAddressResult = Nothing
         , readMemoryResult = Nothing
-        , lastPendingRequestToReadMemoryTimeMilli = Nothing
+        , lastPendingRequestToReadFromGameClientTimeMilli = Nothing
         }
     , readFromFileResult = Nothing
     , uiTreeView = { expandedNodes = [], focused = [] }
@@ -429,8 +429,11 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
 
-                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
-                                                                            Err "Unexpected response: GetMemoryReadingResult"
+                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult _ ->
+                                                                            Err "Unexpected response: ReadFromWindowResult"
+
+                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
 
                                                                         EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
@@ -447,10 +450,12 @@ integrateBackendResponse { request, result } stateBefore =
                 | readFromLiveProcess =
                     { readFromLiveProcessBefore
                         | listEveOnlineClientProcessesResult = Just listEveOnlineClientProcessesResult
+                        , searchUIRootAddressResult = Nothing
+                        , readMemoryResult = Nothing
                     }
             }
 
-        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.GetMemoryReading _) ->
+        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.ReadFromWindow readFromWindow) ->
             let
                 readMemoryResult =
                     result
@@ -485,8 +490,8 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
 
-                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult getMemoryReadingResult ->
-                                                                            case getMemoryReadingResult of
+                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult readFromWindowResult ->
+                                                                            case readFromWindowResult of
                                                                                 EveOnline.VolatileHostInterface.ProcessNotFound ->
                                                                                     Err "Process not found"
 
@@ -498,20 +503,23 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                         EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
+
+                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
                         |> Result.andThen
-                            (\memoryReadingCompleted ->
-                                case memoryReadingCompleted.serialRepresentationJson of
+                            (\readingCompleted ->
+                                case readingCompleted.memoryReadingSerialRepresentationJson of
                                     Nothing ->
                                         Err "Memory reading completed, but 'serialRepresentationJson' is null. Please configure EVE Online client and restart."
 
-                                    Just serialRepresentationJson ->
+                                    Just memoryReadingSerialRepresentationJson ->
                                         Ok
-                                            { mainWindowId = memoryReadingCompleted.mainWindowId
+                                            { windowId = readFromWindow.windowId
                                             , memoryReading =
-                                                { serialRepresentationJson = serialRepresentationJson
-                                                , parseResult = serialRepresentationJson |> parseMemoryReadingFromJson
+                                                { serialRepresentationJson = memoryReadingSerialRepresentationJson
+                                                , parseResult = memoryReadingSerialRepresentationJson |> parseMemoryReadingFromJson
                                                 }
                                             }
                             )
@@ -523,7 +531,7 @@ integrateBackendResponse { request, result } stateBefore =
                 | readFromLiveProcess =
                     { readFromLiveProcessBefore
                         | readMemoryResult = Just readMemoryResult
-                        , lastPendingRequestToReadMemoryTimeMilli = Nothing
+                        , lastPendingRequestToReadFromGameClientTimeMilli = Nothing
                     }
             }
 
@@ -562,14 +570,17 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileHostInterface.SearchUIRootAddressResult searchUIRootAddressResult ->
                                                                             Ok searchUIRootAddressResult
 
-                                                                        EveOnline.VolatileHostInterface.GetMemoryReadingResult _ ->
-                                                                            Err "Unexpected response: GetMemoryReadingResult"
+                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult _ ->
+                                                                            Err "Unexpected response: ReadFromWindowResult"
 
                                                                         EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
 
                                                                         EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
+
+                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
 
@@ -580,7 +591,7 @@ integrateBackendResponse { request, result } stateBefore =
                 | readFromLiveProcess =
                     { readFromLiveProcessBefore
                         | searchUIRootAddressResult = Just ( searchUIRootRequest, searchUIRootResult )
-                        , lastPendingRequestToReadMemoryTimeMilli = Nothing
+                        , lastPendingRequestToReadFromGameClientTimeMilli = Nothing
                     }
             }
 
@@ -601,7 +612,10 @@ decideNextStepToReadFromLiveProcess :
 decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
     let
         requestListGameClientProcesses =
-            apiRequestCmd (InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.ListGameClientProcessesRequest)
+            apiRequestCmd
+                (InterfaceToFrontendClient.RunInVolatileHostRequest
+                    EveOnline.VolatileHostInterface.ListGameClientProcessesRequest
+                )
     in
     case stateBefore.searchUIRootAddressResult of
         Nothing ->
@@ -644,7 +658,7 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                                         )
 
                                 searchStillPending =
-                                    stateBefore.lastPendingRequestToReadMemoryTimeMilli
+                                    stateBefore.lastPendingRequestToReadFromGameClientTimeMilli
                                         |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
                                         |> Maybe.withDefault False
 
@@ -653,7 +667,9 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                                         ( stateBefore, Cmd.none )
 
                                     else
-                                        ( { stateBefore | lastPendingRequestToReadMemoryTimeMilli = Just timeMilli }, requestSearchUIRoot )
+                                        ( { stateBefore | lastPendingRequestToReadFromGameClientTimeMilli = Just timeMilli }
+                                        , requestSearchUIRoot
+                                        )
                             in
                             ( state
                             , { describeState =
@@ -687,50 +703,69 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                     )
 
                 Just uiRootAddress ->
-                    let
-                        requestReadMemory =
-                            apiRequestCmd
-                                (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (EveOnline.VolatileHostInterface.GetMemoryReading
-                                        { processId = searchUIRootAddressResult.processId, uiRootAddress = uiRootAddress }
-                                    )
-                                )
+                    case
+                        stateBefore.listEveOnlineClientProcessesResult
+                            |> Maybe.andThen Result.toMaybe
+                            |> Maybe.andThen (List.filter (.processId >> (==) searchUIRootAddressResult.processId) >> List.head)
+                    of
+                        Nothing ->
+                            ( stateBefore
+                            , { describeState = "Did not find a matching entry in the list of the EVE Online client processes."
+                              , lastMemoryReading = Nothing
+                              , nextCmd = requestListGameClientProcesses
+                              }
+                            )
 
-                        ( describeLastReadResult, lastMemoryReading ) =
-                            case stateBefore.readMemoryResult of
-                                Nothing ->
-                                    ( "", Nothing )
+                        Just gameClientProcess ->
+                            let
+                                requestReadMemory =
+                                    apiRequestCmd
+                                        (InterfaceToFrontendClient.RunInVolatileHostRequest
+                                            (EveOnline.VolatileHostInterface.ReadFromWindow
+                                                { windowId = gameClientProcess.mainWindowId
+                                                , uiRootAddress = uiRootAddress
+                                                , getImageData = { screenshot1x1Rects = [] }
+                                                }
+                                            )
+                                        )
 
-                                Just (Err error) ->
-                                    ( "The last attempt to read from the game client process failed: " ++ error, Nothing )
+                                ( describeLastReadResult, lastMemoryReading ) =
+                                    case stateBefore.readMemoryResult of
+                                        Nothing ->
+                                            ( "", Nothing )
 
-                                Just (Ok lastMemoryReadingCompleted) ->
-                                    ( "The last attempt to read from the game client process was successful.", Just lastMemoryReadingCompleted )
+                                        Just (Err error) ->
+                                            ( "The last attempt to read from the game client process failed: " ++ error, Nothing )
 
-                        memoryReadingStillPending =
-                            stateBefore.lastPendingRequestToReadMemoryTimeMilli
-                                |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
-                                |> Maybe.withDefault False
+                                        Just (Ok lastMemoryReadingCompleted) ->
+                                            ( "The last attempt to read from the game client process was successful.", Just lastMemoryReadingCompleted )
 
-                        ( state, nextCmd ) =
-                            if memoryReadingStillPending then
-                                ( stateBefore, Cmd.none )
+                                memoryReadingStillPending =
+                                    stateBefore.lastPendingRequestToReadFromGameClientTimeMilli
+                                        |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
+                                        |> Maybe.withDefault False
 
-                            else
-                                ( { stateBefore | lastPendingRequestToReadMemoryTimeMilli = Just timeMilli }, requestReadMemory )
-                    in
-                    ( state
-                    , { describeState =
-                            "I try to read the memory from process "
-                                ++ (searchUIRootAddressResult.processId |> String.fromInt)
-                                ++ " starting from root address "
-                                ++ uiRootAddress
-                                ++ ". "
-                                ++ describeLastReadResult
-                      , nextCmd = nextCmd
-                      , lastMemoryReading = lastMemoryReading
-                      }
-                    )
+                                ( state, nextCmd ) =
+                                    if memoryReadingStillPending then
+                                        ( stateBefore, Cmd.none )
+
+                                    else
+                                        ( { stateBefore | lastPendingRequestToReadFromGameClientTimeMilli = Just timeMilli }
+                                        , requestReadMemory
+                                        )
+                            in
+                            ( state
+                            , { describeState =
+                                    "I try to read the memory from process "
+                                        ++ (searchUIRootAddressResult.processId |> String.fromInt)
+                                        ++ " starting from root address "
+                                        ++ uiRootAddress
+                                        ++ ". "
+                                        ++ describeLastReadResult
+                              , nextCmd = nextCmd
+                              , lastMemoryReading = lastMemoryReading
+                              }
+                            )
 
 
 selectGameClientProcess :
@@ -839,7 +874,7 @@ viewSourceFromLiveProcess state =
                                 |> Html.button [ HE.onClick (UserInputDownloadJsonFile parsedReadMemoryResult.memoryReading.serialRepresentationJson) ]
 
                         inputRoute =
-                            { windowId = parsedReadMemoryResult.mainWindowId }
+                            { windowId = parsedReadMemoryResult.windowId }
 
                         parsedHtml =
                             case parsedReadMemoryResult.memoryReading.parseResult of

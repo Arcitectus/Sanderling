@@ -26,12 +26,24 @@ setupScript =
 #r "System.Security.Cryptography.Algorithms"
 #r "System.Security.Cryptography.Primitives"
 
+//  "System.Drawing.Common"
+#r "sha256:C5333AA60281006DFCFBBC0BC04C217C581EFF886890565E994900FB60448B02"
+
+//  "System.Drawing.Primitives"
+#r "sha256:CA24032E6D39C44A01D316498E18FE9A568D59C6009842029BC129AA6B989BCD"
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
+
+
+int readingFromGameCount = 0;
+var generalStopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+var readingFromGameHistory = new Queue<ReadingFromGameClient>();
 
 
 byte[] SHA256FromByteArray(byte[] array)
@@ -43,28 +55,53 @@ byte[] SHA256FromByteArray(byte[] array)
 string ToStringBase16(byte[] array) => BitConverter.ToString(array).Replace("-", "");
 
 
+struct ReadingFromGameClient
+{
+    public IntPtr windowHandle;
+
+    public string readingId;
+
+    public int[][] pixels_1x1_R8G8B8;
+}
+
 class Request
 {
     public object ListGameClientProcessesRequest;
 
     public SearchUIRootAddressStructure SearchUIRootAddress;
 
-    public GetMemoryReadingStructure GetMemoryReading;
+    public ReadFromWindowStructure ReadFromWindow;
 
     public TaskOnWindow<EffectSequenceElement[]> EffectSequenceOnWindow;
 
     public ConsoleBeepStructure[] EffectConsoleBeepSequence;
+
+    public GetImageDataFromSpecificReadingStructure? GetImageDataFromReading;
 
     public class SearchUIRootAddressStructure
     {
         public int processId;
     }
 
-    public class GetMemoryReadingStructure
+    public class ReadFromWindowStructure
     {
-        public int processId;
+        public string windowId;
+
+        public GetImageDataFromReadingStructure getImageData;
 
         public ulong uiRootAddress;
+    }
+
+    public struct GetImageDataFromSpecificReadingStructure
+    {
+        public string readingId;
+
+        public GetImageDataFromReadingStructure getImageData;
+    }
+
+    public struct GetImageDataFromReadingStructure
+    {
+        public Rect2d[] screenshot1x1Rects;
     }
 
     public class TaskOnWindow<Task>
@@ -78,9 +115,9 @@ class Request
 
     public class EffectSequenceElement
     {
-        public EffectOnWindowStructure Effect;
+        public EffectOnWindowStructure effect;
 
-        public int? DelayMilliseconds;
+        public int? delayMilliseconds;
     }
 
     public class EffectOnWindowStructure
@@ -102,11 +139,6 @@ class Request
         public Location2d location;
     }
 
-    public class Location2d
-    {
-        public Int64 x, y;
-    }
-
     public enum MouseButton
     {
         left, right,
@@ -126,7 +158,9 @@ class Response
 
     public SearchUIRootAddressResultStructure SearchUIRootAddressResult;
 
-    public GetMemoryReadingResultStructure GetMemoryReadingResult;
+    public ReadFromWindowResultStructure ReadFromWindowResult;
+
+    public GetImageDataFromReadingResultStructure? GetImageDataFromReadingResult;
 
     public string FailedToBringWindowToFront;
 
@@ -137,6 +171,8 @@ class Response
     public class GameClientProcessSummaryStruct
     {
         public int processId;
+
+        public string mainWindowId;
 
         public string mainWindowTitle;
 
@@ -150,7 +186,7 @@ class Response
         public string uiRootAddress;
     }
 
-    public class GetMemoryReadingResultStructure
+    public class ReadFromWindowResultStructure
     {
         public object ProcessNotFound;
 
@@ -158,11 +194,39 @@ class Response
 
         public class CompletedStructure
         {
-            public string mainWindowId;
+            public int processId;
 
-            public string serialRepresentationJson;
+            public Location2d windowClientRectOffset;
+
+            public string readingId;
+
+            public GetImageDataFromReadingResultStructure imageData;
+
+            public string memoryReadingSerialRepresentationJson;
         }
     }
+
+    public struct GetImageDataFromReadingResultStructure
+    {
+        public ImageCrop[] screenshot1x1Rects;
+    }
+}
+
+public struct ImageCrop
+{
+    public Location2d offset;
+
+    public int[][] pixels_R8G8B8;
+}
+
+public struct Rect2d
+{
+    public int x, y, width, height;
+}
+
+public struct Location2d
+{
+    public Int64 x, y;
 }
 
 string serialRequest(string serializedRequest)
@@ -201,45 +265,125 @@ Response request(Request request)
         };
     }
 
-    if (request.GetMemoryReading != null)
+    if (request.ReadFromWindow != null)
     {
-        var processId = request.GetMemoryReading.processId;
+        var readingFromGameIndex = System.Threading.Interlocked.Increment(ref readingFromGameCount);
 
-        if (!GetWindowsProcessesLookingLikeEVEOnlineClient().Select(proc => proc.Id).Contains(processId))
+        var readingId = readingFromGameIndex.ToString("D6") + "-" + generalStopwatch.ElapsedMilliseconds;
+
+        var windowId = request.ReadFromWindow.windowId;
+        var windowHandle = new IntPtr(long.Parse(windowId));
+
+        WinApi.GetWindowThreadProcessId(windowHandle, out var processIdUnsigned);
+
+        if (processIdUnsigned == 0)
             return new Response
             {
-                GetMemoryReadingResult = new Response.GetMemoryReadingResultStructure
+                ReadFromWindowResult = new Response.ReadFromWindowResultStructure
                 {
                     ProcessNotFound = new object(),
                 }
             };
 
-        var process = System.Diagnostics.Process.GetProcessById(processId);
+        var processId = (int)processIdUnsigned;
 
-        string serialRepresentationJson = null;
+        var windowRect = new WinApi.Rect();
+        WinApi.GetWindowRect(windowHandle, ref windowRect);
+
+        var clientRectOffsetFromScreen = new WinApi.Point(0, 0);
+        WinApi.ClientToScreen(windowHandle, ref clientRectOffsetFromScreen);
+
+        var windowClientRectOffset =
+            new Location2d
+            { x = clientRectOffsetFromScreen.x - windowRect.left, y = clientRectOffsetFromScreen.y - windowRect.top };
+
+        string memoryReadingSerialRepresentationJson = null;
 
         using (var memoryReader = new read_memory_64_bit.MemoryReaderFromLiveProcess(processId))
         {
-            var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(request.GetMemoryReading.uiRootAddress, memoryReader, 99);
+            var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(request.ReadFromWindow.uiRootAddress, memoryReader, 99);
 
             if(uiTree != null)
-                serialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+            {
+                memoryReadingSerialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
                     uiTree.WithOtherDictEntriesRemoved(),
                     //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
                     new read_memory_64_bit.IntegersToStringJsonConverter()
                     );
+            }
+        }
+
+        {
+            /*
+            Maybe taking screenshots needs the window to be not occluded by other windows.
+            We can review this later.
+            */
+            var setForegroundWindowError = SetForegroundWindowInWindows.TrySetForegroundWindow(windowHandle);
+
+            if(setForegroundWindowError != null)
+            {
+                return new Response
+                {
+                    FailedToBringWindowToFront = setForegroundWindowError,
+                };
+            }
+        }
+
+        var pixels_1x1_R8G8B8 = GetScreenshotOfWindowAsPixelsValues_R8G8B8(windowHandle);
+
+        var historyEntry = new ReadingFromGameClient
+        {
+            windowHandle = windowHandle,
+            readingId = readingId,
+            pixels_1x1_R8G8B8 = pixels_1x1_R8G8B8,
+        };
+
+        var imageData = CompileImageDataFromReadingResult(request.ReadFromWindow.getImageData, historyEntry);
+
+        readingFromGameHistory.Enqueue(historyEntry);
+
+        while(4 < readingFromGameHistory.Count)
+        {
+            readingFromGameHistory.Dequeue();
         }
 
         return new Response
         {
-            GetMemoryReadingResult = new Response.GetMemoryReadingResultStructure
+            ReadFromWindowResult = new Response.ReadFromWindowResultStructure
             {
-                Completed = new Response.GetMemoryReadingResultStructure.CompletedStructure
+                Completed = new Response.ReadFromWindowResultStructure.CompletedStructure
                 {
-                    mainWindowId = process.MainWindowHandle.ToInt64().ToString(),
-                    serialRepresentationJson = serialRepresentationJson,
+                    processId = processId,
+                    windowClientRectOffset = windowClientRectOffset,
+                    memoryReadingSerialRepresentationJson = memoryReadingSerialRepresentationJson,
+                    readingId = readingId,
+                    imageData = imageData,
                 },
             },
+        };
+    }
+
+    if (request?.GetImageDataFromReading?.readingId != null)
+    {
+        var historyEntry =
+            readingFromGameHistory
+            .Cast<ReadingFromGameClient?>()
+            .FirstOrDefault(c => c?.readingId == request?.GetImageDataFromReading?.readingId);
+
+        if (historyEntry == null)
+        {
+            return new Response
+            {
+                GetImageDataFromReadingResult = new Response.GetImageDataFromReadingResultStructure
+                {
+                },
+            };
+        }
+
+        return new Response
+        {
+            GetImageDataFromReadingResult =
+                CompileImageDataFromReadingResult(request.GetImageDataFromReading.Value.getImageData, historyEntry.Value),
         };
     }
 
@@ -262,11 +406,11 @@ Response request(Request request)
 
         foreach(var sequenceElement in request.EffectSequenceOnWindow.task)
         {
-            if(sequenceElement?.Effect != null)
-                ExecuteEffectOnWindow(sequenceElement.Effect, windowHandle, request.EffectSequenceOnWindow.bringWindowToForeground);
+            if(sequenceElement?.effect != null)
+                ExecuteEffectOnWindow(sequenceElement.effect, windowHandle, request.EffectSequenceOnWindow.bringWindowToForeground);
 
-            if(sequenceElement?.DelayMilliseconds != null)
-                System.Threading.Thread.Sleep(sequenceElement.DelayMilliseconds.Value);
+            if(sequenceElement?.delayMilliseconds != null)
+                System.Threading.Thread.Sleep(sequenceElement.delayMilliseconds.Value);
         }
 
         return new Response
@@ -292,6 +436,54 @@ Response request(Request request)
     }
 
     return null;
+}
+
+Response.GetImageDataFromReadingResultStructure CompileImageDataFromReadingResult(
+    Request.GetImageDataFromReadingStructure request,
+    ReadingFromGameClient historyEntry)
+{
+    ImageCrop[] screenshot1x1Rects = null;
+
+    if (historyEntry.pixels_1x1_R8G8B8 != null)
+    {
+        screenshot1x1Rects =
+            request.screenshot1x1Rects
+            .Select(rect =>
+            {
+                var cropPixels = CopyRectangularCrop(historyEntry.pixels_1x1_R8G8B8, rect);
+
+                return new ImageCrop
+                {
+                    pixels_R8G8B8 = cropPixels,
+                    offset = new Location2d { x = rect.x, y = rect.y },
+                };
+            }).ToArray();
+    }
+
+    return new Response.GetImageDataFromReadingResultStructure
+    {
+        screenshot1x1Rects = screenshot1x1Rects,
+    };
+}
+
+int[][] CopyRectangularCrop(int[][] original, Rect2d rect)
+{
+    return
+        original
+        .Skip(rect.y)
+        .Take(rect.height)
+        .Select(rowPixels =>
+        {
+            if (rect.x == 0 && rect.width == rowPixels.Length)
+                return rowPixels;
+
+            var cropRowPixels = new int[rect.width];
+
+            System.Buffer.BlockCopy(rowPixels, rect.x * 4, cropRowPixels, 0, rect.width * 4);
+
+            return cropRowPixels;
+        })
+        .ToArray();
 }
 
 ulong? FindUIRootAddressFromProcessId(int processId)
@@ -414,6 +606,28 @@ void SetProcessDPIAware()
 
 static public class WinApi
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Rect
+    {
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Point
+    {
+        public int x;
+        public int y;
+
+        public Point(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
     [DllImport("user32.dll", SetLastError = true)]
     static public extern bool SetProcessDPIAware();
 
@@ -441,6 +655,25 @@ static public class WinApi
 
         return windowHandles;
     }
+
+    [DllImport("user32.dll")]
+    static public extern IntPtr ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    static public extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
+
+    [DllImport("user32.dll", SetLastError = false)]
+    static public extern IntPtr GetDesktopWindow();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static public extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    static public extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
+
+    [DllImport("user32.dll", SetLastError=true)]
+    static public extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 }
 
 static public class SetForegroundWindowInWindows
@@ -530,6 +763,7 @@ System.Collections.Generic.IReadOnlyList<Response.GameClientProcessSummaryStruct
             return new Response.GameClientProcessSummaryStruct
             {
                 processId = process.Id,
+                mainWindowId = process.MainWindowHandle.ToInt64().ToString(),
                 mainWindowTitle = process.MainWindowTitle,
                 mainWindowZIndex = zIndexFromWindowHandle(process.MainWindowHandle) ?? 9999,
             };
@@ -537,6 +771,72 @@ System.Collections.Generic.IReadOnlyList<Response.GameClientProcessSummaryStruct
         .ToList();
 
     return processes;
+}
+
+public int[][] GetScreenshotOfWindowAsPixelsValues_R8G8B8(IntPtr windowHandle)
+{
+    var screenshotAsBitmap = GetScreenshotOfWindowAsBitmap(windowHandle);
+
+    if (screenshotAsBitmap == null)
+        return null;
+
+    var bitmapData = screenshotAsBitmap.LockBits(
+        new System.Drawing.Rectangle(0, 0, screenshotAsBitmap.Width, screenshotAsBitmap.Height),
+        System.Drawing.Imaging.ImageLockMode.ReadOnly,
+        System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+    int byteCount = bitmapData.Stride * screenshotAsBitmap.Height;
+    byte[] pixelsArray = new byte[byteCount];
+    IntPtr ptrFirstPixel = bitmapData.Scan0;
+    Marshal.Copy(ptrFirstPixel, pixelsArray, 0, pixelsArray.Length);
+
+    screenshotAsBitmap.UnlockBits(bitmapData);
+
+    var pixels = new int[screenshotAsBitmap.Height][];
+
+    for (var rowIndex = 0; rowIndex < screenshotAsBitmap.Height; ++rowIndex)
+    {
+        var rowPixelValues = new int[screenshotAsBitmap.Width];
+
+        for (var columnIndex = 0; columnIndex < screenshotAsBitmap.Width; ++columnIndex)
+        {
+            var pixelBeginInArray = bitmapData.Stride * rowIndex + columnIndex * 3;
+
+            var red = pixelsArray[pixelBeginInArray + 2];
+            var green = pixelsArray[pixelBeginInArray + 1];
+            var blue = pixelsArray[pixelBeginInArray + 0];
+
+            rowPixelValues[columnIndex] = (red << 16) | (green << 8) | blue;
+        }
+
+        pixels[rowIndex] = rowPixelValues;
+    }
+
+    return pixels;
+}
+
+public System.Drawing.Bitmap GetScreenshotOfWindowAsBitmap(IntPtr windowHandle)
+{
+    SetProcessDPIAware();
+
+    var windowRect = new WinApi.Rect();
+    if (WinApi.GetWindowRect(windowHandle, ref windowRect) == IntPtr.Zero)
+        return null;
+
+    int width = windowRect.right - windowRect.left;
+    int height = windowRect.bottom - windowRect.top;
+
+    var asBitmap = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+    System.Drawing.Graphics.FromImage(asBitmap).CopyFromScreen(
+        windowRect.left,
+        windowRect.top,
+        0,
+        0,
+        new System.Drawing.Size(width, height),
+        System.Drawing.CopyPixelOperation.SourceCopy);
+
+    return asBitmap;
 }
 
 string InterfaceToHost_Request(string request)
