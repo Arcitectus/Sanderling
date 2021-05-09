@@ -13,6 +13,7 @@ allTests =
         , inventory_capacity_gauge_text
         , parse_module_button_tooltip_shortcut
         , parse_neocom_clock_text
+        , parse_security_status_percent_from_ui_node_text
         ]
 
 
@@ -113,3 +114,18 @@ parse_neocom_clock_text =
                             |> Expect.equal (Ok expectedResult)
             )
         |> Test.describe "Parse neocom clock text"
+
+
+parse_security_status_percent_from_ui_node_text : Test.Test
+parse_security_status_percent_from_ui_node_text =
+    [ ( """<url=showinfo:5//30000142 alt='Current Solar System'>Jita</url></b> <color=0xff4cffccL><hint='Security status'>0.9</hint></color><fontsize=12><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:4//20000020>Kimotoro</url><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:3//10000002>The Forge</url>""", Just 90 )
+    ]
+        |> List.map
+            (\( text, expectedResult ) ->
+                Test.test text <|
+                    \_ ->
+                        text
+                            |> EveOnline.ParseUserInterface.parseSecurityStatusPercentFromUINodeText
+                            |> Expect.equal expectedResult
+            )
+        |> Test.describe "Parse security status from UI node text"

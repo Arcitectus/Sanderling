@@ -694,16 +694,10 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
 
         Just infoPanelNode ->
             let
-                getSecurityStatusPercentFromUINodeText : String -> Maybe Int
-                getSecurityStatusPercentFromUINodeText =
-                    getSubstringBetweenXmlTagsAfterMarker "hint='Security status'"
-                        >> Maybe.andThen (String.trim >> String.toFloat)
-                        >> Maybe.map ((*) 100 >> round)
-
                 securityStatusPercent =
                     infoPanelNode.uiNode
                         |> getAllContainedDisplayTexts
-                        |> List.filterMap getSecurityStatusPercentFromUINodeText
+                        |> List.filterMap parseSecurityStatusPercentFromUINodeText
                         |> List.head
 
                 currentSolarSystemName =
@@ -748,6 +742,13 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                         , expandedContent = expandedContent
                         }
                     )
+
+
+parseSecurityStatusPercentFromUINodeText : String -> Maybe Int
+parseSecurityStatusPercentFromUINodeText =
+    getSubstringBetweenXmlTagsAfterMarker "hint='Security status'"
+        >> Maybe.andThen (String.trim >> String.toFloat)
+        >> Maybe.map ((*) 100 >> round)
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
