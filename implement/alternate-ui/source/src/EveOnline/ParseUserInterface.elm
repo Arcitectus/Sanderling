@@ -746,14 +746,12 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
 
 parseSecurityStatusPercentFromUINodeText : String -> Maybe Int
 parseSecurityStatusPercentFromUINodeText =
-    [ getSubstringBetweenXmlTagsAfterMarker "hint='Security status'"
+    Maybe.Extra.oneOf
+        [ getSubstringBetweenXmlTagsAfterMarker "hint='Security status'"
+        , getSubstringBetweenXmlTagsAfterMarker "hint=\"Security status\"><color="
+        ]
         >> Maybe.andThen (String.trim >> String.toFloat)
         >> Maybe.map ((*) 100 >> round)
-    , getSubstringBetweenXmlTagsAfterMarker "hint=\"Security status\"><color="
-        >> Maybe.andThen (String.trim >> String.toFloat)
-        >> Maybe.map ((*) 100 >> round)
-    ]
-        |> Maybe.Extra.oneOf
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String
