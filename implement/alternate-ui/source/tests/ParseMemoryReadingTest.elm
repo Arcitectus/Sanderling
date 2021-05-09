@@ -119,6 +119,9 @@ parse_neocom_clock_text =
 parse_security_status_percent_from_ui_node_text : Test.Test
 parse_security_status_percent_from_ui_node_text =
     [ ( """<url=showinfo:5//30000142 alt='Current Solar System'>Jita</url></b> <color=0xff4cffccL><hint='Security status'>0.9</hint></color><fontsize=12><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:4//20000020>Kimotoro</url><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:3//10000002>The Forge</url>""", Just 90 )
+
+    -- Scenario by Samuel Pagé aka Mohano from https://forum.botengine.org/t/new-code-for-some-memory-elements-in-new-patch/3989
+    , ( """<hint="Security status"><color=#ffffff00>0.5</color></hint>""", Just 50 )
     ]
         |> List.map
             (\( text, expectedResult ) ->
