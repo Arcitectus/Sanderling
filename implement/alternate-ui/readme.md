@@ -45,7 +45,7 @@ To start the software:
 + In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/587f8ad1a44cd7fc38332fc0efafd352d089f1a3/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/8a660d732db0166de151e1da7dc1cdafd1af0528/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -53,7 +53,7 @@ To start the software:
 ```txt
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
-Loaded source composition eb34e00413c779dd2034ab552ca4a6396f942710ca7c3b79de0cd1f82d717a8c from 'https://github.com/Arcitectus/Sanderling/tree/587f8ad1a44cd7fc38332fc0efafd352d089f1a3/implement/alternate-ui/source'.
+Loaded source composition 074b2dc0384ae44b5f3b75a2c32dee432dccea27472e6e9a65182c2e38e4bdf2 from 'https://github.com/Arcitectus/Sanderling/tree/8a660d732db0166de151e1da7dc1cdafd1af0528/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Begin to build the process volatile representation.
