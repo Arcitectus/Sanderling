@@ -26,7 +26,7 @@ The setup section describes preparations to perform once per system (Windows ins
 
 ### Install .NET Core SDK 3.1
 
-Install the .NET Core SDK 3.1, from [https://dotnet.microsoft.com/download/dotnet-core/3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+Install the .NET Core SDK 3.1, from https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 When this software is not installed, the program might exit with a message like this:
 
@@ -35,7 +35,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-02-19/elm-fullstack-bin-4dc13c37736b40461ff7ab8953736d2185c35bc3-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-05-18/elm-fullstack-bin-da02778622717516ba999c8a770d0f523cf41fe1-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -55,10 +55,10 @@ I got no path to a persistent store for the process. This process will not be pe
 Loading app config to deploy...
 Loaded source composition eb34e00413c779dd2034ab552ca4a6396f942710ca7c3b79de0cd1f82d717a8c from 'https://github.com/Arcitectus/Sanderling/tree/587f8ad1a44cd7fc38332fc0efafd352d089f1a3/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
-info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Begin to build the process volatile representation.
 [...]
-info: Kalmit.PersistentProcess.WebHost.StartupAdminInterface[0]
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Started the public app at 'http://*:80'.
 Completed starting the web server with the admin interface at 'http://*:4000'.
 ```
@@ -113,4 +113,4 @@ Under the save button, you get tools for closer examination of the memory readin
 
 ### Enabling the Elm Inspection ('Debugger') Tool
 
-To use the [Elm inspection tool](https://youtu.be/NaIfq89UZ2U) in the frontend, open the page http://localhost:80/with-inspector instead of http://localhost:80
+To use the Elm inspection tool in the frontend, open the page http://localhost:80/with-inspector instead of http://localhost:80

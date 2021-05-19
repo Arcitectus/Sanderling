@@ -10,7 +10,7 @@ import Base64
 import Bytes
 import Bytes.Decode
 import Bytes.Encode
-import ElmFullstackCompilerInterface.ElmMake
+import CompilationInterface.ElmMake
 import EveOnline.VolatileHostInterface
 import EveOnline.VolatileHostScript as VolatileHostScript
 import InterfaceToFrontendClient
@@ -156,10 +156,10 @@ processEventHttpRequest httpRequestEvent stateBefore =
                             , bodyAsBase64 =
                                 Just
                                     (if enableInspector then
-                                        ElmFullstackCompilerInterface.ElmMake.elm_make__debug__base64____src_FrontendWeb_Main_elm
+                                        CompilationInterface.ElmMake.elm_make__debug__base64____src_FrontendWeb_Main_elm
 
                                      else
-                                        ElmFullstackCompilerInterface.ElmMake.elm_make__base64____src_FrontendWeb_Main_elm
+                                        CompilationInterface.ElmMake.elm_make__base64____src_FrontendWeb_Main_elm
                                     )
                             , headersToAdd = []
                             }
