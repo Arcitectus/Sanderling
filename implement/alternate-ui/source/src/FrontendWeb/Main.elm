@@ -5,10 +5,11 @@ import Browser.Dom
 import Browser.Navigation as Navigation
 import Common.App
 import Common.EffectOnWindow
+import CompilationInterface.GenerateJsonCoders
 import Dict
 import EveOnline.MemoryReading
 import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
-import EveOnline.VolatileHostInterface
+import EveOnline.VolatileProcessInterface
 import File
 import File.Download
 import File.Select
@@ -76,8 +77,8 @@ type alias State =
 
 
 type alias ReadFromLiveProcessState =
-    { listEveOnlineClientProcessesResult : Maybe (Result String (List EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct))
-    , searchUIRootAddressResult : Maybe ( EveOnline.VolatileHostInterface.SearchUIRootAddressStructure, Result String EveOnline.VolatileHostInterface.SearchUIRootAddressResultStructure )
+    { listEveOnlineClientProcessesResult : Maybe (Result String (List EveOnline.VolatileProcessInterface.GameClientProcessSummaryStruct))
+    , searchUIRootAddressResult : Maybe ( EveOnline.VolatileProcessInterface.SearchUIRootAddressStructure, Result String EveOnline.VolatileProcessInterface.SearchUIRootAddressResultStructure )
     , readMemoryResult : Maybe (Result String ReadFromLiveProcessCompleted)
     , lastPendingRequestToReadFromGameClientTimeMilli : Maybe Int
     }
@@ -140,7 +141,7 @@ type alias HttpRequestErrorStructure =
 type alias UserInputSendInputToUINodeStructure =
     { uiNode : EveOnline.ParseUserInterface.UITreeNodeWithDisplayRegion
     , input : InputOnUINode
-    , windowId : EveOnline.VolatileHostInterface.WindowId
+    , windowId : EveOnline.VolatileProcessInterface.WindowId
     , delayMilliseconds : Maybe Int
     }
 
@@ -158,7 +159,7 @@ type alias UITreeViewState =
 
 
 type ResponseFromServer
-    = RunInVolatileHostResponse InterfaceToFrontendClient.RunInVolatileHostResponseStructure
+    = RunInVolatileProcessResponse InterfaceToFrontendClient.RunInVolatileProcessResponseStructure
     | ReadLogResponse (List String)
 
 
@@ -177,7 +178,7 @@ type alias OverviewEntry =
 
 
 type alias InputRouteConfig =
-    { windowId : EveOnline.VolatileHostInterface.WindowId
+    { windowId : EveOnline.VolatileProcessInterface.WindowId
     }
 
 
@@ -219,14 +220,14 @@ apiRequestCmd request =
                     -- TODO
                     Json.Decode.succeed (ReadLogResponse [])
 
-                InterfaceToFrontendClient.RunInVolatileHostRequest _ ->
-                    InterfaceToFrontendClient.jsonDecodeRunInVolatileHostResponseStructure
-                        |> Json.Decode.map RunInVolatileHostResponse
+                InterfaceToFrontendClient.RunInVolatileProcessRequest _ ->
+                    CompilationInterface.GenerateJsonCoders.jsonDecodeRunInVolatileProcessResponseStructure
+                        |> Json.Decode.map RunInVolatileProcessResponse
     in
     Http.post
         { url = "/api/"
         , expect = httpExpectJson (\result -> BackendResponse { request = request, result = result }) responseDecoder
-        , body = Http.jsonBody (request |> InterfaceToFrontendClient.jsonEncodeRequestFromClient)
+        , body = Http.jsonBody (request |> CompilationInterface.GenerateJsonCoders.jsonEncodeRequestFromFrontendClient)
         }
 
 
@@ -326,7 +327,7 @@ update event stateBefore =
                         uiNodeCenter =
                             sendInput.uiNode.totalDisplayRegion |> EveOnline.ParseUserInterface.centerFromDisplayRegion
 
-                        volatileHostInterfaceEffects =
+                        volatileProcessInterfaceEffects =
                             case sendInput.input of
                                 MouseClickLeft ->
                                     Common.EffectOnWindow.effectsMouseClickAtLocation
@@ -340,14 +341,14 @@ update event stateBefore =
 
                         requestSendInputToGameClient =
                             apiRequestCmd
-                                (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                    (EveOnline.VolatileHostInterface.EffectSequenceOnWindow
+                                (InterfaceToFrontendClient.RunInVolatileProcessRequest
+                                    (EveOnline.VolatileProcessInterface.EffectSequenceOnWindow
                                         { windowId = sendInput.windowId
                                         , bringWindowToForeground = True
                                         , task =
-                                            volatileHostInterfaceEffects
-                                                |> List.map (effectOnWindowAsVolatileHostEffectOnWindow >> EveOnline.VolatileHostInterface.Effect)
-                                                |> List.intersperse (EveOnline.VolatileHostInterface.DelayMilliseconds effectSequenceSpacingMilliseconds)
+                                            volatileProcessInterfaceEffects
+                                                |> List.map (effectOnWindowAsVolatileHostEffectOnWindow >> EveOnline.VolatileProcessInterface.Effect)
+                                                |> List.intersperse (EveOnline.VolatileProcessInterface.DelayMilliseconds effectSequenceSpacingMilliseconds)
                                         }
                                     )
                                 )
@@ -377,24 +378,24 @@ update event stateBefore =
             ( stateBefore, Cmd.none )
 
 
-effectOnWindowAsVolatileHostEffectOnWindow : Common.EffectOnWindow.EffectOnWindowStructure -> EveOnline.VolatileHostInterface.EffectOnWindowStructure
+effectOnWindowAsVolatileHostEffectOnWindow : Common.EffectOnWindow.EffectOnWindowStructure -> EveOnline.VolatileProcessInterface.EffectOnWindowStructure
 effectOnWindowAsVolatileHostEffectOnWindow effectOnWindow =
     case effectOnWindow of
         Common.EffectOnWindow.MouseMoveTo mouseMoveTo ->
-            EveOnline.VolatileHostInterface.MouseMoveTo { location = mouseMoveTo }
+            EveOnline.VolatileProcessInterface.MouseMoveTo { location = mouseMoveTo }
 
         Common.EffectOnWindow.KeyDown key ->
-            EveOnline.VolatileHostInterface.KeyDown key
+            EveOnline.VolatileProcessInterface.KeyDown key
 
         Common.EffectOnWindow.KeyUp key ->
-            EveOnline.VolatileHostInterface.KeyUp key
+            EveOnline.VolatileProcessInterface.KeyUp key
 
 
 integrateBackendResponse : { request : InterfaceToFrontendClient.RequestFromClient, result : Result HttpRequestErrorStructure ResponseFromServer } -> State -> State
 integrateBackendResponse { request, result } stateBefore =
     case request of
         -- TODO: Consolidate unpack response common parts.
-        InterfaceToFrontendClient.RunInVolatileHostRequest EveOnline.VolatileHostInterface.ListGameClientProcessesRequest ->
+        InterfaceToFrontendClient.RunInVolatileProcessRequest EveOnline.VolatileProcessInterface.ListGameClientProcessesRequest ->
             let
                 listEveOnlineClientProcessesResult =
                     result
@@ -405,12 +406,12 @@ integrateBackendResponse { request, result } stateBefore =
                                     ReadLogResponse _ ->
                                         Err "Unexpected response"
 
-                                    RunInVolatileHostResponse runInVolatileHostResponse ->
-                                        case runInVolatileHostResponse of
+                                    RunInVolatileProcessResponse runInVolatileProcessResponse ->
+                                        case runInVolatileProcessResponse of
                                             InterfaceToFrontendClient.SetupNotCompleteResponse status ->
-                                                Err ("Volatile host setup not complete: " ++ status)
+                                                Err ("Volatile process setup not complete: " ++ status)
 
-                                            InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
+                                            InterfaceToFrontendClient.RunInVolatileProcessCompleteResponse runInVolatileHostCompleteResponse ->
                                                 case runInVolatileHostCompleteResponse.exceptionToString of
                                                     Just exception ->
                                                         Err ("Failed with exception: " ++ exception)
@@ -418,27 +419,27 @@ integrateBackendResponse { request, result } stateBefore =
                                                     Nothing ->
                                                         runInVolatileHostCompleteResponse.returnValueToString
                                                             |> Maybe.withDefault ""
-                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
+                                                            |> EveOnline.VolatileProcessInterface.deserializeResponseFromVolatileHost
                                                             |> Result.mapError Json.Decode.errorToString
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse gameClientProcesses ->
+                                                                        EveOnline.VolatileProcessInterface.ListGameClientProcessesResponse gameClientProcesses ->
                                                                             Ok gameClientProcesses
 
-                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
 
-                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.ReadFromWindowResult _ ->
                                                                             Err "Unexpected response: ReadFromWindowResult"
 
-                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
                                                                             Err "Unexpected response: GetImageDataFromReadingResult"
 
-                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                        EveOnline.VolatileProcessInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
 
-                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                        EveOnline.VolatileProcessInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
                                                                 )
                             )
@@ -455,7 +456,7 @@ integrateBackendResponse { request, result } stateBefore =
                     }
             }
 
-        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.ReadFromWindow readFromWindow) ->
+        InterfaceToFrontendClient.RunInVolatileProcessRequest (EveOnline.VolatileProcessInterface.ReadFromWindow readFromWindow) ->
             let
                 readMemoryResult =
                     result
@@ -466,45 +467,45 @@ integrateBackendResponse { request, result } stateBefore =
                                     ReadLogResponse _ ->
                                         Err "Unexpected response"
 
-                                    RunInVolatileHostResponse runInVolatileHostResponse ->
-                                        case runInVolatileHostResponse of
+                                    RunInVolatileProcessResponse runInVolatileProcessResponse ->
+                                        case runInVolatileProcessResponse of
                                             InterfaceToFrontendClient.SetupNotCompleteResponse status ->
-                                                Err ("Volatile host setup not complete: " ++ status)
+                                                Err ("Volatile process setup not complete: " ++ status)
 
-                                            InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
-                                                case runInVolatileHostCompleteResponse.exceptionToString of
+                                            InterfaceToFrontendClient.RunInVolatileProcessCompleteResponse runInVolatileProcessCompleteResponse ->
+                                                case runInVolatileProcessCompleteResponse.exceptionToString of
                                                     Just exception ->
                                                         Err ("Failed with exception: " ++ exception)
 
                                                     Nothing ->
-                                                        runInVolatileHostCompleteResponse.returnValueToString
+                                                        runInVolatileProcessCompleteResponse.returnValueToString
                                                             |> Maybe.withDefault ""
-                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
+                                                            |> EveOnline.VolatileProcessInterface.deserializeResponseFromVolatileHost
                                                             |> Result.mapError Json.Decode.errorToString
                                                             |> Result.andThen
-                                                                (\responseFromVolatileHost ->
-                                                                    case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse _ ->
+                                                                (\responseFromVolatileProcess ->
+                                                                    case responseFromVolatileProcess of
+                                                                        EveOnline.VolatileProcessInterface.ListGameClientProcessesResponse _ ->
                                                                             Err "Unexpected response: ListGameClientProcessesResponse"
 
-                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.SearchUIRootAddressResult _ ->
                                                                             Err "Unexpected response: SearchUIRootAddressResult"
 
-                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult readFromWindowResult ->
+                                                                        EveOnline.VolatileProcessInterface.ReadFromWindowResult readFromWindowResult ->
                                                                             case readFromWindowResult of
-                                                                                EveOnline.VolatileHostInterface.ProcessNotFound ->
+                                                                                EveOnline.VolatileProcessInterface.ProcessNotFound ->
                                                                                     Err "Process not found"
 
-                                                                                EveOnline.VolatileHostInterface.Completed memoryReadingCompleted ->
+                                                                                EveOnline.VolatileProcessInterface.Completed memoryReadingCompleted ->
                                                                                     Ok memoryReadingCompleted
 
-                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                        EveOnline.VolatileProcessInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
 
-                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                        EveOnline.VolatileProcessInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
 
-                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
                                                                             Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
@@ -535,7 +536,7 @@ integrateBackendResponse { request, result } stateBefore =
                     }
             }
 
-        InterfaceToFrontendClient.RunInVolatileHostRequest (EveOnline.VolatileHostInterface.SearchUIRootAddress searchUIRootRequest) ->
+        InterfaceToFrontendClient.RunInVolatileProcessRequest (EveOnline.VolatileProcessInterface.SearchUIRootAddress searchUIRootRequest) ->
             let
                 searchUIRootResult =
                     result
@@ -546,12 +547,12 @@ integrateBackendResponse { request, result } stateBefore =
                                     ReadLogResponse _ ->
                                         Err "Unexpected response"
 
-                                    RunInVolatileHostResponse runInVolatileHostResponse ->
-                                        case runInVolatileHostResponse of
+                                    RunInVolatileProcessResponse runInVolatileProcessResponse ->
+                                        case runInVolatileProcessResponse of
                                             InterfaceToFrontendClient.SetupNotCompleteResponse status ->
-                                                Err ("Volatile host setup not complete: " ++ status)
+                                                Err ("Volatile process setup not complete: " ++ status)
 
-                                            InterfaceToFrontendClient.RunInVolatileHostCompleteResponse runInVolatileHostCompleteResponse ->
+                                            InterfaceToFrontendClient.RunInVolatileProcessCompleteResponse runInVolatileHostCompleteResponse ->
                                                 case runInVolatileHostCompleteResponse.exceptionToString of
                                                     Just exception ->
                                                         Err ("Failed with exception: " ++ exception)
@@ -559,27 +560,27 @@ integrateBackendResponse { request, result } stateBefore =
                                                     Nothing ->
                                                         runInVolatileHostCompleteResponse.returnValueToString
                                                             |> Maybe.withDefault ""
-                                                            |> EveOnline.VolatileHostInterface.deserializeResponseFromVolatileHost
+                                                            |> EveOnline.VolatileProcessInterface.deserializeResponseFromVolatileHost
                                                             |> Result.mapError Json.Decode.errorToString
                                                             |> Result.andThen
                                                                 (\responseFromVolatileHost ->
                                                                     case responseFromVolatileHost of
-                                                                        EveOnline.VolatileHostInterface.ListGameClientProcessesResponse _ ->
+                                                                        EveOnline.VolatileProcessInterface.ListGameClientProcessesResponse _ ->
                                                                             Err "Unexpected response: ListGameClientProcessesResponse"
 
-                                                                        EveOnline.VolatileHostInterface.SearchUIRootAddressResult searchUIRootAddressResult ->
+                                                                        EveOnline.VolatileProcessInterface.SearchUIRootAddressResult searchUIRootAddressResult ->
                                                                             Ok searchUIRootAddressResult
 
-                                                                        EveOnline.VolatileHostInterface.ReadFromWindowResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.ReadFromWindowResult _ ->
                                                                             Err "Unexpected response: ReadFromWindowResult"
 
-                                                                        EveOnline.VolatileHostInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
+                                                                        EveOnline.VolatileProcessInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
 
-                                                                        EveOnline.VolatileHostInterface.CompletedEffectSequenceOnWindow ->
+                                                                        EveOnline.VolatileProcessInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
 
-                                                                        EveOnline.VolatileHostInterface.GetImageDataFromReadingResult _ ->
+                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
                                                                             Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
@@ -613,8 +614,8 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
     let
         requestListGameClientProcesses =
             apiRequestCmd
-                (InterfaceToFrontendClient.RunInVolatileHostRequest
-                    EveOnline.VolatileHostInterface.ListGameClientProcessesRequest
+                (InterfaceToFrontendClient.RunInVolatileProcessRequest
+                    EveOnline.VolatileProcessInterface.ListGameClientProcessesRequest
                 )
     in
     case stateBefore.searchUIRootAddressResult of
@@ -653,8 +654,8 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
 
                                 requestSearchUIRoot =
                                     apiRequestCmd
-                                        (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                            (EveOnline.VolatileHostInterface.SearchUIRootAddress { processId = gameClientProcessId })
+                                        (InterfaceToFrontendClient.RunInVolatileProcessRequest
+                                            (EveOnline.VolatileProcessInterface.SearchUIRootAddress { processId = gameClientProcessId })
                                         )
 
                                 searchStillPending =
@@ -720,8 +721,8 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                             let
                                 requestReadMemory =
                                     apiRequestCmd
-                                        (InterfaceToFrontendClient.RunInVolatileHostRequest
-                                            (EveOnline.VolatileHostInterface.ReadFromWindow
+                                        (InterfaceToFrontendClient.RunInVolatileProcessRequest
+                                            (EveOnline.VolatileProcessInterface.ReadFromWindow
                                                 { windowId = gameClientProcess.mainWindowId
                                                 , uiRootAddress = uiRootAddress
                                                 , getImageData = { screenshot1x1Rects = [] }
@@ -769,8 +770,8 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
 
 
 selectGameClientProcess :
-    List EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct
-    -> Result String { selectedProcess : EveOnline.VolatileHostInterface.GameClientProcessSummaryStruct, report : List String }
+    List EveOnline.VolatileProcessInterface.GameClientProcessSummaryStruct
+    -> Result String { selectedProcess : EveOnline.VolatileProcessInterface.GameClientProcessSummaryStruct, report : List String }
 selectGameClientProcess gameClientProcesses =
     case gameClientProcesses |> List.sortBy .mainWindowZIndex |> List.head of
         Nothing ->

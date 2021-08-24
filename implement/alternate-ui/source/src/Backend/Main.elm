@@ -8,9 +8,10 @@ import Bytes
 import Bytes.Decode
 import Bytes.Encode
 import CompilationInterface.ElmMake
+import CompilationInterface.GenerateJsonCoders
 import ElmFullstack
-import EveOnline.VolatileHostInterface
-import EveOnline.VolatileHostScript as VolatileHostScript
+import EveOnline.VolatileProcessInterface
+import EveOnline.VolatileProcessProgram as VolatileProcessProgram
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
@@ -84,7 +85,7 @@ maintainVolatileProcessTaskFromState state =
 
     else
         [ ElmFullstack.CreateVolatileProcess
-            { programCode = VolatileHostScript.setupScript
+            { programCode = VolatileProcessProgram.programCode
             , update =
                 \createVolatileProcessResult stateBefore ->
                     case createVolatileProcessResult of
@@ -147,7 +148,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                 httpRequestEvent.request.bodyAsBase64
                     |> Maybe.map (Base64.toBytes >> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string") >> Maybe.withDefault "Failed to decode from base64")
                     |> Maybe.withDefault "Missing HTTP body"
-                    |> Json.Decode.decodeString InterfaceToFrontendClient.jsonDecodeRequestFromClient
+                    |> Json.Decode.decodeString CompilationInterface.GenerateJsonCoders.jsonDecodeRequestFromFrontendClient
             of
                 Err decodeError ->
                     let
@@ -188,7 +189,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                             , [ ElmFullstack.RespondToHttpRequest httpResponse ]
                             )
 
-                        InterfaceToFrontendClient.RunInVolatileHostRequest runInVolatileHostRequest ->
+                        InterfaceToFrontendClient.RunInVolatileProcessRequest runInVolatileProcessRequest ->
                             case stateBefore.setup.volatileProcessId of
                                 Just volatileProcessId ->
                                     let
@@ -200,7 +201,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                         requestToVolatileProcessTask =
                                             ElmFullstack.RequestToVolatileProcess
                                                 { processId = volatileProcessId
-                                                , request = EveOnline.VolatileHostInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileHostRequest
+                                                , request = EveOnline.VolatileProcessInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileProcessRequest
                                                 , update =
                                                     \requestToVolatileProcessResult stateBeforeResult ->
                                                         case requestToVolatileProcessResult of
@@ -234,7 +235,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             , response =
                                                 { statusCode = 200
                                                 , bodyAsBase64 =
-                                                    (InterfaceToFrontendClient.SetupNotCompleteResponse "Volatile process not created yet." |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure |> Json.Encode.encode 0)
+                                                    (InterfaceToFrontendClient.SetupNotCompleteResponse "Volatile process not created yet." |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure |> Json.Encode.encode 0)
                                                         |> encodeStringToBytes
                                                         |> Base64.fromBytes
                                                 , headersToAdd = []
@@ -255,8 +256,8 @@ processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessCo
 
         httpResponseBody =
             runInVolatileProcessComplete
-                |> InterfaceToFrontendClient.RunInVolatileHostCompleteResponse
-                |> InterfaceToFrontendClient.jsonEncodeRunInVolatileHostResponseStructure
+                |> InterfaceToFrontendClient.RunInVolatileProcessCompleteResponse
+                |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
                 >> Json.Encode.encode 0
 
         httpResponse =

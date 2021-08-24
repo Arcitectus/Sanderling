@@ -1,4 +1,4 @@
-module EveOnline.VolatileHostInterface exposing (..)
+module EveOnline.VolatileProcessInterface exposing (..)
 
 import Common.EffectOnWindow exposing (MouseButton(..), VirtualKeyCode(..), virtualKeyCodeAsInteger)
 import Json.Decode

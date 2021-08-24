@@ -1,8 +1,8 @@
-module EveOnline.VolatileHostScript exposing (setupScript)
+module EveOnline.VolatileProcessProgram exposing (programCode)
 
 
-setupScript : String
-setupScript =
+programCode : String
+programCode =
     """
 #r "sha256:FE8A38EBCED27A112519023A7A1216C69FE0863BCA3EF766234E972E920096C1"
 #r "sha256:5229128932E6AAFB5433B7AA5E05E6AFA3C19A929897E49F83690AB8FE273162"
