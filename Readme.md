@@ -64,7 +64,7 @@ Location of the alternate UI in the repository: [/implement/alternate-ui/](/impl
 
 This repository contains few bots if any at all. Below are some links to bots and guides in other repositories.
 
-Guide on developing for EVE Online: https://to.botlab.org/guide/developing-for-eve-online](https://to.botlab.org/guide/developing-for-eve-online)
+Guide on developing for EVE Online: https://to.botlab.org/guide/developing-for-eve-online
 
 And these are some bots using Sanderling:
 
