@@ -6,7 +6,7 @@ The tool we use in this guide works only for 64-bit processes.
 
 The tool copies the memory contents of a chosen Windows process (such as a game client) and takes a screenshot from its main window and writes those to a file. This data is used in development to correlate screen contents with memory contents.
 
-Here you can see a typical scenario where we use this tool: https://forum.botengine.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101
+Here you can see a typical scenario where we use this tool: https://forum.botlab.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101
 
 **Steps to collect a sample:**
 

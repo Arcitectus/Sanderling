@@ -20,7 +20,7 @@ read-memory-64-bit.exe  save-process-sample  --pid=12345
 ## Sources
 
 + Discussion of the approach to read the UI Tree from the EVE Online client process. (Artifacts for 32-bit back then):
-https://forum.botengine.org/t/advanced-do-it-yourself-memory-reading-in-eve-online/68
+https://forum.botlab.org/t/advanced-do-it-yourself-memory-reading-in-eve-online/68
 
 I found some articles that might help understand CPython in general:
 

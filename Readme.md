@@ -14,7 +14,7 @@ Sanderling is the eyes of bots and monitoring tools. It helps programs see the g
 
 + **safe**: does not inject into or write to the EVE Online client. That is why using it with EVE Online is not detectable.
 + **accurate & robust**: Sanderling uses memory reading to get information about the game state and user interface. In contrast to screen scraping, this approach won't be thrown off by a noisy background or non-default UI settings.
-+ **comprehensive**: Sanderling memory reading is used in [mining](https://to.botengine.org/guide/app/eve-online-mining-bot), trading, mission running and [anomaly](https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot) bots.
++ **comprehensive**: Sanderling memory reading is used in [mining](https://to.botlab.org/guide/app/eve-online-mining-bot), trading, mission running and [anomaly](https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot) bots.
 
 ## Repository contents
 
@@ -48,7 +48,7 @@ To find things faster and automatically detect program code errors, we also use 
 
 The input for this library is the JSON string, as we get it from the memory reading.
 
-For an overview of the building blocks that you can find in the memory reading parsing library, see https://to.botengine.org/guide/parsed-user-interface-of-the-eve-online-game-client
+For an overview of the building blocks that you can find in the memory reading parsing library, see https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client
 
 Location of the implementation in the repository: [/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm](/implement/alternate-ui/source/src/EveOnline/ParseUserInterface.elm)
 
@@ -64,25 +64,25 @@ Location of the alternate UI in the repository: [/implement/alternate-ui/](/impl
 
 This repository contains few bots if any at all. Below are some links to bots and guides in other repositories.
 
-Guide on developing for EVE Online: [https://to.botengine.org/guide/developing-for-eve-online](https://to.botengine.org/guide/developing-for-eve-online)
+Guide on developing for EVE Online: https://to.botlab.org/guide/developing-for-eve-online](https://to.botlab.org/guide/developing-for-eve-online)
 
 And these are some bots using Sanderling:
 
-+ Warp-To-0 Autopilot: [https://to.botengine.org/guide/app/eve-online-autopilot-bot](https://to.botengine.org/guide/app/eve-online-autopilot-bot)
++ Warp-To-0 Autopilot: [https://to.botlab.org/guide/app/eve-online-autopilot-bot](https://to.botlab.org/guide/app/eve-online-autopilot-bot)
 
-+ Mining asteroids: [https://to.botengine.org/guide/app/eve-online-mining-bot](https://to.botengine.org/guide/app/eve-online-mining-bot)
++ Mining asteroids: [https://to.botlab.org/guide/app/eve-online-mining-bot](https://to.botlab.org/guide/app/eve-online-mining-bot)
 
-+ Combat anomalies: [https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot](https://to.botengine.org/guide/app/eve-online-combat-anomaly-bot)
++ Combat anomalies: [https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot](https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot)
 
-+ List of EVE Online Bots for Beginners: [https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botengine.org/t/list-of-eve-online-bots-for-beginners/629)
++ List of EVE Online Bots for Beginners: [https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629)
 
-+ Most up-to-date list of bots and intel-tools: [https://catalog.botengine.org/?q=eve%20online](https://catalog.botengine.org/?q=eve%20online)
++ Most up-to-date list of bots and intel-tools: [https://catalog.botlab.org/?q=eve%20online](https://catalog.botlab.org/?q=eve%20online)
 
 ## Contributing
 
 ### Issues and other Feedback
 
-Spotted a bug or have a feature request? Post on the [BotEngine forum](https://forum.botengine.org) or file an issue [on GitHub](https://github.com/Arcitectus/Sanderling/issues).
+Spotted a bug or have a feature request? Post on the [BotLab forum](https://forum.botlab.org) or file an issue [on GitHub](https://github.com/Arcitectus/Sanderling/issues).
 For communication here, supported languages are English, Italian, Spanish, and German.
 
 

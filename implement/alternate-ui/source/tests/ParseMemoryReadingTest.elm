@@ -24,10 +24,10 @@ overview_entry_distance_text_to_meter =
     , ( "16 km", Ok 16000 )
     , ( "   345 m  ", Ok 345 )
 
-    -- 2020-03-12 from TheRealManiac (https://forum.botengine.org/t/last-version-of-mining-bot/3149)
+    -- 2020-03-12 from TheRealManiac (https://forum.botlab.org/t/last-version-of-mining-bot/3149)
     , ( "6.621 m  ", Ok 6621 )
 
-    -- 2020-03-22 from istu233 at https://forum.botengine.org/t/mining-bot-problem/3169
+    -- 2020-03-22 from istu233 at https://forum.botlab.org/t/mining-bot-problem/3169
     , ( "2 980 m", Ok 2980 )
 
     -- Add case with more than two groups in number
@@ -49,7 +49,7 @@ inventory_capacity_gauge_text =
     [ ( "1,211.9/5,000.0 m³", Ok { used = 1211, maximum = Just 5000, selected = Nothing } )
     , ( " 123.4 / 5,000.0 m³ ", Ok { used = 123, maximum = Just 5000, selected = Nothing } )
 
-    -- Example from https://forum.botengine.org/t/standard-mining-bot-problems/2715/14?u=viir
+    -- Example from https://forum.botlab.org/t/standard-mining-bot-problems/2715/14
     , ( "4 999,8/5 000,0 m³", Ok { used = 4999, maximum = Just 5000, selected = Nothing } )
 
     -- 2020-01-31 sample 'process-sample-2FA2DCF580-[In Space with selected Ore Hold].zip' from Leon Bechen.
@@ -58,10 +58,10 @@ inventory_capacity_gauge_text =
     -- 2020-02-16-eve-online-sample
     , ( "(33.3) 53.6/450.0 m³", Ok { used = 53, maximum = Just 450, selected = Just 33 } )
 
-    -- 2020-02-23 process-sample-FFE3312944 contributed by ORly (https://forum.botengine.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101/5?u=viir)
+    -- 2020-02-23 process-sample-FFE3312944 contributed by ORly (https://forum.botlab.org/t/mining-bot-i-cannot-see-the-ore-hold-capacity-gauge/3101/5)
     , ( "0/5\u{00A0}000,0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
 
-    -- 2020-07-26 scenario shared by neolexo at https://forum.botengine.org/t/issue-with-mining/3469/3?u=viir
+    -- 2020-07-26 scenario shared by neolexo at https://forum.botlab.org/t/issue-with-mining/3469/3
     , ( "0/5’000.0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
 
     -- Add case with more than two groups in number
@@ -120,7 +120,7 @@ parse_security_status_percent_from_ui_node_text : Test.Test
 parse_security_status_percent_from_ui_node_text =
     [ ( """<url=showinfo:5//30000142 alt='Current Solar System'>Jita</url></b> <color=0xff4cffccL><hint='Security status'>0.9</hint></color><fontsize=12><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:4//20000020>Kimotoro</url><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:3//10000002>The Forge</url>""", Just 90 )
 
-    -- Scenario by Samuel Pagé aka Mohano from https://forum.botengine.org/t/new-code-for-some-memory-elements-in-new-patch/3989
+    -- Scenario by Samuel Pagé aka Mohano from https://forum.botlab.org/t/new-code-for-some-memory-elements-in-new-patch/3989
     , ( """<hint="Security status"><color=#ffffff00>0.5</color></hint>""", Just 50 )
     ]
         |> List.map
