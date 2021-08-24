@@ -24,18 +24,17 @@ There are two ways to get a memory reading into this interface:
 
 The setup section describes preparations to perform once per system (Windows instance).
 
-### Install .NET Core SDK 3.1
+### Install .NET 5.0 SDK
 
-Install the .NET Core SDK 3.1, from https://dotnet.microsoft.com/download/dotnet-core/3.1
+Install the .NET 5.0 SDK, from https://dotnet.microsoft.com/download/dotnet/5.0
 
 When this software is not installed, the program might exit with a message like this:
 
 > It was not possible to find any compatible framework version  
-> The specified framework 'Microsoft.AspNetCore.App', version '3.1.0' was not found.
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-05-18/elm-fullstack-bin-da02778622717516ba999c8a770d0f523cf41fe1-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-08-19/elm-fullstack-bin-d11cc234e6daa35d8a213a23976500341f1c0ed4-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -45,7 +44,7 @@ To start the software:
 + In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy-app-from=https://github.com/Arcitectus/Sanderling/tree/8a660d732db0166de151e1da7dc1cdafd1af0528/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/3ff818f96a52a8f193456c0d7380e63453f9829a/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
