@@ -716,7 +716,7 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                 currentSolarSystemName =
                     infoPanelNode.uiNode
                         |> getAllContainedDisplayTexts
-                        |> List.filterMap (getSubstringBetweenXmlTagsAfterMarker "alt='Current Solar System'")
+                        |> List.filterMap parseCurrentSolarSystemFromUINodeText
                         |> List.head
                         |> Maybe.map String.trim
 
@@ -765,6 +765,14 @@ parseSecurityStatusPercentFromUINodeText =
         ]
         >> Maybe.andThen (String.trim >> String.toFloat)
         >> Maybe.map ((*) 100 >> round)
+
+
+parseCurrentSolarSystemFromUINodeText : String -> Maybe String
+parseCurrentSolarSystemFromUINodeText =
+    Maybe.Extra.oneOf
+        [ getSubstringBetweenXmlTagsAfterMarker "alt='Current Solar System'"
+        , getSubstringBetweenXmlTagsAfterMarker "alt=\"Current Solar System\""
+        ]
 
 
 parseCurrentStationNameFromInfoPanelLocationInfoLabelText : String -> Maybe String

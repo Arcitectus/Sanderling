@@ -14,6 +14,7 @@ allTests =
         , parse_module_button_tooltip_shortcut
         , parse_neocom_clock_text
         , parse_security_status_percent_from_ui_node_text
+        , parse_current_solar_system_from_ui_node_text
         ]
 
 
@@ -132,3 +133,21 @@ parse_security_status_percent_from_ui_node_text =
                             |> Expect.equal expectedResult
             )
         |> Test.describe "Parse security status from UI node text"
+
+
+parse_current_solar_system_from_ui_node_text : Test.Test
+parse_current_solar_system_from_ui_node_text =
+    [ ( """<url=showinfo:5//30000142 alt='Current Solar System'>Jita</url></b> <color=0xff4cffccL><hint='Security status'>0.9</hint></color><fontsize=12><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:4//20000020>Kimotoro</url><fontsize=8> </fontsize>&lt;<fontsize=8> </fontsize><url=showinfo:3//10000002>The Forge</url>""", Just "Jita" )
+
+    -- Scenario by Breazy shared with `session-2021-10-26T06-47-59-025605.zip` (https://forum.botlab.org/t/error-with-anom-bot/4195)
+    , ( """<a href="showinfo:5//30004759" alt="Current Solar System">1DQ1-A</a></b> <hint="Security status"><color=#ffff0000>-0.4</color></hint>""", Just "1DQ1-A" )
+    ]
+        |> List.map
+            (\( text, expectedResult ) ->
+                Test.test text <|
+                    \_ ->
+                        text
+                            |> EveOnline.ParseUserInterface.parseCurrentSolarSystemFromUINodeText
+                            |> Expect.equal expectedResult
+            )
+        |> Test.describe "Parse current solar system from UI node text"
