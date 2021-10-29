@@ -1,5 +1,14 @@
 module EveOnline.MemoryReading exposing (..)
 
+{-| This module contains:
+
+  - Types to represent memory readings from the Sanderling project.
+  - Decoders for the popular JSON representation of Sanderling memory readings.
+
+To learn more about Sanderling, see <https://github.com/Arcitectus/Sanderling>
+
+-}
+
 import Dict
 import Json.Decode
 import Json.Encode

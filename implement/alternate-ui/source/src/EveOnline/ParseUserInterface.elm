@@ -1,5 +1,17 @@
 module EveOnline.ParseUserInterface exposing (..)
 
+{-| A library of building blocks to build programs that read from the EVE Online game client.
+
+The EVE Online client's UI tree can contain thousands of nodes and tens of thousands of individual properties. Because of this large amount of data, navigating in there can be time-consuming.
+
+This library helps us navigate the UI tree with functions to filter out redundant data and extract the interesting bits.
+
+The types in this module provide names more closely related to players' experience, such as the overview window or ship modules.
+
+To learn about the user interface structures in the EVE Online game client, see the guide at <https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client>
+
+-}
+
 import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
@@ -631,6 +643,7 @@ parseInfoPanelContainerFromUIRoot uiTreeRoot =
         uiTreeRoot
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "InfoPanelContainer")
+            |> List.sortBy (.uiNode >> EveOnline.MemoryReading.countDescendantsInUITreeNode >> negate)
             |> List.head
     of
         Nothing ->
