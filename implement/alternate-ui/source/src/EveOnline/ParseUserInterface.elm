@@ -1923,7 +1923,7 @@ parseInventoryWindow windowUiNode =
                     (listDescendantsWithDisplayRegion
                         >> List.filter
                             (\uiNode ->
-                                [ "ShipCargo", "ShipDroneBay", "ShipOreHold", "StationItems", "ShipFleetHangar", "StructureItemHangar" ]
+                                [ "ShipCargo", "ShipDroneBay", "ShipGeneralMiningHold", "StationItems", "ShipFleetHangar", "StructureItemHangar" ]
                                     |> List.member uiNode.uiNode.pythonObjectTypeName
                             )
                         >> List.head
