@@ -115,25 +115,52 @@ updateForHttpRequestEvent httpRequestEvent stateBefore =
 updateForHttpRequestEventWithoutVolatileProcessMaintenance : ElmFullstack.HttpRequestEventStruct -> State -> ( State, ElmFullstack.BackendCmds State )
 updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stateBefore =
     let
-        respondWithFrontendHtmlDocument { enableInspector } =
+        contentHttpHeaders { contentType, contentEncoding } =
+            { cacheMaxAgeMinutes = Nothing
+            , contentType = contentType
+            , contentEncoding = contentEncoding
+            }
+
+        continueWithStaticHttpResponse httpResponse =
             ( stateBefore
             , [ ElmFullstack.RespondToHttpRequest
                     { httpRequestId = httpRequestEvent.httpRequestId
-                    , response =
-                        { statusCode = 200
-                        , bodyAsBase64 =
-                            Just
-                                (if enableInspector then
-                                    CompilationInterface.ElmMake.elm_make__debug__base64____src_FrontendWeb_Main_elm
-
-                                 else
-                                    CompilationInterface.ElmMake.elm_make__base64____src_FrontendWeb_Main_elm
-                                )
-                        , headersToAdd = []
-                        }
+                    , response = httpResponse
                     }
               ]
             )
+
+        httpResponseOkWithBodyAsBase64 bodyAsBase64 contentConfig =
+            { statusCode = 200
+            , bodyAsBase64 = bodyAsBase64
+            , headersToAdd =
+                [ ( "Cache-Control"
+                  , contentConfig.cacheMaxAgeMinutes
+                        |> Maybe.map (\maxAgeMinutes -> "public, max-age=" ++ String.fromInt (maxAgeMinutes * 60))
+                  )
+                , ( "Content-Type", Just contentConfig.contentType )
+                , ( "Content-Encoding", contentConfig.contentEncoding )
+                ]
+                    |> List.concatMap
+                        (\( name, maybeValue ) ->
+                            maybeValue
+                                |> Maybe.map (\value -> [ { name = name, values = [ value ] } ])
+                                |> Maybe.withDefault []
+                        )
+            }
+
+        respondWithFrontendHtmlDocument { enableInspector } =
+            httpResponseOkWithBodyAsBase64
+                (Just
+                    (if enableInspector then
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.debug.gzip.base64
+
+                     else
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.gzip.base64
+                    )
+                )
+                (contentHttpHeaders { contentType = "text/html", contentEncoding = Just "gzip" })
+                |> continueWithStaticHttpResponse
     in
     case httpRequestEvent.request.uri |> Url.fromString |> Maybe.andThen routeFromUrl of
         Nothing ->

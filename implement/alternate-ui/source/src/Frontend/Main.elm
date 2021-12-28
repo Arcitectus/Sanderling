@@ -1,4 +1,4 @@
-module FrontendWeb.Main exposing (Event(..), State, init, main, update, view)
+module Frontend.Main exposing (Event(..), State, init, main, update, view)
 
 import Browser
 import Browser.Dom
@@ -13,7 +13,7 @@ import EveOnline.VolatileProcessInterface
 import File
 import File.Download
 import File.Select
-import FrontendWeb.InspectParsedUserInterface
+import Frontend.InspectParsedUserInterface
     exposing
         ( ExpandableViewNode
         , InputOnUINode(..)
@@ -1113,7 +1113,7 @@ radioButtonHtml groupName labelText isChecked msg =
         |> Html.label [ HA.style "padding" "20px" ]
 
 
-inputRouteFromInputConfig : InputRouteConfig -> FrontendWeb.InspectParsedUserInterface.InputRoute Event
+inputRouteFromInputConfig : InputRouteConfig -> Frontend.InspectParsedUserInterface.InputRoute Event
 inputRouteFromInputConfig inputRouteConfig =
     \uiNode inputKind ->
         UserInputSendInputToUINode
@@ -1150,16 +1150,16 @@ viewTreeMemoryReadingUITreeNode maybeInputRouteConfig uiNodesWithDisplayRegion v
 htmlElementIdFromUIPathNode : ExpandableViewNode -> String
 htmlElementIdFromUIPathNode pathNode =
     case pathNode of
-        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNode nodeIdentity ->
+        Frontend.InspectParsedUserInterface.ExpandableUITreeNode nodeIdentity ->
             "UITreeNode_" ++ nodeIdentity.pythonObjectAddress
 
-        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeChildren ->
+        Frontend.InspectParsedUserInterface.ExpandableUITreeNodeChildren ->
             "Children"
 
-        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeDictEntries ->
+        Frontend.InspectParsedUserInterface.ExpandableUITreeNodeDictEntries ->
             "DictEntries"
 
-        FrontendWeb.InspectParsedUserInterface.ExpandableUITreeNodeAllDisplayTexts ->
+        Frontend.InspectParsedUserInterface.ExpandableUITreeNodeAllDisplayTexts ->
             "AllDisplayTexts"
 
 

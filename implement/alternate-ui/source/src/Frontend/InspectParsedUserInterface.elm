@@ -1,4 +1,4 @@
-module FrontendWeb.InspectParsedUserInterface exposing
+module Frontend.InspectParsedUserInterface exposing
     ( ExpandableViewNode(..)
     , InputOnUINode(..)
     , InputRoute
