@@ -24,9 +24,9 @@ There are two ways to get a memory reading into this interface:
 
 The setup section describes preparations to perform once per system (Windows instance).
 
-### Install .NET 5.0 SDK
+### Install .NET SDK 6
 
-Install the .NET 5.0 SDK, from https://dotnet.microsoft.com/download/dotnet/5.0
+Install the .NET SDK version 6.X, from https://dotnet.microsoft.com/download/dotnet/6.0
 
 When this software is not installed, the program might exit with a message like this:
 
@@ -34,7 +34,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-08-24/elm-fullstack-bin-c6c6d233af4e467c63a0283311622503c839d04e-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-12-13/elm-fullstack-bin-30f16796f49d9c86b2975b145b188c5abfd4f7ca-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -44,7 +44,7 @@ To start the software:
 + In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/18858e17663b03b0de1ca529b7cbb73dd2ca489e/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/4f4932f2e835244d79253b0a577c4ccec647cefb/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -52,13 +52,24 @@ To start the software:
 ```txt
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
-Loaded source composition 0dffb2325d5614e36e28e8cce886eb70aae55554b16f57ad158b59ecd562e498 from 'https://github.com/Arcitectus/Sanderling/tree/18858e17663b03b0de1ca529b7cbb73dd2ca489e/implement/alternate-ui/source'.
+This path looks like a URL into a remote git repository. Trying to load from there...
+This path points to commit 4f4932f2e835244d79253b0a577c4ccec647cefb
+Loaded source composition 058f7675e8eb4237b4baa5a7926ca86d0e2d820eba5c30af1d9080deca8a1456 from 'https://github.com/Arcitectus/Sanderling/tree/4f4932f2e835244d79253b0a577c4ccec647cefb/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
-      Begin to build the process volatile representation.
-[...]
+      Begin to build the process live representation.
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
-      Started the public app at 'http://*,https://*'.
+      Begin to restore the process state.
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
+      Found 1 composition log records to use for restore.
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
+      Restored the process state in 2 seconds.
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
+      Completed building the process live representation.
+info: ElmFullstack.WebHost.StartupPublicApp[0]
+      I did not find 'letsEncryptOptions' in the configuration. I continue without Let's Encrypt.
+info: ElmFullstack.WebHost.StartupAdminInterface[0]
+      Started the public app at 'http://*:80'.
 Completed starting the web server with the admin interface at 'http://*:4000'.
 ```
 
