@@ -817,6 +817,8 @@ view state =
 
         body =
             [ globalStylesHtmlElement
+            , globalGuideHtmlElement
+            , verticalSpacerFromHeightInEm 1
             , selectSourceHtml state
             , verticalSpacerFromHeightInEm 1
             , [ ("Reading from " ++ selectedSourceText) |> Html.text ] |> Html.h3 []
@@ -824,6 +826,14 @@ view state =
             ]
     in
     { title = "Alternate EVE Online UI version " ++ Common.App.versionId, body = body }
+
+
+globalGuideHtmlElement : Html.Html a
+globalGuideHtmlElement =
+    Html.span []
+        [ Html.text "For a guide on the structures in the parsed memory reading, see "
+        , linkHtmlFromUrl "https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client"
+        ]
 
 
 viewSourceFromFile : State -> Html.Html Event
@@ -836,7 +846,14 @@ viewSourceFromFile state =
         memoryReadingFromFileHtml =
             case state.readFromFileResult of
                 Nothing ->
-                    "No reading loaded" |> Html.text
+                    [ "No reading loaded" |> Html.text
+                    , verticalSpacerFromHeightInEm 0.5
+                    , [ "Want to load a memory reading from a bot session? You can use the devtools to export it from the session into a file to load it here. To export readings from a botting session, see the guide at " |> Html.text
+                      , linkHtmlFromUrl "https://to.botlab.org/guide/observing-and-inspecting-a-bot"
+                      ]
+                        |> Html.span []
+                    ]
+                        |> Html.div []
 
                 Just memoryReadingCompleted ->
                     case memoryReadingCompleted.parseResult of
@@ -1785,6 +1802,11 @@ describeHttpError { error, bodyString } =
 
         Http.BadBody errorMessage ->
             "BadPayload: " ++ errorMessage
+
+
+linkHtmlFromUrl : String -> Html.Html a
+linkHtmlFromUrl url =
+    Html.a [ HA.href url ] [ Html.text url ]
 
 
 maybeWithMaybeDefault : Maybe a -> Maybe a -> Maybe a

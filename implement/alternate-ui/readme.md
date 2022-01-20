@@ -20,6 +20,17 @@ There are two ways to get a memory reading into this interface:
 
 + Load from a file: You can load memory readings in JSON format you have saved earlier. Since this memory reading does not correspond to a live process, we use this option only to explore the general structure of information found in the game client's memory.
 
+## Guide on the Parsing Library and Examples
+
+Besides the program to read the UI tree from the game client, there is also a parsing library to help you make sense of the raw UI tree.
+
+For a guide on the structures in the parsed memory reading, see https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client
+
+Developers use the parsing library to make ratting, mining, and mission running bots and intel tools. Following are some links to bots and tools using the parsing library:
+
++ https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629
++ https://catalog.botlab.org/?q=eve%2Bonline
+
 ## Setup
 
 The setup section describes preparations to perform once per system (Windows instance).
