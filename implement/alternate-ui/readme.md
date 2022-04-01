@@ -45,7 +45,7 @@ When this software is not installed, the program might exit with a message like 
 
 ### Download Web Server Software
 
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2021-12-13/elm-fullstack-bin-30f16796f49d9c86b2975b145b188c5abfd4f7ca-win10-x64.zip and unpack it.
+Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2022-03-20/elm-fullstack-bin-51e104bb104ea8d54dcdaffa145a30a9f1f4a020-win10-x64.zip and unpack it.
 
 ## Usage
 
@@ -55,7 +55,7 @@ To start the software:
 + In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/4f4932f2e835244d79253b0a577c4ccec647cefb/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/6dce6453b4d8217b625e4bc4688177913352cc89/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -64,8 +64,8 @@ To start the software:
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit 4f4932f2e835244d79253b0a577c4ccec647cefb
-Loaded source composition 058f7675e8eb4237b4baa5a7926ca86d0e2d820eba5c30af1d9080deca8a1456 from 'https://github.com/Arcitectus/Sanderling/tree/4f4932f2e835244d79253b0a577c4ccec647cefb/implement/alternate-ui/source'.
+This path points to commit 6dce6453b4d8217b625e4bc4688177913352cc89
+Loaded source composition 4d2d176e130a4de58fa15a315c0a88e7e7a202830619d4b7543485115e25b2d0 from 'https://github.com/Arcitectus/Sanderling/tree/6dce6453b4d8217b625e4bc4688177913352cc89/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Begin to build the process live representation.
