@@ -1,0 +1,50 @@
+name: test-and-publish
+
+on: [push]
+
+jobs:
+  build:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [windows-2022]
+        include:
+          - environment: windows-2022
+            publish-runtime-id: win10-x64
+
+    runs-on: ${{ matrix.environment }}
+
+    steps:
+    - name: Avoid git mutating files on checkout
+      run: |
+        git config --global core.autocrlf false
+    - uses: actions/checkout@v2
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.201'
+    - name: Display .NET information.
+      run: dotnet --info
+    - uses: actions/checkout@v2
+
+    - name: Clean package cache as a temporary workaround for https://github.com/actions/setup-dotnet/issues/155
+      run: dotnet clean ./implement/read-memory-64-bit/read-memory-64-bit.csproj && dotnet nuget locals all --clear
+
+    - name: Run tests with dotnet test
+      run: dotnet test ./implement/read-memory-64-bit/read-memory-64-bit.csproj --logger trx
+    - name: dotnet publish - self contained single file executable
+      env:
+        PUBLISH_RUNTIME_ID: ${{ matrix.publish-runtime-id }}
+      run: dotnet publish -c Debug -r ${{ env.PUBLISH_RUNTIME_ID }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true  --output ./publish  ./implement/read-memory-64-bit
+    - name: Publish artifacts - self contained single file executable
+      uses: actions/upload-artifact@v1
+      with:
+        name: read-memory-64-bit-self-contained-single-file-exe-${{github.sha}}-${{ matrix.publish-runtime-id }}
+        path: ./publish
+    - name: dotnet publish - separate assemblies
+      run: dotnet publish -c Debug ./implement/read-memory-64-bit --output ./publish-separate-assemblies
+    - name: Publish artifacts - separate assemblies
+      uses: actions/upload-artifact@v1
+      with:
+        name: read-memory-64-bit-separate-assemblies-${{github.sha}}-${{ matrix.publish-runtime-id }}
+        path: ./publish-separate-assemblies
