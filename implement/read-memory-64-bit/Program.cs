@@ -9,7 +9,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-04-01";
+    static string AppVersionId => "2022-04-03";
 
     static int Main(string[] args)
     {
@@ -187,11 +187,7 @@ class Program
                         uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                     }
 
-                    var uiTreeAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-                        uiTreePreparedForFile,
-                        //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                        new IntegersToStringJsonConverter()
-                        );
+                    var uiTreeAsJson = SerializeMemoryReadingNodeToJson(uiTreePreparedForFile);
 
                     var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
 
@@ -363,6 +359,19 @@ class Program
 
         return ulong.Parse(asString);
     }
+
+    static public string SerializeMemoryReadingNodeToJson(object obj) =>
+        System.Text.Json.JsonSerializer.Serialize(
+        obj,
+        new System.Text.Json.JsonSerializerOptions
+        {
+            Converters =
+            {
+                    //  Support common JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                    new Int64JsonConverter(),
+                    new UInt64JsonConverter()
+            }
+        });
 }
 
 public class EveOnline64
@@ -798,9 +807,11 @@ public class EveOnline64
             }
 
             var entriesOfInterestJObject =
-                new Newtonsoft.Json.Linq.JObject(
+                new System.Text.Json.Nodes.JsonObject(
                     entriesOfInterest.Select(dictEntry =>
-                        new Newtonsoft.Json.Linq.JProperty(dictEntry.key, Newtonsoft.Json.Linq.JToken.FromObject(dictEntry.value))));
+                    new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
+                        (dictEntry.key,
+                        System.Text.Json.Nodes.JsonNode.Parse(Program.SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
             return new UITreeNode.Bunch
             {
@@ -1048,7 +1059,7 @@ public class EveOnline64
         }
 
         {
-            var _displayDictEntry = dictEntriesOfInterest.FirstOrDefault(c => c.key == "_display");
+            var _displayDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key == "_display");
 
             if (_displayDictEntry != null && (_displayDictEntry.value is bool displayAsBool))
                 if (!displayAsBool)
@@ -1062,7 +1073,7 @@ public class EveOnline64
 
             //  https://github.com/Arcitectus/Sanderling/blob/b07769fb4283e401836d050870121780f5f37910/guide/image/2015-01.eve-online-python-ui-tree-structure.png
 
-            var childrenDictEntry = dictEntriesOfInterest.FirstOrDefault(c => c.key == "children");
+            var childrenDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key == "children");
 
             if (childrenDictEntry == null)
                 return null;
@@ -1136,13 +1147,15 @@ public class EveOnline64
 
         var dictEntriesOfInterestLessNoneType =
             dictEntriesOfInterest
-            .Where(c => !(((object)c.value as UITreeNode.DictEntryValueGenericRepresentation)?.pythonObjectTypeName == "NoneType"))
+            .Where(entry => !((entry.value as UITreeNode.DictEntryValueGenericRepresentation)?.pythonObjectTypeName == "NoneType"))
             .ToArray();
 
         var dictEntriesOfInterestJObject =
-            new Newtonsoft.Json.Linq.JObject(
+            new System.Text.Json.Nodes.JsonObject(
                 dictEntriesOfInterestLessNoneType.Select(dictEntry =>
-                    new Newtonsoft.Json.Linq.JProperty(dictEntry.key, Newtonsoft.Json.Linq.JToken.FromObject(dictEntry.value))));
+                    new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
+                        (dictEntry.key,
+                        System.Text.Json.Nodes.JsonNode.Parse(Program.SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
         return new UITreeNode
         {
@@ -1412,7 +1425,7 @@ public class UITreeNode
 
     public string pythonObjectTypeName { set; get; }
 
-    public Newtonsoft.Json.Linq.JObject dictEntriesOfInterest { set; get; }
+    public System.Text.Json.Nodes.JsonObject dictEntriesOfInterest { set; get; }
 
     public string[] otherDictEntriesKeys { set; get; }
 
@@ -1433,7 +1446,7 @@ public class UITreeNode
 
     public class Bunch
     {
-        public Newtonsoft.Json.Linq.JObject entriesOfInterest { set; get; }
+        public System.Text.Json.Nodes.JsonObject entriesOfInterest { set; get; }
     }
 
     public IEnumerable<UITreeNode> EnumerateSelfAndDescendants() =>
@@ -1528,22 +1541,32 @@ class ProcessSample
     }
 }
 
-public class IntegersToStringJsonConverter : Newtonsoft.Json.JsonConverter
+public class Int64JsonConverter : System.Text.Json.Serialization.JsonConverter<long>
 {
-    public override bool CanRead => false;
-    public override bool CanWrite => true;
-    public override bool CanConvert(Type type) =>
-        type == typeof(int) || type == typeof(long) || type == typeof(uint) || type == typeof(ulong);
+    public override long Read(
+        ref System.Text.Json.Utf8JsonReader reader,
+        Type typeToConvert,
+        System.Text.Json.JsonSerializerOptions options) =>
+            long.Parse(reader.GetString()!);
 
-    public override void WriteJson(
-        Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
-    {
-        writer.WriteValue(value.ToString());
-    }
+    public override void Write(
+        System.Text.Json.Utf8JsonWriter writer,
+        long integer,
+        System.Text.Json.JsonSerializerOptions options) =>
+            writer.WriteStringValue(integer.ToString());
+}
 
-    public override object ReadJson(
-        Newtonsoft.Json.JsonReader reader, Type type, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
-    {
-        throw new NotSupportedException();
-    }
+public class UInt64JsonConverter : System.Text.Json.Serialization.JsonConverter<ulong>
+{
+    public override ulong Read(
+        ref System.Text.Json.Utf8JsonReader reader,
+        Type typeToConvert,
+        System.Text.Json.JsonSerializerOptions options) =>
+            ulong.Parse(reader.GetString()!);
+
+    public override void Write(
+        System.Text.Json.Utf8JsonWriter writer,
+        ulong integer,
+        System.Text.Json.JsonSerializerOptions options) =>
+            writer.WriteStringValue(integer.ToString());
 }
