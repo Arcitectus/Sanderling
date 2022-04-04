@@ -9,7 +9,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-04-03";
+    static string AppVersionId => "2022-04-04";
 
     static int Main(string[] args)
     {
@@ -187,7 +187,7 @@ class Program
                         uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                     }
 
-                    var uiTreeAsJson = SerializeMemoryReadingNodeToJson(uiTreePreparedForFile);
+                    var uiTreeAsJson = EveOnline64.SerializeMemoryReadingNodeToJson(uiTreePreparedForFile);
 
                     var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
 
@@ -359,19 +359,6 @@ class Program
 
         return ulong.Parse(asString);
     }
-
-    static public string SerializeMemoryReadingNodeToJson(object obj) =>
-        System.Text.Json.JsonSerializer.Serialize(
-        obj,
-        new System.Text.Json.JsonSerializerOptions
-        {
-            Converters =
-            {
-                    //  Support common JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                    new Int64JsonConverter(),
-                    new UInt64JsonConverter()
-            }
-        });
 }
 
 public class EveOnline64
@@ -811,7 +798,7 @@ public class EveOnline64
                     entriesOfInterest.Select(dictEntry =>
                     new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
                         (dictEntry.key,
-                        System.Text.Json.Nodes.JsonNode.Parse(Program.SerializeMemoryReadingNodeToJson(dictEntry.value)))));
+                        System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
             return new UITreeNode.Bunch
             {
@@ -1155,7 +1142,7 @@ public class EveOnline64
                 dictEntriesOfInterestLessNoneType.Select(dictEntry =>
                     new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
                         (dictEntry.key,
-                        System.Text.Json.Nodes.JsonNode.Parse(Program.SerializeMemoryReadingNodeToJson(dictEntry.value)))));
+                        System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
         return new UITreeNode
         {
@@ -1200,6 +1187,20 @@ public class EveOnline64
 
         return BitConverter.ToDouble(pythonObjectMemory, 0x10);
     }
+
+    static public string SerializeMemoryReadingNodeToJson(object obj) =>
+        System.Text.Json.JsonSerializer.Serialize(obj, MemoryReadingJsonSerializerOptions);
+
+    static public System.Text.Json.JsonSerializerOptions MemoryReadingJsonSerializerOptions =>
+        new()
+        {
+            Converters =
+            {
+                //  Support common JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
+                new Int64JsonConverter(),
+                new UInt64JsonConverter()
+            }
+        };
 }
 
 
