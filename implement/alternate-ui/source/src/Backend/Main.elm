@@ -9,9 +9,9 @@ import Bytes.Decode
 import Bytes.Encode
 import CompilationInterface.ElmMake
 import CompilationInterface.GenerateJsonCoders
+import CompilationInterface.SourceFiles
 import ElmFullstack
 import EveOnline.VolatileProcessInterface
-import EveOnline.VolatileProcessProgram as VolatileProcessProgram
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
@@ -85,7 +85,7 @@ maintainVolatileProcessTaskFromState state =
 
     else
         [ ElmFullstack.CreateVolatileProcess
-            { programCode = VolatileProcessProgram.programCode
+            { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_cx.utf8
             , update =
                 \createVolatileProcessResult stateBefore ->
                     case createVolatileProcessResult of
