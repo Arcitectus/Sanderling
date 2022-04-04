@@ -29,7 +29,7 @@ type alias State =
 
 
 type alias SetupState =
-    { volatileProcessId : Maybe String
+    { createVolatileProcessResult : Maybe (Result String { processId : String })
     , lastRunScriptResult : Maybe (Result String (Maybe String))
     , eveOnlineProcessesIds : Maybe (List Int)
     }
@@ -72,7 +72,7 @@ subscriptions _ =
 
 initSetup : SetupState
 initSetup =
-    { volatileProcessId = Nothing
+    { createVolatileProcessResult = Nothing
     , lastRunScriptResult = Nothing
     , eveOnlineProcessesIds = Nothing
     }
@@ -80,7 +80,7 @@ initSetup =
 
 maintainVolatileProcessTaskFromState : State -> ElmFullstack.BackendCmds State
 maintainVolatileProcessTaskFromState state =
-    if state.setup.volatileProcessId /= Nothing then
+    if state.setup.createVolatileProcessResult /= Nothing then
         []
 
     else
@@ -88,17 +88,15 @@ maintainVolatileProcessTaskFromState state =
             { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_cx.utf8
             , update =
                 \createVolatileProcessResult stateBefore ->
-                    case createVolatileProcessResult of
-                        Err _ ->
-                            ( stateBefore |> addLogEntry "Failed to create volatile process."
-                            , []
-                            )
-
-                        Ok createVolatileProcessOk ->
-                            ( { stateBefore | setup = { initSetup | volatileProcessId = Just createVolatileProcessOk.processId } }
-                                |> addLogEntry ("Created volatile process with id '" ++ createVolatileProcessOk.processId ++ "'.")
-                            , []
-                            )
+                    ( { stateBefore
+                        | setup =
+                            { initSetup
+                                | createVolatileProcessResult =
+                                    Just (createVolatileProcessResult |> Result.mapError .exceptionToString)
+                            }
+                      }
+                    , []
+                    )
             }
         ]
 
@@ -217,8 +215,30 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                             )
 
                         InterfaceToFrontendClient.RunInVolatileProcessRequest runInVolatileProcessRequest ->
-                            case stateBefore.setup.volatileProcessId of
-                                Just volatileProcessId ->
+                            case stateBefore.setup.createVolatileProcessResult of
+                                Just (Err createVolatileProcessErr) ->
+                                    let
+                                        httpResponse =
+                                            { httpRequestId = httpRequestEvent.httpRequestId
+                                            , response =
+                                                { statusCode = 500
+                                                , bodyAsBase64 =
+                                                    (("Failed to create volatile process: " ++ createVolatileProcessErr)
+                                                        |> InterfaceToFrontendClient.SetupNotCompleteResponse
+                                                        |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
+                                                        |> Json.Encode.encode 0
+                                                    )
+                                                        |> encodeStringToBytes
+                                                        |> Base64.fromBytes
+                                                , headersToAdd = []
+                                                }
+                                            }
+                                    in
+                                    ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
+                                    , [ ElmFullstack.RespondToHttpRequest httpResponse ]
+                                    )
+
+                                Just (Ok createVolatileProcessOk) ->
                                     let
                                         httpRequestsTasks =
                                             { httpRequestId = httpRequestEvent.httpRequestId
@@ -227,7 +247,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
 
                                         requestToVolatileProcessTask =
                                             ElmFullstack.RequestToVolatileProcess
-                                                { processId = volatileProcessId
+                                                { processId = createVolatileProcessOk.processId
                                                 , request = EveOnline.VolatileProcessInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileProcessRequest
                                                 , update =
                                                     \requestToVolatileProcessResult stateBeforeResult ->
@@ -262,7 +282,11 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             , response =
                                                 { statusCode = 200
                                                 , bodyAsBase64 =
-                                                    (InterfaceToFrontendClient.SetupNotCompleteResponse "Volatile process not created yet." |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure |> Json.Encode.encode 0)
+                                                    ("Volatile process not created yet."
+                                                        |> InterfaceToFrontendClient.SetupNotCompleteResponse
+                                                        |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
+                                                        |> Json.Encode.encode 0
+                                                    )
                                                         |> encodeStringToBytes
                                                         |> Base64.fromBytes
                                                 , headersToAdd = []
