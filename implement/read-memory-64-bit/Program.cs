@@ -40,7 +40,7 @@ class Program
                 var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
                     Pine.CommonConversion.HashSHA256(processSampleFile));
 
-                var fileName = "process-sample-" + processSampleId.Substring(0, 10) + ".zip";
+                var fileName = "process-sample-" + processSampleId[..10] + ".zip";
 
                 System.IO.File.WriteAllBytes(fileName, processSampleFile);
 
@@ -118,7 +118,7 @@ class Program
 
                     var memoryRegions =
                         processSampleUnpacked.memoryRegions
-                        .Select(memoryRegion => (memoryRegion.baseAddress, length: (ulong)memoryRegion.content.LongLength))
+                        .Select(memoryRegion => (memoryRegion.baseAddress, length: memoryRegion.content.Value.Length))
                         .ToImmutableList();
 
                     var uiRootCandidatesAddresses =
@@ -198,7 +198,7 @@ class Program
 
                     if (!(0 < outputFileArgument?.Length))
                     {
-                        var outputFileName = "eve-online-memory-reading-" + sampleId.Substring(0, 10) + ".json";
+                        var outputFileName = "eve-online-memory-reading-" + sampleId[..10] + ".json";
 
                         outputFilePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), outputFileName);
 
@@ -250,14 +250,13 @@ class Program
 
     static public byte[] BMPFileFromBitmap(System.Drawing.Bitmap bitmap)
     {
-        using (var stream = new System.IO.MemoryStream())
-        {
-            bitmap.Save(stream, format: System.Drawing.Imaging.ImageFormat.Bmp);
-            return stream.ToArray();
-        }
+        using var stream = new System.IO.MemoryStream();
+
+        bitmap.Save(stream, format: System.Drawing.Imaging.ImageFormat.Bmp);
+        return stream.ToArray();
     }
 
-    public int[][] GetScreenshotOfWindowAsPixelsValuesR8G8B8(IntPtr windowHandle)
+    static public int[][] GetScreenshotOfWindowAsPixelsValuesR8G8B8(IntPtr windowHandle)
     {
         var screenshotAsBitmap = GetScreenshotOfWindowAsBitmap(windowHandle);
         if (screenshotAsBitmap == null)
@@ -355,7 +354,7 @@ class Program
     static ulong ParseULong(string asString)
     {
         if (asString.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase))
-            return ulong.Parse(asString.Substring(2), System.Globalization.NumberStyles.HexNumber);
+            return ulong.Parse(asString[2..], System.Globalization.NumberStyles.HexNumber);
 
         return ulong.Parse(asString);
     }
@@ -372,31 +371,26 @@ public class EveOnline64
         return EnumeratePossibleAddressesForUIRootObjects(committedMemoryRegions, memoryReader);
     }
 
-    static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithContentFromProcessId(int processId)
+    static public (IImmutableList<SampleMemoryRegion> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithContentFromProcessId(int processId)
     {
         var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: true);
 
-        var memoryRegions =
-            genericResult.memoryRegions
-            .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, content: memoryRegion.content))
-            .ToImmutableList();
-
-        return (memoryRegions, genericResult.logEntries);
+        return genericResult;
     }
 
-    static public (IImmutableList<(ulong baseAddress, ulong length)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithoutContentFromProcessId(int processId)
+    static public (IImmutableList<(ulong baseAddress, int length)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsWithoutContentFromProcessId(int processId)
     {
         var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: false);
 
         var memoryRegions =
             genericResult.memoryRegions
-            .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, length: memoryRegion.length))
+            .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, length: (int)memoryRegion.length))
             .ToImmutableList();
 
         return (memoryRegions, genericResult.logEntries);
     }
 
-    static public (IImmutableList<(ulong baseAddress, ulong length, byte[] content)> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsFromProcessId(
+    static public (IImmutableList<SampleMemoryRegion> memoryRegions, IImmutableList<string> logEntries) ReadCommittedMemoryRegionsFromProcessId(
         int processId,
         bool readContent)
     {
@@ -415,12 +409,15 @@ public class EveOnline64
 
         long address = 0;
 
-        var committedRegions = new List<(ulong baseAddress, ulong length, byte[] content)>();
+        var committedRegions = new List<SampleMemoryRegion>();
 
         do
         {
-            WinApi.MEMORY_BASIC_INFORMATION64 m;
-            int result = WinApi.VirtualQueryEx(processHandle, (IntPtr)address, out m, (uint)Marshal.SizeOf(typeof(WinApi.MEMORY_BASIC_INFORMATION64)));
+            int result = WinApi.VirtualQueryEx(
+                processHandle,
+                (IntPtr)address,
+                out WinApi.MEMORY_BASIC_INFORMATION64 m,
+                (uint)Marshal.SizeOf(typeof(WinApi.MEMORY_BASIC_INFORMATION64)));
 
             var regionProtection = (WinApi.MemoryInformationProtection)m.Protect;
 
@@ -461,7 +458,10 @@ public class EveOnline64
                 regionContent = regionContentBuffer;
             }
 
-            committedRegions.Add((baseAddress: regionBaseAddress, length: m.RegionSize, content: regionContent));
+            committedRegions.Add(new SampleMemoryRegion(
+                baseAddress: regionBaseAddress,
+                length: m.RegionSize,
+                content: regionContent));
 
         } while (true);
 
@@ -471,7 +471,7 @@ public class EveOnline64
     }
 
     static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjects(
-        IEnumerable<(ulong baseAddress, ulong length)> memoryRegions,
+        IEnumerable<(ulong baseAddress, int length)> memoryRegions,
         IMemoryReader memoryReader)
     {
         var memoryRegionsOrderedByAddress =
@@ -487,26 +487,21 @@ public class EveOnline64
                 return null;
 
             var bytes =
-                bytesBeforeTruncate
+                bytesBeforeTruncate.Value.ToArray()
                 .TakeWhile(character => 0 < character)
                 .ToArray();
 
             return System.Text.Encoding.ASCII.GetString(bytes);
         }
 
-        ulong[] ReadMemoryRegionContentAsULongArray((ulong baseAddress, ulong length) memoryRegion)
+        ReadOnlyMemory<ulong>? ReadMemoryRegionContentAsULongArray((ulong baseAddress, int length) memoryRegion)
         {
-            var lengthAsInt32 = (int)memoryRegion.length;
-
-            if ((ulong)lengthAsInt32 != memoryRegion.length)
-                throw new NotSupportedException("Memory region length exceeds supported range: " + memoryRegion.length);
-
-            var asByteArray = memoryReader.ReadBytes(memoryRegion.baseAddress, lengthAsInt32);
+            var asByteArray = memoryReader.ReadBytes(memoryRegion.baseAddress, memoryRegion.length);
 
             if (asByteArray == null)
                 return null;
 
-            return TransformMemoryContent.AsULongArray(asByteArray);
+            return TransformMemoryContent.AsULongMemory(asByteArray.Value);
         }
 
         IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectType()
@@ -518,17 +513,18 @@ public class EveOnline64
                 if (memoryRegionContentAsULongArray == null)
                     continue;
 
-                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
+                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Value.Length - 4; ++candidateAddressIndex)
                 {
                     var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                    var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
+                    var candidate_ob_type = memoryRegionContentAsULongArray.Value.Span[candidateAddressIndex + 1];
 
                     if (candidate_ob_type != candidateAddressInProcess)
                         continue;
 
                     var candidate_tp_name =
-                        ReadNullTerminatedAsciiStringFromAddressUpTo255(memoryRegionContentAsULongArray[candidateAddressIndex + 3]);
+                        ReadNullTerminatedAsciiStringFromAddressUpTo255(
+                            memoryRegionContentAsULongArray.Value.Span[candidateAddressIndex + 3]);
 
                     if (candidate_tp_name != "type")
                         continue;
@@ -554,11 +550,11 @@ public class EveOnline64
                 if (memoryRegionContentAsULongArray == null)
                     continue;
 
-                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
+                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Value.Length - 4; ++candidateAddressIndex)
                 {
                     var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                    var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
+                    var candidate_ob_type = memoryRegionContentAsULongArray.Value.Span[candidateAddressIndex + 1];
 
                     {
                         //  This check is redundant with the following one. It just implements a specialization to optimize runtime expenses.
@@ -570,7 +566,8 @@ public class EveOnline64
                         continue;
 
                     var candidate_tp_name =
-                        ReadNullTerminatedAsciiStringFromAddressUpTo255(memoryRegionContentAsULongArray[candidateAddressIndex + 3]);
+                        ReadNullTerminatedAsciiStringFromAddressUpTo255(
+                            memoryRegionContentAsULongArray.Value.Span[candidateAddressIndex + 3]);
 
                     if (candidate_tp_name == null)
                         continue;
@@ -596,11 +593,11 @@ public class EveOnline64
                 if (memoryRegionContentAsULongArray == null)
                     continue;
 
-                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Length - 4; ++candidateAddressIndex)
+                for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Value.Length - 4; ++candidateAddressIndex)
                 {
                     var candidateAddressInProcess = memoryRegion.baseAddress + (ulong)candidateAddressIndex * 8;
 
-                    var candidate_ob_type = memoryRegionContentAsULongArray[candidateAddressIndex + 1];
+                    var candidate_ob_type = memoryRegionContentAsULongArray.Value.Span[candidateAddressIndex + 1];
 
                     {
                         //  This check is redundant with the following one. It just implements a specialization to reduce processing time.
@@ -688,19 +685,20 @@ public class EveOnline64
             if (!(pythonObjectMemory?.Length == 0x20))
                 return "Failed to read python object memory.";
 
-            var unicode_string_length = BitConverter.ToUInt64(pythonObjectMemory, 0x10);
+            var unicode_string_length = BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x10..]);
 
             if (0x1000 < unicode_string_length)
                 return "String too long.";
 
             var stringBytesCount = (int)unicode_string_length * 2;
 
-            var stringBytes = memoryReadingTools.memoryReader.ReadBytes(BitConverter.ToUInt64(pythonObjectMemory, 0x18), stringBytesCount);
+            var stringBytes = memoryReadingTools.memoryReader.ReadBytes(
+                BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x18..]), stringBytesCount);
 
             if (!(stringBytes?.Length == (int)stringBytesCount))
                 return "Failed to read string bytes.";
 
-            return System.Text.Encoding.Unicode.GetString(stringBytes, 0, stringBytes.Length);
+            return System.Text.Encoding.Unicode.GetString(stringBytes.Value.Span);
         }))
         .Add("int", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
         {
@@ -709,9 +707,9 @@ public class EveOnline64
             if (!(intObjectMemory?.Length == 0x18))
                 return "Failed to read int object memory.";
 
-            var value = BitConverter.ToInt64(intObjectMemory, 0x10);
+            var value = BitConverter.ToInt64(intObjectMemory.Value.Span[0x10..]);
 
-            var asInt32 = (Int32)value;
+            var asInt32 = (int)value;
 
             if (asInt32 == value)
                 return asInt32;
@@ -729,7 +727,7 @@ public class EveOnline64
             if (!(pythonObjectMemory?.Length == 0x18))
                 return "Failed to read python object memory.";
 
-            return BitConverter.ToInt64(pythonObjectMemory, 0x10) != 0;
+            return BitConverter.ToInt64(pythonObjectMemory.Value.Span[0x10..]) != 0;
         }))
         .Add("float", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
         {
@@ -742,7 +740,7 @@ public class EveOnline64
             if (!(pyColorObjectMemory?.Length == 0x18))
                 return "Failed to read pyColorObjectMemory.";
 
-            var dictionaryAddress = BitConverter.ToUInt64(pyColorObjectMemory, 0x10);
+            var dictionaryAddress = BitConverter.ToUInt64(pyColorObjectMemory.Value.Span[0x10..]);
 
             var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(dictionaryAddress);
 
@@ -787,10 +785,10 @@ public class EveOnline64
                 }
 
                 entriesOfInterest.Add(new UITreeNode.DictEntry
-                {
-                    key = entry.Key,
-                    value = memoryReadingTools.GetDictEntryValueRepresentation(entry.Value)
-                });
+                (
+                    key: entry.Key,
+                    value: memoryReadingTools.GetDictEntryValueRepresentation(entry.Value)
+                ));
             }
 
             var entriesOfInterestJObject =
@@ -801,9 +799,9 @@ public class EveOnline64
                         System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
             return new UITreeNode.Bunch
-            {
-                entriesOfInterest = entriesOfInterestJObject,
-            };
+            (
+                entriesOfInterest: entriesOfInterestJObject
+            );
         }));
 
     class MemoryReadingCache
@@ -847,7 +845,7 @@ public class EveOnline64
 
     static UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, MemoryReadingCache cache)
     {
-        cache = cache ?? new MemoryReadingCache();
+        cache ??= new MemoryReadingCache();
 
         var uiNodeObjectMemory = memoryReader.ReadBytes(nodeAddress, 0x30);
 
@@ -861,9 +859,9 @@ public class EveOnline64
             if (!(typeObjectMemory?.Length == 0x20))
                 return null;
 
-            var tp_name = BitConverter.ToUInt64(typeObjectMemory, 0x18);
+            var tp_name = BitConverter.ToUInt64(typeObjectMemory.Value.Span[0x18..]);
 
-            var nameBytes = memoryReader.ReadBytes(tp_name, 100);
+            var nameBytes = memoryReader.ReadBytes(tp_name, 100)?.ToArray();
 
             if (!(nameBytes?.Contains((byte)0) ?? false))
                 return null;
@@ -880,7 +878,7 @@ public class EveOnline64
                 if (!(objectMemory?.Length == 0x10))
                     return null;
 
-                return getPythonTypeNameFromPythonTypeObjectAddress(BitConverter.ToUInt64(objectMemory, 8));
+                return getPythonTypeNameFromPythonTypeObjectAddress(BitConverter.ToUInt64(objectMemory.Value.Span[8..]));
             });
         }
 
@@ -906,7 +904,7 @@ public class EveOnline64
             if (!(dictMemory?.Length == 0x30))
                 return null;
 
-            var dictMemoryAsLongArray = TransformMemoryContent.AsULongArray(dictMemory);
+            var dictMemoryAsLongMemory = TransformMemoryContent.AsULongMemory(dictMemory.Value);
 
             //  var dictTypeName = getPythonTypeNameFromObjectAddress(dictionaryAddress);
 
@@ -914,10 +912,10 @@ public class EveOnline64
 
             //  https://github.com/python/cpython/blob/362ede2232107fc54d406bb9de7711ff7574e1d4/Include/dictobject.h#L60-L89
 
-            var ma_fill = dictMemoryAsLongArray[2];
-            var ma_used = dictMemoryAsLongArray[3];
-            var ma_mask = dictMemoryAsLongArray[4];
-            var ma_table = dictMemoryAsLongArray[5];
+            var ma_fill = dictMemoryAsLongMemory.Span[2];
+            var ma_used = dictMemoryAsLongMemory.Span[3];
+            var ma_mask = dictMemoryAsLongMemory.Span[4];
+            var ma_table = dictMemoryAsLongMemory.Span[5];
 
             //  Console.WriteLine($"Details for dictionary 0x{dictionaryAddress:X}: type_name = '{dictTypeName}' ma_mask = 0x{ma_mask:X}, ma_table = 0x{ma_table:X}.");
 
@@ -938,15 +936,15 @@ public class EveOnline64
             if (!(slotsMemory?.Length == slotsMemorySize))
                 return null;
 
-            var slotsMemoryAsLongArray = TransformMemoryContent.AsULongArray(slotsMemory);
+            var slotsMemoryAsLongMemory = TransformMemoryContent.AsULongMemory(slotsMemory.Value);
 
             var entries = new List<PyDictEntry>();
 
             for (var slotIndex = 0; slotIndex < numberOfSlots; ++slotIndex)
             {
-                var hash = slotsMemoryAsLongArray[slotIndex * 3];
-                var key = slotsMemoryAsLongArray[slotIndex * 3 + 1];
-                var value = slotsMemoryAsLongArray[slotIndex * 3 + 2];
+                var hash = slotsMemoryAsLongMemory.Span[slotIndex * 3];
+                var key = slotsMemoryAsLongMemory.Span[slotIndex * 3 + 1];
+                var value = slotsMemoryAsLongMemory.Span[slotIndex * 3 + 2];
 
                 if (key == 0 || value == 0)
                     continue;
@@ -982,7 +980,7 @@ public class EveOnline64
         if (!(0 < pythonObjectTypeName?.Length))
             return null;
 
-        var dictAddress = BitConverter.ToUInt64(uiNodeObjectMemory, 0x10);
+        var dictAddress = BitConverter.ToUInt64(uiNodeObjectMemory.Value.Span[0x10..]);
 
         var dictionaryEntries = ReadActiveDictionaryEntriesFromDictionaryAddress(dictAddress);
 
@@ -997,15 +995,13 @@ public class EveOnline64
         {
             return cache.GetDictEntryValueRepresentation(valueOjectAddress, valueOjectAddress =>
             {
-                var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
-                {
-                    address = valueOjectAddress,
-                    pythonObjectTypeName = null
-                };
-
                 var value_pythonTypeName = getPythonTypeNameFromPythonObjectAddress(valueOjectAddress);
 
-                genericRepresentation.pythonObjectTypeName = value_pythonTypeName;
+                var genericRepresentation = new UITreeNode.DictEntryValueGenericRepresentation
+                (
+                    address: valueOjectAddress,
+                    pythonObjectTypeName: value_pythonTypeName
+                );
 
                 if (value_pythonTypeName == null)
                     return genericRepresentation;
@@ -1039,10 +1035,10 @@ public class EveOnline64
             }
 
             dictEntriesOfInterest.Add(new UITreeNode.DictEntry
-            {
-                key = keyString,
-                value = GetDictEntryValueRepresentation(dictionaryEntry.value)
-            });
+            (
+                key: keyString,
+                value: GetDictEntryValueRepresentation(dictionaryEntry.value)
+            ));
         }
 
         {
@@ -1075,7 +1071,7 @@ public class EveOnline64
             if (!(pyChildrenListMemory?.Length == 0x18))
                 return null;
 
-            var pyChildrenDictAddress = BitConverter.ToUInt64(pyChildrenListMemory, 0x10);
+            var pyChildrenDictAddress = BitConverter.ToUInt64(pyChildrenListMemory.Value.Span[0x10..]);
 
             var pyChildrenDictEntries = ReadActiveDictionaryEntriesFromDictionaryAddress(pyChildrenDictAddress);
 
@@ -1108,26 +1104,27 @@ public class EveOnline64
 
             //  https://github.com/python/cpython/blob/362ede2232107fc54d406bb9de7711ff7574e1d4/Include/listobject.h
 
-            var list_ob_size = BitConverter.ToUInt64(pythonListObjectMemory, 0x10);
+            var list_ob_size = BitConverter.ToUInt64(pythonListObjectMemory.Value.Span[0x10..]);
 
             if (4000 < list_ob_size)
                 return null;
 
             var listEntriesSize = (int)list_ob_size * 8;
 
-            var list_ob_item = BitConverter.ToUInt64(pythonListObjectMemory, 0x18);
+            var list_ob_item = BitConverter.ToUInt64(pythonListObjectMemory.Value.Span[0x18..]);
 
             var listEntriesMemory = memoryReader.ReadBytes(list_ob_item, listEntriesSize);
 
             if (!(listEntriesMemory?.Length == listEntriesSize))
                 return null;
 
-            var listEntries = TransformMemoryContent.AsULongArray(listEntriesMemory);
+            var listEntries = TransformMemoryContent.AsULongMemory(listEntriesMemory.Value);
 
             //  Console.WriteLine($"Found {listEntries.Length} children entries for 0x{nodeAddress:X}: " + String.Join(", ", listEntries.Select(childAddress => $"0x{childAddress:X}").ToArray()));
 
             return
                  listEntries
+                 .ToArray()
                  .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache))
                  .ToArray();
         }
@@ -1145,13 +1142,13 @@ public class EveOnline64
                         System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
 
         return new UITreeNode
-        {
-            pythonObjectAddress = nodeAddress,
-            pythonObjectTypeName = pythonObjectTypeName,
-            dictEntriesOfInterest = dictEntriesOfInterestJObject,
-            otherDictEntriesKeys = otherDictEntriesKeys.ToArray(),
-            children = ReadChildren()?.Where(child => child != null)?.ToArray(),
-        };
+        (
+            pythonObjectAddress: nodeAddress,
+            pythonObjectTypeName: pythonObjectTypeName,
+            dictEntriesOfInterest: dictEntriesOfInterestJObject,
+            otherDictEntriesKeys: otherDictEntriesKeys.ToArray(),
+            children: ReadChildren()?.Where(child => child != null)?.ToArray()
+        );
     }
 
     static string ReadPythonStringValue(ulong stringObjectAddress, IMemoryReader memoryReader, int maxLength)
@@ -1163,7 +1160,7 @@ public class EveOnline64
         if (!(stringObjectMemory?.Length == 0x20))
             return "Failed to read string object memory.";
 
-        var stringObject_ob_size = BitConverter.ToUInt64(stringObjectMemory, 0x10);
+        var stringObject_ob_size = BitConverter.ToUInt64(stringObjectMemory.Value.Span[0x10..]);
 
         if (0 < maxLength && maxLength < (int)stringObject_ob_size || int.MaxValue < stringObject_ob_size)
             return "String too long.";
@@ -1173,7 +1170,7 @@ public class EveOnline64
         if (!(stringBytes?.Length == (int)stringObject_ob_size))
             return "Failed to read string bytes.";
 
-        return System.Text.Encoding.ASCII.GetString(stringBytes, 0, stringBytes.Length);
+        return System.Text.Encoding.ASCII.GetString(stringBytes.Value.Span);
     }
 
     static double? ReadPythonFloatObjectValue(ulong floatObjectAddress, IMemoryReader memoryReader)
@@ -1185,7 +1182,7 @@ public class EveOnline64
         if (!(pythonObjectMemory?.Length == 0x20))
             return null;
 
-        return BitConverter.ToDouble(pythonObjectMemory, 0x10);
+        return BitConverter.ToDouble(pythonObjectMemory.Value.Span[0x10..]);
     }
 
     static public string SerializeMemoryReadingNodeToJson(object obj) =>
@@ -1206,14 +1203,14 @@ public class EveOnline64
 
 public interface IMemoryReader
 {
-    byte[] ReadBytes(ulong startAddress, int length);
+    ReadOnlyMemory<byte>? ReadBytes(ulong startAddress, int length);
 }
 
 public class MemoryReaderFromProcessSample : IMemoryReader
 {
-    readonly IImmutableList<(ulong baseAddress, byte[] content)> memoryRegionsOrderedByAddress;
+    readonly IImmutableList<SampleMemoryRegion> memoryRegionsOrderedByAddress;
 
-    public MemoryReaderFromProcessSample(IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions)
+    public MemoryReaderFromProcessSample(IImmutableList<SampleMemoryRegion> memoryRegions)
     {
         memoryRegionsOrderedByAddress =
             memoryRegions
@@ -1221,29 +1218,34 @@ public class MemoryReaderFromProcessSample : IMemoryReader
             .ToImmutableList();
     }
 
-    public byte[] ReadBytes(ulong startAddress, int length)
+    public ReadOnlyMemory<byte>? ReadBytes(ulong startAddress, int length)
     {
         var memoryRegion =
             memoryRegionsOrderedByAddress
-            .Where(c => c.baseAddress <= startAddress)
-            .OrderBy(c => c.baseAddress)
+            .Where(region => region.baseAddress <= startAddress)
+            .OrderBy(region => region.baseAddress)
             .LastOrDefault();
 
-        if (memoryRegion.content == null)
+        if (memoryRegion?.content == null)
+            return null;
+
+        var start = startAddress - memoryRegion.baseAddress;
+
+        if ((int)start < 0)
+            return null;
+
+        if (memoryRegion.content.Value.Length <= (int)start)
             return null;
 
         return
-            memoryRegion.content
-            .Skip((int)(startAddress - memoryRegion.baseAddress))
-            .Take(length)
-            .ToArray();
+            memoryRegion?.content?.Slice((int)start, Math.Min(length, memoryRegion.content.Value.Length - (int)start));
     }
 }
 
 
 public class MemoryReaderFromLiveProcess : IMemoryReader, IDisposable
 {
-    IntPtr processHandle;
+    readonly IntPtr processHandle;
 
     public MemoryReaderFromLiveProcess(int processId)
     {
@@ -1257,7 +1259,7 @@ public class MemoryReaderFromLiveProcess : IMemoryReader, IDisposable
             WinApi.CloseHandle(processHandle);
     }
 
-    public byte[] ReadBytes(ulong startAddress, int length)
+    public ReadOnlyMemory<byte>? ReadBytes(ulong startAddress, int length)
     {
         var buffer = new byte[length];
 
@@ -1277,7 +1279,7 @@ public class MemoryReaderFromLiveProcess : IMemoryReader, IDisposable
         if (numberOfBytesRead == (ulong)buffer.LongLength)
             return buffer;
 
-        return buffer.AsSpan(0, (int)numberOfBytesRead).ToArray();
+        return buffer.AsMemory(0, (int)numberOfBytesRead);
     }
 }
 
@@ -1420,35 +1422,23 @@ public class PyObject
     public const int Offset_ob_type = 8;
 }
 
-public class UITreeNode
+public record UITreeNode(
+    ulong pythonObjectAddress,
+    string pythonObjectTypeName,
+    System.Text.Json.Nodes.JsonObject dictEntriesOfInterest,
+    string[] otherDictEntriesKeys,
+    IReadOnlyList<UITreeNode> children)
 {
-    public ulong pythonObjectAddress { set; get; }
+    public record DictEntryValueGenericRepresentation(
+        ulong address,
+        string pythonObjectTypeName);
 
-    public string pythonObjectTypeName { set; get; }
+    public record DictEntry(
+        string key,
+        object value);
 
-    public System.Text.Json.Nodes.JsonObject dictEntriesOfInterest { set; get; }
-
-    public string[] otherDictEntriesKeys { set; get; }
-
-    public UITreeNode[] children { set; get; }
-
-    public class DictEntryValueGenericRepresentation
-    {
-        public ulong address { set; get; }
-
-        public string pythonObjectTypeName { set; get; }
-    }
-
-    public class DictEntry
-    {
-        public string key { set; get; }
-        public object value { set; get; }
-    }
-
-    public class Bunch
-    {
-        public System.Text.Json.Nodes.JsonObject entriesOfInterest { set; get; }
-    }
+    public record Bunch(
+        System.Text.Json.Nodes.JsonObject entriesOfInterest);
 
     public IEnumerable<UITreeNode> EnumerateSelfAndDescendants() =>
         new[] { this }
@@ -1457,30 +1447,26 @@ public class UITreeNode
     public UITreeNode WithOtherDictEntriesRemoved()
     {
         return new UITreeNode
-        {
-            pythonObjectAddress = pythonObjectAddress,
-            pythonObjectTypeName = pythonObjectTypeName,
-            dictEntriesOfInterest = dictEntriesOfInterest,
-            otherDictEntriesKeys = null,
-            children = children?.Select(child => child?.WithOtherDictEntriesRemoved()).ToArray(),
-        };
+        (
+            pythonObjectAddress: pythonObjectAddress,
+            pythonObjectTypeName: pythonObjectTypeName,
+            dictEntriesOfInterest: dictEntriesOfInterest,
+            otherDictEntriesKeys: null,
+            children: children?.Select(child => child?.WithOtherDictEntriesRemoved()).ToArray()
+        );
     }
 }
 
 static class TransformMemoryContent
 {
-    static public ulong[] AsULongArray(byte[] byteArray)
-    {
-        var ulongArray = new ulong[byteArray.Length / 8];
-        Buffer.BlockCopy(byteArray, 0, ulongArray, 0, ulongArray.Length * 8);
-        return ulongArray;
-    }
+    static public ReadOnlyMemory<ulong> AsULongMemory(ReadOnlyMemory<byte> byteMemory) =>
+        new(MemoryMarshal.Cast<byte, ulong>(byteMemory.Span).ToArray());
 }
 
 class ProcessSample
 {
     static public byte[] ZipArchiveFromProcessSample(
-        IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions,
+        IImmutableList<SampleMemoryRegion> memoryRegions,
         IImmutableList<string> logEntries,
         byte[] beginMainWindowClientAreaScreenshotBmp,
         byte[] endMainWindowClientAreaScreenshotBmp)
@@ -1501,14 +1487,14 @@ class ProcessSample
         var zipArchiveEntries =
             memoryRegions.ToImmutableDictionary(
                 region => (IImmutableList<string>)(new[] { "Process", "Memory", $"0x{region.baseAddress:X}" }.ToImmutableList()),
-                region => region.content)
+                region => region.content.Value.ToArray())
             .Add(new[] { "copy-memory-log" }.ToImmutableList(), System.Text.Encoding.UTF8.GetBytes(String.Join("\n", logEntries)))
             .AddRange(screenshotEntries);
 
         return Pine.ZipArchive.ZipArchiveFromEntries(zipArchiveEntries);
     }
 
-    static public (IImmutableList<(ulong baseAddress, byte[] content)> memoryRegions, IImmutableList<string> copyMemoryLog) ProcessSampleFromZipArchive(byte[] sampleFile)
+    static public (IImmutableList<SampleMemoryRegion> memoryRegions, IImmutableList<string> copyMemoryLog) ProcessSampleFromZipArchive(byte[] sampleFile)
     {
         var files =
             Pine.ZipArchive.EntriesFromZipArchive(sampleFile);
@@ -1535,12 +1521,20 @@ class ProcessSample
 
                 var baseAddress = ulong.Parse(baseAddressBase16, System.Globalization.NumberStyles.HexNumber);
 
-                return (baseAddress, content: fileSubpathAndContent.fileContent);
+                return new SampleMemoryRegion(
+                    baseAddress,
+                    length: (ulong)fileSubpathAndContent.fileContent.LongLength,
+                    content: fileSubpathAndContent.fileContent);
             }).ToImmutableList();
 
         return (memoryRegions, null);
     }
 }
+
+public record SampleMemoryRegion(
+    ulong baseAddress,
+    ulong length,
+    ReadOnlyMemory<byte>? content);
 
 public class Int64JsonConverter : System.Text.Json.Serialization.JsonConverter<long>
 {
