@@ -660,7 +660,7 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
 
                                 searchStillPending =
                                     stateBefore.lastPendingRequestToReadFromGameClientTimeMilli
-                                        |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 10000)
+                                        |> Maybe.map (\pendingReadingTimeMilli -> timeMilli < pendingReadingTimeMilli + 30000)
                                         |> Maybe.withDefault False
 
                                 ( state, nextCmd ) =
