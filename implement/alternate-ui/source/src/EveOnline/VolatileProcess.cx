@@ -301,11 +301,9 @@ Response request(Request request)
 
             if(uiTree != null)
             {
-                memoryReadingSerialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-                    uiTree.WithOtherDictEntriesRemoved(),
-                    //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                    new read_memory_64_bit.IntegersToStringJsonConverter()
-                    );
+                memoryReadingSerialRepresentationJson =
+                read_memory_64_bit.EveOnline64.SerializeMemoryReadingNodeToJson(
+                    uiTree.WithOtherDictEntriesRemoved());
             }
         }
 
