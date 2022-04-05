@@ -597,8 +597,8 @@ getDisplayRegionFromDictEntries uiNode =
         fixedNumberFromJsonValue =
             Json.Decode.decodeValue
                 (Json.Decode.oneOf
-                    [ jsonDecodeIntFromString
-                    , Json.Decode.field "int_low32" jsonDecodeIntFromString
+                    [ jsonDecodeIntFromIntOrString
+                    , Json.Decode.field "int_low32" jsonDecodeIntFromIntOrString
                     ]
                 )
 
@@ -2798,10 +2798,10 @@ getColorPercentFromDictEntries =
 jsonDecodeColorPercent : Json.Decode.Decoder ColorComponents
 jsonDecodeColorPercent =
     Json.Decode.map4 ColorComponents
-        (Json.Decode.field "aPercent" jsonDecodeIntFromString)
-        (Json.Decode.field "rPercent" jsonDecodeIntFromString)
-        (Json.Decode.field "gPercent" jsonDecodeIntFromString)
-        (Json.Decode.field "bPercent" jsonDecodeIntFromString)
+        (Json.Decode.field "aPercent" jsonDecodeIntFromIntOrString)
+        (Json.Decode.field "rPercent" jsonDecodeIntFromIntOrString)
+        (Json.Decode.field "gPercent" jsonDecodeIntFromIntOrString)
+        (Json.Decode.field "bPercent" jsonDecodeIntFromIntOrString)
 
 
 getRotationFloatFromDictEntries : EveOnline.MemoryReading.UITreeNode -> Maybe Float
@@ -2811,18 +2811,21 @@ getRotationFloatFromDictEntries =
         >> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
 
 
-jsonDecodeIntFromString : Json.Decode.Decoder Int
-jsonDecodeIntFromString =
-    Json.Decode.string
-        |> Json.Decode.andThen
-            (\asString ->
-                case asString |> String.toInt of
-                    Just asInt ->
-                        Json.Decode.succeed asInt
+jsonDecodeIntFromIntOrString : Json.Decode.Decoder Int
+jsonDecodeIntFromIntOrString =
+    Json.Decode.oneOf
+        [ Json.Decode.int
+        , Json.Decode.string
+            |> Json.Decode.andThen
+                (\asString ->
+                    case asString |> String.toInt of
+                        Just asInt ->
+                            Json.Decode.succeed asInt
 
-                    Nothing ->
-                        Json.Decode.fail ("Failed to parse integer from string '" ++ asString ++ "'")
-            )
+                        Nothing ->
+                            Json.Decode.fail ("Failed to parse integer from string '" ++ asString ++ "'")
+                )
+        ]
 
 
 getHorizontalOffsetFromParentAndWidth : EveOnline.MemoryReading.UITreeNode -> Maybe { offset : Int, width : Int }
