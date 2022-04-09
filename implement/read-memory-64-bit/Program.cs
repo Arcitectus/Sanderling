@@ -182,7 +182,15 @@ class Program
                         uiTreePreparedForFile = uiTreePreparedForFile.WithOtherDictEntriesRemoved();
                     }
 
+                    var serializeStopwatch = System.Diagnostics.Stopwatch.StartNew();
+
                     var uiTreeAsJson = EveOnline64.SerializeMemoryReadingNodeToJson(uiTreePreparedForFile);
+
+                    serializeStopwatch.Stop();
+
+                    Console.WriteLine(
+                        "Serialized largest tree to " + uiTreeAsJson.Length + " characters of JSON in " +
+                        serializeStopwatch.ElapsedMilliseconds + " milliseconds.");
 
                     var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
 
