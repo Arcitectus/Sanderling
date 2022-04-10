@@ -9,7 +9,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-04-04";
+    static string AppVersionId => "2022-04-09";
 
     static int Main(string[] args)
     {
@@ -77,16 +77,6 @@ class Program
 
                 (IImmutableList<ulong>, IMemoryReader) GetRootAddressesAndMemoryReader()
                 {
-                    if (0 < rootAddressArgument?.Length)
-                    {
-                        if (processId.HasValue)
-                        {
-                            return (ImmutableList.Create(ParseULong(rootAddressArgument)), new MemoryReaderFromLiveProcess(processId.Value));
-                        }
-
-                        throw new NotSupportedException("Not supported combination: '--root-address' without '--pid'.");
-                    }
-
                     byte[] processSampleFile = null;
 
                     if (processId.HasValue)
@@ -112,9 +102,14 @@ class Program
 
                     var processSampleUnpacked = ProcessSample.ProcessSampleFromZipArchive(processSampleFile);
 
-                    var searchUIRootsStopwatch = System.Diagnostics.Stopwatch.StartNew();
-
                     var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
+
+                    if (0 < rootAddressArgument?.Length)
+                    {
+                        return (ImmutableList.Create(ParseULong(rootAddressArgument)), memoryReader);
+                    }
+
+                    var searchUIRootsStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
                     var memoryRegions =
                         processSampleUnpacked.memoryRegions
@@ -135,10 +130,10 @@ class Program
                 var (uiRootCandidatesAddresses, memoryReader) = GetRootAddressesAndMemoryReader();
 
                 IImmutableList<UITreeNode> ReadUITrees() =>
-                        uiRootCandidatesAddresses
-                        .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
-                        .Where(uiTree => uiTree != null)
-                        .ToImmutableList();
+                    uiRootCandidatesAddresses
+                    .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
+                    .Where(uiTree => uiTree != null)
+                    .ToImmutableList();
 
                 if (warmupFirstArgument)
                 {
