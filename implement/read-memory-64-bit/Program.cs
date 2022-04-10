@@ -9,7 +9,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-04-09";
+    static string AppVersionId => "2022-04-10";
 
     static int Main(string[] args)
     {
@@ -695,7 +695,7 @@ public class EveOnline64
             var stringBytes = memoryReadingTools.memoryReader.ReadBytes(
                 BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x18..]), stringBytesCount);
 
-            if (!(stringBytes?.Length == (int)stringBytesCount))
+            if (!(stringBytes?.Length == stringBytesCount))
                 return "Failed to read string bytes.";
 
             return System.Text.Encoding.Unicode.GetString(stringBytes.Value.Span);
@@ -1279,7 +1279,7 @@ public class MemoryReaderFromLiveProcess : IMemoryReader, IDisposable
         if (numberOfBytesRead == (ulong)buffer.LongLength)
             return buffer;
 
-        return buffer.AsMemory(0, (int)numberOfBytesRead);
+        return buffer;
     }
 }
 
@@ -1460,7 +1460,7 @@ public record UITreeNode(
 static class TransformMemoryContent
 {
     static public ReadOnlyMemory<ulong> AsULongMemory(ReadOnlyMemory<byte> byteMemory) =>
-        new(MemoryMarshal.Cast<byte, ulong>(byteMemory.Span).ToArray());
+        MemoryMarshal.Cast<byte, ulong>(byteMemory.Span).ToArray();
 }
 
 class ProcessSample
