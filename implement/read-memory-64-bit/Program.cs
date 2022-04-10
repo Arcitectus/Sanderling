@@ -75,26 +75,8 @@ class Program
                     :
                     null;
 
-                (IImmutableList<ulong>, IMemoryReader) GetRootAddressesAndMemoryReader()
+                (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddressesFromProcessSampleFile(byte[] processSampleFile)
                 {
-                    byte[] processSampleFile = null;
-
-                    if (processId.HasValue)
-                    {
-                        processSampleFile = GetProcessSampleFileFromProcessId(processId.Value);
-                    }
-                    else
-                    {
-                        if (0 < sourceFileArgument?.Length)
-                        {
-                            processSampleFile = System.IO.File.ReadAllBytes(sourceFileArgument);
-                        }
-                        else
-                        {
-                            throw new Exception("Where should I read from?");
-                        }
-                    }
-
                     var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
                         Pine.CommonConversion.HashSHA256(processSampleFile));
 
@@ -103,11 +85,6 @@ class Program
                     var processSampleUnpacked = ProcessSample.ProcessSampleFromZipArchive(processSampleFile);
 
                     var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
-
-                    if (0 < rootAddressArgument?.Length)
-                    {
-                        return (ImmutableList.Create(ParseULong(rootAddressArgument)), memoryReader);
-                    }
 
                     var searchUIRootsStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -124,10 +101,30 @@ class Program
 
                     Console.WriteLine($"Found {uiRootCandidatesAddresses.Count} candidates for UIRoot in {(int)searchUIRootsStopwatch.Elapsed.TotalSeconds} seconds: " + string.Join(",", uiRootCandidatesAddresses.Select(address => $"0x{address:X}")));
 
-                    return (uiRootCandidatesAddresses, memoryReader);
+                    return (memoryReader, uiRootCandidatesAddresses);
                 }
 
-                var (uiRootCandidatesAddresses, memoryReader) = GetRootAddressesAndMemoryReader();
+                (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddresses()
+                {
+                    if (processId.HasValue)
+                    {
+                        if (0 < rootAddressArgument?.Length)
+                        {
+                            return (new MemoryReaderFromLiveProcess(processId.Value), ImmutableList.Create(ParseULong(rootAddressArgument)));
+                        }
+
+                        return GetMemoryReaderAndRootAddressesFromProcessSampleFile(GetProcessSampleFileFromProcessId(processId.Value));
+                    }
+
+                    if (!(0 < sourceFileArgument?.Length))
+                    {
+                        throw new Exception("Where should I read from?");
+                    }
+
+                    return GetMemoryReaderAndRootAddressesFromProcessSampleFile(System.IO.File.ReadAllBytes(sourceFileArgument));
+                }
+
+                var (memoryReader, uiRootCandidatesAddresses) = GetMemoryReaderAndRootAddresses();
 
                 IImmutableList<UITreeNode> ReadUITrees() =>
                     uiRootCandidatesAddresses
