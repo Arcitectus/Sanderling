@@ -678,135 +678,150 @@ public class EveOnline64
 
     static readonly IImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>> specializedReadingFromPythonType =
         ImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>>.Empty
-        .Add("str", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
+        .Add("str", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_str))
+        .Add("unicode", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_unicode))
+        .Add("int", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_int))
+        .Add("bool", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_bool))
+        .Add("float", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_float))
+        .Add("PyColor", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_PyColor))
+        .Add("Bunch", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_Bunch));
+
+    static object ReadingFromPythonType_str(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        return ReadPythonStringValue(address, memoryReadingTools.memoryReader, 0x1000);
+    }
+
+    static object ReadingFromPythonType_unicode(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var pythonObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x20);
+
+        if (!(pythonObjectMemory?.Length == 0x20))
+            return "Failed to read python object memory.";
+
+        var unicode_string_length = BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x10..]);
+
+        if (0x1000 < unicode_string_length)
+            return "String too long.";
+
+        var stringBytesCount = (int)unicode_string_length * 2;
+
+        var stringBytes = memoryReadingTools.memoryReader.ReadBytes(
+            BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x18..]), stringBytesCount);
+
+        if (!(stringBytes?.Length == stringBytesCount))
+            return "Failed to read string bytes.";
+
+        return System.Text.Encoding.Unicode.GetString(stringBytes.Value.Span);
+    }
+
+    static object ReadingFromPythonType_int(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var intObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
+
+        if (!(intObjectMemory?.Length == 0x18))
+            return "Failed to read int object memory.";
+
+        var value = BitConverter.ToInt64(intObjectMemory.Value.Span[0x10..]);
+
+        var asInt32 = (int)value;
+
+        if (asInt32 == value)
+            return asInt32;
+
+        return new
         {
-            return ReadPythonStringValue(address, memoryReadingTools.memoryReader, 0x1000);
-        }))
-        .Add("unicode", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
+            @int = value,
+            int_low32 = asInt32,
+        };
+    }
+
+    static object ReadingFromPythonType_bool(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var pythonObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
+
+        if (!(pythonObjectMemory?.Length == 0x18))
+            return "Failed to read python object memory.";
+
+        return BitConverter.ToInt64(pythonObjectMemory.Value.Span[0x10..]) != 0;
+    }
+
+    static object ReadingFromPythonType_float(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        return ReadPythonFloatObjectValue(address, memoryReadingTools.memoryReader);
+    }
+
+    static object ReadingFromPythonType_PyColor(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var pyColorObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
+
+        if (!(pyColorObjectMemory?.Length == 0x18))
+            return "Failed to read pyColorObjectMemory.";
+
+        var dictionaryAddress = BitConverter.ToUInt64(pyColorObjectMemory.Value.Span[0x10..]);
+
+        var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(dictionaryAddress);
+
+        if (dictionaryEntries == null)
+            return "Failed to read dictionary entries.";
+
+        int? readValuePercentFromDictEntryKey(string dictEntryKey)
         {
-            var pythonObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x20);
+            if (!dictionaryEntries.TryGetValue(dictEntryKey, out var valueAddress))
+                return null;
 
-            if (!(pythonObjectMemory?.Length == 0x20))
-                return "Failed to read python object memory.";
+            var valueAsFloat = ReadPythonFloatObjectValue(valueAddress, memoryReadingTools.memoryReader);
 
-            var unicode_string_length = BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x10..]);
+            if (!valueAsFloat.HasValue)
+                return null;
 
-            if (0x1000 < unicode_string_length)
-                return "String too long.";
+            return (int)(valueAsFloat.Value * 100);
+        }
 
-            var stringBytesCount = (int)unicode_string_length * 2;
-
-            var stringBytes = memoryReadingTools.memoryReader.ReadBytes(
-                BitConverter.ToUInt64(pythonObjectMemory.Value.Span[0x18..]), stringBytesCount);
-
-            if (!(stringBytes?.Length == stringBytesCount))
-                return "Failed to read string bytes.";
-
-            return System.Text.Encoding.Unicode.GetString(stringBytes.Value.Span);
-        }))
-        .Add("int", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
+        return new
         {
-            var intObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
+            aPercent = readValuePercentFromDictEntryKey("_a"),
+            rPercent = readValuePercentFromDictEntryKey("_r"),
+            gPercent = readValuePercentFromDictEntryKey("_g"),
+            bPercent = readValuePercentFromDictEntryKey("_b"),
+        };
+    }
 
-            if (!(intObjectMemory?.Length == 0x18))
-                return "Failed to read int object memory.";
+    static object ReadingFromPythonType_Bunch(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(address);
 
-            var value = BitConverter.ToInt64(intObjectMemory.Value.Span[0x10..]);
+        if (dictionaryEntries == null)
+            return "Failed to read dictionary entries.";
 
-            var asInt32 = (int)value;
+        var entriesOfInterest = new List<UITreeNode.DictEntry>();
 
-            if (asInt32 == value)
-                return asInt32;
-
-            return new
+        foreach (var entry in dictionaryEntries)
+        {
+            if (!DictEntriesOfInterestKeys.Contains(entry.Key))
             {
-                @int = value,
-                int_low32 = asInt32,
-            };
-        }))
-        .Add("bool", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
-        {
-            var pythonObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
-
-            if (!(pythonObjectMemory?.Length == 0x18))
-                return "Failed to read python object memory.";
-
-            return BitConverter.ToInt64(pythonObjectMemory.Value.Span[0x10..]) != 0;
-        }))
-        .Add("float", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
-        {
-            return ReadPythonFloatObjectValue(address, memoryReadingTools.memoryReader);
-        }))
-        .Add("PyColor", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
-        {
-            var pyColorObjectMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x18);
-
-            if (!(pyColorObjectMemory?.Length == 0x18))
-                return "Failed to read pyColorObjectMemory.";
-
-            var dictionaryAddress = BitConverter.ToUInt64(pyColorObjectMemory.Value.Span[0x10..]);
-
-            var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(dictionaryAddress);
-
-            if (dictionaryEntries == null)
-                return "Failed to read dictionary entries.";
-
-            int? readValuePercentFromDictEntryKey(string dictEntryKey)
-            {
-                if (!dictionaryEntries.TryGetValue(dictEntryKey, out var valueAddress))
-                    return null;
-
-                var valueAsFloat = ReadPythonFloatObjectValue(valueAddress, memoryReadingTools.memoryReader);
-
-                if (!valueAsFloat.HasValue)
-                    return null;
-
-                return (int)(valueAsFloat.Value * 100);
+                continue;
             }
 
-            return new
-            {
-                aPercent = readValuePercentFromDictEntryKey("_a"),
-                rPercent = readValuePercentFromDictEntryKey("_r"),
-                gPercent = readValuePercentFromDictEntryKey("_g"),
-                bPercent = readValuePercentFromDictEntryKey("_b"),
-            };
-        }))
-        .Add("Bunch", new Func<ulong, LocalMemoryReadingTools, object>((address, memoryReadingTools) =>
-        {
-            var dictionaryEntries = memoryReadingTools.getDictionaryEntriesWithStringKeys(address);
-
-            if (dictionaryEntries == null)
-                return "Failed to read dictionary entries.";
-
-            var entriesOfInterest = new List<UITreeNode.DictEntry>();
-
-            foreach (var entry in dictionaryEntries)
-            {
-                if (!DictEntriesOfInterestKeys.Contains(entry.Key))
-                {
-                    continue;
-                }
-
-                entriesOfInterest.Add(new UITreeNode.DictEntry
-                (
-                    key: entry.Key,
-                    value: memoryReadingTools.GetDictEntryValueRepresentation(entry.Value)
-                ));
-            }
-
-            var entriesOfInterestJObject =
-                new System.Text.Json.Nodes.JsonObject(
-                    entriesOfInterest.Select(dictEntry =>
-                    new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
-                        (dictEntry.key,
-                        System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
-
-            return new UITreeNode.Bunch
+            entriesOfInterest.Add(new UITreeNode.DictEntry
             (
-                entriesOfInterest: entriesOfInterestJObject
-            );
-        }));
+                key: entry.Key,
+                value: memoryReadingTools.GetDictEntryValueRepresentation(entry.Value)
+            ));
+        }
+
+        var entriesOfInterestJObject =
+            new System.Text.Json.Nodes.JsonObject(
+                entriesOfInterest.Select(dictEntry =>
+                new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
+                    (dictEntry.key,
+                    System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
+
+        return new UITreeNode.Bunch
+        (
+            entriesOfInterest: entriesOfInterestJObject
+        );
+    }
+
 
     class MemoryReadingCache
     {
