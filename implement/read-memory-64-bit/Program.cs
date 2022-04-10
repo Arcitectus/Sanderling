@@ -1153,18 +1153,16 @@ public class EveOnline64
             .Where(entry => !((entry.value as UITreeNode.DictEntryValueGenericRepresentation)?.pythonObjectTypeName == "NoneType"))
             .ToArray();
 
-        var dictEntriesOfInterestJObject =
-            new System.Text.Json.Nodes.JsonObject(
-                dictEntriesOfInterestLessNoneType.Select(dictEntry =>
-                    new KeyValuePair<string, System.Text.Json.Nodes.JsonNode?>
-                        (dictEntry.key,
-                        System.Text.Json.Nodes.JsonNode.Parse(SerializeMemoryReadingNodeToJson(dictEntry.value)))));
+        var dictEntriesOfInterestDict =
+            dictEntriesOfInterestLessNoneType.Aggregate(
+                seed: ImmutableDictionary<string, object>.Empty,
+                func: (dict, entry) => dict.SetItem(entry.key, entry.value));
 
         return new UITreeNode
         (
             pythonObjectAddress: nodeAddress,
             pythonObjectTypeName: pythonObjectTypeName,
-            dictEntriesOfInterest: dictEntriesOfInterestJObject,
+            dictEntriesOfInterest: dictEntriesOfInterestDict,
             otherDictEntriesKeys: otherDictEntriesKeys.ToArray(),
             children: ReadChildren()?.Where(child => child != null)?.ToArray()
         );
@@ -1444,7 +1442,7 @@ public class PyObject
 public record UITreeNode(
     ulong pythonObjectAddress,
     string pythonObjectTypeName,
-    System.Text.Json.Nodes.JsonObject dictEntriesOfInterest,
+    IReadOnlyDictionary<string, object> dictEntriesOfInterest,
     string[] otherDictEntriesKeys,
     IReadOnlyList<UITreeNode> children)
 {
