@@ -5,7 +5,9 @@
 #r "sha256:831EF0489D9FA85C34C95F0670CC6393D1AD9548EE708E223C1AD87B51F7C7B3"
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
-#r "sha256:1CE5129364865C5D50DC4ED71E330D3FF4F04054541E461ABDFE543D254307E2"
+
+// https://github.com/Arcitectus/Sanderling/releases/download/v2022-04-10/read-memory-64-bit-separate-assemblies-b28dcfe60e82e89f86b653aec37277358291c1e9-win10-x64.zip
+#r "sha256:4c5426c5a70c9e01382884f1e860bd0eb24e46c3705689a7d6c3ab94df56c142"
 
 #r "mscorlib"
 #r "netstandard"
@@ -299,11 +301,9 @@ Response request(Request request)
 
             if(uiTree != null)
             {
-                memoryReadingSerialRepresentationJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-                    uiTree.WithOtherDictEntriesRemoved(),
-                    //  Support popular JSON parsers: Wrap large integers in a string to work around limitations there. (https://discourse.elm-lang.org/t/how-to-parse-a-json-object/4977)
-                    new read_memory_64_bit.IntegersToStringJsonConverter()
-                    );
+                memoryReadingSerialRepresentationJson =
+                read_memory_64_bit.EveOnline64.SerializeMemoryReadingNodeToJson(
+                    uiTree.WithOtherDictEntriesRemoved());
             }
         }
 
