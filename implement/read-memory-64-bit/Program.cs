@@ -57,7 +57,7 @@ class Program
             var sourceFileParam = readMemoryEveOnlineCmd.Option("--source-file", "Process sample file to read from.", CommandOptionType.SingleValue);
             var outputFileParam = readMemoryEveOnlineCmd.Option("--output-file", "File to save the memory reading result to.", CommandOptionType.SingleValue);
             var removeOtherDictEntriesParam = readMemoryEveOnlineCmd.Option("--remove-other-dict-entries", "Use this to remove the other dict entries from the UI nodes in the resulting JSON representation.", CommandOptionType.NoValue);
-            var warmupFirstParam = readMemoryEveOnlineCmd.Option("--warmup-first", "Only to measure execution time: Use this to perform an additional warmup run before measuring execution time.", CommandOptionType.NoValue);
+            var warmupIterationsParam = readMemoryEveOnlineCmd.Option("--warmup-iterations", "Only to measure execution time: Use this to perform additional warmup runs before measuring execution time.", CommandOptionType.SingleValue);
 
             readMemoryEveOnlineCmd.OnExecute(() =>
             {
@@ -66,7 +66,7 @@ class Program
                 var sourceFileArgument = sourceFileParam.Value();
                 var outputFileArgument = outputFileParam.Value();
                 var removeOtherDictEntriesArgument = removeOtherDictEntriesParam.HasValue();
-                var warmupFirstArgument = warmupFirstParam.HasValue();
+                var warmupIterationsArgument = warmupIterationsParam.Value();
 
                 var processId =
                     0 < processIdArgument?.Length
@@ -132,13 +132,17 @@ class Program
                     .Where(uiTree => uiTree != null)
                     .ToImmutableList();
 
-                if (warmupFirstArgument)
+                if (warmupIterationsArgument != null)
                 {
-                    Console.WriteLine("Performing a warmup run first.");
-                    ReadUITrees().ToList();
-                    System.Threading.Thread.Sleep(1111);
-                    ReadUITrees().ToList();
-                    System.Threading.Thread.Sleep(1111);
+                    var iterations = int.Parse(warmupIterationsArgument);
+
+                    Console.WriteLine("Performing " + iterations + " warmup iterations...");
+
+                    for (var i = 0; i < iterations; i++)
+                    {
+                        ReadUITrees().ToList();
+                        System.Threading.Thread.Sleep(1111);
+                    }
                 }
 
                 var readUiTreesStopwatch = System.Diagnostics.Stopwatch.StartNew();
