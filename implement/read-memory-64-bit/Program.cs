@@ -481,7 +481,7 @@ public class EveOnline64
         var memoryRegionsOrderedByAddress =
             memoryRegions
             .OrderBy(memoryRegion => memoryRegion.baseAddress)
-            .ToImmutableList();
+            .ToImmutableArray();
 
         string ReadNullTerminatedAsciiStringFromAddressUpTo255(ulong address)
         {
@@ -517,12 +517,12 @@ public class EveOnline64
 
         IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectType()
         {
-            foreach (var memoryRegion in memoryRegionsOrderedByAddress)
+            IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion((ulong baseAddress, int length) memoryRegion)
             {
                 var memoryRegionContentAsULongArray = ReadMemoryRegionContentAsULongArray(memoryRegion);
 
                 if (memoryRegionContentAsULongArray == null)
-                    continue;
+                    yield break;
 
                 for (var candidateAddressIndex = 0; candidateAddressIndex < memoryRegionContentAsULongArray.Value.Length - 4; ++candidateAddressIndex)
                 {
@@ -543,6 +543,13 @@ public class EveOnline64
                     yield return candidateAddressInProcess;
                 }
             }
+
+            return
+                memoryRegionsOrderedByAddress
+                .AsParallel()
+                .WithDegreeOfParallelism(2)
+                .SelectMany(EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion)
+                .ToImmutableArray();
         }
 
         IEnumerable<(ulong address, string tp_name)> EnumerateCandidatesForPythonTypeObjects(
