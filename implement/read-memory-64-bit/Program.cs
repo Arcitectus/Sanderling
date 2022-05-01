@@ -9,7 +9,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-04-10";
+    static string AppVersionId => "2022-05-01";
 
     static int Main(string[] args)
     {
@@ -982,9 +982,11 @@ public class EveOnline64
                 return null;
 
             return
-                dictionaryEntries.ToImmutableDictionary(
-                    entry => readPythonStringValueMaxLength4000(entry.key),
-                    entry => entry.value);
+                dictionaryEntries
+                .Select(entry => new { key = readPythonStringValueMaxLength4000(entry.key), value = entry.value })
+                .Aggregate(
+                    seed: ImmutableDictionary<string, ulong>.Empty,
+                    func: (dict, entry) => dict.SetItem(entry.key, entry.value));
         }
 
         var localMemoryReadingTools = new LocalMemoryReadingTools
