@@ -1242,7 +1242,6 @@ public class MemoryReaderFromProcessSample : IMemoryReader
         var memoryRegion =
             memoryRegionsOrderedByAddress
             .Where(region => region.baseAddress <= startAddress)
-            .OrderBy(region => region.baseAddress)
             .LastOrDefault();
 
         if (memoryRegion?.content == null)
