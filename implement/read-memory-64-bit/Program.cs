@@ -485,17 +485,24 @@ public class EveOnline64
 
         string ReadNullTerminatedAsciiStringFromAddressUpTo255(ulong address)
         {
-            var bytesBeforeTruncate = memoryReader.ReadBytes(address, 0x100);
+            var asMemory = memoryReader.ReadBytes(address, 0x100);
 
-            if (bytesBeforeTruncate == null)
+            if (asMemory == null)
                 return null;
 
-            var bytes =
-                bytesBeforeTruncate.Value.ToArray()
-                .TakeWhile(character => 0 < character)
-                .ToArray();
+            var asSpan = asMemory.Value.Span;
 
-            return System.Text.Encoding.ASCII.GetString(bytes);
+            var length = 0;
+
+            for (var i = 0; i < asSpan.Length; ++i)
+            {
+                length = i;
+
+                if (asSpan[i] == 0)
+                    break;
+            }
+
+            return System.Text.Encoding.ASCII.GetString(asSpan[..length]);
         }
 
         ReadOnlyMemory<ulong>? ReadMemoryRegionContentAsULongArray((ulong baseAddress, int length) memoryRegion)
