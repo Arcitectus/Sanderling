@@ -30,6 +30,16 @@ Below is an example of a full command to use the tool:
 read-memory-64-bit.exe  save-process-sample  --pid=12345
 ```
 
+### read-memory-eve-online
+
+The `read-memory-eve-online` command produces an EVE Online memory reading of the given process. Supports saving to a JSON file using the `--output-file` option.
+
+The JSON file format here is the same one you get when exporting the memory reading using the development tools in the BotLab client.
+
+If you find the timing too tricky with the command-line interface or want to export from specific events of a larger session recording, exporting from the session timeline in BotLab is easier. After selecting an event in the bot session or play session, use the button labeled 'Export reading as JSON file' to get the memory reading in a separate file:
+
+![Button to export EVE Online memory reading from event in a bot session](./../../guide/image/2022-10-25-eve-online-botlab-devtools-export-memory-reading-from-event-button.png)
+
 ## Sources
 
 + Discussion of the approach to read the UI Tree from the EVE Online client process. (Artifacts for 32-bit back then):

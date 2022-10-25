@@ -38,6 +38,12 @@ The compiled binary is distributed in the file `read-memory-64-bit.exe`.
 
 Location in the repository: [/implement/read-memory-64-bit](/implement/read-memory-64-bit)
 
+The JSON file format here is the same one you get when exporting the memory reading using the development tools in the BotLab client.
+
+If you find the timing too tricky with the command-line interface or want to export from specific events of a larger session recording, exporting from the session timeline in BotLab is easier. After selecting an event in the bot session or play session, use the button labeled 'Export reading as JSON file' to get the memory reading in a separate file:
+
+![Button to export EVE Online memory reading from event in a bot session](guide/image/2022-10-25-eve-online-botlab-devtools-export-memory-reading-from-event-button.png)
+
 ### Memory reading parsing library
 
 This library takes the result of an EVE Online memory reading and transforms it into a format that is easier to use for integrating applications like bots.
