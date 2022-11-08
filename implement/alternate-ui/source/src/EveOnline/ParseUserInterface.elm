@@ -1209,7 +1209,11 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
             |> listDescendantsWithDisplayRegion
-            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverView")
+            |> List.filter
+                (.uiNode
+                    >> .pythonObjectTypeName
+                    >> (List.member >> (|>) [ "OverView", "OverviewWindowOld" ])
+                )
             |> List.head
     of
         Nothing ->
