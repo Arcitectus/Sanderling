@@ -1091,6 +1091,12 @@ parseShipUIIndication indicationUINode =
             , ( "Jump", ManeuverJump )
             , ( "Orbit", ManeuverOrbit )
             , ( "Approach", ManeuverApproach )
+
+            -- Sample `session-2022-05-23T23-00-32-87ba97.zip` shared by Abaddon at https://forum.botlab.org/t/i-want-to-add-korean-support-on-eve-online-bot-what-should-i-do/4370/9
+            , ( "워프 드라이브 가동", ManeuverWarp )
+
+            -- Sample `session-2022-05-26T03-13-42-83df2b.zip` shared by Abaddon at https://forum.botlab.org/t/i-want-to-add-korean-support-on-eve-online-bot-what-should-i-do/4370/14
+            , ( "점프 중", ManeuverJump )
             ]
                 |> List.filterMap
                     (\( pattern, candidateManeuverType ) ->
