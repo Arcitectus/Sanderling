@@ -85,7 +85,7 @@ maintainVolatileProcessTaskFromState state =
 
     else
         [ ElmFullstack.CreateVolatileProcess
-            { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_cx.utf8
+            { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_csx.utf8
             , update =
                 \createVolatileProcessResult stateBefore ->
                     ( { stateBefore

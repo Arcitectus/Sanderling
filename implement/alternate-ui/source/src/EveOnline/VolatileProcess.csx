@@ -1,7 +1,6 @@
 #r "sha256:FE8A38EBCED27A112519023A7A1216C69FE0863BCA3EF766234E972E920096C1"
 #r "sha256:5229128932E6AAFB5433B7AA5E05E6AFA3C19A929897E49F83690AB8FE273162"
 #r "sha256:CADE001866564D185F14798ECFD077EDA6415E69D978748C19B98DDF0EE839BB"
-#r "sha256:FE532D93F820980181F34C163E54F83726876CC9B02FEC72086FD3DC747793BC"
 #r "sha256:831EF0489D9FA85C34C95F0670CC6393D1AD9548EE708E223C1AD87B51F7C7B3"
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
@@ -42,12 +41,6 @@ var generalStopwatch = System.Diagnostics.Stopwatch.StartNew();
 var readingFromGameHistory = new Queue<ReadingFromGameClient>();
 
 
-byte[] SHA256FromByteArray(byte[] array)
-{
-    using (var hasher = new SHA256Managed())
-        return hasher.ComputeHash(buffer: array);
-}
-
 string ToStringBase16(byte[] array) => BitConverter.ToString(array).Replace("-", "");
 
 
@@ -69,8 +62,6 @@ class Request
     public ReadFromWindowStructure ReadFromWindow;
 
     public TaskOnWindow<EffectSequenceElement[]> EffectSequenceOnWindow;
-
-    public ConsoleBeepStructure[] EffectConsoleBeepSequence;
 
     public GetImageDataFromSpecificReadingStructure? GetImageDataFromReading;
 
@@ -138,13 +129,6 @@ class Request
     public enum MouseButton
     {
         left, right,
-    }
-
-    public struct ConsoleBeepStructure
-    {
-        public int frequency;
-
-        public int durationInMs;
     }
 }
 
@@ -299,7 +283,7 @@ Response request(Request request)
         {
             var uiTree = read_memory_64_bit.EveOnline64.ReadUITreeFromAddress(request.ReadFromWindow.uiRootAddress, memoryReader, 99);
 
-            if(uiTree != null)
+            if (uiTree != null)
             {
                 memoryReadingSerialRepresentationJson =
                 read_memory_64_bit.EveOnline64.SerializeMemoryReadingNodeToJson(
@@ -314,7 +298,7 @@ Response request(Request request)
             */
             var setForegroundWindowError = SetForegroundWindowInWindows.TrySetForegroundWindow(windowHandle);
 
-            if(setForegroundWindowError != null)
+            if (setForegroundWindowError != null)
             {
                 return new Response
                 {
@@ -336,7 +320,7 @@ Response request(Request request)
 
         readingFromGameHistory.Enqueue(historyEntry);
 
-        while(4 < readingFromGameHistory.Count)
+        while (4 < readingFromGameHistory.Count)
         {
             readingFromGameHistory.Dequeue();
         }
@@ -389,7 +373,7 @@ Response request(Request request)
         {
             var setForegroundWindowError = SetForegroundWindowInWindows.TrySetForegroundWindow(windowHandle);
 
-            if(setForegroundWindowError != null)
+            if (setForegroundWindowError != null)
             {
                 return new Response
                 {
@@ -398,34 +382,18 @@ Response request(Request request)
             }
         }
 
-        foreach(var sequenceElement in request.EffectSequenceOnWindow.task)
+        foreach (var sequenceElement in request.EffectSequenceOnWindow.task)
         {
-            if(sequenceElement?.effect != null)
+            if (sequenceElement?.effect != null)
                 ExecuteEffectOnWindow(sequenceElement.effect, windowHandle, request.EffectSequenceOnWindow.bringWindowToForeground);
 
-            if(sequenceElement?.delayMilliseconds != null)
+            if (sequenceElement?.delayMilliseconds != null)
                 System.Threading.Thread.Sleep(sequenceElement.delayMilliseconds.Value);
         }
 
         return new Response
         {
             CompletedEffectSequenceOnWindow = new object(),
-        };
-    }
-
-    if (request?.EffectConsoleBeepSequence != null)
-    {
-        foreach (var beep in request?.EffectConsoleBeepSequence)
-        {
-            if(beep.frequency == 0) //  Avoid exception "The frequency must be between 37 and 32767."
-                System.Threading.Thread.Sleep(beep.durationInMs);
-            else
-                System.Console.Beep(beep.frequency, beep.durationInMs);
-        }
-
-        return new Response
-        {
-            CompletedOtherEffect = new object(),
         };
     }
 
@@ -516,7 +484,7 @@ void ExecuteEffectOnWindow(
             effectOnWindow.MouseMoveTo.location.x,
             effectOnWindow.MouseMoveTo.location.y);
 
-        var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[]{};
+        var mouseButtons = new BotEngine.Motor.MouseButtonIdEnum[] { };
 
         var windowMotor = new Sanderling.Motor.WindowMotor(windowHandle);
 
@@ -666,7 +634,7 @@ static public class WinApi
     [DllImport("user32.dll")]
     static public extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
 
-    [DllImport("user32.dll", SetLastError=true)]
+    [DllImport("user32.dll", SetLastError = true)]
     static public extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 }
 

@@ -4,6 +4,6 @@ module CompilationInterface.SourceFiles exposing (..)
 -}
 
 
-file____src_EveOnline_VolatileProcess_cx : { utf8 : String }
-file____src_EveOnline_VolatileProcess_cx =
+file____src_EveOnline_VolatileProcess_csx : { utf8 : String }
+file____src_EveOnline_VolatileProcess_csx =
     { utf8 = "The compiler replaces this declaration." }
