@@ -1740,10 +1740,6 @@ parseProbeScannerWindowFromUITreeRoot uiTreeRoot =
 
                 headersContainerNode =
                     scrollNode
-                        |> Maybe.map listDescendantsWithDisplayRegion
-                        |> Maybe.withDefault []
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "header")
-                        |> List.head
 
                 entriesHeaders =
                     headersContainerNode
