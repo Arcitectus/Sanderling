@@ -13,7 +13,7 @@ module Frontend.InspectParsedUserInterface exposing
 
 import Dict
 import EveOnline.MemoryReading
-import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
+import EveOnline.ParseUserInterface exposing (DisplayRegion, UITreeNodeWithDisplayRegion)
 import Html
 import Html.Events as HE
 import Json.Encode
@@ -1472,15 +1472,13 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                 totalDisplayRegionJson =
                     maybeNodeWithDisplayRegion
                         |> Maybe.map .totalDisplayRegion
-                        |> Maybe.map
-                            (\totalDisplayRegion ->
-                                [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
-                                    |> List.map
-                                        (\( regionPropertyName, regionProperty ) ->
-                                            ( regionPropertyName, totalDisplayRegion |> regionProperty |> Json.Encode.int )
-                                        )
-                                    |> Json.Encode.object
-                            )
+                        |> Maybe.map displayRegionAsJson
+                        |> Maybe.withDefault Json.Encode.null
+
+                totalDisplayRegionVisibleJson =
+                    maybeNodeWithDisplayRegion
+                        |> Maybe.map .totalDisplayRegionVisible
+                        |> Maybe.map displayRegionAsJson
                         |> Maybe.withDefault Json.Encode.null
 
                 ( childrenNodeChildren, childrenNodeText ) =
@@ -1539,6 +1537,7 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
                     [ ( "pythonObjectAddress", Json.Encode.string treeNode.pythonObjectAddress )
                     , ( "pythonObjectTypeName", Json.Encode.string treeNode.pythonObjectTypeName )
                     , ( "totalDisplayRegion", totalDisplayRegionJson )
+                    , ( "totalDisplayRegionVisible", totalDisplayRegionVisibleJson )
                     ]
 
                 allDisplayChildren =
@@ -1549,6 +1548,13 @@ treeViewNodeFromMemoryReadingUITreeNode maybeInputRoute uiNodesWithDisplayRegion
     { selfHtml = commonSummaryHtml
     , children = ExpandableChildren (ExpandableUITreeNode nodeIdentityInView) getDisplayChildren
     }
+
+
+displayRegionAsJson : DisplayRegion -> Json.Encode.Value
+displayRegionAsJson displayRegion =
+    [ ( "x", .x ), ( "y", .y ), ( "width", .width ), ( "height", .height ) ]
+        |> List.map (Tuple.mapSecond (\regionProperty -> displayRegion |> regionProperty |> Json.Encode.int))
+        |> Json.Encode.object
 
 
 uiNodeCommonSummaryText : EveOnline.MemoryReading.UITreeNode -> String

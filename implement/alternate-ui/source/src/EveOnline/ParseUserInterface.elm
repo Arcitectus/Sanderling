@@ -59,6 +59,7 @@ type alias UITreeNodeWithDisplayRegion =
     , children : Maybe (List ChildOfNodeWithDisplayRegion)
     , selfDisplayRegion : DisplayRegion
     , totalDisplayRegion : DisplayRegion
+    , totalDisplayRegionVisible : DisplayRegion
     }
 
 
@@ -529,6 +530,7 @@ parseUITreeWithDisplayRegionFromUITree uiTree =
         |> asUITreeNodeWithDisplayRegion
             { selfDisplayRegion = selfDisplayRegion
             , totalDisplayRegion = selfDisplayRegion
+            , occludedRegions = []
             }
 
 
@@ -565,17 +567,51 @@ parseUserInterfaceFromUITree uiTree =
     }
 
 
-asUITreeNodeWithDisplayRegion : { selfDisplayRegion : DisplayRegion, totalDisplayRegion : DisplayRegion } -> EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
-asUITreeNodeWithDisplayRegion { selfDisplayRegion, totalDisplayRegion } uiNode =
+asUITreeNodeWithDisplayRegion :
+    { selfDisplayRegion : DisplayRegion, totalDisplayRegion : DisplayRegion, occludedRegions : List DisplayRegion }
+    -> EveOnline.MemoryReading.UITreeNode
+    -> UITreeNodeWithDisplayRegion
+asUITreeNodeWithDisplayRegion { selfDisplayRegion, totalDisplayRegion, occludedRegions } uiNode =
     { uiNode = uiNode
-    , children = uiNode.children |> Maybe.map (List.map (EveOnline.MemoryReading.unwrapUITreeNodeChild >> asUITreeNodeWithInheritedOffset { x = totalDisplayRegion.x, y = totalDisplayRegion.y }))
+    , children =
+        uiNode.children
+            |> Maybe.map
+                (List.foldl
+                    (\currentChild mappedSiblings ->
+                        let
+                            occludingSiblingsRegions =
+                                mappedSiblings
+                                    |> List.filterMap justCaseWithDisplayRegion
+                                    |> List.filter (.uiNode >> typeOccludesFollowingSiblingNodes)
+                                    |> List.map .totalDisplayRegion
+                        in
+                        (currentChild
+                            |> EveOnline.MemoryReading.unwrapUITreeNodeChild
+                            |> asUITreeNodeWithInheritedOffset
+                                { x = totalDisplayRegion.x, y = totalDisplayRegion.y }
+                                { occludedRegions = occludedRegions ++ occludingSiblingsRegions }
+                        )
+                            :: mappedSiblings
+                    )
+                    []
+                    >> List.reverse
+                )
     , selfDisplayRegion = selfDisplayRegion
     , totalDisplayRegion = totalDisplayRegion
+    , totalDisplayRegionVisible =
+        subtractRegionsFromRegion { minuend = totalDisplayRegion, subtrahend = occludedRegions }
+            |> List.sortBy (areaFromDisplayRegion >> Maybe.withDefault -1 >> negate)
+            |> List.head
+            |> Maybe.withDefault { x = -1, y = -1, width = 0, height = 0 }
     }
 
 
-asUITreeNodeWithInheritedOffset : { x : Int, y : Int } -> EveOnline.MemoryReading.UITreeNode -> ChildOfNodeWithDisplayRegion
-asUITreeNodeWithInheritedOffset inheritedOffset rawNode =
+asUITreeNodeWithInheritedOffset :
+    { x : Int, y : Int }
+    -> { occludedRegions : List DisplayRegion }
+    -> EveOnline.MemoryReading.UITreeNode
+    -> ChildOfNodeWithDisplayRegion
+asUITreeNodeWithInheritedOffset inheritedOffset { occludedRegions } rawNode =
     case rawNode |> getDisplayRegionFromDictEntries of
         Nothing ->
             ChildWithoutRegion rawNode
@@ -586,6 +622,7 @@ asUITreeNodeWithInheritedOffset inheritedOffset rawNode =
                     { selfDisplayRegion = selfRegion
                     , totalDisplayRegion =
                         { selfRegion | x = inheritedOffset.x + selfRegion.x, y = inheritedOffset.y + selfRegion.y }
+                    , occludedRegions = occludedRegions
                     }
                     rawNode
                 )
@@ -2888,12 +2925,119 @@ listChildrenWithDisplayRegion : UITreeNodeWithDisplayRegion -> List UITreeNodeWi
 listChildrenWithDisplayRegion parent =
     parent.children
         |> Maybe.withDefault []
-        |> List.filterMap
-            (\child ->
-                case child of
-                    ChildWithoutRegion _ ->
-                        Nothing
+        |> List.filterMap justCaseWithDisplayRegion
 
-                    ChildWithRegion childWithRegion ->
-                        Just childWithRegion
+
+justCaseWithDisplayRegion : ChildOfNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
+justCaseWithDisplayRegion child =
+    case child of
+        ChildWithoutRegion _ ->
+            Nothing
+
+        ChildWithRegion childWithRegion ->
+            Just childWithRegion
+
+
+typeOccludesFollowingSiblingNodes : EveOnline.MemoryReading.UITreeNode -> Bool
+typeOccludesFollowingSiblingNodes node =
+    -- session-recording-2022-12-09T12-32-56.zip: In Overview window: "SortHeaders"
+    node.pythonObjectTypeName == "SortHeaders"
+
+
+subtractRegionsFromRegion :
+    { minuend : DisplayRegion
+    , subtrahend : List DisplayRegion
+    }
+    -> List DisplayRegion
+subtractRegionsFromRegion { minuend, subtrahend } =
+    subtrahend
+        |> List.foldl
+            (\subtrahendPart previousResults ->
+                previousResults
+                    |> List.concatMap
+                        (\minuendPart ->
+                            subtractRegionFromRegion { subtrahend = subtrahendPart, minuend = minuendPart }
+                        )
             )
+            [ minuend ]
+
+
+subtractRegionFromRegion :
+    { minuend : DisplayRegion
+    , subtrahend : DisplayRegion
+    }
+    -> List DisplayRegion
+subtractRegionFromRegion { minuend, subtrahend } =
+    let
+        minuendRight =
+            minuend.x + minuend.width
+
+        minuendBottom =
+            minuend.y + minuend.height
+
+        subtrahendRight =
+            subtrahend.x + subtrahend.width
+
+        subtrahendBottom =
+            subtrahend.y + subtrahend.height
+    in
+    {-
+       Similar to approach from https://stackoverflow.com/questions/3765283/how-to-subtract-a-rectangle-from-another/15228510#15228510
+       We want to support finding the largest rectangle, so we let them overlap here.
+
+       ----------------------------
+       |  A  |       A      |  A  |
+       |  B  |              |  C  |
+       |--------------------------|
+       |  B  |  subtrahend  |  C  |
+       |--------------------------|
+       |  B  |              |  C  |
+       |  D  |      D       |  D  |
+       ----------------------------
+    -}
+    [ { left = minuend.x
+      , top = minuend.y
+      , right = minuendRight
+      , bottom = minuendBottom |> min subtrahend.y
+      }
+    , { left = minuend.x
+      , top = minuend.y
+      , right = minuendRight |> min subtrahend.x
+      , bottom = minuendBottom
+      }
+    , { left = minuend.x |> max subtrahendRight
+      , top = minuend.y
+      , right = minuendRight
+      , bottom = minuendBottom
+      }
+    , { left = minuend.x
+      , top = minuend.y |> max subtrahendBottom
+      , right = minuendRight
+      , bottom = minuendBottom
+      }
+    ]
+        |> List.map
+            (\rect ->
+                { x = rect.left
+                , y = rect.top
+                , width = rect.right - rect.left
+                , height = rect.bottom - rect.top
+                }
+            )
+        |> List.filter (\rect -> 0 < rect.width && 0 < rect.height)
+        |> listUnique
+
+
+{-| Remove duplicate values, keeping the first instance of each element which appears more than once.
+-}
+listUnique : List element -> List element
+listUnique =
+    List.foldr
+        (\nextElement elements ->
+            if elements |> List.member nextElement then
+                elements
+
+            else
+                nextElement :: elements
+        )
+        []

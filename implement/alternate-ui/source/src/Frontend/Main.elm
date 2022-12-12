@@ -325,7 +325,8 @@ update event stateBefore =
                 Nothing ->
                     let
                         uiNodeCenter =
-                            sendInput.uiNode.totalDisplayRegion |> EveOnline.ParseUserInterface.centerFromDisplayRegion
+                            sendInput.uiNode.totalDisplayRegionVisible
+                                |> EveOnline.ParseUserInterface.centerFromDisplayRegion
 
                         volatileProcessInterfaceEffects =
                             case sendInput.input of
