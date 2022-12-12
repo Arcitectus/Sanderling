@@ -33,29 +33,21 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 ## Setup
 
-The setup section describes preparations to perform once per system (Windows instance).
+These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-fs` to compile the program from source code and run it as a web server.
 
-### Install .NET SDK 6
+Download the zip archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2022-12-06/elm-fullstack-bin-4bd0b69ab6d5cbef631afb4a1d841e079d7bc433-win10-x64.zip and extract it.
 
-Install the .NET SDK version 6.X, from https://dotnet.microsoft.com/download/dotnet/6.0
-
-When this software is not installed, the program might exit with a message like this:
-
-> It was not possible to find any compatible framework version  
-
-### Download Web Server Software
-
-Download the Zip-Archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2022-03-20/elm-fullstack-bin-51e104bb104ea8d54dcdaffa145a30a9f1f4a020-win10-x64.zip and unpack it.
+The extracted files contain the `elm-fs` tool used to run Elm programs.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ In the next command, we use the `elm-fs.exe` file we got from the Zip-Archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
++ In the next command, we use the `elm-fs.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/6dce6453b4d8217b625e4bc4688177913352cc89/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/2024fa7b384b00d2ea454eef63a020b46b453434/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -64,8 +56,8 @@ To start the software:
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit 6dce6453b4d8217b625e4bc4688177913352cc89
-Loaded source composition 4d2d176e130a4de58fa15a315c0a88e7e7a202830619d4b7543485115e25b2d0 from 'https://github.com/Arcitectus/Sanderling/tree/6dce6453b4d8217b625e4bc4688177913352cc89/implement/alternate-ui/source'.
+This path points to commit 2024fa7b384b00d2ea454eef63a020b46b453434
+Loaded source composition cb1dbfb78debec19aa6ae591556f4f0020272d55adf54fe9f57915584cb1bcd7 from 'https://github.com/Arcitectus/Sanderling/tree/2024fa7b384b00d2ea454eef63a020b46b453434/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Begin to build the process live representation.
@@ -74,7 +66,7 @@ info: ElmFullstack.WebHost.StartupAdminInterface[0]
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Found 1 composition log records to use for restore.
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
-      Restored the process state in 2 seconds.
+      Restored the process state in 1 seconds.
 info: ElmFullstack.WebHost.StartupAdminInterface[0]
       Completed building the process live representation.
 info: ElmFullstack.WebHost.StartupPublicApp[0]
