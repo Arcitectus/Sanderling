@@ -1530,8 +1530,8 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
             Just
                 { uiNode = windowNode
                 , droneGroups = droneGroups
-                , droneGroupInBay = droneGroupFromHeaderTextPart "in Bay"
-                , droneGroupInLocalSpace = droneGroupFromHeaderTextPart "in local space"
+                , droneGroupInBay = droneGroupFromHeaderTextPart "in bay"
+                , droneGroupInLocalSpace = droneGroupFromHeaderTextPart "in space"
                 }
 
 
