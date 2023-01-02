@@ -1659,36 +1659,42 @@ enumerateDescendantsOfDronesGroup group =
 
 parseDronesWindowDroneGroupHeader : UITreeNodeWithDisplayRegion -> Maybe DronesWindowDroneGroupHeader
 parseDronesWindowDroneGroupHeader groupHeaderUiNode =
-    let
-        mainText =
-            groupHeaderUiNode
-                |> getAllContainedDisplayTextsWithRegion
-                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-                |> List.map Tuple.first
-                |> List.head
-
-        quantityFromTitle =
-            mainText |> Maybe.andThen (parseQuantityFromDroneGroupTitleText >> Result.withDefault Nothing)
-    in
     case
         groupHeaderUiNode
-            |> listDescendantsWithDisplayRegion
-            |> List.filter
-                (.uiNode
-                    >> getNameFromDictEntries
-                    >> (Maybe.map (String.toLower >> String.contains "expander") >> Maybe.withDefault False)
-                )
+            |> getAllContainedDisplayTextsWithRegion
+            |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+            |> List.map Tuple.first
+            |> List.head
     of
-        [ expanderNode ] ->
-            Just
-                { uiNode = groupHeaderUiNode
-                , mainText = mainText
-                , expander = expanderNode |> parseExpander
-                , quantityFromTitle = quantityFromTitle
-                }
-
-        _ ->
+        Nothing ->
             Nothing
+
+        Just mainText ->
+            let
+                quantityFromTitle =
+                    mainText
+                        |> parseQuantityFromDroneGroupTitleText
+                        |> Result.withDefault Nothing
+            in
+            case
+                groupHeaderUiNode
+                    |> listDescendantsWithDisplayRegion
+                    |> List.filter
+                        (.uiNode
+                            >> getNameFromDictEntries
+                            >> (Maybe.map (String.toLower >> String.contains "expander") >> Maybe.withDefault False)
+                        )
+            of
+                [ expanderNode ] ->
+                    Just
+                        { uiNode = groupHeaderUiNode
+                        , mainText = Just mainText
+                        , expander = expanderNode |> parseExpander
+                        , quantityFromTitle = quantityFromTitle
+                        }
+
+                _ ->
+                    Nothing
 
 
 parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
