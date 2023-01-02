@@ -19,6 +19,7 @@ import Json.Decode
 import List.Extra
 import Maybe.Extra
 import Regex
+import Result.Extra
 import Set
 
 
@@ -335,7 +336,13 @@ type DronesWindowEntry
 type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
-    , quantityFromTitle : Maybe Int
+    , quantityFromTitle : Maybe DronesWindowDroneGroupQuantity
+    }
+
+
+type alias DronesWindowDroneGroupQuantity =
+    { current : Int
+    , maximum : Maybe Int
     }
 
 
@@ -1675,19 +1682,43 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
                 }
 
 
-parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
+parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe DronesWindowDroneGroupQuantity)
 parseQuantityFromDroneGroupTitleText droneGroupTitleText =
     case droneGroupTitleText |> String.split "(" |> List.drop 1 of
         [] ->
             Ok Nothing
 
         [ textAfterOpeningParenthesis ] ->
-            textAfterOpeningParenthesis
-                |> String.split ")"
-                |> List.head
-                |> Maybe.andThen (String.trim >> String.toInt)
-                |> Result.fromMaybe ("Failed to parse to integer from '" ++ textAfterOpeningParenthesis ++ "'")
-                |> Result.map Just
+            case textAfterOpeningParenthesis |> String.split ")" |> List.head of
+                Nothing ->
+                    Err "Missing closing parens"
+
+                Just textInParens ->
+                    case
+                        textInParens
+                            |> String.split "/"
+                            |> List.map String.trim
+                            |> List.map
+                                (\numberText ->
+                                    numberText
+                                        |> String.toInt
+                                        |> Result.fromMaybe ("Failed to parse to integer from '" ++ numberText ++ "'")
+                                )
+                            |> Result.Extra.combine
+                    of
+                        Err err ->
+                            Err ("Failed to parse numbers in parentheses: " ++ err)
+
+                        Ok integersInParens ->
+                            case integersInParens of
+                                [ singleNumber ] ->
+                                    Ok (Just { current = singleNumber, maximum = Nothing })
+
+                                [ firstNumber, secondNumber ] ->
+                                    Ok (Just { current = firstNumber, maximum = Just secondNumber })
+
+                                _ ->
+                                    Err "Found unexpected number of numbers in parentheses."
 
         _ ->
             Err "Found unexpected number of parentheses."
