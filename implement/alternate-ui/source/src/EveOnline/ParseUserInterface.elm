@@ -1495,7 +1495,7 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 droneGroupHeaders =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Group")
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneGroupHeader")
                         |> List.filterMap parseDronesWindowDroneGroupHeader
 
                 droneEntries =
@@ -1659,6 +1659,17 @@ enumerateDescendantsOfDronesGroup group =
 
 parseDronesWindowDroneGroupHeader : UITreeNodeWithDisplayRegion -> Maybe DronesWindowDroneGroupHeader
 parseDronesWindowDroneGroupHeader groupHeaderUiNode =
+    let
+        mainText =
+            groupHeaderUiNode
+                |> getAllContainedDisplayTextsWithRegion
+                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                |> List.map Tuple.first
+                |> List.head
+
+        quantityFromTitle =
+            mainText |> Maybe.andThen (parseQuantityFromDroneGroupTitleText >> Result.withDefault Nothing)
+    in
     case
         groupHeaderUiNode
             |> listDescendantsWithDisplayRegion
@@ -1669,17 +1680,6 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
                 )
     of
         [ expanderNode ] ->
-            let
-                mainText =
-                    groupHeaderUiNode
-                        |> getAllContainedDisplayTextsWithRegion
-                        |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-                        |> List.map Tuple.first
-                        |> List.head
-
-                quantityFromTitle =
-                    mainText |> Maybe.andThen (parseQuantityFromDroneGroupTitleText >> Result.withDefault Nothing)
-            in
             Just
                 { uiNode = groupHeaderUiNode
                 , mainText = mainText
