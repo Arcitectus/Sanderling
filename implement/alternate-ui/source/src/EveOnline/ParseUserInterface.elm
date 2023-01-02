@@ -336,11 +336,11 @@ type DronesWindowEntry
 type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
-    , quantityFromTitle : Maybe DronesWindowDroneGroupQuantity
+    , quantityFromTitle : Maybe DronesWindowDroneGroupHeaderQuantity
     }
 
 
-type alias DronesWindowDroneGroupQuantity =
+type alias DronesWindowDroneGroupHeaderQuantity =
     { current : Int
     , maximum : Maybe Int
     }
@@ -1682,7 +1682,7 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
                 }
 
 
-parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe DronesWindowDroneGroupQuantity)
+parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe DronesWindowDroneGroupHeaderQuantity)
 parseQuantityFromDroneGroupTitleText droneGroupTitleText =
     case droneGroupTitleText |> String.split "(" |> List.drop 1 of
         [] ->
