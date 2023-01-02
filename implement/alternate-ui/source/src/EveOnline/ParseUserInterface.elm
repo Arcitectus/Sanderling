@@ -1513,12 +1513,6 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                             )
                         |> List.map parseDronesWindowDroneEntry
 
-                log =
-                    Debug.log "parse drones"
-                        { droneGroupHeaders_count = List.length droneGroupHeaders
-                        , droneEntries_count = List.length droneEntries
-                        }
-
                 droneGroups =
                     [ droneEntries |> List.map DronesWindowEntryDrone
                     , droneGroupHeaders
