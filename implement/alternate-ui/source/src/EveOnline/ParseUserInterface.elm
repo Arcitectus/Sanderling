@@ -1501,7 +1501,11 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 droneEntries =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DroneEntry")
+                        |> List.filter
+                            (.uiNode
+                                >> .pythonObjectTypeName
+                                >> (==) "DroneEntry"
+                            )
                         |> List.map parseDronesWindowDroneEntry
 
                 log =
