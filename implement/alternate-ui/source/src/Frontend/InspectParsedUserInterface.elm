@@ -768,9 +768,9 @@ treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
-        , dronesWindow.droneGroupInLocalSpace
+        , dronesWindow.droneGroupInSpace
             |> fieldFromMaybeInstance
-                { fieldName = "droneGroupInLocalSpace"
+                { fieldName = "droneGroupInSpace"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
@@ -844,7 +844,22 @@ treeNodeChildrenFromDronesWindowDroneGroupHeader viewConfig dronesWindowDroneGro
         viewConfig
         dronesWindowDroneGroupHeader.uiNode
         [ dronesWindowDroneGroupHeader.mainText |> fieldFromMaybeString "mainText"
-        , dronesWindowDroneGroupHeader.quantityFromTitle |> fieldFromMaybeInt "quantityFromTitle"
+        , dronesWindowDroneGroupHeader.quantityFromTitle
+            |> fieldFromMaybeInstance
+                { fieldName = "quantityFromTitle"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroupHeaderQuantity
+                }
+        ]
+
+
+treeNodeChildrenFromDronesWindowDroneGroupHeaderQuantity :
+    EveOnline.ParseUserInterface.DronesWindowDroneGroupHeaderQuantity
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromDronesWindowDroneGroupHeaderQuantity dronesWindowDroneGroupHeaderQuantity =
+    treeNodeChildrenFromRecord
+        [ dronesWindowDroneGroupHeaderQuantity.current |> fieldFromInt "current"
+        , dronesWindowDroneGroupHeaderQuantity.maximum |> fieldFromMaybeInt "maximum"
         ]
 
 
@@ -1715,6 +1730,17 @@ fieldFromBool :
 fieldFromBool fieldName fieldValue =
     { fieldName = fieldName
     , fieldValueSummary = Json.Encode.bool fieldValue |> Json.Encode.encode 0
+    , fieldValueChildren = always []
+    }
+
+
+fieldFromInt :
+    String
+    -> Int
+    -> { fieldName : String, fieldValueSummary : String, fieldValueChildren : () -> List (TreeViewNode event ParsedUITreeViewPathNode) }
+fieldFromInt fieldName fieldValue =
+    { fieldName = fieldName
+    , fieldValueSummary = Json.Encode.int fieldValue |> Json.Encode.encode 0
     , fieldValueChildren = always []
     }
 

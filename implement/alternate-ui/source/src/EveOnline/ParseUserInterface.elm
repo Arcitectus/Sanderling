@@ -19,6 +19,7 @@ import Json.Decode
 import List.Extra
 import Maybe.Extra
 import Regex
+import Result.Extra
 import Set
 
 
@@ -317,7 +318,7 @@ type alias DronesWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , droneGroups : List DronesWindowEntryGroupStructure
     , droneGroupInBay : Maybe DronesWindowEntryGroupStructure
-    , droneGroupInLocalSpace : Maybe DronesWindowEntryGroupStructure
+    , droneGroupInSpace : Maybe DronesWindowEntryGroupStructure
     }
 
 
@@ -335,8 +336,13 @@ type DronesWindowEntry
 type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
-    , expander : Expander
-    , quantityFromTitle : Maybe Int
+    , quantityFromTitle : Maybe DronesWindowDroneGroupHeaderQuantity
+    }
+
+
+type alias DronesWindowDroneGroupHeaderQuantity =
+    { current : Int
+    , maximum : Maybe Int
     }
 
 
@@ -474,13 +480,6 @@ type alias BookmarkLocationWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , submitButton : Maybe UITreeNodeWithDisplayRegion
     , cancelButton : Maybe UITreeNodeWithDisplayRegion
-    }
-
-
-type alias Expander =
-    { uiNode : UITreeNodeWithDisplayRegion
-    , texturePath : Maybe String
-    , isExpanded : Maybe Bool
     }
 
 
@@ -1249,7 +1248,7 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
             |> List.filter
                 (.uiNode
                     >> .pythonObjectTypeName
-                    >> (List.member >> (|>) [ "OverView", "OverviewWindowOld" ])
+                    >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
                 )
             |> List.head
     of
@@ -1473,7 +1472,11 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
             |> listDescendantsWithDisplayRegion
-            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DroneView")
+            |> List.filter
+                (.uiNode
+                    >> .pythonObjectTypeName
+                    >> (List.member >> (|>) [ "DroneView", "DronesWindow" ])
+                )
             |> List.head
     of
         Nothing ->
@@ -1491,13 +1494,23 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 droneGroupHeaders =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Group")
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneGroupHeader")
                         |> List.filterMap parseDronesWindowDroneGroupHeader
 
                 droneEntries =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DroneEntry")
+                        |> List.filter
+                            (.uiNode
+                                >> .pythonObjectTypeName
+                                >> (\pythonTypeName ->
+                                        {-
+                                           2023-01-02 Observed: 'DroneInBayEntry'
+                                        -}
+                                        String.startsWith "Drone" pythonTypeName
+                                            && String.endsWith "Entry" pythonTypeName
+                                   )
+                            )
                         |> List.map parseDronesWindowDroneEntry
 
                 droneGroups =
@@ -1518,8 +1531,8 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
             Just
                 { uiNode = windowNode
                 , droneGroups = droneGroups
-                , droneGroupInBay = droneGroupFromHeaderTextPart "in Bay"
-                , droneGroupInLocalSpace = droneGroupFromHeaderTextPart "in local space"
+                , droneGroupInBay = droneGroupFromHeaderTextPart "in bay"
+                , droneGroupInSpace = droneGroupFromHeaderTextPart "in space"
                 }
 
 
@@ -1565,8 +1578,8 @@ dronesGroupTreesFromFlatListOfEntries entriesBeforeOrdering =
                                             True
 
                                         DronesWindowEntryGroup group ->
-                                            topmostGroupEntry.header.expander.uiNode.totalDisplayRegion.x
-                                                < (group.header.expander.uiNode.totalDisplayRegion.x - 3)
+                                            topmostGroupEntry.header.uiNode.totalDisplayRegion.x
+                                                < (group.header.uiNode.totalDisplayRegion.x - 3)
                                 )
 
                     childGroupTrees =
@@ -1641,49 +1654,65 @@ parseDronesWindowDroneGroupHeader : UITreeNodeWithDisplayRegion -> Maybe DronesW
 parseDronesWindowDroneGroupHeader groupHeaderUiNode =
     case
         groupHeaderUiNode
-            |> listDescendantsWithDisplayRegion
-            |> List.filter
-                (.uiNode
-                    >> getNameFromDictEntries
-                    >> (Maybe.map (String.toLower >> String.contains "expander") >> Maybe.withDefault False)
-                )
+            |> getAllContainedDisplayTextsWithRegion
+            |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+            |> List.map Tuple.first
+            |> List.head
     of
-        [ expanderNode ] ->
-            let
-                mainText =
-                    groupHeaderUiNode
-                        |> getAllContainedDisplayTextsWithRegion
-                        |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-                        |> List.map Tuple.first
-                        |> List.head
+        Nothing ->
+            Nothing
 
+        Just mainText ->
+            let
                 quantityFromTitle =
-                    mainText |> Maybe.andThen (parseQuantityFromDroneGroupTitleText >> Result.withDefault Nothing)
+                    mainText
+                        |> parseQuantityFromDroneGroupTitleText
+                        |> Result.withDefault Nothing
             in
             Just
                 { uiNode = groupHeaderUiNode
-                , mainText = mainText
-                , expander = expanderNode |> parseExpander
+                , mainText = Just mainText
                 , quantityFromTitle = quantityFromTitle
                 }
 
-        _ ->
-            Nothing
 
-
-parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
+parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe DronesWindowDroneGroupHeaderQuantity)
 parseQuantityFromDroneGroupTitleText droneGroupTitleText =
     case droneGroupTitleText |> String.split "(" |> List.drop 1 of
         [] ->
             Ok Nothing
 
         [ textAfterOpeningParenthesis ] ->
-            textAfterOpeningParenthesis
-                |> String.split ")"
-                |> List.head
-                |> Maybe.andThen (String.trim >> String.toInt)
-                |> Result.fromMaybe ("Failed to parse to integer from '" ++ textAfterOpeningParenthesis ++ "'")
-                |> Result.map Just
+            case textAfterOpeningParenthesis |> String.split ")" |> List.head of
+                Nothing ->
+                    Err "Missing closing parens"
+
+                Just textInParens ->
+                    case
+                        textInParens
+                            |> String.split "/"
+                            |> List.map String.trim
+                            |> List.map
+                                (\numberText ->
+                                    numberText
+                                        |> String.toInt
+                                        |> Result.fromMaybe ("Failed to parse to integer from '" ++ numberText ++ "'")
+                                )
+                            |> Result.Extra.combine
+                    of
+                        Err err ->
+                            Err ("Failed to parse numbers in parentheses: " ++ err)
+
+                        Ok integersInParens ->
+                            case integersInParens of
+                                [ singleNumber ] ->
+                                    Ok (Just { current = singleNumber, maximum = Nothing })
+
+                                [ firstNumber, secondNumber ] ->
+                                    Ok (Just { current = firstNumber, maximum = Just secondNumber })
+
+                                _ ->
+                                    Err "Found unexpected number of numbers in parentheses."
 
         _ ->
             Err "Found unexpected number of parentheses."
@@ -2645,28 +2674,6 @@ parseKeyActivationWindow windowUiNode =
     in
     { uiNode = windowUiNode
     , activateButton = activateButton
-    }
-
-
-parseExpander : UITreeNodeWithDisplayRegion -> Expander
-parseExpander uiNode =
-    let
-        maybeTexturePath =
-            getTexturePathFromDictEntries uiNode.uiNode
-
-        isExpanded =
-            maybeTexturePath
-                |> Maybe.andThen
-                    (\texturePath ->
-                        [ ( "38_16_228.png", False ), ( "38_16_229.png", True ) ]
-                            |> List.filter (\( pathEnd, _ ) -> texturePath |> String.endsWith pathEnd)
-                            |> List.map Tuple.second
-                            |> List.head
-                    )
-    in
-    { uiNode = uiNode
-    , texturePath = maybeTexturePath
-    , isExpanded = isExpanded
     }
 
 
