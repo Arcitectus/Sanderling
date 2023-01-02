@@ -1504,7 +1504,13 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                         |> List.filter
                             (.uiNode
                                 >> .pythonObjectTypeName
-                                >> (==) "DroneEntry"
+                                >> (\pythonTypeName ->
+                                        {-
+                                           2023-01-02 Observed: 'DroneInBayEntry'
+                                        -}
+                                        String.startsWith "Drone" pythonTypeName
+                                            && String.endsWith "Entry" pythonTypeName
+                                   )
                             )
                         |> List.map parseDronesWindowDroneEntry
 
