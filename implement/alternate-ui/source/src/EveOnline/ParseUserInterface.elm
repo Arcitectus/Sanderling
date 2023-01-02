@@ -318,7 +318,7 @@ type alias DronesWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , droneGroups : List DronesWindowEntryGroupStructure
     , droneGroupInBay : Maybe DronesWindowEntryGroupStructure
-    , droneGroupInLocalSpace : Maybe DronesWindowEntryGroupStructure
+    , droneGroupInSpace : Maybe DronesWindowEntryGroupStructure
     }
 
 
@@ -1538,7 +1538,7 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 { uiNode = windowNode
                 , droneGroups = droneGroups
                 , droneGroupInBay = droneGroupFromHeaderTextPart "in bay"
-                , droneGroupInLocalSpace = droneGroupFromHeaderTextPart "in space"
+                , droneGroupInSpace = droneGroupFromHeaderTextPart "in space"
                 }
 
 

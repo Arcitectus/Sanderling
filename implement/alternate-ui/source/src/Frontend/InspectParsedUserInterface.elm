@@ -768,9 +768,9 @@ treeNodeChildrenFromDronesWindow viewConfig dronesWindow =
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
-        , dronesWindow.droneGroupInLocalSpace
+        , dronesWindow.droneGroupInSpace
             |> fieldFromMaybeInstance
-                { fieldName = "droneGroupInLocalSpace"
+                { fieldName = "droneGroupInSpace"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromDronesWindowDroneGroup viewConfig
                 }
