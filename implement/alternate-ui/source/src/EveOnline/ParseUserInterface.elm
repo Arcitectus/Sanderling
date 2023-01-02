@@ -335,7 +335,6 @@ type DronesWindowEntry
 type alias DronesWindowDroneGroupHeader =
     { uiNode : UITreeNodeWithDisplayRegion
     , mainText : Maybe String
-    , expander : Expander
     , quantityFromTitle : Maybe Int
     }
 
@@ -474,13 +473,6 @@ type alias BookmarkLocationWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , submitButton : Maybe UITreeNodeWithDisplayRegion
     , cancelButton : Maybe UITreeNodeWithDisplayRegion
-    }
-
-
-type alias Expander =
-    { uiNode : UITreeNodeWithDisplayRegion
-    , texturePath : Maybe String
-    , isExpanded : Maybe Bool
     }
 
 
@@ -1585,8 +1577,8 @@ dronesGroupTreesFromFlatListOfEntries entriesBeforeOrdering =
                                             True
 
                                         DronesWindowEntryGroup group ->
-                                            topmostGroupEntry.header.expander.uiNode.totalDisplayRegion.x
-                                                < (group.header.expander.uiNode.totalDisplayRegion.x - 3)
+                                            topmostGroupEntry.header.uiNode.totalDisplayRegion.x
+                                                < (group.header.uiNode.totalDisplayRegion.x - 3)
                                 )
 
                     childGroupTrees =
@@ -1676,25 +1668,11 @@ parseDronesWindowDroneGroupHeader groupHeaderUiNode =
                         |> parseQuantityFromDroneGroupTitleText
                         |> Result.withDefault Nothing
             in
-            case
-                groupHeaderUiNode
-                    |> listDescendantsWithDisplayRegion
-                    |> List.filter
-                        (.uiNode
-                            >> getNameFromDictEntries
-                            >> (Maybe.map (String.toLower >> String.contains "expander") >> Maybe.withDefault False)
-                        )
-            of
-                [ expanderNode ] ->
-                    Just
-                        { uiNode = groupHeaderUiNode
-                        , mainText = Just mainText
-                        , expander = expanderNode |> parseExpander
-                        , quantityFromTitle = quantityFromTitle
-                        }
-
-                _ ->
-                    Nothing
+            Just
+                { uiNode = groupHeaderUiNode
+                , mainText = Just mainText
+                , quantityFromTitle = quantityFromTitle
+                }
 
 
 parseQuantityFromDroneGroupTitleText : String -> Result String (Maybe Int)
@@ -2671,28 +2649,6 @@ parseKeyActivationWindow windowUiNode =
     in
     { uiNode = windowUiNode
     , activateButton = activateButton
-    }
-
-
-parseExpander : UITreeNodeWithDisplayRegion -> Expander
-parseExpander uiNode =
-    let
-        maybeTexturePath =
-            getTexturePathFromDictEntries uiNode.uiNode
-
-        isExpanded =
-            maybeTexturePath
-                |> Maybe.andThen
-                    (\texturePath ->
-                        [ ( "38_16_228.png", False ), ( "38_16_229.png", True ) ]
-                            |> List.filter (\( pathEnd, _ ) -> texturePath |> String.endsWith pathEnd)
-                            |> List.map Tuple.second
-                            |> List.head
-                    )
-    in
-    { uiNode = uiNode
-    , texturePath = maybeTexturePath
-    , isExpanded = isExpanded
     }
 
 
