@@ -1249,7 +1249,7 @@ parseOverviewWindowFromUITreeRoot uiTreeRoot =
             |> List.filter
                 (.uiNode
                     >> .pythonObjectTypeName
-                    >> (List.member >> (|>) [ "OverView", "OverviewWindowOld" ])
+                    >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
                 )
             |> List.head
     of
@@ -1473,7 +1473,11 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
     case
         uiTreeRoot
             |> listDescendantsWithDisplayRegion
-            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "DroneView")
+            |> List.filter
+                (.uiNode
+                    >> .pythonObjectTypeName
+                    >> (List.member >> (|>) [ "DroneView", "DronesWindow" ])
+                )
             |> List.head
     of
         Nothing ->
