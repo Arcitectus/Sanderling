@@ -734,6 +734,7 @@ treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
           , fieldValueSummary = "..."
           , fieldValueChildren = always (treeNodeChildrenFromOverviewWindowEntryCommonIndications overviewWindowEntry.commonIndications)
           }
+        , overviewWindowEntry.opacityPercent |> fieldFromMaybeInt "opacityPercent"
         ]
 
 

@@ -262,6 +262,7 @@ type alias OverviewWindowEntry =
     , bgColorFillsPercent : List ColorComponents
     , rightAlignedIconsHints : List String
     , commonIndications : OverviewWindowEntryCommonIndications
+    , opacityPercent : Maybe Int
     }
 
 
@@ -1386,6 +1387,11 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
             , isJammingMe = rightAlignedIconsHintsContainsTextIgnoringCase "is jamming me"
             , isWarpDisruptingMe = rightAlignedIconsHintsContainsTextIgnoringCase "is warp disrupting me"
             }
+
+        opacityPercent =
+            overviewEntryNode.uiNode
+                |> getOpacityFloatFromDictEntries
+                |> Maybe.map ((*) 100 >> round)
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
@@ -1400,6 +1406,7 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     , bgColorFillsPercent = bgColorFillsPercent
     , rightAlignedIconsHints = rightAlignedIconsHints
     , commonIndications = commonIndications
+    , opacityPercent = opacityPercent
     }
 
 
@@ -2858,6 +2865,13 @@ getRotationFloatFromDictEntries : EveOnline.MemoryReading.UITreeNode -> Maybe Fl
 getRotationFloatFromDictEntries =
     .dictEntriesOfInterest
         >> Dict.get "_rotation"
+        >> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
+
+
+getOpacityFloatFromDictEntries : EveOnline.MemoryReading.UITreeNode -> Maybe Float
+getOpacityFloatFromDictEntries =
+    .dictEntriesOfInterest
+        >> Dict.get "_opacity"
         >> Maybe.andThen (Json.Decode.decodeValue Json.Decode.float >> Result.toMaybe)
 
 
