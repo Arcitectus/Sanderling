@@ -696,7 +696,10 @@ public class EveOnline64
         "_sr",
 
         //  Found in "_sr" Bunch
-        "htmlstr"
+        "htmlstr",
+
+        // 2023-01-03 Sample with PhotonUI: process-sample-ebdfff96e7.zip
+        "_texturePath", "_opacity", "_bgColor", "isExpanded"
     );
 
     struct LocalMemoryReadingTools
