@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2022-05-01";
+    static string AppVersionId => "2023-01-03";
 
     static int Main(string[] args)
     {
@@ -27,15 +28,34 @@ class Program
         {
             saveProcessSampleCmd.Description = "Save a sample from a live process to a file. Use the '--pid' parameter to specify the process id.";
 
-            var processIdParam = saveProcessSampleCmd.Option("--pid", "[Required] Id of the Windows process to read from.", CommandOptionType.SingleValue).IsRequired(errorMessage: "From which process should I read?");
+            var processIdParam =
+            saveProcessSampleCmd.Option("--pid", "[Required] Id of the Windows process to read from.", CommandOptionType.SingleValue).IsRequired(errorMessage: "From which process should I read?");
+
+            var delaySecondsParam =
+            saveProcessSampleCmd.Option("--delay", "Timespan to wait before starting the collection of the sample, in seconds.", CommandOptionType.SingleValue);
 
             saveProcessSampleCmd.OnExecute(() =>
             {
                 var processIdArgument = processIdParam.Value();
 
+                var delayMilliSeconds =
+                delaySecondsParam.HasValue() ?
+                (int)(double.Parse(delaySecondsParam.Value()) * 1000) :
+                0;
+
                 var processId = int.Parse(processIdArgument);
 
+                if (0 < delayMilliSeconds)
+                {
+                    Console.WriteLine("Delaying for " + delayMilliSeconds + " milliseconds.");
+                    Task.Delay(TimeSpan.FromMilliseconds(delayMilliSeconds)).Wait();
+                }
+
+                Console.WriteLine("Starting to collect the sample...");
+
                 var processSampleFile = GetProcessSampleFileFromProcessId(processId);
+
+                Console.WriteLine("Completed collecting the sample.");
 
                 var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
                     Pine.CommonConversion.HashSHA256(processSampleFile));
