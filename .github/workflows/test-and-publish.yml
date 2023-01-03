@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '6.0.201'
+        dotnet-version: '7.0.101'
     - name: Display .NET information.
       run: dotnet --info
     - uses: actions/checkout@v2
