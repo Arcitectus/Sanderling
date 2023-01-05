@@ -48,6 +48,7 @@ type alias ParsedUserInterface =
     , watchListPanel : Maybe WatchListPanel
     , standaloneBookmarkWindow : Maybe StandaloneBookmarkWindow
     , moduleButtonTooltip : Maybe ModuleButtonTooltip
+    , heatStatusTooltip : Maybe HeatStatusTooltip
     , neocom : Maybe Neocom
     , messageBoxes : List MessageBox
     , layerAbovemain : Maybe UITreeNodeWithDisplayRegion
@@ -110,6 +111,7 @@ type alias ShipUI =
     , squadronsUI : Maybe SquadronsUI
     , stopButton : Maybe UITreeNodeWithDisplayRegion
     , maxSpeedButton : Maybe UITreeNodeWithDisplayRegion
+    , heatGauges : Maybe ShipUIHeatGauges
     }
 
 
@@ -138,6 +140,19 @@ type alias ShipUICapacitor =
 type alias ShipUICapacitorPmark =
     { uiNode : UITreeNodeWithDisplayRegion
     , colorPercent : Maybe ColorComponents
+    }
+
+
+type alias ShipUIHeatGauges =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , gauges : List ShipUIHeatGauge
+    }
+
+
+type alias ShipUIHeatGauge =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , rotationPercent : Maybe Int
+    , heatPercent : Maybe Int
     }
 
 
@@ -458,6 +473,14 @@ type alias ModuleButtonTooltip =
     }
 
 
+type alias HeatStatusTooltip =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , lowPercent : Maybe Int
+    , mediumPercent : Maybe Int
+    , highPercent : Maybe Int
+    }
+
+
 type alias Neocom =
     { uiNode : UITreeNodeWithDisplayRegion
     , iconInventory : Maybe UITreeNodeWithDisplayRegion
@@ -550,6 +573,7 @@ parseUserInterfaceFromUITree uiTree =
     , stationWindow = parseStationWindowFromUITreeRoot uiTree
     , inventoryWindows = parseInventoryWindowsFromUITreeRoot uiTree
     , moduleButtonTooltip = parseModuleButtonTooltipFromUITreeRoot uiTree
+    , heatStatusTooltip = parseHeatStatusTooltipFromUITreeRoot uiTree
     , chatWindowStacks = parseChatWindowStacksFromUITreeRoot uiTree
     , agentConversationWindows = parseAgentConversationWindowsFromUITreeRoot uiTree
     , marketOrdersWindow = parseMarketOrdersWindowFromUITreeRoot uiTree
@@ -991,6 +1015,13 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "SquadronsUI")
                                 |> List.head
                                 |> Maybe.map parseSquadronsUI
+
+                        heatGauges =
+                            shipUINode
+                                |> listDescendantsWithDisplayRegion
+                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "HeatGauges")
+                                |> List.head
+                                |> Maybe.map parseShipUIHeatGaugesFromUINode
                     in
                     maybeHitpointsPercent
                         |> Maybe.map
@@ -1005,6 +1036,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , squadronsUI = squadronsUI
                                 , stopButton = descendantNodesFromPythonObjectTypeNameEqual "StopButton" |> List.head
                                 , maxSpeedButton = descendantNodesFromPythonObjectTypeNameEqual "MaxSpeedButton" |> List.head
+                                , heatGauges = heatGauges
                                 }
                             )
 
@@ -1084,6 +1116,48 @@ parseShipUICapacitorFromUINode capacitorUINode =
     { uiNode = capacitorUINode
     , pmarks = pmarks
     , levelFromPmarksPercent = levelFromPmarksPercent
+    }
+
+
+parseShipUIHeatGaugesFromUINode : UITreeNodeWithDisplayRegion -> ShipUIHeatGauges
+parseShipUIHeatGaugesFromUINode gaugesUINode =
+    let
+        heatGaugesRotationZeroValues =
+            [ -213, -108, -3 ]
+
+        heatValuePercentFromRotationPercent rotationPercent =
+            heatGaugesRotationZeroValues
+                |> List.map
+                    (\gaugeRotationZero ->
+                        if rotationPercent <= gaugeRotationZero && gaugeRotationZero - 100 <= rotationPercent then
+                            Just -(rotationPercent - gaugeRotationZero)
+
+                        else
+                            Nothing
+                    )
+                |> List.filterMap identity
+                |> List.head
+
+        gauges =
+            gaugesUINode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> getNameFromDictEntries >> Maybe.map ((==) "heatGauge") >> Maybe.withDefault False)
+                |> List.map
+                    (\gaugeUiNode ->
+                        let
+                            rotationPercent =
+                                gaugeUiNode.uiNode
+                                    |> getRotationFloatFromDictEntries
+                                    |> Maybe.map ((*) 100 >> round)
+                        in
+                        { uiNode = gaugeUiNode
+                        , rotationPercent = rotationPercent
+                        , heatPercent = rotationPercent |> Maybe.andThen heatValuePercentFromRotationPercent
+                        }
+                    )
+    in
+    { uiNode = gaugesUINode
+    , gauges = gauges
     }
 
 
@@ -2273,6 +2347,42 @@ parseModuleButtonTooltipShortcut shortcutText =
             )
             (Ok [])
         |> Result.map List.reverse
+
+
+parseHeatStatusTooltipFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe HeatStatusTooltip
+parseHeatStatusTooltipFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "TooltipPanel")
+        |> List.filter
+            (getAllContainedDisplayTextsWithRegion
+                >> List.sortBy (Tuple.second >> .totalDisplayRegion >> .y)
+                >> List.head
+                >> Maybe.map (Tuple.first >> String.contains "Heat Status")
+                >> Maybe.withDefault False
+            )
+        |> List.head
+        |> Maybe.map parseHeatStatusTooltip
+
+
+parseHeatStatusTooltip : UITreeNodeWithDisplayRegion -> HeatStatusTooltip
+parseHeatStatusTooltip tooltipNode =
+    let
+        parsePercentFromPrefix prefix =
+            tooltipNode.uiNode
+                |> getAllContainedDisplayTexts
+                |> List.map String.trim
+                |> List.filter (String.toLower >> String.startsWith prefix)
+                |> List.head
+                |> Maybe.map (String.split " " >> List.filter (String.isEmpty >> not) >> List.drop 1 >> String.join "")
+                |> Maybe.andThen (String.split "%" >> List.head)
+                |> Maybe.andThen String.toInt
+    in
+    { uiNode = tooltipNode
+    , lowPercent = parsePercentFromPrefix "low"
+    , mediumPercent = parsePercentFromPrefix "medium"
+    , highPercent = parsePercentFromPrefix "high"
+    }
 
 
 parseKeyShortcutText : String -> Maybe Common.EffectOnWindow.VirtualKeyCode

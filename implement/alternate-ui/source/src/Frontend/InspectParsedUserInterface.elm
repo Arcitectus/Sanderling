@@ -246,6 +246,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromModuleButtonTooltip viewConfig
                         }
+                , parsedUserInterface.heatStatusTooltip
+                    |> fieldFromMaybeInstance
+                        { fieldName = "heatStatusTooltip"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromHeatStatusTooltip viewConfig
+                        }
                 , parsedUserInterface.neocom
                     |> fieldFromMaybeInstance
                         { fieldName = "neocom"
@@ -359,6 +365,12 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
+        , parsedUserInterfaceShipUI.heatGauges
+            |> fieldFromMaybeInstance
+                { fieldName = "heatGauges"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromShipUIHeatGauges viewConfig
+                }
         ]
 
 
@@ -441,6 +453,35 @@ treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig parsedUserInte
         viewConfig
         parsedUserInterfaceShipUICapacitor.uiNode
         [ parsedUserInterfaceShipUICapacitor.levelFromPmarksPercent |> fieldFromMaybeInt "levelFromPmarksPercent"
+        ]
+
+
+treeNodeChildrenFromShipUIHeatGauges :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ShipUIHeatGauges
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUIHeatGauges viewConfig heatGauges =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        heatGauges.uiNode
+        [ heatGauges.gauges
+            |> fieldFromListInstance
+                { fieldName = "gauges"
+                , fieldValueChildren = treeNodeChildrenFromShipUIHeatGauge viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromShipUIHeatGauge :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.ShipUIHeatGauge
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromShipUIHeatGauge viewConfig heatGauge =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        heatGauge.uiNode
+        [ heatGauge.rotationPercent |> fieldFromMaybeInt "rotationPercent"
+        , heatGauge.heatPercent |> fieldFromMaybeInt "heatPercent"
         ]
 
 
@@ -1197,6 +1238,20 @@ treeNodeChildrenFromOptimalRange optimalRange =
         , optimalRange.inMeters
             |> fieldFromResultPrimitive
                 { fieldName = "inMeters", errValueSummary = Json.Encode.string, okValueSummary = Json.Encode.int }
+        ]
+
+
+treeNodeChildrenFromHeatStatusTooltip :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.HeatStatusTooltip
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromHeatStatusTooltip viewConfig heatStatusTooltip =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        heatStatusTooltip.uiNode
+        [ heatStatusTooltip.lowPercent |> fieldFromMaybeInt "lowPercent"
+        , heatStatusTooltip.mediumPercent |> fieldFromMaybeInt "mediumPercent"
+        , heatStatusTooltip.highPercent |> fieldFromMaybeInt "highPercent"
         ]
 
 
