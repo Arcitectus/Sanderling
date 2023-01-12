@@ -1999,7 +1999,11 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
                 buttons =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Button")
+                        {-
+                           2023-01-12 discovered name: UndockButton
+                        -}
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+                        |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
 
                 buttonFromDisplayText textToSearch =
                     let
@@ -2808,7 +2812,7 @@ parseMessageBox uiNode =
         buttons =
             uiNode
                 |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Button")
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
                 |> List.map
                     (\buttonNode ->
                         { uiNode = buttonNode
