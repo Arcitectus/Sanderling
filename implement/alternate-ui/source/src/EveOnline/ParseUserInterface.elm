@@ -1996,15 +1996,6 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
 
         Just windowNode ->
             let
-                buttons =
-                    windowNode
-                        |> listDescendantsWithDisplayRegion
-                        {-
-                           2023-01-12 discovered name: UndockButton
-                        -}
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
-                        |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-
                 buttonFromDisplayText textToSearch =
                     let
                         textToSearchLowercase =
@@ -2013,9 +2004,9 @@ parseStationWindowFromUITreeRoot uiTreeRoot =
                         textMatches text =
                             text == textToSearchLowercase || (text |> String.contains (">" ++ textToSearchLowercase ++ "<"))
                     in
-                    buttons
-                        |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.toLower >> String.trim) >> List.any textMatches)
-                        |> List.head
+                    findButtonInDescendantsByDisplayTextsPredicate
+                        (List.any (String.toLower >> textMatches))
+                        windowNode
             in
             Just
                 { uiNode = windowNode
@@ -2569,18 +2560,9 @@ parseBookmarkLocationWindowFromUITreeRoot uiTreeRoot =
 
 parseBookmarkLocationWindow : UITreeNodeWithDisplayRegion -> BookmarkLocationWindow
 parseBookmarkLocationWindow windowUINode =
-    let
-        buttonFromLabelText labelText =
-            windowUINode
-                |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
-                |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
-                |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
-                |> List.head
-    in
     { uiNode = windowUINode
-    , submitButton = buttonFromLabelText "submit"
-    , cancelButton = buttonFromLabelText "cancel"
+    , submitButton = findButtonInDescendantsContainingDisplayText "submit" windowUINode
+    , cancelButton = findButtonInDescendantsContainingDisplayText "cancel" windowUINode
     }
 
 
@@ -2828,6 +2810,24 @@ parseMessageBox uiNode =
     { buttons = buttons
     , uiNode = uiNode
     }
+
+
+findButtonInDescendantsContainingDisplayText : String -> UITreeNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
+findButtonInDescendantsContainingDisplayText displayText =
+    findButtonInDescendantsByDisplayTextsPredicate
+        (List.any (String.toLower >> String.contains (String.toLower displayText)))
+
+
+findButtonInDescendantsByDisplayTextsPredicate : (List String -> Bool) -> UITreeNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
+findButtonInDescendantsByDisplayTextsPredicate displayTextsPredicate =
+    listDescendantsWithDisplayRegion
+        {-
+           2023-01-12 discovered name: UndockButton
+        -}
+        >> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+        >> List.filter (.uiNode >> getAllContainedDisplayTexts >> displayTextsPredicate)
+        >> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+        >> List.head
 
 
 parseScrollControls : UITreeNodeWithDisplayRegion -> ScrollControls
