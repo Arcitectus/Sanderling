@@ -509,6 +509,7 @@ type alias BookmarkLocationWindow =
 
 type alias MessageBox =
     { uiNode : UITreeNodeWithDisplayRegion
+    , buttonGroup : Maybe UITreeNodeWithDisplayRegion
     , buttons : List { uiNode : UITreeNodeWithDisplayRegion, mainText : Maybe String }
     }
 
@@ -2791,10 +2792,17 @@ parseMessageBoxesFromUITreeRoot uiTreeRoot =
 parseMessageBox : UITreeNodeWithDisplayRegion -> MessageBox
 parseMessageBox uiNode =
     let
+        buttonGroup =
+            uiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ButtonGroup")
+                |> List.head
+
         buttons =
             uiNode
                 |> listDescendantsWithDisplayRegion
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ButtonGroup" >> not)
                 |> List.map
                     (\buttonNode ->
                         { uiNode = buttonNode
@@ -2807,7 +2815,8 @@ parseMessageBox uiNode =
                         }
                     )
     in
-    { buttons = buttons
+    { buttonGroup = buttonGroup
+    , buttons = buttons
     , uiNode = uiNode
     }
 
@@ -3161,6 +3170,15 @@ subtractRegionFromRegion { minuend, subtrahend } =
             )
         |> List.filter (\rect -> 0 < rect.width && 0 < rect.height)
         |> listUnique
+
+
+regionsOverlap : DisplayRegion -> DisplayRegion -> Bool
+regionsOverlap regionA regionB =
+    subtractRegionFromRegion
+        { minuend = regionA
+        , subtrahend = regionB
+        }
+        /= [ regionA ]
 
 
 {-| Remove duplicate values, keeping the first instance of each element which appears more than once.
