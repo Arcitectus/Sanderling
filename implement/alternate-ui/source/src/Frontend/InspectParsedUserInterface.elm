@@ -766,6 +766,13 @@ treeNodeChildrenFromOverviewWindowEntry viewConfig overviewWindowEntry =
                 { fieldName = "objectDistanceInMeters", errValueSummary = Json.Encode.string, okValueSummary = Json.Encode.int }
         , overviewWindowEntry.objectName |> fieldFromMaybeString "objectName"
         , overviewWindowEntry.objectType |> fieldFromMaybeString "objectType"
+        , overviewWindowEntry.objectAlliance |> fieldFromMaybeString "objectAlliance"
+        , overviewWindowEntry.iconSpriteColorPercent
+            |> fieldFromMaybeInstance
+                { fieldName = "iconSpriteColorPercent"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromColorComponents
+                }
         , overviewWindowEntry.rightAlignedIconsHints
             |> fieldFromPrimitiveListInstance
                 { fieldName = "rightAlignedIconsHints"
@@ -1716,6 +1723,17 @@ treeNodeChildrenFromRecord fields =
                     fieldValueSummary
                     fieldValueChildren
             )
+
+
+treeNodeChildrenFromColorComponents :
+    EveOnline.ParseUserInterface.ColorComponents
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromColorComponents color =
+    treeNodeChildrenFromRecord
+        [ color.r |> fieldFromInt "r"
+        , color.g |> fieldFromInt "g"
+        , color.b |> fieldFromInt "b"
+        ]
 
 
 fieldFromPrimitiveListInstance :
