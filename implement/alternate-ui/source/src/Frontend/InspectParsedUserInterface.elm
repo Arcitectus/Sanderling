@@ -1480,6 +1480,12 @@ treeNodeChildrenFromMessageBox viewConfig messageBox =
                 { fieldName = "buttons"
                 , fieldValueChildren = treeNodeChildrenFromUINodeWithMainText viewConfig
                 }
+        , messageBox.buttonGroup
+            |> fieldFromMaybeInstance
+                { fieldName = "buttonGroup"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
         ]
 
 
