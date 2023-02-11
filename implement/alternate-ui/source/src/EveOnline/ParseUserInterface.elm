@@ -2783,9 +2783,32 @@ parseKeyActivationWindow windowUiNode =
 
 parseMessageBoxesFromUITreeRoot : UITreeNodeWithDisplayRegion -> List MessageBox
 parseMessageBoxesFromUITreeRoot uiTreeRoot =
-    uiTreeRoot
-        |> listDescendantsWithDisplayRegion
-        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MessageBox")
+    let
+        messageBoxNodes =
+            uiTreeRoot
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "MessageBox")
+
+        modalLayers =
+            uiTreeRoot
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "LayerCore")
+                |> List.filter
+                    (.uiNode
+                        >> getNameFromDictEntries
+                        >> Maybe.map (String.toLower >> String.contains "modal")
+                        >> Maybe.withDefault False
+                    )
+
+        modalHybridWindowNodes =
+            modalLayers
+                |> List.concatMap listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "HybridWindow")
+    in
+    [ messageBoxNodes
+    , modalHybridWindowNodes
+    ]
+        |> List.concat
         |> List.map parseMessageBox
 
 
@@ -2799,10 +2822,10 @@ parseMessageBox uiNode =
                 |> List.head
 
         buttons =
-            uiNode
-                |> listDescendantsWithDisplayRegion
+            buttonGroup
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
                 |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ButtonGroup" >> not)
                 |> List.map
                     (\buttonNode ->
                         { uiNode = buttonNode
