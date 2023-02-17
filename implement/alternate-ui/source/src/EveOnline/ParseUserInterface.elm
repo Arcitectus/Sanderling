@@ -404,6 +404,7 @@ type alias InventoryWindow =
     , selectedContainerCapacityGauge : Maybe (Result String InventoryWindowCapacityGauge)
     , selectedContainerInventory : Maybe Inventory
     , buttonToSwitchToListView : Maybe UITreeNodeWithDisplayRegion
+    , buttonToStackAll : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -2125,6 +2126,17 @@ parseInventoryWindow windowUiNode =
                             && ((uiNode.uiNode |> getTexturePathFromDictEntries |> Maybe.withDefault "") |> String.endsWith "38_16_190.png")
                     )
                 |> List.head
+
+        buttonToStackAll =
+            rightContainerNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter
+                    (\uiNode ->
+                        (uiNode.uiNode.pythonObjectTypeName |> String.contains "ButtonIcon")
+                            && (uiNode.uiNode |> getHintTextFromDictEntries |> Maybe.map (String.contains "Stack All") |> Maybe.withDefault False)
+                    )
+                |> List.head
     in
     { uiNode = windowUiNode
     , leftTreeEntries = leftTreeEntries
@@ -2132,6 +2144,7 @@ parseInventoryWindow windowUiNode =
     , selectedContainerCapacityGauge = selectedContainerCapacityGauge
     , selectedContainerInventory = selectedContainerInventory
     , buttonToSwitchToListView = buttonToSwitchToListView
+    , buttonToStackAll = buttonToStackAll
     }
 
 
