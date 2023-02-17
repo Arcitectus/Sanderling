@@ -33,21 +33,21 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 ## Setup
 
-These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-fs` to compile the program from source code and run it as a web server.
+These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-time` to compile the program from source code and run it as a web server.
 
-Download the zip archive from https://github.com/elm-fullstack/elm-fullstack/releases/download/v2022-12-06/elm-fullstack-bin-4bd0b69ab6d5cbef631afb4a1d841e079d7bc433-win10-x64.zip and extract it.
+Download the zip archive from https://github.com/elm-time/elm-time/releases/download/v2023-02-16/elm-time-bin-f0d6ce07465ef0ddc4bdbd1f0cef3ab01978f427-win10-x64.zip and extract it.
 
-The extracted files contain the `elm-fs` tool used to run Elm programs.
+The extracted files contain the `elm-time` tool used to run Elm programs.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ In the next command, we use the `elm-fs.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
++ In the next command, we use the `elm-time.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-fs.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/2024fa7b384b00d2ea454eef63a020b46b453434/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/954869df272419c4d08e122fa06aa24b28fcc4a3/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -56,22 +56,26 @@ To start the software:
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit 2024fa7b384b00d2ea454eef63a020b46b453434
-Loaded source composition cb1dbfb78debec19aa6ae591556f4f0020272d55adf54fe9f57915584cb1bcd7 from 'https://github.com/Arcitectus/Sanderling/tree/2024fa7b384b00d2ea454eef63a020b46b453434/implement/alternate-ui/source'.
+This path points to commit 954869df272419c4d08e122fa06aa24b28fcc4a3
+Loaded source composition b00abb11f5a7258e76643796db0ba6395fd12e6973784013fe2f3b21b5579d71 from 'https://github.com/Arcitectus/Sanderling/tree/954869df272419c4d08e122fa06aa24b28fcc4a3/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Begin to build the process live representation.
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Begin to restore the process state.
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Found 1 composition log records to use for restore.
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
-      Restored the process state in 1 seconds.
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
+      Restored the process state in 0 seconds.
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Completed building the process live representation.
-info: ElmFullstack.WebHost.StartupPublicApp[0]
+info: ElmTime.Platform.WebServer.PublicAppState[0]
       I did not find 'letsEncryptOptions' in the configuration. I continue without Let's Encrypt.
-info: ElmFullstack.WebHost.StartupAdminInterface[0]
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://[::]:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Started the public app at 'http://*:80'.
 Completed starting the web server with the admin interface at 'http://*:4000'.
 ```
