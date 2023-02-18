@@ -6,11 +6,11 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
-            "danfishgold/base64-bytes": "1.0.3",
-            "dillonkearns/elm-markdown": "1.1.1",
+            "danfishgold/base64-bytes": "1.1.0",
+            "dillonkearns/elm-markdown": "1.1.3",
             "elm/browser": "1.0.2",
             "elm/bytes": "1.0.8",
-            "elm/core": "1.0.2",
+            "elm/core": "1.0.5",
             "elm/file": "1.0.5",
             "elm/html": "1.0.0",
             "elm/http": "2.0.0",
@@ -19,23 +19,23 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
-            "elm-community/json-extra": "4.2.0",
-            "elm-community/list-extra": "8.2.2",
-            "elm-community/maybe-extra": "5.2.0",
-            "elm-community/result-extra": "2.3.0",
+            "elm-community/json-extra": "4.3.0",
+            "elm-community/list-extra": "8.7.0",
+            "elm-community/maybe-extra": "5.3.0",
+            "elm-community/result-extra": "2.4.0",
             "elm-community/string-extra": "4.0.1",
             "fapian/elm-html-aria": "1.4.0"
         },
         "indirect": {
             "elm/parser": "1.1.0",
-            "elm/virtual-dom": "1.0.2",
+            "elm/virtual-dom": "1.0.3",
             "rtfeldman/elm-hex": "1.0.0",
-            "rtfeldman/elm-iso8601-date-strings": "1.1.3"
+            "rtfeldman/elm-iso8601-date-strings": "1.1.4"
         }
     },
     "test-dependencies": {
         "direct": {
-            "elm-explorations/test": "2.0.1"
+            "elm-explorations/test": "2.1.1"
         },
         "indirect": {
             "elm/random": "1.0.0"
