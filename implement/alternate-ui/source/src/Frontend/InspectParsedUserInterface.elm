@@ -135,10 +135,9 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromInfoPanelContainer viewConfig
                         }
-                , parsedUserInterface.overviewWindow
-                    |> fieldFromMaybeInstance
-                        { fieldName = "overviewWindow"
-                        , fieldValueSummary = always "..."
+                , parsedUserInterface.overviewWindows
+                    |> fieldFromListInstance
+                        { fieldName = "overviewWindows"
                         , fieldValueChildren = treeNodeChildrenFromOverviewWindow viewConfig
                         }
                 , parsedUserInterface.selectedItemWindow

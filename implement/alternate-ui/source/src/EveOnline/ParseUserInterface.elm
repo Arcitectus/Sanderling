@@ -29,7 +29,7 @@ type alias ParsedUserInterface =
     , shipUI : Maybe ShipUI
     , targets : List Target
     , infoPanelContainer : Maybe InfoPanelContainer
-    , overviewWindow : Maybe OverviewWindow
+    , overviewWindows : List OverviewWindow
     , selectedItemWindow : Maybe SelectedItemWindow
     , dronesWindow : Maybe DronesWindow
     , fittingWindow : Maybe FittingWindow
@@ -566,7 +566,7 @@ parseUserInterfaceFromUITree uiTree =
     , shipUI = parseShipUIFromUITreeRoot uiTree
     , targets = parseTargetsFromUITreeRoot uiTree
     , infoPanelContainer = parseInfoPanelContainerFromUIRoot uiTree
-    , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
+    , overviewWindows = parseOverviewWindowsFromUITreeRoot uiTree
     , selectedItemWindow = parseSelectedItemWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
     , fittingWindow = parseFittingWindowFromUITreeRoot uiTree
@@ -1317,60 +1317,57 @@ parseTarget targetNode =
     }
 
 
-parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe OverviewWindow
-parseOverviewWindowFromUITreeRoot uiTreeRoot =
-    case
-        uiTreeRoot
-            |> listDescendantsWithDisplayRegion
-            |> List.filter
-                (.uiNode
-                    >> .pythonObjectTypeName
-                    >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
-                )
-            |> List.head
-    of
-        Nothing ->
-            Nothing
+parseOverviewWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List OverviewWindow
+parseOverviewWindowsFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter
+            (.uiNode
+                >> .pythonObjectTypeName
+                >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
+            )
+        |> List.map parseOverviewWindow
 
-        Just overviewWindowNode ->
-            let
-                scrollNode =
-                    overviewWindowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
-                        |> List.head
 
-                scrollControlsNode =
-                    scrollNode
-                        |> Maybe.map listDescendantsWithDisplayRegion
-                        |> Maybe.withDefault []
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
-                        |> List.head
+parseOverviewWindow : UITreeNodeWithDisplayRegion -> OverviewWindow
+parseOverviewWindow overviewWindowNode =
+    let
+        scrollNode =
+            overviewWindowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                |> List.head
 
-                headersContainerNode =
-                    scrollNode
-                        |> Maybe.map listDescendantsWithDisplayRegion
-                        |> Maybe.withDefault []
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers")
-                        |> List.head
+        scrollControlsNode =
+            scrollNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
+                |> List.head
 
-                entriesHeaders =
-                    headersContainerNode
-                        |> Maybe.map getAllContainedDisplayTextsWithRegion
-                        |> Maybe.withDefault []
+        headersContainerNode =
+            scrollNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers")
+                |> List.head
 
-                entries =
-                    overviewWindowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
-                        |> List.map (parseOverviewWindowEntry entriesHeaders)
-            in
-            Just
-                { uiNode = overviewWindowNode
-                , entriesHeaders = entriesHeaders
-                , entries = entries
-                , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
-                }
+        entriesHeaders =
+            headersContainerNode
+                |> Maybe.map getAllContainedDisplayTextsWithRegion
+                |> Maybe.withDefault []
+
+        entries =
+            overviewWindowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
+                |> List.map (parseOverviewWindowEntry entriesHeaders)
+    in
+    { uiNode = overviewWindowNode
+    , entriesHeaders = entriesHeaders
+    , entries = entries
+    , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
+    }
 
 
 parseOverviewWindowEntry : List ( String, UITreeNodeWithDisplayRegion ) -> UITreeNodeWithDisplayRegion -> OverviewWindowEntry
