@@ -314,9 +314,8 @@ type alias SurveyScanWindow =
 type alias RepairShopWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , items : List UITreeNodeWithDisplayRegion
-    , repairItemButton : Maybe UITreeNodeWithDisplayRegion
-    , pickNewItemButton : Maybe UITreeNodeWithDisplayRegion
-    , repairAllButton : Maybe UITreeNodeWithDisplayRegion
+    , buttonGroup : Maybe UITreeNodeWithDisplayRegion
+    , buttons : List { uiNode : UITreeNodeWithDisplayRegion, mainText : Maybe String }
     }
 
 
@@ -2589,22 +2588,36 @@ parseRepairShopWindowFromUITreeRoot uiTreeRoot =
 parseRepairShopWindow : UITreeNodeWithDisplayRegion -> RepairShopWindow
 parseRepairShopWindow windowUINode =
     let
-        buttonFromLabelText labelText =
+        buttonGroup =
             windowUINode
                 |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
-                |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
-                |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ButtonGroup")
                 |> List.head
+
+        buttons =
+            buttonGroup
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+                |> List.map
+                    (\buttonNode ->
+                        { uiNode = buttonNode
+                        , mainText =
+                            buttonNode
+                                |> getAllContainedDisplayTextsWithRegion
+                                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                                |> List.map Tuple.first
+                                |> List.head
+                        }
+                    )
     in
     { uiNode = windowUINode
     , items =
         windowUINode
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
-    , repairItemButton = buttonFromLabelText "repair item"
-    , pickNewItemButton = buttonFromLabelText "pick new item"
-    , repairAllButton = buttonFromLabelText "repair all"
+    , buttonGroup = buttonGroup
+    , buttons = buttons
     }
 
 

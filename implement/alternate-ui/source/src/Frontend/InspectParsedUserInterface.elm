@@ -1346,23 +1346,16 @@ treeNodeChildrenFromRepairShopWindow viewConfig repairShopWindow =
                 { fieldName = "items"
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
-        , repairShopWindow.repairItemButton
+        , repairShopWindow.buttonGroup
             |> fieldFromMaybeInstance
-                { fieldName = "repairItemButton"
+                { fieldName = "buttonGroup"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
-        , repairShopWindow.pickNewItemButton
-            |> fieldFromMaybeInstance
-                { fieldName = "pickNewItemButton"
-                , fieldValueSummary = always "..."
-                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
-                }
-        , repairShopWindow.repairAllButton
-            |> fieldFromMaybeInstance
-                { fieldName = "repairAllButton"
-                , fieldValueSummary = always "..."
-                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+        , repairShopWindow.buttons
+            |> fieldFromListInstance
+                { fieldName = "buttons"
+                , fieldValueChildren = treeNodeChildrenFromUINodeWithMainText viewConfig
                 }
         ]
 
