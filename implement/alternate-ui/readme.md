@@ -14,6 +14,8 @@ There can be more than a thousand nodes in the UI tree, even in simple scenarios
 
 This quantity might make for a confusing impression, so I introduced a way to better focus on what is of interest to you in a given moment: You can expand and collapse individual nodes of the UI tree. For a collapsed node, it only shows a small summary, not all properties. When you get the first memory reading, all nodes are displayed collapsed, so only the summary of the root node is shown. You can expand that, and then the children of the root node. This way, you can descend into the part you are interested in.
 
+![Screenshot showing both the game client and the tree view in the alternate UI, illustrating the relations between the different representations of the same UI elements.](./../../guide/image/2020-03-11-eve-online-parsed-user-interface-inventory-inspect.png)
+
 There are two ways to get a memory reading into this interface:
 
 + Load from a live EVE Online client process. This user interface offers you input elements to interact with input elements in the EVE Online client. Note: When you send an input to the EVE Online client this way, the tool will switch the input focus to the EVE Online window and bring to the foreground. In case you run this user interface on the same desktop as the EVE Online client: To avoid interference between web browser window and game client window, place them side-by-side, so that they don't overlap.
