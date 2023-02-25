@@ -1101,7 +1101,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView :
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
 treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserInterfaceInventoryItemsView =
     let
-        continueWithTagName tagName items =
+        continueWithTagName tagName items itemView =
             treeNodeChildrenFromRecord
                 [ { fieldName = tagName
                   , fieldValueSummary = ""
@@ -1111,9 +1111,7 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserI
                                 [ items
                                     |> fieldFromListInstance
                                         { fieldName = "items"
-                                        , fieldValueChildren =
-                                            \inventoryItem ->
-                                                [ treeViewNodeFromUINode viewConfig inventoryItem ]
+                                        , fieldValueChildren = itemView
                                         }
                                 ]
                             )
@@ -1122,10 +1120,30 @@ treeNodeChildrenFromParsedUserInterfaceInventoryItemsView viewConfig parsedUserI
     in
     case parsedUserInterfaceInventoryItemsView of
         EveOnline.ParseUserInterface.InventoryItemsListView { items } ->
-            continueWithTagName "InventoryItemsListView" items
+            continueWithTagName "InventoryItemsListView"
+                items
+                (treeNodeChildrenFromParsedUserInterfaceInventoryItemsListViewEntry viewConfig)
 
         EveOnline.ParseUserInterface.InventoryItemsNotListView { items } ->
-            continueWithTagName "InventoryItemsNotListView" items
+            continueWithTagName "InventoryItemsNotListView"
+                items
+                (treeViewNodeFromUINode viewConfig >> List.singleton)
+
+
+treeNodeChildrenFromParsedUserInterfaceInventoryItemsListViewEntry :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.InventoryItemsListViewEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromParsedUserInterfaceInventoryItemsListViewEntry viewConfig inventoryEntry =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        inventoryEntry.uiNode
+        [ inventoryEntry.cellsTexts
+            |> fieldFromPrimitiveStringDictInstance
+                { fieldName = "cellsTexts"
+                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+                }
+        ]
 
 
 treeNodeChildrenFromChatWindowStack :
