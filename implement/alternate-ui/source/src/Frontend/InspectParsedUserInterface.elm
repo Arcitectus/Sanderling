@@ -266,7 +266,7 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                     |> fieldFromMaybeInstance
                         { fieldName = "layerAbovemain"
                         , fieldValueSummary = always "..."
-                        , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                        , fieldValueChildren = treeNodeChildrenFromLayerAbovemain viewConfig
                         }
                 , parsedUserInterface.keyActivationWindow
                     |> fieldFromMaybeInstance
@@ -1497,6 +1497,34 @@ treeNodeChildrenFromMessageBox viewConfig messageBox =
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
+
+
+treeNodeChildrenFromLayerAbovemain :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.LayerAbovemain
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromLayerAbovemain viewConfig layerAbovemain =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        layerAbovemain.uiNode
+        [ layerAbovemain.quickMessage
+            |> fieldFromMaybeInstance
+                { fieldName = "quickMessage"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromQuickMessage viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromQuickMessage :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.QuickMessage
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromQuickMessage viewConfig layerAboveMainUINode =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        layerAboveMainUINode.uiNode
+        [ layerAboveMainUINode.text |> fieldFromString "text" ]
 
 
 treeNodeChildrenFromKeyActivationWindow :
