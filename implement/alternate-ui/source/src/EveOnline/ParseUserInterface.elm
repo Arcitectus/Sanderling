@@ -51,7 +51,7 @@ type alias ParsedUserInterface =
     , heatStatusTooltip : Maybe HeatStatusTooltip
     , neocom : Maybe Neocom
     , messageBoxes : List MessageBox
-    , layerAbovemain : Maybe UITreeNodeWithDisplayRegion
+    , layerAbovemain : Maybe LayerAbovemain
     , keyActivationWindow : Maybe KeyActivationWindow
     }
 
@@ -541,6 +541,18 @@ type alias WatchListPanel =
 type alias StandaloneBookmarkWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , entries : List UITreeNodeWithDisplayRegion
+    }
+
+
+type alias LayerAbovemain =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , quickMessage : Maybe QuickMessage
+    }
+
+
+type alias QuickMessage =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , text : String
     }
 
 
@@ -3001,12 +3013,47 @@ parseScrollControls scrollControlsNode =
     }
 
 
-parseLayerAbovemainFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
+parseLayerAbovemainFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe LayerAbovemain
 parseLayerAbovemainFromUITreeRoot uiTreeRoot =
-    uiTreeRoot
-        |> listDescendantsWithDisplayRegion
-        |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "l_abovemain"))
-        |> List.head
+    case
+        uiTreeRoot
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "l_abovemain"))
+            |> List.head
+    of
+        Nothing ->
+            Nothing
+
+        Just layerAboveMainUINode ->
+            Just
+                { uiNode = layerAboveMainUINode
+                , quickMessage = parseQuickMessage layerAboveMainUINode
+                }
+
+
+parseQuickMessage : UITreeNodeWithDisplayRegion -> Maybe QuickMessage
+parseQuickMessage layerAboveMainUINode =
+    case
+        layerAboveMainUINode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "QuickMessage")
+            |> List.head
+    of
+        Nothing ->
+            Nothing
+
+        Just quickMessageUINode ->
+            let
+                text =
+                    quickMessageUINode.uiNode
+                        |> getAllContainedDisplayTexts
+                        |> List.head
+                        |> Maybe.withDefault ""
+            in
+            Just
+                { uiNode = quickMessageUINode
+                , text = text
+                }
 
 
 getSubstringBetweenXmlTagsAfterMarker : String -> String -> Maybe String
