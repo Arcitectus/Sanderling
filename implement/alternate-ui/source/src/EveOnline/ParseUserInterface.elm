@@ -29,7 +29,7 @@ type alias ParsedUserInterface =
     , shipUI : Maybe ShipUI
     , targets : List Target
     , infoPanelContainer : Maybe InfoPanelContainer
-    , overviewWindow : Maybe OverviewWindow
+    , overviewWindows : List OverviewWindow
     , selectedItemWindow : Maybe SelectedItemWindow
     , dronesWindow : Maybe DronesWindow
     , fittingWindow : Maybe FittingWindow
@@ -314,9 +314,8 @@ type alias SurveyScanWindow =
 type alias RepairShopWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , items : List UITreeNodeWithDisplayRegion
-    , repairItemButton : Maybe UITreeNodeWithDisplayRegion
-    , pickNewItemButton : Maybe UITreeNodeWithDisplayRegion
-    , repairAllButton : Maybe UITreeNodeWithDisplayRegion
+    , buttonGroup : Maybe UITreeNodeWithDisplayRegion
+    , buttons : List { uiNode : UITreeNodeWithDisplayRegion, mainText : Maybe String }
     }
 
 
@@ -416,7 +415,7 @@ type alias Inventory =
 
 
 type InventoryItemsView
-    = InventoryItemsListView { items : List UITreeNodeWithDisplayRegion }
+    = InventoryItemsListView { items : List InventoryItemsListViewEntry }
     | InventoryItemsNotListView { items : List UITreeNodeWithDisplayRegion }
 
 
@@ -437,6 +436,12 @@ type alias InventoryWindowCapacityGauge =
     { used : Int
     , maximum : Maybe Int
     , selected : Maybe Int
+    }
+
+
+type alias InventoryItemsListViewEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , cellsTexts : Dict.Dict String String
     }
 
 
@@ -566,7 +571,7 @@ parseUserInterfaceFromUITree uiTree =
     , shipUI = parseShipUIFromUITreeRoot uiTree
     , targets = parseTargetsFromUITreeRoot uiTree
     , infoPanelContainer = parseInfoPanelContainerFromUIRoot uiTree
-    , overviewWindow = parseOverviewWindowFromUITreeRoot uiTree
+    , overviewWindows = parseOverviewWindowsFromUITreeRoot uiTree
     , selectedItemWindow = parseSelectedItemWindowFromUITreeRoot uiTree
     , dronesWindow = parseDronesWindowFromUITreeRoot uiTree
     , fittingWindow = parseFittingWindowFromUITreeRoot uiTree
@@ -1317,60 +1322,57 @@ parseTarget targetNode =
     }
 
 
-parseOverviewWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe OverviewWindow
-parseOverviewWindowFromUITreeRoot uiTreeRoot =
-    case
-        uiTreeRoot
-            |> listDescendantsWithDisplayRegion
-            |> List.filter
-                (.uiNode
-                    >> .pythonObjectTypeName
-                    >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
-                )
-            |> List.head
-    of
-        Nothing ->
-            Nothing
+parseOverviewWindowsFromUITreeRoot : UITreeNodeWithDisplayRegion -> List OverviewWindow
+parseOverviewWindowsFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter
+            (.uiNode
+                >> .pythonObjectTypeName
+                >> (List.member >> (|>) [ "OverView", "OverviewWindow", "OverviewWindowOld" ])
+            )
+        |> List.map parseOverviewWindow
 
-        Just overviewWindowNode ->
-            let
-                scrollNode =
-                    overviewWindowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
-                        |> List.head
 
-                scrollControlsNode =
-                    scrollNode
-                        |> Maybe.map listDescendantsWithDisplayRegion
-                        |> Maybe.withDefault []
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
-                        |> List.head
+parseOverviewWindow : UITreeNodeWithDisplayRegion -> OverviewWindow
+parseOverviewWindow overviewWindowNode =
+    let
+        scrollNode =
+            overviewWindowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                |> List.head
 
-                headersContainerNode =
-                    scrollNode
-                        |> Maybe.map listDescendantsWithDisplayRegion
-                        |> Maybe.withDefault []
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers")
-                        |> List.head
+        scrollControlsNode =
+            scrollNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
+                |> List.head
 
-                entriesHeaders =
-                    headersContainerNode
-                        |> Maybe.map getAllContainedDisplayTextsWithRegion
-                        |> Maybe.withDefault []
+        headersContainerNode =
+            scrollNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers")
+                |> List.head
 
-                entries =
-                    overviewWindowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
-                        |> List.map (parseOverviewWindowEntry entriesHeaders)
-            in
-            Just
-                { uiNode = overviewWindowNode
-                , entriesHeaders = entriesHeaders
-                , entries = entries
-                , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
-                }
+        entriesHeaders =
+            headersContainerNode
+                |> Maybe.map getAllContainedDisplayTextsWithRegion
+                |> Maybe.withDefault []
+
+        entries =
+            overviewWindowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OverviewScrollEntry")
+                |> List.map (parseOverviewWindowEntry entriesHeaders)
+    in
+    { uiNode = overviewWindowNode
+    , entriesHeaders = entriesHeaders
+    , entries = entries
+    , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
+    }
 
 
 parseOverviewWindowEntry : List ( String, UITreeNodeWithDisplayRegion ) -> UITreeNodeWithDisplayRegion -> OverviewWindowEntry
@@ -1382,36 +1384,11 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
                 |> List.sortBy (Tuple.second >> .totalDisplayRegion >> .x)
                 |> List.map Tuple.first
 
-        cellsTexts =
-            overviewEntryNode
-                |> getAllContainedDisplayTextsWithRegion
-                |> List.filterMap
-                    (\( cellText, cell ) ->
-                        let
-                            cellMiddle =
-                                cell.totalDisplayRegion.x + (cell.totalDisplayRegion.width // 2)
-
-                            maybeHeader =
-                                entriesHeaders
-                                    |> List.filter
-                                        (\( _, header ) ->
-                                            header.totalDisplayRegion.x
-                                                < cellMiddle
-                                                + 1
-                                                && cellMiddle
-                                                < header.totalDisplayRegion.x
-                                                + header.totalDisplayRegion.width
-                                                - 1
-                                        )
-                                    |> List.head
-                        in
-                        maybeHeader
-                            |> Maybe.map (\( headerText, _ ) -> ( headerText, cellText ))
-                    )
-                |> Dict.fromList
+        listViewEntry =
+            parseListViewEntry entriesHeaders overviewEntryNode
 
         objectDistance =
-            cellsTexts
+            listViewEntry.cellsTexts
                 |> Dict.get "Distance"
 
         objectDistanceInMeters =
@@ -1471,12 +1448,12 @@ parseOverviewWindowEntry entriesHeaders overviewEntryNode =
     in
     { uiNode = overviewEntryNode
     , textsLeftToRight = textsLeftToRight
-    , cellsTexts = cellsTexts
+    , cellsTexts = listViewEntry.cellsTexts
     , objectDistance = objectDistance
     , objectDistanceInMeters = objectDistanceInMeters
-    , objectName = cellsTexts |> Dict.get "Name"
-    , objectType = cellsTexts |> Dict.get "Type"
-    , objectAlliance = cellsTexts |> Dict.get "Alliance"
+    , objectName = listViewEntry.cellsTexts |> Dict.get "Name"
+    , objectType = listViewEntry.cellsTexts |> Dict.get "Type"
+    , objectAlliance = listViewEntry.cellsTexts |> Dict.get "Alliance"
     , iconSpriteColorPercent = iconSpriteColorPercent
     , namesUnderSpaceObjectIcon = namesUnderSpaceObjectIcon
     , bgColorFillsPercent = bgColorFillsPercent
@@ -2081,40 +2058,7 @@ parseInventoryWindow windowUiNode =
 
         selectedContainerInventory =
             maybeSelectedContainerInventoryNode
-                |> Maybe.map
-                    (\selectedContainerInventoryNode ->
-                        let
-                            listViewItemNodes =
-                                selectedContainerInventoryNode
-                                    |> listDescendantsWithDisplayRegion
-                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
-
-                            scrollControlsNode =
-                                selectedContainerInventoryNode
-                                    |> listDescendantsWithDisplayRegion
-                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
-                                    |> List.head
-
-                            notListViewItemNodes =
-                                selectedContainerInventoryNode
-                                    |> listDescendantsWithDisplayRegion
-                                    |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "InvItem")
-
-                            itemsView =
-                                if 0 < (listViewItemNodes |> List.length) then
-                                    Just (InventoryItemsListView { items = listViewItemNodes })
-
-                                else if 0 < (notListViewItemNodes |> List.length) then
-                                    Just (InventoryItemsNotListView { items = notListViewItemNodes })
-
-                                else
-                                    Nothing
-                        in
-                        { uiNode = selectedContainerInventoryNode
-                        , itemsView = itemsView
-                        , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
-                        }
-                    )
+                |> Maybe.map parseInventory
 
         buttonToSwitchToListView =
             rightContainerNode
@@ -2146,6 +2090,160 @@ parseInventoryWindow windowUiNode =
     , buttonToSwitchToListView = buttonToSwitchToListView
     , buttonToStackAll = buttonToStackAll
     }
+
+
+parseInventory : UITreeNodeWithDisplayRegion -> Inventory
+parseInventory inventoryNode =
+    let
+        listViewItemNodes =
+            inventoryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
+
+        scrollNode =
+            inventoryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "scroll")
+                |> List.head
+
+        scrollControlsNode =
+            scrollNode
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ScrollControls")
+                |> List.head
+
+        headersContainerNode =
+            scrollNode
+                |> Maybe.andThen
+                    (getMostPopulousDescendantWithDisplayRegionMatchingPredicate
+                        (predicateAny
+                            [ .uiNode >> .pythonObjectTypeName >> String.toLower >> String.contains "headers"
+                            , .uiNode
+                                >> getNameFromDictEntries
+                                >> Maybe.map (String.toLower >> String.contains "headers")
+                                >> Maybe.withDefault False
+                            ]
+                        )
+                    )
+
+        entriesHeaders =
+            headersContainerNode
+                |> Maybe.map getAllContainedDisplayTextsWithRegion
+                |> Maybe.withDefault []
+                |> List.Extra.uniqueBy Tuple.first
+
+        notListViewItemNodes =
+            inventoryNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "InvItem")
+
+        itemsView =
+            if 0 < (listViewItemNodes |> List.length) then
+                Just
+                    (InventoryItemsListView
+                        { items =
+                            listViewItemNodes
+                                |> List.map (parseInventoryItemsListViewEntry entriesHeaders)
+                        }
+                    )
+
+            else if 0 < (notListViewItemNodes |> List.length) then
+                Just (InventoryItemsNotListView { items = notListViewItemNodes })
+
+            else
+                Nothing
+    in
+    { uiNode = inventoryNode
+    , itemsView = itemsView
+    , scrollControls = scrollControlsNode |> Maybe.map parseScrollControls
+    }
+
+
+parseInventoryItemsListViewEntry :
+    List ( String, UITreeNodeWithDisplayRegion )
+    -> UITreeNodeWithDisplayRegion
+    -> InventoryItemsListViewEntry
+parseInventoryItemsListViewEntry entriesHeaders inventoryEntryNode =
+    let
+        listViewEntry =
+            parseListViewEntry entriesHeaders inventoryEntryNode
+    in
+    { uiNode = inventoryEntryNode
+    , cellsTexts = listViewEntry.cellsTexts
+    }
+
+
+parseListViewEntry :
+    List ( String, UITreeNodeWithDisplayRegion )
+    -> UITreeNodeWithDisplayRegion
+    -> { cellsTexts : Dict.Dict String String }
+parseListViewEntry entriesHeaders listViewEntryNode =
+    {-
+       Observations show two different kinds of representations of the texts in the cells in a list view:
+
+       + Each cell text in a dedicated UI element. (Overview entry)
+       + All cell texts in a single UI element, separated by a tab-tag (<t>) (Inventory item)
+
+       Following is an example of the latter case:
+       Condensed Scordite<t><right>200<t>Scordite<t><t><t><right>30 m3<t><right>2.290,00 ISK
+    -}
+    case entriesHeaders |> List.head of
+        Nothing ->
+            { cellsTexts = Dict.empty }
+
+        Just leftmostHeader ->
+            let
+                headerRegionMatchesCellRegion headerRegion cellRegion =
+                    (headerRegion.x < cellRegion.x + 3)
+                        && (headerRegion.x + headerRegion.width > cellRegion.x + cellRegion.width - 3)
+
+                cellsTexts =
+                    listViewEntryNode
+                        |> getAllContainedDisplayTextsWithRegion
+                        |> List.concatMap
+                            (\( cellText, cell ) ->
+                                let
+                                    distanceFromLeftmostHeader =
+                                        cell.totalDisplayRegion.x - (Tuple.second leftmostHeader).totalDisplayRegion.x
+
+                                    maybeHeaderByCellRegion =
+                                        entriesHeaders
+                                            |> List.filter
+                                                (\( _, header ) ->
+                                                    headerRegionMatchesCellRegion
+                                                        header.totalDisplayRegion
+                                                        cell.totalDisplayRegion
+                                                )
+                                            |> List.head
+                                in
+                                case maybeHeaderByCellRegion of
+                                    Just ( headerText, _ ) ->
+                                        [ ( headerText, cellText ) ]
+
+                                    Nothing ->
+                                        if abs distanceFromLeftmostHeader < 4 then
+                                            []
+
+                                        else
+                                            cellText
+                                                |> String.split "<t>"
+                                                |> List.map String.trim
+                                                |> List.indexedMap Tuple.pair
+                                                |> List.filterMap
+                                                    (\( cellIndex, cellSubText ) ->
+                                                        entriesHeaders
+                                                            |> List.drop cellIndex
+                                                            |> List.head
+                                                            |> Maybe.map
+                                                                (\( headerText, _ ) ->
+                                                                    ( headerText, cellSubText )
+                                                                )
+                                                    )
+                            )
+                        |> Dict.fromList
+            in
+            { cellsTexts = cellsTexts }
 
 
 getContainedTreeViewEntryRootNodes : UITreeNodeWithDisplayRegion -> List UITreeNodeWithDisplayRegion
@@ -2592,22 +2690,36 @@ parseRepairShopWindowFromUITreeRoot uiTreeRoot =
 parseRepairShopWindow : UITreeNodeWithDisplayRegion -> RepairShopWindow
 parseRepairShopWindow windowUINode =
     let
-        buttonFromLabelText labelText =
+        buttonGroup =
             windowUINode
                 |> listDescendantsWithDisplayRegion
-                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
-                |> List.filter (.uiNode >> getAllContainedDisplayTexts >> List.map (String.trim >> String.toLower) >> List.member (labelText |> String.toLower))
-                |> List.sortBy (.totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "ButtonGroup")
                 |> List.head
+
+        buttons =
+            buttonGroup
+                |> Maybe.map listDescendantsWithDisplayRegion
+                |> Maybe.withDefault []
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "Button")
+                |> List.map
+                    (\buttonNode ->
+                        { uiNode = buttonNode
+                        , mainText =
+                            buttonNode
+                                |> getAllContainedDisplayTextsWithRegion
+                                |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+                                |> List.map Tuple.first
+                                |> List.head
+                        }
+                    )
     in
     { uiNode = windowUINode
     , items =
         windowUINode
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Item")
-    , repairItemButton = buttonFromLabelText "repair item"
-    , pickNewItemButton = buttonFromLabelText "pick new item"
-    , repairAllButton = buttonFromLabelText "repair all"
+    , buttonGroup = buttonGroup
+    , buttons = buttons
     }
 
 
@@ -3085,7 +3197,47 @@ getVerticalOffsetFromParent =
         >> Maybe.map round
 
 
-getMostPopulousDescendantMatchingPredicate : (EveOnline.MemoryReading.UITreeNode -> Bool) -> EveOnline.MemoryReading.UITreeNode -> Maybe EveOnline.MemoryReading.UITreeNode
+predicateAny : List (a -> Bool) -> a -> Bool
+predicateAny predicates candidate =
+    predicates
+        |> List.any (\predicate -> predicate candidate)
+
+
+getMostPopulousDescendantWithDisplayRegionMatchingPredicate :
+    (UITreeNodeWithDisplayRegion -> Bool)
+    -> UITreeNodeWithDisplayRegion
+    -> Maybe UITreeNodeWithDisplayRegion
+getMostPopulousDescendantWithDisplayRegionMatchingPredicate predicate parent =
+    listDescendantsWithDisplayRegion parent
+        |> List.filter predicate
+        |> List.sortBy countDescendantsInUITreeNodeWithDisplayRegion
+        |> List.reverse
+        |> List.head
+
+
+countDescendantsInUITreeNodeWithDisplayRegion : UITreeNodeWithDisplayRegion -> Int
+countDescendantsInUITreeNodeWithDisplayRegion parent =
+    parent.children
+        |> Maybe.withDefault []
+        |> List.filterMap unwrapUITreeNodeWithDisplayRegionChild
+        |> List.map (countDescendantsInUITreeNodeWithDisplayRegion >> (+) 1)
+        |> List.sum
+
+
+unwrapUITreeNodeWithDisplayRegionChild : ChildOfNodeWithDisplayRegion -> Maybe UITreeNodeWithDisplayRegion
+unwrapUITreeNodeWithDisplayRegionChild child =
+    case child of
+        ChildWithRegion node ->
+            Just node
+
+        ChildWithoutRegion _ ->
+            Nothing
+
+
+getMostPopulousDescendantMatchingPredicate :
+    (EveOnline.MemoryReading.UITreeNode -> Bool)
+    -> EveOnline.MemoryReading.UITreeNode
+    -> Maybe EveOnline.MemoryReading.UITreeNode
 getMostPopulousDescendantMatchingPredicate predicate parent =
     EveOnline.MemoryReading.listDescendantsInUITreeNode parent
         |> List.filter predicate

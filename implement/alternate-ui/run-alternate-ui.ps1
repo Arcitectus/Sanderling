@@ -1,2 +1,2 @@
 
-elm-fs  run-server  --public-urls="http://*:80"  --deploy=./source/
+elm-time  run-server  --public-urls="http://*:80"  --deploy=./source/
