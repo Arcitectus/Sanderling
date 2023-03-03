@@ -1572,17 +1572,7 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 droneEntries =
                     windowNode
                         |> listDescendantsWithDisplayRegion
-                        |> List.filter
-                            (.uiNode
-                                >> .pythonObjectTypeName
-                                >> (\pythonTypeName ->
-                                        {-
-                                           2023-01-02 Observed: 'DroneInBayEntry'
-                                        -}
-                                        String.startsWith "Drone" pythonTypeName
-                                            && String.endsWith "Entry" pythonTypeName
-                                   )
-                            )
+                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneSubGroup")
                         |> List.map parseDronesWindowDroneEntry
 
                 droneGroups =
