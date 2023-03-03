@@ -1569,15 +1569,34 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneGroupHeader")
                         |> List.filterMap parseDronesWindowDroneGroupHeader
 
-                droneEntries =
+                droneSubGroupHeaders =
                     windowNode
                         |> listDescendantsWithDisplayRegion
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneSubGroup")
+                        |> List.filterMap parseDronesWindowDroneGroupHeader
+
+                droneEntries =
+                    windowNode
+                        |> listDescendantsWithDisplayRegion
+                        |> List.filter
+                            (.uiNode
+                                >> .pythonObjectTypeName
+                                >> (\pythonTypeName ->
+                                        {-
+                                           2023-01-02 Observed: 'DroneInBayEntry'
+                                        -}
+                                        String.startsWith "Drone" pythonTypeName
+                                            && String.endsWith "Entry" pythonTypeName
+                                   )
+                            )
                         |> List.map parseDronesWindowDroneEntry
 
                 droneGroups =
                     [ droneEntries |> List.map DronesWindowEntryDrone
                     , droneGroupHeaders
+                        |> List.map (\header -> { header = header, children = [] })
+                        |> List.map DronesWindowEntryGroup
+                    , droneSubGroupHeaders
                         |> List.map (\header -> { header = header, children = [] })
                         |> List.map DronesWindowEntryGroup
                     ]
