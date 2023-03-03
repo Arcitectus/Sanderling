@@ -17,7 +17,7 @@ type RequestToVolatileHost
 
 type ResponseFromVolatileHost
     = ListGameClientProcessesResponse (List GameClientProcessSummaryStruct)
-    | SearchUIRootAddressResult SearchUIRootAddressResultStructure
+    | SearchUIRootAddressResponse SearchUIRootAddressResponseStruct
     | ReadFromWindowResult ReadFromWindowResultStructure
     | GetImageDataFromReadingResult GetImageDataFromReadingResultStructure
     | FailedToBringWindowToFront String
@@ -55,9 +55,25 @@ type alias SearchUIRootAddressStructure =
     }
 
 
-type alias SearchUIRootAddressResultStructure =
+type alias SearchUIRootAddressResponseStruct =
     { processId : Int
-    , uiRootAddress : Maybe String
+    , stage : SearchUIRootAddressStage
+    }
+
+
+type SearchUIRootAddressStage
+    = SearchUIRootAddressInProgress SearchUIRootAddressInProgressStruct
+    | SearchUIRootAddressCompleted SearchUIRootAddressCompletedStruct
+
+
+type alias SearchUIRootAddressInProgressStruct =
+    { searchBeginTimeMilliseconds : Int
+    , currentTimeMilliseconds : Int
+    }
+
+
+type alias SearchUIRootAddressCompletedStruct =
+    { uiRootAddress : Maybe String
     }
 
 
@@ -151,8 +167,8 @@ decodeResponseFromVolatileHost =
     Json.Decode.oneOf
         [ Json.Decode.field "ListGameClientProcessesResponse" (Json.Decode.list jsonDecodeGameClientProcessSummary)
             |> Json.Decode.map ListGameClientProcessesResponse
-        , Json.Decode.field "SearchUIRootAddressResult" decodeSearchUIRootAddressResult
-            |> Json.Decode.map SearchUIRootAddressResult
+        , Json.Decode.field "SearchUIRootAddressResponse" decodeSearchUIRootAddressResponse
+            |> Json.Decode.map SearchUIRootAddressResponse
         , Json.Decode.field "ReadFromWindowResult" decodeReadFromWindowResult
             |> Json.Decode.map ReadFromWindowResult
         , Json.Decode.field "GetImageDataFromReadingResult" jsonDecodeGetImageDataFromReadingResult
@@ -363,11 +379,39 @@ decodeGetImageDataFromReading =
         (Json.Decode.field "screenshot1x1Rects" (Json.Decode.list jsonDecodeRect2d))
 
 
-decodeSearchUIRootAddressResult : Json.Decode.Decoder SearchUIRootAddressResultStructure
-decodeSearchUIRootAddressResult =
-    Json.Decode.map2 SearchUIRootAddressResultStructure
+decodeSearchUIRootAddressResponse : Json.Decode.Decoder SearchUIRootAddressResponseStruct
+decodeSearchUIRootAddressResponse =
+    Json.Decode.map2 SearchUIRootAddressResponseStruct
         (Json.Decode.field "processId" Json.Decode.int)
-        (Json.Decode.Extra.optionalField "uiRootAddress" (Json.Decode.nullable Json.Decode.string) |> Json.Decode.map Maybe.Extra.join)
+        (Json.Decode.field "stage" decodeSearchUIRootAddressStage)
+
+
+decodeSearchUIRootAddressStage : Json.Decode.Decoder SearchUIRootAddressStage
+decodeSearchUIRootAddressStage =
+    Json.Decode.oneOf
+        [ Json.Decode.field "SearchUIRootAddressInProgress"
+            decodeSearchUIRootAddressInProgress
+            |> Json.Decode.map SearchUIRootAddressInProgress
+        , Json.Decode.field "SearchUIRootAddressCompleted"
+            decodeSearchUIRootAddressComplete
+            |> Json.Decode.map SearchUIRootAddressCompleted
+        ]
+
+
+decodeSearchUIRootAddressInProgress : Json.Decode.Decoder SearchUIRootAddressInProgressStruct
+decodeSearchUIRootAddressInProgress =
+    Json.Decode.map2 SearchUIRootAddressInProgressStruct
+        (Json.Decode.field "searchBeginTimeMilliseconds" Json.Decode.int)
+        (Json.Decode.field "currentTimeMilliseconds" Json.Decode.int)
+
+
+decodeSearchUIRootAddressComplete : Json.Decode.Decoder SearchUIRootAddressCompletedStruct
+decodeSearchUIRootAddressComplete =
+    Json.Decode.map SearchUIRootAddressCompletedStruct
+        (Json.Decode.Extra.optionalField "uiRootAddress"
+            (Json.Decode.nullable Json.Decode.string)
+            |> Json.Decode.map Maybe.Extra.join
+        )
 
 
 decodeReadFromWindowResult : Json.Decode.Decoder ReadFromWindowResultStructure
