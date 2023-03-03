@@ -1,0 +1,36 @@
+name: Build Alternate UI Frontend HTML
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+    - "implement/alternate-ui/**"
+    - ".github/workflows/build-alternate-ui-frontend-html.yml"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: download elm-time
+      run: |
+        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/elm-time/elm-time/releases/download/v2023-02-27/elm-time-bin-v2023-02-27-linux-x64.zip' -OutFile elm-time-linux-x64.zip"
+        pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('elm-time-linux-x64.zip','./elm-time');}"
+
+    - name: install elm-time
+      run: |
+        chmod  +x  ./elm-time/elm-time
+        sudo  ./elm-time/elm-time  install
+
+    - name: Build HTML
+      working-directory: ./implement/alternate-ui/source
+      run: |
+        elm-time  make  src/Frontend/Main.elm  --output=./eve-online-alternate-ui-${{github.sha}}.html
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: eve-online-alternate-ui-${{github.sha}}
+        path: ./implement/alternate-ui/source/eve-online-alternate-ui-${{github.sha}}.html
