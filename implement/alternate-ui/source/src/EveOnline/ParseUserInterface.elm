@@ -126,6 +126,7 @@ type alias ShipUIModuleButton =
     , slotUINode : UITreeNodeWithDisplayRegion
     , isActive : Maybe Bool
     , isHiliteVisible : Bool
+    , isBusy : Bool
     , rampRotationMilli : Maybe Int
     }
 
@@ -1098,6 +1099,13 @@ parseShipUIModuleButton { slotNode, moduleButtonNode } =
             |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "hilite"))
             |> List.isEmpty
             |> not
+    , isBusy =
+        slotNode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
+            |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "busy"))
+            |> List.isEmpty
+            |> not
     , rampRotationMilli = rampRotationMilli
     }
 
@@ -1569,12 +1577,6 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                         |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneGroupHeader")
                         |> List.filterMap parseDronesWindowDroneGroupHeader
 
-                droneSubGroupHeaders =
-                    windowNode
-                        |> listDescendantsWithDisplayRegion
-                        |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "DroneSubGroup")
-                        |> List.filterMap parseDronesWindowDroneGroupHeader
-
                 droneEntries =
                     windowNode
                         |> listDescendantsWithDisplayRegion
@@ -1594,9 +1596,6 @@ parseDronesWindowFromUITreeRoot uiTreeRoot =
                 droneGroups =
                     [ droneEntries |> List.map DronesWindowEntryDrone
                     , droneGroupHeaders
-                        |> List.map (\header -> { header = header, children = [] })
-                        |> List.map DronesWindowEntryGroup
-                    , droneSubGroupHeaders
                         |> List.map (\header -> { header = header, children = [] })
                         |> List.map DronesWindowEntryGroup
                     ]

@@ -419,6 +419,7 @@ treeNodeChildrenFromShipUIModuleButton viewConfig shipUIModuleButton =
           }
         , shipUIModuleButton.isActive |> fieldFromMaybeBool "isActive"
         , shipUIModuleButton.isHiliteVisible |> fieldFromBool "isHiliteVisible"
+        , shipUIModuleButton.isBusy |> fieldFromBool "isBusy"
         , shipUIModuleButton.rampRotationMilli |> fieldFromMaybeInt "rampRotationMilli"
         ]
 
