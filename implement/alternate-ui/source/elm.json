@@ -19,7 +19,6 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
-            "elm-community/json-extra": "4.3.0",
             "elm-community/list-extra": "8.7.0",
             "elm-community/maybe-extra": "5.3.0",
             "elm-community/result-extra": "2.4.0",
@@ -29,8 +28,7 @@
         "indirect": {
             "elm/parser": "1.1.0",
             "elm/virtual-dom": "1.0.3",
-            "rtfeldman/elm-hex": "1.0.0",
-            "rtfeldman/elm-iso8601-date-strings": "1.1.4"
+            "rtfeldman/elm-hex": "1.0.0"
         }
     },
     "test-dependencies": {

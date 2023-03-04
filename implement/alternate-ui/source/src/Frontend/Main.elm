@@ -438,9 +438,6 @@ integrateBackendResponse { request, result } stateBefore =
                                                                         EveOnline.VolatileProcessInterface.ReadFromWindowResult _ ->
                                                                             Err "Unexpected response: ReadFromWindowResult"
 
-                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
-                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
-
                                                                         EveOnline.VolatileProcessInterface.FailedToBringWindowToFront failedToBringWindowToFront ->
                                                                             Err ("Unexpected response: FailedToBringWindowToFront: " ++ failedToBringWindowToFront)
 
@@ -509,9 +506,6 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                         EveOnline.VolatileProcessInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
-
-                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
-                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
                         |> Result.andThen
@@ -584,9 +578,6 @@ integrateBackendResponse { request, result } stateBefore =
 
                                                                         EveOnline.VolatileProcessInterface.CompletedEffectSequenceOnWindow ->
                                                                             Err "Unexpected response: CompletedEffectSequenceOnWindow"
-
-                                                                        EveOnline.VolatileProcessInterface.GetImageDataFromReadingResult _ ->
-                                                                            Err "Unexpected response: GetImageDataFromReadingResult"
                                                                 )
                             )
 
@@ -764,7 +755,6 @@ decideNextStepToReadFromLiveProcess { timeMilli } stateBefore =
                                                                     (EveOnline.VolatileProcessInterface.ReadFromWindow
                                                                         { windowId = gameClientProcess.mainWindowId
                                                                         , uiRootAddress = uiRootAddress
-                                                                        , getImageData = { screenshot1x1Rects = [] }
                                                                         }
                                                                     )
                                                                 )
