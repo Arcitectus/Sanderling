@@ -126,6 +126,7 @@ type alias ShipUIModuleButton =
     , slotUINode : UITreeNodeWithDisplayRegion
     , isActive : Maybe Bool
     , isHiliteVisible : Bool
+    , isBusy : Bool
     , rampRotationMilli : Maybe Int
     }
 
@@ -1096,6 +1097,13 @@ parseShipUIModuleButton { slotNode, moduleButtonNode } =
             |> listDescendantsWithDisplayRegion
             |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
             |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "hilite"))
+            |> List.isEmpty
+            |> not
+    , isBusy =
+        slotNode
+            |> listDescendantsWithDisplayRegion
+            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Sprite")
+            |> List.filter (.uiNode >> getNameFromDictEntries >> (==) (Just "busy"))
             |> List.isEmpty
             |> not
     , rampRotationMilli = rampRotationMilli
