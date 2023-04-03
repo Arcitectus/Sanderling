@@ -3327,8 +3327,21 @@ justCaseWithDisplayRegion child =
 
 typeOccludesFollowingSiblingNodes : EveOnline.MemoryReading.UITreeNode -> Bool
 typeOccludesFollowingSiblingNodes node =
-    -- session-recording-2022-12-09T12-32-56.zip: In Overview window: "SortHeaders"
-    node.pythonObjectTypeName == "SortHeaders"
+    Set.member node.pythonObjectTypeName pythonObjectTypesKnownToOccludeSiblingElements
+
+
+pythonObjectTypesKnownToOccludeSiblingElements : Set.Set String
+pythonObjectTypesKnownToOccludeSiblingElements =
+    Set.fromList
+        [ -- session-recording-2022-12-09T12-32-56.zip: In Overview window: "SortHeaders"
+          "SortHeaders"
+        , "ContextMenu"
+        , "OverviewWindow"
+        , "DronesWindow"
+        , "SelectedItemWnd"
+        , "InventoryPrimary"
+        , "ChatWindowStack"
+        ]
 
 
 subtractRegionsFromRegion :
