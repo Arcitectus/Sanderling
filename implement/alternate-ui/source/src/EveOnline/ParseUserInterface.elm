@@ -621,23 +621,29 @@ asUITreeNodeWithDisplayRegion { selfDisplayRegion, totalDisplayRegion, occludedR
         uiNode.children
             |> Maybe.map
                 (List.foldl
-                    (\currentChild mappedSiblings ->
+                    (\currentChild ( mappedSiblings, occludedRegionsFromSiblings ) ->
                         let
-                            occludingSiblingsRegions =
-                                mappedSiblings
-                                    |> List.filterMap justCaseWithDisplayRegion
-                                    |> List.filter (.uiNode >> typeOccludesFollowingSiblingNodes)
+                            currentChildResult =
+                                currentChild
+                                    |> EveOnline.MemoryReading.unwrapUITreeNodeChild
+                                    |> asUITreeNodeWithInheritedOffset
+                                        { x = totalDisplayRegion.x, y = totalDisplayRegion.y }
+                                        { occludedRegions = occludedRegionsFromSiblings ++ occludedRegions }
+
+                            newOccludedRegionsFromSiblings =
+                                currentChildResult
+                                    |> justCaseWithDisplayRegion
+                                    |> Maybe.map listDescendantsWithDisplayRegion
+                                    |> Maybe.withDefault []
+                                    |> List.filter (.uiNode >> nodeOccludesFollowingNodes)
                                     |> List.map .totalDisplayRegion
                         in
-                        (currentChild
-                            |> EveOnline.MemoryReading.unwrapUITreeNodeChild
-                            |> asUITreeNodeWithInheritedOffset
-                                { x = totalDisplayRegion.x, y = totalDisplayRegion.y }
-                                { occludedRegions = occludedRegions ++ occludingSiblingsRegions }
+                        ( currentChildResult :: mappedSiblings
+                        , newOccludedRegionsFromSiblings ++ occludedRegionsFromSiblings
                         )
-                            :: mappedSiblings
                     )
-                    []
+                    ( [], [] )
+                    >> Tuple.first
                     >> List.reverse
                 )
     , selfDisplayRegion = selfDisplayRegion
@@ -3325,13 +3331,13 @@ justCaseWithDisplayRegion child =
             Just childWithRegion
 
 
-typeOccludesFollowingSiblingNodes : EveOnline.MemoryReading.UITreeNode -> Bool
-typeOccludesFollowingSiblingNodes node =
-    Set.member node.pythonObjectTypeName pythonObjectTypesKnownToOccludeSiblingElements
+nodeOccludesFollowingNodes : EveOnline.MemoryReading.UITreeNode -> Bool
+nodeOccludesFollowingNodes node =
+    Set.member node.pythonObjectTypeName pythonObjectTypesKnownToOccludeFollowingElements
 
 
-pythonObjectTypesKnownToOccludeSiblingElements : Set.Set String
-pythonObjectTypesKnownToOccludeSiblingElements =
+pythonObjectTypesKnownToOccludeFollowingElements : Set.Set String
+pythonObjectTypesKnownToOccludeFollowingElements =
     Set.fromList
         [ -- session-recording-2022-12-09T12-32-56.zip: In Overview window: "SortHeaders"
           "SortHeaders"
