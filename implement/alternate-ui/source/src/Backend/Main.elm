@@ -1,6 +1,6 @@
 module Backend.Main exposing
     ( State
-    , backendMain
+    , webServerMain
     )
 
 import Base64
@@ -10,11 +10,11 @@ import Bytes.Encode
 import CompilationInterface.ElmMake
 import CompilationInterface.GenerateJsonCoders
 import CompilationInterface.SourceFiles
-import ElmWebServer
 import EveOnline.VolatileProcessInterface
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
+import Platform.WebServer
 import Url
 import Url.Parser
 
@@ -56,14 +56,14 @@ routeFromUrl =
         )
 
 
-backendMain : ElmWebServer.WebServerConfig State
-backendMain =
+webServerMain : Platform.WebServer.WebServerConfig State
+webServerMain =
     { init = ( initState, [] )
     , subscriptions = subscriptions
     }
 
 
-subscriptions : State -> ElmWebServer.Subscriptions State
+subscriptions : State -> Platform.WebServer.Subscriptions State
 subscriptions _ =
     { httpRequest = updateForHttpRequestEvent
     , posixTimeIsPast = Nothing
@@ -78,13 +78,13 @@ initSetup =
     }
 
 
-maintainVolatileProcessTaskFromState : State -> ElmWebServer.Commands State
+maintainVolatileProcessTaskFromState : State -> Platform.WebServer.Commands State
 maintainVolatileProcessTaskFromState state =
     if state.setup.createVolatileProcessResult /= Nothing then
         []
 
     else
-        [ ElmWebServer.CreateVolatileProcess
+        [ Platform.WebServer.CreateVolatileProcess
             { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_csx.utf8
             , update =
                 \createVolatileProcessResult stateBefore ->
@@ -101,7 +101,7 @@ maintainVolatileProcessTaskFromState state =
         ]
 
 
-updateForHttpRequestEvent : ElmWebServer.HttpRequestEventStruct -> State -> ( State, ElmWebServer.Commands State )
+updateForHttpRequestEvent : Platform.WebServer.HttpRequestEventStruct -> State -> ( State, Platform.WebServer.Commands State )
 updateForHttpRequestEvent httpRequestEvent stateBefore =
     let
         ( state, cmds ) =
@@ -111,9 +111,9 @@ updateForHttpRequestEvent httpRequestEvent stateBefore =
 
 
 updateForHttpRequestEventWithoutVolatileProcessMaintenance :
-    ElmWebServer.HttpRequestEventStruct
+    Platform.WebServer.HttpRequestEventStruct
     -> State
-    -> ( State, ElmWebServer.Commands State )
+    -> ( State, Platform.WebServer.Commands State )
 updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stateBefore =
     let
         contentHttpHeaders { contentType, contentEncoding } =
@@ -124,7 +124,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
 
         continueWithStaticHttpResponse httpResponse =
             ( stateBefore
-            , [ ElmWebServer.RespondToHttpRequest
+            , [ Platform.WebServer.RespondToHttpRequest
                     { httpRequestId = httpRequestEvent.httpRequestId
                     , response = httpResponse
                     }
@@ -193,7 +193,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                             }
                     in
                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                    , [ ElmWebServer.RespondToHttpRequest httpResponse ]
+                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
                     )
 
                 Ok requestFromClient ->
@@ -214,7 +214,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                     }
                             in
                             ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                            , [ ElmWebServer.RespondToHttpRequest httpResponse ]
+                            , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
                             )
 
                         InterfaceToFrontendClient.RunInVolatileProcessRequest runInVolatileProcessRequest ->
@@ -238,7 +238,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             }
                                     in
                                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                                    , [ ElmWebServer.RespondToHttpRequest httpResponse ]
+                                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
                                     )
 
                                 Just (Ok createVolatileProcessOk) ->
@@ -249,13 +249,13 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                                 :: stateBefore.httpRequestsTasks
 
                                         requestToVolatileProcessTask =
-                                            ElmWebServer.RequestToVolatileProcess
+                                            Platform.WebServer.RequestToVolatileProcess
                                                 { processId = createVolatileProcessOk.processId
                                                 , request = EveOnline.VolatileProcessInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileProcessRequest
                                                 , update =
                                                     \requestToVolatileProcessResult stateBeforeResult ->
                                                         case requestToVolatileProcessResult of
-                                                            Err ElmWebServer.ProcessNotFound ->
+                                                            Err Platform.WebServer.ProcessNotFound ->
                                                                 ( { stateBeforeResult
                                                                     | setup = initSetup
                                                                   }
@@ -297,15 +297,15 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             }
                                     in
                                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                                    , [ ElmWebServer.RespondToHttpRequest httpResponse ]
+                                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
                                     )
 
 
 processRequestToVolatileProcessComplete :
     { httpRequestId : String }
-    -> ElmWebServer.RequestToVolatileProcessComplete
+    -> Platform.WebServer.RequestToVolatileProcessComplete
     -> State
-    -> ( State, ElmWebServer.Commands State )
+    -> ( State, Platform.WebServer.Commands State )
 processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessComplete stateBefore =
     let
         httpRequestsTasks =
@@ -337,7 +337,7 @@ processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessCo
     in
     ( { stateBefore | httpRequestsTasks = httpRequestsTasks }
         |> addLogEntries exceptionLogEntries
-    , [ ElmWebServer.RespondToHttpRequest httpResponse ]
+    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
     )
 
 

@@ -1,12 +1,15 @@
-module ElmWebServer exposing (..)
+module Platform.WebServer exposing (..)
 
-{-| The `ElmWebServer` module provides the types to build web server declarations.
-The type declarations in this module mirror the interface of the Elm Time executable file and enable type-checking for compatibility.
+{-| This module contains the types describing the Elm-Time web server platform.
+To build a web server app in Elm, copy this module file into your project and add a declaration with the name `webServerMain` to an Elm module.
+
+For the latest version of the documentation, see <https://elm-time.org>
+
 -}
 
 
-{-| Describes a web server program. A web server can handle HTTP requests and spawn volatile processes to integrate other software
-components.
+{-| Use the type `WebServerConfig` on a declaration named `webServerMain` to declare a web server program in an Elm module.
+A web server can subscribe to incoming HTTP requests and respond to them. It can also start and manage volatile processes to integrate other software.
 -}
 type alias WebServerConfig state =
     { init : ( state, Commands state )
