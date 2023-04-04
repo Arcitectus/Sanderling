@@ -37,7 +37,7 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-time` to compile the program from source code and run it as a web server.
 
-Download the zip archive from https://github.com/elm-time/elm-time/releases/download/v2023-02-16/elm-time-bin-f0d6ce07465ef0ddc4bdbd1f0cef3ab01978f427-win10-x64.zip and extract it.
+Download the zip archive from https://github.com/elm-time/elm-time/releases/download/v2023-03-16/elm-time-bin-v2023-03-16-win10-x64.zip and extract it.
 
 The extracted files contain the `elm-time` tool used to run Elm programs.
 
@@ -49,7 +49,7 @@ To start the software:
 + In the next command, we use the `elm-time.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/954869df272419c4d08e122fa06aa24b28fcc4a3/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/68fa533f867609738aa0b5f77e43787dccbec9fb/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -58,8 +58,8 @@ To start the software:
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit 954869df272419c4d08e122fa06aa24b28fcc4a3
-Loaded source composition b00abb11f5a7258e76643796db0ba6395fd12e6973784013fe2f3b21b5579d71 from 'https://github.com/Arcitectus/Sanderling/tree/954869df272419c4d08e122fa06aa24b28fcc4a3/implement/alternate-ui/source'.
+This path points to commit 68fa533f867609738aa0b5f77e43787dccbec9fb
+Loaded source composition 2ac0acd4df6ca3eb16a7ca8c18061bb04fa9a7c66f56d69c9d5342787b806deb from 'https://github.com/Arcitectus/Sanderling/tree/68fa533f867609738aa0b5f77e43787dccbec9fb/implement/alternate-ui/source'.
 Starting the web server with the admin interface...
 info: ElmTime.Platform.WebServer.StartupAdminInterface[0]
       Begin to build the process live representation.
