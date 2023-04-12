@@ -17,7 +17,7 @@ jobs:
 
     - name: download elm-time
       run: |
-        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/elm-time/elm-time/releases/download/v2023-02-27/elm-time-bin-v2023-02-27-linux-x64.zip' -OutFile elm-time-linux-x64.zip"
+        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/elm-time/elm-time/releases/download/v2023-04-10/elm-time-bin-v2023-04-10-linux-x64.zip' -OutFile elm-time-linux-x64.zip"
         pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('elm-time-linux-x64.zip','./elm-time');}"
 
     - name: install elm-time

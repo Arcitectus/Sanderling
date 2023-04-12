@@ -1,4 +1,4 @@
-module CompilationInterface.GenerateJsonCoders exposing (..)
+module CompilationInterface.GenerateJsonConverters exposing (..)
 
 import InterfaceToFrontendClient
 import Json.Decode

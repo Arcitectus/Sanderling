@@ -37,7 +37,7 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-time` to compile the program from source code and run it as a web server.
 
-Download the zip archive from https://github.com/elm-time/elm-time/releases/download/v2023-03-16/elm-time-bin-v2023-03-16-win10-x64.zip and extract it.
+Download the zip archive from <https://github.com/elm-time/elm-time/releases/download/v2023-04-10/elm-time-bin-v2023-04-10-win10-x64.zip> and extract it.
 
 The extracted files contain the `elm-time` tool used to run Elm programs.
 
@@ -49,7 +49,7 @@ To start the software:
 + In the next command, we use the `elm-time.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```PowerShell
-."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/68fa533f867609738aa0b5f77e43787dccbec9fb/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/91f518cb1e0851b1423d0e0ecbd34234c454f1dc/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:

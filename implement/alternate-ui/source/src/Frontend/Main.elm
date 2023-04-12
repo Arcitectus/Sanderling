@@ -5,7 +5,7 @@ import Browser.Dom
 import Browser.Navigation as Navigation
 import Common.App
 import Common.EffectOnWindow
-import CompilationInterface.GenerateJsonCoders
+import CompilationInterface.GenerateJsonConverters
 import Dict
 import EveOnline.MemoryReading
 import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
@@ -225,13 +225,13 @@ apiRequestCmd request =
                     Json.Decode.succeed (ReadLogResponse [])
 
                 InterfaceToFrontendClient.RunInVolatileProcessRequest _ ->
-                    CompilationInterface.GenerateJsonCoders.jsonDecodeRunInVolatileProcessResponseStructure
+                    CompilationInterface.GenerateJsonConverters.jsonDecodeRunInVolatileProcessResponseStructure
                         |> Json.Decode.map RunInVolatileProcessResponse
     in
     Http.post
         { url = "/api/"
         , expect = httpExpectJson (\result -> BackendResponse { request = request, result = result }) responseDecoder
-        , body = Http.jsonBody (request |> CompilationInterface.GenerateJsonCoders.jsonEncodeRequestFromFrontendClient)
+        , body = Http.jsonBody (request |> CompilationInterface.GenerateJsonConverters.jsonEncodeRequestFromFrontendClient)
         }
 
 

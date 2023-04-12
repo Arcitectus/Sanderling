@@ -8,7 +8,7 @@ import Bytes
 import Bytes.Decode
 import Bytes.Encode
 import CompilationInterface.ElmMake
-import CompilationInterface.GenerateJsonCoders
+import CompilationInterface.GenerateJsonConverters
 import CompilationInterface.SourceFiles
 import EveOnline.VolatileProcessInterface
 import InterfaceToFrontendClient
@@ -176,7 +176,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                 httpRequestEvent.request.bodyAsBase64
                     |> Maybe.map (Base64.toBytes >> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string") >> Maybe.withDefault "Failed to decode from base64")
                     |> Maybe.withDefault "Missing HTTP body"
-                    |> Json.Decode.decodeString CompilationInterface.GenerateJsonCoders.jsonDecodeRequestFromFrontendClient
+                    |> Json.Decode.decodeString CompilationInterface.GenerateJsonConverters.jsonDecodeRequestFromFrontendClient
             of
                 Err decodeError ->
                     let
@@ -228,7 +228,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                                 , bodyAsBase64 =
                                                     (("Failed to create volatile process: " ++ createVolatileProcessErr)
                                                         |> InterfaceToFrontendClient.SetupNotCompleteResponse
-                                                        |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
+                                                        |> CompilationInterface.GenerateJsonConverters.jsonEncodeRunInVolatileProcessResponseStructure
                                                         |> Json.Encode.encode 0
                                                     )
                                                         |> encodeStringToBytes
@@ -287,7 +287,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                                 , bodyAsBase64 =
                                                     ("Volatile process not created yet."
                                                         |> InterfaceToFrontendClient.SetupNotCompleteResponse
-                                                        |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
+                                                        |> CompilationInterface.GenerateJsonConverters.jsonEncodeRunInVolatileProcessResponseStructure
                                                         |> Json.Encode.encode 0
                                                     )
                                                         |> encodeStringToBytes
@@ -315,7 +315,7 @@ processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessCo
         httpResponseBody =
             runInVolatileProcessComplete
                 |> InterfaceToFrontendClient.RunInVolatileProcessCompleteResponse
-                |> CompilationInterface.GenerateJsonCoders.jsonEncodeRunInVolatileProcessResponseStructure
+                |> CompilationInterface.GenerateJsonConverters.jsonEncodeRunInVolatileProcessResponseStructure
                 >> Json.Encode.encode 0
 
         httpResponse =
