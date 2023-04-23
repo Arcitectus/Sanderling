@@ -53,6 +53,7 @@ type alias ParsedUserInterface =
     , messageBoxes : List MessageBox
     , layerAbovemain : Maybe LayerAbovemain
     , keyActivationWindow : Maybe KeyActivationWindow
+    , compressionWindow : Maybe CompressionWindow
     }
 
 
@@ -563,6 +564,12 @@ type alias KeyActivationWindow =
     }
 
 
+type alias CompressionWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , compressButton : Maybe UITreeNodeWithDisplayRegion
+    }
+
+
 parseUITreeWithDisplayRegionFromUITree : EveOnline.MemoryReading.UITreeNode -> UITreeNodeWithDisplayRegion
 parseUITreeWithDisplayRegionFromUITree uiTree =
     let
@@ -608,6 +615,7 @@ parseUserInterfaceFromUITree uiTree =
     , messageBoxes = parseMessageBoxesFromUITreeRoot uiTree
     , layerAbovemain = parseLayerAbovemainFromUITreeRoot uiTree
     , keyActivationWindow = parseKeyActivationWindowFromUITreeRoot uiTree
+    , compressionWindow = parseCompressionWindowFromUITreeRoot uiTree
     }
 
 
@@ -2929,6 +2937,27 @@ parseKeyActivationWindow windowUiNode =
     in
     { uiNode = windowUiNode
     , activateButton = activateButton
+    }
+
+
+parseCompressionWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe CompressionWindow
+parseCompressionWindowFromUITreeRoot uiTreeRoot =
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "CompressionWindow")
+        |> List.head
+        |> Maybe.map parseCompressionWindow
+
+
+parseCompressionWindow : UITreeNodeWithDisplayRegion -> CompressionWindow
+parseCompressionWindow windowUiNode =
+    let
+        compressButton =
+            windowUiNode
+                |> findButtonInDescendantsContainingDisplayText "Compress"
+    in
+    { uiNode = windowUiNode
+    , compressButton = compressButton
     }
 
 

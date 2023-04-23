@@ -274,6 +274,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromKeyActivationWindow viewConfig
                         }
+                , parsedUserInterface.compressionWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "compressionWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromCompressionWindow viewConfig
+                        }
                 ]
     in
     { selfHtml = commonSummaryHtml
@@ -1539,6 +1545,23 @@ treeNodeChildrenFromKeyActivationWindow viewConfig keyActivationWindow =
         [ keyActivationWindow.activateButton
             |> fieldFromMaybeInstance
                 { fieldName = "activateButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromCompressionWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.CompressionWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromCompressionWindow viewConfig compressionWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        compressionWindow.uiNode
+        [ compressionWindow.compressButton
+            |> fieldFromMaybeInstance
+                { fieldName = "compressButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
