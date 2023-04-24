@@ -567,6 +567,14 @@ type alias KeyActivationWindow =
 type alias CompressionWindow =
     { uiNode : UITreeNodeWithDisplayRegion
     , compressButton : Maybe UITreeNodeWithDisplayRegion
+    , windowControls : Maybe WindowControls
+    }
+
+
+type alias WindowControls =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , minimizeButton : Maybe UITreeNodeWithDisplayRegion
+    , closeButton : Maybe UITreeNodeWithDisplayRegion
     }
 
 
@@ -2958,7 +2966,42 @@ parseCompressionWindow windowUiNode =
             findButtonInDescendantsContainingDisplayText "Compress" windowUiNode
     in
     { uiNode = windowUiNode
+    , windowControls = parseWindowControlsFromWindow windowUiNode
     , compressButton = compressButton
+    }
+
+
+parseWindowControlsFromWindow : UITreeNodeWithDisplayRegion -> Maybe WindowControls
+parseWindowControlsFromWindow =
+    listDescendantsWithDisplayRegion
+        >> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "WindowControls")
+        >> List.head
+        >> Maybe.map parseWindowControls
+
+
+parseWindowControls : UITreeNodeWithDisplayRegion -> WindowControls
+parseWindowControls controlsNode =
+    let
+        nodeFromTexturePathContains texturePathSubstring =
+            controlsNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter
+                    (.uiNode
+                        >> getTexturePathFromDictEntries
+                        >> Maybe.map (String.toLower >> String.contains (String.toLower texturePathSubstring))
+                        >> Maybe.withDefault False
+                    )
+                |> List.head
+
+        minimizeButton =
+            nodeFromTexturePathContains "eveicon/window/minimize"
+
+        closeButton =
+            nodeFromTexturePathContains "eveicon/window/close"
+    in
+    { uiNode = controlsNode
+    , minimizeButton = minimizeButton
+    , closeButton = closeButton
     }
 
 
@@ -3196,8 +3239,9 @@ getHintTextFromDictEntries =
 
 
 getTexturePathFromDictEntries : EveOnline.MemoryReading.UITreeNode -> Maybe String
-getTexturePathFromDictEntries =
-    getStringPropertyFromDictEntries "texturePath"
+getTexturePathFromDictEntries node =
+    getStringPropertyFromDictEntries "texturePath" node
+        |> Maybe.Extra.or (getStringPropertyFromDictEntries "_texturePath" node)
 
 
 getStringPropertyFromDictEntries : String -> EveOnline.MemoryReading.UITreeNode -> Maybe String

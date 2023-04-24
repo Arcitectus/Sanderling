@@ -1559,9 +1559,38 @@ treeNodeChildrenFromCompressionWindow viewConfig compressionWindow =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         compressionWindow.uiNode
-        [ compressionWindow.compressButton
+        [ compressionWindow.windowControls
+            |> fieldFromMaybeInstance
+                { fieldName = "windowControls"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeNodeChildrenFromWindowControls viewConfig
+                }
+        , compressionWindow.compressButton
             |> fieldFromMaybeInstance
                 { fieldName = "compressButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        ]
+
+
+treeNodeChildrenFromWindowControls :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.WindowControls
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromWindowControls viewConfig windowControls =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        windowControls.uiNode
+        [ windowControls.minimizeButton
+            |> fieldFromMaybeInstance
+                { fieldName = "minimizeButton"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , windowControls.closeButton
+            |> fieldFromMaybeInstance
+                { fieldName = "closeButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
