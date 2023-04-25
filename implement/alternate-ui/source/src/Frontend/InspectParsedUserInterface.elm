@@ -1004,18 +1004,18 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow :
     ViewConfig event
     -> EveOnline.ParseUserInterface.InventoryWindow
     -> List (TreeViewNode event ParsedUITreeViewPathNode)
-treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInterfaceInventoryWindow =
+treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig inventoryWindow =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
-        parsedUserInterfaceInventoryWindow.uiNode
-        [ parsedUserInterfaceInventoryWindow.subCaptionLabelText |> fieldFromMaybeString "subCaptionLabelText"
-        , parsedUserInterfaceInventoryWindow.leftTreeEntries
+        inventoryWindow.uiNode
+        [ inventoryWindow.subCaptionLabelText |> fieldFromMaybeString "subCaptionLabelText"
+        , inventoryWindow.leftTreeEntries
             |> fieldFromListInstance
                 { fieldName = "leftTreeEntries "
                 , fieldValueChildren =
                     treeNodeChildrenFromInventoryWindowLeftTreeEntry viewConfig
                 }
-        , parsedUserInterfaceInventoryWindow.selectedContainerCapacityGauge
+        , inventoryWindow.selectedContainerCapacityGauge
             |> Maybe.andThen Result.toMaybe
             |> fieldFromMaybeInstance
                 { fieldName = "selectedContainerCapacityGauge"
@@ -1023,12 +1023,24 @@ treeNodeChildrenFromParsedUserInterfaceInventoryWindow viewConfig parsedUserInte
                 , fieldValueChildren =
                     treeNodeChildrenFromParsedUserInterfaceInventoryCapacityGauge
                 }
-        , parsedUserInterfaceInventoryWindow.selectedContainerInventory
+        , inventoryWindow.selectedContainerInventory
             |> fieldFromMaybeInstance
                 { fieldName = "selectedContainerInventory"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren =
                     treeNodeChildrenFromParsedUserInterfaceInventory viewConfig
+                }
+        , inventoryWindow.buttonToStackAll
+            |> fieldFromMaybeInstance
+                { fieldName = "buttonToStackAll"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
+                }
+        , inventoryWindow.buttonToSwitchToListView
+            |> fieldFromMaybeInstance
+                { fieldName = "buttonToSwitchToListView"
+                , fieldValueSummary = always "..."
+                , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
         ]
 
