@@ -157,13 +157,13 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
             httpResponseOkWithBodyAsBase64
                 (Just
                     (if enableInspector then
-                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.debug.gzip.base64
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.debug.base64
 
                      else
-                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.gzip.base64
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.base64
                     )
                 )
-                (contentHttpHeaders { contentType = "text/html", contentEncoding = Just "gzip" })
+                (contentHttpHeaders { contentType = "text/html", contentEncoding = Nothing })
                 |> continueWithStaticHttpResponse
     in
     case httpRequestEvent.request.uri |> Url.fromString |> Maybe.andThen routeFromUrl of
