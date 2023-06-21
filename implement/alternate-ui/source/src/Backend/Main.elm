@@ -1,6 +1,6 @@
 module Backend.Main exposing
     ( State
-    , webServerMain
+    , webServiceMain
     )
 
 import Base64
@@ -14,7 +14,7 @@ import EveOnline.VolatileProcessInterface
 import InterfaceToFrontendClient
 import Json.Decode
 import Json.Encode
-import Platform.WebServer
+import Platform.WebService
 import Url
 import Url.Parser
 
@@ -56,14 +56,14 @@ routeFromUrl =
         )
 
 
-webServerMain : Platform.WebServer.WebServerConfig State
-webServerMain =
+webServiceMain : Platform.WebService.WebServiceConfig State
+webServiceMain =
     { init = ( initState, [] )
     , subscriptions = subscriptions
     }
 
 
-subscriptions : State -> Platform.WebServer.Subscriptions State
+subscriptions : State -> Platform.WebService.Subscriptions State
 subscriptions _ =
     { httpRequest = updateForHttpRequestEvent
     , posixTimeIsPast = Nothing
@@ -78,13 +78,13 @@ initSetup =
     }
 
 
-maintainVolatileProcessTaskFromState : State -> Platform.WebServer.Commands State
+maintainVolatileProcessTaskFromState : State -> Platform.WebService.Commands State
 maintainVolatileProcessTaskFromState state =
     if state.setup.createVolatileProcessResult /= Nothing then
         []
 
     else
-        [ Platform.WebServer.CreateVolatileProcess
+        [ Platform.WebService.CreateVolatileProcess
             { programCode = CompilationInterface.SourceFiles.file____src_EveOnline_VolatileProcess_csx.utf8
             , update =
                 \createVolatileProcessResult stateBefore ->
@@ -101,7 +101,10 @@ maintainVolatileProcessTaskFromState state =
         ]
 
 
-updateForHttpRequestEvent : Platform.WebServer.HttpRequestEventStruct -> State -> ( State, Platform.WebServer.Commands State )
+updateForHttpRequestEvent :
+    Platform.WebService.HttpRequestEventStruct
+    -> State
+    -> ( State, Platform.WebService.Commands State )
 updateForHttpRequestEvent httpRequestEvent stateBefore =
     let
         ( state, cmds ) =
@@ -111,9 +114,9 @@ updateForHttpRequestEvent httpRequestEvent stateBefore =
 
 
 updateForHttpRequestEventWithoutVolatileProcessMaintenance :
-    Platform.WebServer.HttpRequestEventStruct
+    Platform.WebService.HttpRequestEventStruct
     -> State
-    -> ( State, Platform.WebServer.Commands State )
+    -> ( State, Platform.WebService.Commands State )
 updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stateBefore =
     let
         contentHttpHeaders { contentType, contentEncoding } =
@@ -124,7 +127,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
 
         continueWithStaticHttpResponse httpResponse =
             ( stateBefore
-            , [ Platform.WebServer.RespondToHttpRequest
+            , [ Platform.WebService.RespondToHttpRequest
                     { httpRequestId = httpRequestEvent.httpRequestId
                     , response = httpResponse
                     }
@@ -193,7 +196,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                             }
                     in
                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
+                    , [ Platform.WebService.RespondToHttpRequest httpResponse ]
                     )
 
                 Ok requestFromClient ->
@@ -214,7 +217,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                     }
                             in
                             ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                            , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
+                            , [ Platform.WebService.RespondToHttpRequest httpResponse ]
                             )
 
                         InterfaceToFrontendClient.RunInVolatileProcessRequest runInVolatileProcessRequest ->
@@ -238,7 +241,7 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             }
                                     in
                                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
+                                    , [ Platform.WebService.RespondToHttpRequest httpResponse ]
                                     )
 
                                 Just (Ok createVolatileProcessOk) ->
@@ -249,13 +252,13 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                                 :: stateBefore.httpRequestsTasks
 
                                         requestToVolatileProcessTask =
-                                            Platform.WebServer.RequestToVolatileProcess
+                                            Platform.WebService.RequestToVolatileProcess
                                                 { processId = createVolatileProcessOk.processId
                                                 , request = EveOnline.VolatileProcessInterface.buildRequestStringToGetResponseFromVolatileHost runInVolatileProcessRequest
                                                 , update =
                                                     \requestToVolatileProcessResult stateBeforeResult ->
                                                         case requestToVolatileProcessResult of
-                                                            Err Platform.WebServer.ProcessNotFound ->
+                                                            Err Platform.WebService.ProcessNotFound ->
                                                                 ( { stateBeforeResult
                                                                     | setup = initSetup
                                                                   }
@@ -297,15 +300,15 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             }
                                     in
                                     ( { stateBefore | posixTimeMilli = httpRequestEvent.posixTimeMilli }
-                                    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
+                                    , [ Platform.WebService.RespondToHttpRequest httpResponse ]
                                     )
 
 
 processRequestToVolatileProcessComplete :
     { httpRequestId : String }
-    -> Platform.WebServer.RequestToVolatileProcessComplete
+    -> Platform.WebService.RequestToVolatileProcessComplete
     -> State
-    -> ( State, Platform.WebServer.Commands State )
+    -> ( State, Platform.WebService.Commands State )
 processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessComplete stateBefore =
     let
         httpRequestsTasks =
@@ -337,7 +340,7 @@ processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessCo
     in
     ( { stateBefore | httpRequestsTasks = httpRequestsTasks }
         |> addLogEntries exceptionLogEntries
-    , [ Platform.WebServer.RespondToHttpRequest httpResponse ]
+    , [ Platform.WebService.RespondToHttpRequest httpResponse ]
     )
 
 

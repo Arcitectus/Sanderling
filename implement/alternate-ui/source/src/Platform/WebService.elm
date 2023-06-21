@@ -1,20 +1,24 @@
-module Platform.WebServer exposing (..)
+module Platform.WebService exposing (..)
 
-{-| This module contains the types describing the Elm-Time web server platform.
-To build a web server app in Elm, copy this module file into your project and add a declaration with the name `webServerMain` to an Elm module.
+{-| This module contains the types describing the Elm-Time web service platform.
+To build a web service app in Elm, copy this module file into your project and add a declaration with the name `webServiceMain` to an Elm module.
 
 For the latest version of the documentation, see <https://elm-time.org>
 
 -}
 
 
-{-| Use the type `WebServerConfig` on a declaration named `webServerMain` to declare a web server program in an Elm module.
-A web server can subscribe to incoming HTTP requests and respond to them. It can also start and manage volatile processes to integrate other software.
+{-| Use the type `WebServiceConfig` on a declaration named `webServiceMain` to declare a web service program in an Elm module.
+A web service can subscribe to incoming HTTP requests and respond to them. It can also start and manage volatile processes to integrate other software.
 -}
-type alias WebServerConfig state =
+type alias WebServiceConfig state =
     { init : ( state, Commands state )
     , subscriptions : state -> Subscriptions state
     }
+
+
+type alias WebServerConfig state =
+    WebServiceConfig state
 
 
 type alias Subscriptions state =
