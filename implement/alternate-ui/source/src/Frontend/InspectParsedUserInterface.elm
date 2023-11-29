@@ -1469,9 +1469,9 @@ treeNodeChildrenFromNeocom viewConfig neocom =
     treeNodeChildrenFromRecordWithUINode
         viewConfig
         neocom.uiNode
-        [ neocom.iconInventory
+        [ neocom.inventoryButton
             |> fieldFromMaybeInstance
-                { fieldName = "iconInventory"
+                { fieldName = "inventoryButton"
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
