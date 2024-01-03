@@ -1029,7 +1029,7 @@ public class EveOnline64
                 entries.Add(new PyDictEntry { hash = hash, key = key, value = value });
             }
 
-            return entries.ToArray();
+            return [.. entries];
         }
 
         IImmutableDictionary<string, ulong> GetDictionaryEntriesWithStringKeys(ulong dictionaryObjectAddress)
@@ -1223,7 +1223,7 @@ public class EveOnline64
             pythonObjectAddress: nodeAddress,
             pythonObjectTypeName: pythonObjectTypeName,
             dictEntriesOfInterest: dictEntriesOfInterestDict,
-            otherDictEntriesKeys: otherDictEntriesKeys.ToArray(),
+            otherDictEntriesKeys: [.. otherDictEntriesKeys],
             children: ReadChildren()?.Where(child => child != null)?.ToArray()
         );
     }
@@ -1562,7 +1562,7 @@ class ProcessSample
 
         var zipArchiveEntries =
             memoryRegions.ToImmutableDictionary(
-                region => (IImmutableList<string>)(new[] { "Process", "Memory", $"0x{region.baseAddress:X}" }.ToImmutableList()),
+                region => (IImmutableList<string>)(["Process", "Memory", $"0x{region.baseAddress:X}"]),
                 region => region.content.Value.ToArray())
             .Add(new[] { "copy-memory-log" }.ToImmutableList(), System.Text.Encoding.UTF8.GetBytes(String.Join("\n", logEntries)))
             .AddRange(screenshotEntries);

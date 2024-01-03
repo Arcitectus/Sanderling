@@ -13,7 +13,7 @@ public class CommonConversion
         .ToArray();
 
     static public string StringBase16FromByteArray(IReadOnlyList<byte> bytes) =>
-        BitConverter.ToString(bytes as byte[] ?? bytes.ToArray()).Replace("-", "").ToLowerInvariant();
+        BitConverter.ToString(bytes as byte[] ?? [.. bytes]).Replace("-", "").ToLowerInvariant();
 
     static public byte[] HashSHA256(byte[] input) => SHA256.HashData(input);
 
@@ -56,7 +56,7 @@ public class CommonConversion
         using var inflatedStream = new System.IO.MemoryStream();
 
         using var deflateStream = new System.IO.Compression.DeflateStream(
-            new System.IO.MemoryStream(input as byte[] ?? input.ToArray()), System.IO.Compression.CompressionMode.Decompress);
+            new System.IO.MemoryStream(input as byte[] ?? [.. input]), System.IO.Compression.CompressionMode.Decompress);
 
         deflateStream.CopyTo(inflatedStream);
 
