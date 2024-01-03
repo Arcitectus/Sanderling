@@ -124,6 +124,22 @@ class Program
                     return (memoryReader, uiRootCandidatesAddresses);
                 }
 
+                (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(byte[] processSampleFile, ulong rootAddress)
+                {
+                    var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
+                        Pine.CommonConversion.HashSHA256(processSampleFile));
+
+                    Console.WriteLine($"Reading from process sample {processSampleId}.");
+
+                    var processSampleUnpacked = ProcessSample.ProcessSampleFromZipArchive(processSampleFile);
+
+                    var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
+
+                    Console.WriteLine($"Reading UIRoot from specified address: {rootAddress}");
+
+                    return (memoryReader, ImmutableList<ulong>.Empty.Add(rootAddress));
+                }
+
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddresses()
                 {
                     if (processId.HasValue)
@@ -139,6 +155,11 @@ class Program
                     if (!(0 < sourceFileArgument?.Length))
                     {
                         throw new Exception("Where should I read from?");
+                    }
+
+                    if (0 < rootAddressArgument?.Length)
+                    {
+                        return GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(System.IO.File.ReadAllBytes(sourceFileArgument), ParseULong(rootAddressArgument));
                     }
 
                     return GetMemoryReaderAndRootAddressesFromProcessSampleFile(System.IO.File.ReadAllBytes(sourceFileArgument));
