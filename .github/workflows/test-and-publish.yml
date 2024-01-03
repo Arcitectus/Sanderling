@@ -11,7 +11,7 @@ jobs:
         environment: [windows-2022]
         include:
           - environment: windows-2022
-            publish-runtime-id: win10-x64
+            publish-runtime-id: win-x64
 
     runs-on: ${{ matrix.environment }}
 

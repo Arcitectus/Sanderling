@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2023-01-03";
+    static string AppVersionId => "2024-01-03";
 
     static int Main(string[] args)
     {
