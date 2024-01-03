@@ -48,7 +48,7 @@ To start the software:
 + Start PowerShell.
 + In the next command, we use the `elm-time.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
-```PowerShell
+```txt
 ."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source
 ```
 

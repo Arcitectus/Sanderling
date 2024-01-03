@@ -3,4 +3,4 @@ module Common.App exposing (versionId)
 
 versionId : String
 versionId =
-    "2023-11-21"
+    "2024-01-03"
