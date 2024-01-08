@@ -10,16 +10,19 @@ Here you can see a typical scenario where we use this tool: https://forum.botlab
 
 **Steps to collect a sample:**
 
-+ Download and unpack the zip-archive from [https://github.com/Arcitectus/Sanderling/releases/download/v2020-04-12/2020-04-12-read-memory-64.zip](https://github.com/Arcitectus/Sanderling/releases/download/v2020-04-12/2020-04-12-read-memory-64.zip)
++ Download and unpack the zip-archive from <https://github.com/Arcitectus/Sanderling/releases/download/v2024-01-03/read-memory-64-bit-self-contained-single-file-exe-801f28d6ad5afbecca7ad83024a634cbb15a2b3e-win-x64.zip>
 + Find the game client in the Windows Task Manager.
 + Make sure the name of the game client displayed in the Windows Task Manager does not contain `(32 bit)`.
 + Read the process ID of the game client process in the `PID` column in the Task Manager.
 + Ensure the game client window is visible and not minimized.
 + Use the Windows Command Prompt to run the tool, using the following command:
+
 ```cmd
 read-memory-64-bit.exe  save-process-sample  --pid=12345
 ```
+
 + The tool then creates a process sample file in the directory currently selected in the Command Prompt. When successful, the program exits with a message like the following:
+
 ```cmd
 Saved sample F2CC4E4EC28482747A05172990F7B54CFABAA7F80C2DB83B81E86D3F41523551 to file 'process-sample-F2CC4E4EC2.zip'.
 ```

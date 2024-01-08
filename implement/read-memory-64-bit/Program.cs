@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2023-01-03";
+    static string AppVersionId => "2024-01-03";
 
     static int Main(string[] args)
     {
@@ -124,6 +124,22 @@ class Program
                     return (memoryReader, uiRootCandidatesAddresses);
                 }
 
+                (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(byte[] processSampleFile, ulong rootAddress)
+                {
+                    var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
+                        Pine.CommonConversion.HashSHA256(processSampleFile));
+
+                    Console.WriteLine($"Reading from process sample {processSampleId}.");
+
+                    var processSampleUnpacked = ProcessSample.ProcessSampleFromZipArchive(processSampleFile);
+
+                    var memoryReader = new MemoryReaderFromProcessSample(processSampleUnpacked.memoryRegions);
+
+                    Console.WriteLine($"Reading UIRoot from specified address: {rootAddress}");
+
+                    return (memoryReader, ImmutableList<ulong>.Empty.Add(rootAddress));
+                }
+
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddresses()
                 {
                     if (processId.HasValue)
@@ -136,6 +152,11 @@ class Program
                     if (!(0 < sourceFileArgument?.Length))
                     {
                         throw new Exception("Where should I read from?");
+                    }
+
+                    if (0 < rootAddressArgument?.Length)
+                    {
+                        return GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(System.IO.File.ReadAllBytes(sourceFileArgument), ParseULong(rootAddressArgument));
                     }
 
                     return GetMemoryReaderAndRootAddressesFromProcessSampleFile(System.IO.File.ReadAllBytes(sourceFileArgument));
@@ -1005,7 +1026,7 @@ public class EveOnline64
                 entries.Add(new PyDictEntry { hash = hash, key = key, value = value });
             }
 
-            return entries.ToArray();
+            return [.. entries];
         }
 
         IImmutableDictionary<string, ulong> GetDictionaryEntriesWithStringKeys(ulong dictionaryObjectAddress)
@@ -1199,7 +1220,7 @@ public class EveOnline64
             pythonObjectAddress: nodeAddress,
             pythonObjectTypeName: pythonObjectTypeName,
             dictEntriesOfInterest: dictEntriesOfInterestDict,
-            otherDictEntriesKeys: otherDictEntriesKeys.ToArray(),
+            otherDictEntriesKeys: [.. otherDictEntriesKeys],
             children: ReadChildren()?.Where(child => child != null)?.ToArray()
         );
     }
@@ -1538,7 +1559,7 @@ class ProcessSample
 
         var zipArchiveEntries =
             memoryRegions.ToImmutableDictionary(
-                region => (IImmutableList<string>)(new[] { "Process", "Memory", $"0x{region.baseAddress:X}" }.ToImmutableList()),
+                region => (IImmutableList<string>)(["Process", "Memory", $"0x{region.baseAddress:X}"]),
                 region => region.content.Value.ToArray())
             .Add(new[] { "copy-memory-log" }.ToImmutableList(), System.Text.Encoding.UTF8.GetBytes(String.Join("\n", logEntries)))
             .AddRange(screenshotEntries);

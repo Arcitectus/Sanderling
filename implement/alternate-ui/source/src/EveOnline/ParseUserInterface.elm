@@ -491,7 +491,7 @@ type alias HeatStatusTooltip =
 
 type alias Neocom =
     { uiNode : UITreeNodeWithDisplayRegion
-    , iconInventory : Maybe UITreeNodeWithDisplayRegion
+    , inventoryButton : Maybe UITreeNodeWithDisplayRegion
     , clock : Maybe NeocomClock
     }
 
@@ -2857,17 +2857,11 @@ parseStandaloneBookmarkWindow windowUINode =
 
 parseNeocomFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe Neocom
 parseNeocomFromUITreeRoot uiTreeRoot =
-    case
-        uiTreeRoot
-            |> listDescendantsWithDisplayRegion
-            |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "Neocom")
-            |> List.head
-    of
-        Nothing ->
-            Nothing
-
-        Just uiNode ->
-            Just (parseNeocom uiNode)
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "NeocomContainer")
+        |> List.head
+        |> Maybe.map parseNeocom
 
 
 parseNeocom : UITreeNodeWithDisplayRegion -> Neocom
@@ -2880,17 +2874,6 @@ parseNeocom neocomUiNode =
                 |> List.concatMap getAllContainedDisplayTextsWithRegion
                 |> List.head
 
-        nodeFromTexturePathEnd texturePathEnd =
-            neocomUiNode
-                |> listDescendantsWithDisplayRegion
-                |> List.filter
-                    (.uiNode
-                        >> getTexturePathFromDictEntries
-                        >> Maybe.map (String.endsWith texturePathEnd)
-                        >> Maybe.withDefault False
-                    )
-                |> List.head
-
         clock =
             maybeClockTextAndNode
                 |> Maybe.map
@@ -2900,9 +2883,15 @@ parseNeocom neocomUiNode =
                         , parsedText = parseNeocomClockText clockText
                         }
                     )
+
+        inventoryButton =
+            neocomUiNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "ButtonInventory")
+                |> List.head
     in
     { uiNode = neocomUiNode
-    , iconInventory = nodeFromTexturePathEnd "items.png"
+    , inventoryButton = inventoryButton
     , clock = clock
     }
 
