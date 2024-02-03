@@ -66,23 +66,23 @@ The alternate UI also lets you play the game from other devices that cannot run 
 
 Location of the alternate UI in the repository: [/implement/alternate-ui/](/implement/alternate-ui/)
 
-## Bots
+## Bots and Intel Tools
 
-This repository contains few bots if any at all. Below are some links to bots and guides in other repositories.
+The Sanderling repository contains no bots. However, developers often integrate the functionality from Sanderling in a bot to see and parse the game clients' user interface.
 
-Guide on developing for EVE Online: https://to.botlab.org/guide/developing-for-eve-online
+For a guide on developing complete bots and intel apps for EVE Online (using also Sanderling + image processing), see <https://to.botlab.org/guide/developing-for-eve-online>
 
-And these are some bots using Sanderling:
+Following is a selection of popular bots using Sanderling:
 
-+ Warp-To-0 Autopilot: [https://to.botlab.org/guide/app/eve-online-autopilot-bot](https://to.botlab.org/guide/app/eve-online-autopilot-bot)
++ Warp-To-0 Autopilot: <https://to.botlab.org/guide/app/eve-online-autopilot-bot>
 
-+ Mining asteroids: [https://to.botlab.org/guide/app/eve-online-mining-bot](https://to.botlab.org/guide/app/eve-online-mining-bot)
++ Mining asteroids: <https://to.botlab.org/guide/app/eve-online-mining-bot>
 
-+ Combat anomalies: [https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot](https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot)
++ Combat anomalies: <https://to.botlab.org/guide/app/eve-online-combat-anomaly-bot>
 
-+ List of EVE Online Bots for Beginners: [https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629](https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629)
++ List of EVE Online Bots for Beginners: <https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629>
 
-+ Most up-to-date list of bots and intel-tools: [https://catalog.botlab.org/?q=eve%20online](https://catalog.botlab.org/?q=eve%20online)
++ Up-to-date list of bots and intel-tools: <https://catalog.botlab.org/?q=eve%20online>
 
 ## Contributing
 

@@ -30,8 +30,8 @@ For a guide on the structures in the parsed memory reading, see https://to.botla
 
 Developers use the parsing library to make ratting, mining, and mission running bots and intel tools. Following are some links to bots and tools using the parsing library:
 
-+ https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629
-+ https://catalog.botlab.org/?q=eve%2Bonline
++ <https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629>
++ <https://catalog.botlab.org/?q=eve%2Bonline>
 
 ## Setup
 
