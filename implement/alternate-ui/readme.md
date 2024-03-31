@@ -30,14 +30,14 @@ For a guide on the structures in the parsed memory reading, see https://to.botla
 
 Developers use the parsing library to make ratting, mining, and mission running bots and intel tools. Following are some links to bots and tools using the parsing library:
 
-+ https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629
-+ https://catalog.botlab.org/?q=eve%2Bonline
++ <https://forum.botlab.org/t/list-of-eve-online-bots-for-beginners/629>
++ <https://catalog.botlab.org/?q=eve%2Bonline>
 
 ## Setup
 
 These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-time` to compile the program from source code and run it as a web server.
 
-Download the zip archive from <https://github.com/elm-time/elm-time/releases/download/v2024-01-01/elm-time-bin-v2024-01-01-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/elm-time/elm-time/releases/download/v2024-02-17/elm-time-separate-assemblies-d4a29168fd0195b3f507c8ef023acc26942df0c0-win-x64.zip> and extract it.
 
 The extracted files contain the `elm-time` tool used to run Elm programs.
 
