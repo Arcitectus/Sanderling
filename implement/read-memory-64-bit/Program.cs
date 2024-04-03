@@ -144,12 +144,9 @@ class Program
                 {
                     if (processId.HasValue)
                     {
-                        if (0 < rootAddressArgument?.Length)
-                        {
-                            return (new MemoryReaderFromLiveProcess(processId.Value), ImmutableList.Create(ParseULong(rootAddressArgument)));
-                        }
+                        var possibleRootAddresses = 0 < rootAddressArgument?.Length ? ImmutableList.Create(ParseULong(rootAddressArgument)) : EveOnline64.EnumeratePossibleAddressesForUIRootObjectsFromProcessId(processId.Value);
 
-                        return GetMemoryReaderAndRootAddressesFromProcessSampleFile(GetProcessSampleFileFromProcessId(processId.Value));
+                        return (new MemoryReaderFromLiveProcess(processId.Value), possibleRootAddresses);
                     }
 
                     if (!(0 < sourceFileArgument?.Length))
