@@ -35,21 +35,21 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 ## Setup
 
-These instructions to run the alternate UI start with the program source code. Here we use a tool called `elm-time` to compile the program from source code and run it as a web server.
+These instructions to run the alternate UI start with the program source code. Here we use a tool called `pine` to compile the program from source code and run it as a web server.
 
-Download the zip archive from <https://github.com/elm-time/elm-time/releases/download/v2024-02-17/elm-time-separate-assemblies-d4a29168fd0195b3f507c8ef023acc26942df0c0-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.3.0/pine-separate-assemblies-bd6a65808505eef741e159fb33c7ecf5c351b53d-win-x64.zip> and extract it.
 
-The extracted files contain the `elm-time` tool used to run Elm programs.
+The extracted files contain the `pine` tool used to run Elm programs.
 
 ## Usage
 
 To start the software:
 
 + Start PowerShell.
-+ In the next command, we use the `elm-time.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
++ In the next command, we use the `pine.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```txt
-."C:\replace-this-the-path-on-your-system\elm-time.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\pine.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -60,7 +60,7 @@ Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
 This path points to commit dd6ca58e26a217e79261e0d6f2f597804f5b558a
 Loaded source composition 575233c29caee8611794fd8306a4d341a3e911315b5b844cb78b326e3676b349 from 'https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source'.
-Starting web server with admin interface (using engine JavaScript_V8)...
+Starting web server with admin interface (using engine JavaScript_V8 { })...
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
       Begin to build the process live representation.
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
@@ -77,8 +77,10 @@ info: Microsoft.Hosting.Lifetime[14]
       Now listening on: http://[::]:80
 info: Microsoft.Hosting.Lifetime[0]
       Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
-      Started the public app at 'http://*:80'.
+      Started the public app at 'http://[::]:80'.
 Completed starting the web server with the admin interface at 'http://*:4000'.
 ```
 

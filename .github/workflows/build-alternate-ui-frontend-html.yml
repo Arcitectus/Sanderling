@@ -15,20 +15,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: download elm-time
+    - name: download build tool
       run: |
-        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/elm-time/elm-time/releases/download/v2023-04-10/elm-time-bin-v2023-04-10-linux-x64.zip' -OutFile elm-time-linux-x64.zip"
-        pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('elm-time-linux-x64.zip','./elm-time');}"
+        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/pine-vm/pine/releases/download/v0.3.0/pine-bin-v0.3.0-linux-x64.zip' -OutFile pine-bin-v0.3.0-linux-x64.zip"
+        pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('pine-bin-v0.3.0-linux-x64.zip','./pine');}"
 
-    - name: install elm-time
+    - name: install build tool
       run: |
-        chmod  +x  ./elm-time/elm-time
-        sudo  ./elm-time/elm-time  install
+        chmod  +x  ./pine/pine
+        sudo  ./pine/pine  install
 
     - name: Build HTML
       working-directory: ./implement/alternate-ui/source
       run: |
-        elm-time  make  src/Frontend/Main.elm  --output=./eve-online-alternate-ui-${{github.sha}}.html
+        pine  make  src/Frontend/Main.elm  --output=./eve-online-alternate-ui-${{github.sha}}.html
 
     - uses: actions/upload-artifact@v3
       with:

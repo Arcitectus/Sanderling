@@ -1,9 +1,9 @@
 module Platform.WebService exposing (..)
 
-{-| This module contains the types describing the Elm-Time web service platform.
+{-| This module contains the types describing the Pine web service platform.
 To build a web service app in Elm, copy this module file into your project and add a declaration with the name `webServiceMain` to an Elm module.
 
-For the latest version of the documentation, see <https://elm-time.org>
+For the latest version of the documentation, see <https://pinevm.org>
 
 -}
 
@@ -15,10 +15,6 @@ type alias WebServiceConfig state =
     { init : ( state, Commands state )
     , subscriptions : state -> Subscriptions state
     }
-
-
-type alias WebServerConfig state =
-    WebServiceConfig state
 
 
 type alias Subscriptions state =
