@@ -6,6 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "albertdahlin/elm-posix": "1.1.0",
             "danfishgold/base64-bytes": "1.1.0",
             "dillonkearns/elm-markdown": "7.0.1",
             "elm/browser": "1.0.2",
