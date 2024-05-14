@@ -1,13 +1,13 @@
 module Frontend.Cli exposing (program)
 
-import EveOnline.MemoryReading
-import EveOnline.ParseUserInterface exposing (UITreeNodeWithDisplayRegion)
+import EveOnline.MemoryReading exposing (UITreeNodeChild)
+import EveOnline.ParseUserInterface exposing (DisplayRegion, UITreeNodeWithDisplayRegion)
 import Json.Decode
 import Json.Encode as E
 import Posix.IO as IO exposing (IO, Process)
 import Posix.IO.File as File
 import Posix.IO.Process as Proc
-
+import Dict
 
 program : Process -> IO ()
 program process =
@@ -72,8 +72,8 @@ encodeChildren maybeChildren =
                             EveOnline.ParseUserInterface.ChildWithRegion childNode ->
                                 encodeNodeWithChildren childNode
 
-                            EveOnline.ParseUserInterface.ChildWithoutRegion _ ->
-                                E.null
+                            EveOnline.ParseUserInterface.ChildWithoutRegion uiNode ->
+                                encodeUiNodeWithChildren uiNode
                     )
                 |> E.list identity
 
@@ -81,12 +81,60 @@ encodeChildren maybeChildren =
             E.null
 
 
+encodeUiNodeWithChildren : EveOnline.MemoryReading.UITreeNode -> E.Value
+encodeUiNodeWithChildren node =
+    E.object
+        [ ( "pythonObjectAddress", E.string node.pythonObjectAddress )
+        , ( "pythonObjectTypeName", E.string node.pythonObjectTypeName )
+        , ( "dictEntriesOfInterest", encodeDictEntriesOfInterest node.dictEntriesOfInterest )
+        , ( "children", encodeUiChildren node.children )
+        ]
+
+
+encodeUiChildren : Maybe (List UITreeNodeChild) -> E.Value
+encodeUiChildren maybeChildren =
+    case maybeChildren of
+        Just children ->
+            children
+                |> List.map
+                    (\child ->
+                        case child of
+                            EveOnline.MemoryReading.UITreeNodeChild uiNode ->
+                                encodeUiNodeWithChildren uiNode
+                    )
+                |> E.list identity
+
+        Nothing ->
+            E.null
+
+
+encodeDictEntriesOfInterest : Dict.Dict String E.Value -> E.Value
+encodeDictEntriesOfInterest _ =
+    E.null
+
+
+encodeTotalDisplayRegion : DisplayRegion -> E.Value
+encodeTotalDisplayRegion _ =
+    E.null
+
+
+encodeTotalDisplayRegionVisible : DisplayRegion -> E.Value
+encodeTotalDisplayRegionVisible _ =
+    E.null
+
+
+encodeSelfDisplayRegion : DisplayRegion -> E.Value
+encodeSelfDisplayRegion _ =
+    E.null
+
+
 encodeNodeWithChildren : UITreeNodeWithDisplayRegion -> E.Value
 encodeNodeWithChildren node =
     E.object
-        [ ( "name", E.string node.uiNode.pythonObjectTypeName )
-        , ( "x", E.int node.totalDisplayRegion.x )
-        , ( "y", E.int node.totalDisplayRegion.y )
+        [ ( "uiNode", encodeUiNodeWithChildren node.uiNode )
+        , ( "totalDisplayRegion", encodeTotalDisplayRegion node.totalDisplayRegion )
+        , ( "totalDisplayRegionVisible", encodeTotalDisplayRegionVisible node.totalDisplayRegionVisible )
+        , ( "selfDisplayRegion", encodeSelfDisplayRegion node.selfDisplayRegion )
         , ( "children", encodeChildren node.children )
         ]
 
