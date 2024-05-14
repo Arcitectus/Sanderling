@@ -113,28 +113,23 @@ encodeDictEntriesOfInterest _ =
     E.null
 
 
-encodeTotalDisplayRegion : DisplayRegion -> E.Value
-encodeTotalDisplayRegion _ =
-    E.null
-
-
-encodeTotalDisplayRegionVisible : DisplayRegion -> E.Value
-encodeTotalDisplayRegionVisible _ =
-    E.null
-
-
-encodeSelfDisplayRegion : DisplayRegion -> E.Value
-encodeSelfDisplayRegion _ =
-    E.null
+encodeDisplayRegion : DisplayRegion -> E.Value
+encodeDisplayRegion region =
+    E.object 
+        [ ("x", E.int region.x)
+        , ("y", E.int region.y)
+        , ("width", E.int region.width)
+        , ("height", E.int region.height)
+        ]
 
 
 encodeNodeWithChildren : UITreeNodeWithDisplayRegion -> E.Value
 encodeNodeWithChildren node =
     E.object
         [ ( "uiNode", encodeUiNodeWithChildren node.uiNode )
-        , ( "totalDisplayRegion", encodeTotalDisplayRegion node.totalDisplayRegion )
-        , ( "totalDisplayRegionVisible", encodeTotalDisplayRegionVisible node.totalDisplayRegionVisible )
-        , ( "selfDisplayRegion", encodeSelfDisplayRegion node.selfDisplayRegion )
+        , ( "totalDisplayRegion", encodeDisplayRegion node.totalDisplayRegion )
+        , ( "totalDisplayRegionVisible", encodeDisplayRegion node.totalDisplayRegionVisible )
+        , ( "selfDisplayRegion", encodeDisplayRegion node.selfDisplayRegion )
         , ( "children", encodeChildren node.children )
         ]
 
