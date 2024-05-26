@@ -57,7 +57,7 @@ class Program
 
                 Console.WriteLine("Completed collecting the sample.");
 
-                var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
+                var processSampleId = Pine.CommonConversion.StringBase16(
                     Pine.CommonConversion.HashSHA256(processSampleFile));
 
                 var fileName = "process-sample-" + processSampleId[..10] + ".zip";
@@ -97,7 +97,7 @@ class Program
 
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddressesFromProcessSampleFile(byte[] processSampleFile)
                 {
-                    var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
+                    var processSampleId = Pine.CommonConversion.StringBase16(
                         Pine.CommonConversion.HashSHA256(processSampleFile));
 
                     Console.WriteLine($"Reading from process sample {processSampleId}.");
@@ -126,7 +126,7 @@ class Program
 
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(byte[] processSampleFile, ulong rootAddress)
                 {
-                    var processSampleId = Pine.CommonConversion.StringBase16FromByteArray(
+                    var processSampleId = Pine.CommonConversion.StringBase16(
                         Pine.CommonConversion.HashSHA256(processSampleFile));
 
                     Console.WriteLine($"Reading from process sample {processSampleId}.");
@@ -233,8 +233,7 @@ class Program
 
                     var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
 
-                    var sampleId = Pine.CommonConversion.StringBase16FromByteArray(
-                        Pine.CommonConversion.HashSHA256(fileContent));
+                    var sampleId = Pine.CommonConversion.StringBase16(Pine.CommonConversion.HashSHA256(fileContent));
 
                     var outputFilePath = outputFileArgument;
 
