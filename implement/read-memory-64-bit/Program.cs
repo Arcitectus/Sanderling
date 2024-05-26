@@ -10,7 +10,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2024-05-25";
+    static string AppVersionId => "2024-05-26";
 
     static int Main(string[] args)
     {
@@ -738,7 +738,12 @@ public class EveOnline64
         .Add("bool", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_bool))
         .Add("float", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_float))
         .Add("PyColor", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_PyColor))
-        .Add("Bunch", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_Bunch));
+        .Add("Bunch", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_Bunch))
+        /*
+         * 2024-05-26 observed dict entry with key "_setText" pointing to a python object of type "Link".
+         * The client used that instance of "Link" to display "Current Solar System" label in the location info panel.
+         * */
+        .Add("Link", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_Link));
 
     static object ReadingFromPythonType_str(ulong address, LocalMemoryReadingTools memoryReadingTools)
     {
@@ -874,6 +879,49 @@ public class EveOnline64
         (
             entriesOfInterest: entriesOfInterestJObject
         );
+    }
+
+    static object ReadingFromPythonType_Link(ulong address, LocalMemoryReadingTools memoryReadingTools)
+    {
+        var pythonObjectTypeName = memoryReadingTools.GetPythonTypeNameFromPythonObjectAddress(address);
+
+        var linkMemory = memoryReadingTools.memoryReader.ReadBytes(address, 0x40);
+
+        if (linkMemory is null)
+            return null;
+
+        var linkMemoryAsLongMemory = TransformMemoryContent.AsULongMemory(linkMemory.Value);
+
+        /*
+         * 2024-05-26 observed a reference to a dictionary object at offset 6 * 4 bytes.
+         * */
+
+        var firstDictReference =
+            linkMemoryAsLongMemory
+            .ToArray()
+            .Where(reference =>
+            {
+                var referencedObjectTypeName = memoryReadingTools.GetPythonTypeNameFromPythonObjectAddress(reference);
+
+                return referencedObjectTypeName is "dict";
+            })
+            .FirstOrDefault();
+
+        if (firstDictReference is 0)
+            return null;
+
+        var dictEntries =
+            memoryReadingTools.getDictionaryEntriesWithStringKeys(firstDictReference)
+            ?.ToImmutableDictionary(
+                keySelector: dictEntry => dictEntry.Key,    
+                elementSelector: dictEntry => memoryReadingTools.GetDictEntryValueRepresentation(dictEntry.Value));
+
+        return new UITreeNode(
+            pythonObjectAddress: address,
+            pythonObjectTypeName: pythonObjectTypeName,
+            dictEntriesOfInterest: dictEntries,
+            otherDictEntriesKeys: null,
+            children: null);
     }
 
 
