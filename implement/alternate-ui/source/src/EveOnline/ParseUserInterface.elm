@@ -16,6 +16,7 @@ import Common.EffectOnWindow
 import Dict
 import EveOnline.MemoryReading
 import Json.Decode
+import Json.Encode
 import List.Extra
 import Maybe.Extra
 import Regex
@@ -817,11 +818,33 @@ parseInfoPanelLocationInfoFromInfoPanelContainer infoPanelContainerNode =
                         |> List.head
 
                 currentSolarSystemName =
-                    infoPanelNode.uiNode
-                        |> getAllContainedDisplayTexts
-                        |> List.filterMap parseCurrentSolarSystemFromUINodeText
-                        |> List.head
-                        |> Maybe.map String.trim
+                    case
+                        infoPanelNode.uiNode
+                            |> getAllContainedDisplayTexts
+                            |> List.filterMap parseCurrentSolarSystemFromUINodeText
+                            |> List.head
+                    of
+                        Just currentSolarSystemNameOld ->
+                            {-
+                               Might be obsolete since the new branch introduced 2024-05-26.
+                               Prevalence of this variant is unknown.
+                            -}
+                            Just (String.trim currentSolarSystemNameOld)
+
+                        Nothing ->
+                            infoPanelNode
+                                |> listDescendantsWithDisplayRegion
+                                {-
+                                   2024-05-26: Observed property '_name': "headerLabelSystemName"
+                                -}
+                                |> List.filter
+                                    (.uiNode
+                                        >> getNameFromDictEntries
+                                        >> Maybe.map (String.toLower >> String.contains "labelsystemname")
+                                        >> Maybe.withDefault False
+                                    )
+                                |> List.concatMap (.uiNode >> getAllContainedDisplayTexts)
+                                |> List.head
 
                 maybeListSurroundingsButton =
                     infoPanelNode
@@ -3194,10 +3217,43 @@ getDisplayText uiNode =
             (\displayTextPropertyName ->
                 uiNode.dictEntriesOfInterest
                     |> Dict.get displayTextPropertyName
-                    |> Maybe.andThen (Json.Decode.decodeValue Json.Decode.string >> Result.toMaybe)
+                    |> Maybe.andThen getDisplayTextFromDictEntry
             )
         |> List.sortBy (String.length >> negate)
         |> List.head
+
+
+getDisplayTextFromDictEntry : Json.Encode.Value -> Maybe String
+getDisplayTextFromDictEntry dictEntryValue =
+    case
+        Json.Decode.decodeValue
+            (Json.Decode.oneOf
+                [ Json.Decode.string
+
+                {-
+                   2024-05-26: Observed in info panel:
+                   Property '_setText' contained not string but a python object of type 'Link', which in turn references a dictionary.
+                   That dictionary contains a key '_text' with the actual text.
+                -}
+                , Json.Decode.andThen
+                    (\asNode ->
+                        case getDisplayText asNode of
+                            Just text ->
+                                Json.Decode.succeed text
+
+                            Nothing ->
+                                Json.Decode.fail "Failed to extract text from Link object"
+                    )
+                    EveOnline.MemoryReading.uiTreeNodeDecoder
+                ]
+            )
+            dictEntryValue
+    of
+        Err _ ->
+            Nothing
+
+        Ok ok ->
+            Just ok
 
 
 getAllContainedDisplayTexts : EveOnline.MemoryReading.UITreeNode -> List String
@@ -3210,18 +3266,19 @@ getAllContainedDisplayTexts uiNode =
 getAllContainedDisplayTextsWithRegion : UITreeNodeWithDisplayRegion -> List ( String, UITreeNodeWithDisplayRegion )
 getAllContainedDisplayTextsWithRegion uiNode =
     uiNode
-        :: (uiNode |> listDescendantsWithDisplayRegion)
+        :: listDescendantsWithDisplayRegion uiNode
         |> List.filterMap
             (\descendant ->
-                let
-                    displayText =
-                        descendant.uiNode |> getDisplayText |> Maybe.withDefault ""
-                in
-                if 0 < (displayText |> String.length) then
-                    Just ( displayText, descendant )
+                case getDisplayText descendant.uiNode of
+                    Nothing ->
+                        Nothing
 
-                else
-                    Nothing
+                    Just displayText ->
+                        if 0 < String.length displayText then
+                            Just ( displayText, descendant )
+
+                        else
+                            Nothing
             )
 
 
