@@ -329,7 +329,11 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
         parsedUserInterfaceShipUI.uiNode
         [ { fieldName = "capacitor"
           , fieldValueSummary = "..."
-          , fieldValueChildren = always (parsedUserInterfaceShipUI.capacitor |> treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig)
+          , fieldValueChildren =
+                always
+                    (parsedUserInterfaceShipUI.capacitor
+                        |> treeNodeChildrenFromParsedUserInterfaceShipUICapacitor viewConfig
+                    )
           }
         , { fieldName = "hitpointsPercent"
           , fieldValueSummary = "..."
@@ -345,12 +349,15 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
         , { fieldName = "moduleButtonsRows"
           , fieldValueSummary = "..."
           , fieldValueChildren =
-                always (parsedUserInterfaceShipUI.moduleButtonsRows |> treeNodeChildrenFromShipUIModuleButtonsRows viewConfig)
+                always
+                    (parsedUserInterfaceShipUI.moduleButtonsRows
+                        |> treeNodeChildrenFromShipUIModuleButtonsRows viewConfig
+                    )
           }
-        , parsedUserInterfaceShipUI.offensiveBuffButtonNames
-            |> fieldFromPrimitiveListInstance
-                { fieldName = "offensiveBuffButtonNames"
-                , fieldValueDescription = Json.Encode.string >> Json.Encode.encode 0
+        , parsedUserInterfaceShipUI.offensiveBuffButtons
+            |> fieldFromListInstance
+                { fieldName = "offensiveBuffButtons"
+                , fieldValueChildren = treeNodeChildrenFromBuffButton viewConfig
                 }
         , parsedUserInterfaceShipUI.squadronsUI
             |> fieldFromMaybeInstance
@@ -376,6 +383,18 @@ treeNodeChildrenFromParsedUserInterfaceShipUI viewConfig parsedUserInterfaceShip
                 , fieldValueSummary = always "..."
                 , fieldValueChildren = treeNodeChildrenFromShipUIHeatGauges viewConfig
                 }
+        ]
+
+
+treeNodeChildrenFromBuffButton :
+    ViewConfig event
+    -> { uiNode : UITreeNodeWithDisplayRegion, name : String }
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromBuffButton viewConfig buffButton =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        buffButton.uiNode
+        [ buffButton.name |> fieldFromString "name"
         ]
 
 

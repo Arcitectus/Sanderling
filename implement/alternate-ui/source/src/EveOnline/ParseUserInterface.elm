@@ -108,7 +108,7 @@ type alias ShipUI =
         , middle : List ShipUIModuleButton
         , bottom : List ShipUIModuleButton
         }
-    , offensiveBuffButtonNames : List String
+    , offensiveBuffButtons : List { uiNode : UITreeNodeWithDisplayRegion, name : String }
     , squadronsUI : Maybe SquadronsUI
     , stopButton : Maybe UITreeNodeWithDisplayRegion
     , maxSpeedButton : Maybe UITreeNodeWithDisplayRegion
@@ -1045,11 +1045,19 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 _ ->
                                     Nothing
 
-                        offensiveBuffButtonNames =
+                        offensiveBuffButtons : List { uiNode : UITreeNodeWithDisplayRegion, name : String }
+                        offensiveBuffButtons =
                             shipUINode
                                 |> listDescendantsWithDisplayRegion
-                                |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "OffensiveBuffButton")
-                                |> List.filterMap (.uiNode >> getNameFromDictEntries)
+                                |> List.filterMap
+                                    (\uiNode ->
+                                        case getNameFromDictEntries uiNode.uiNode of
+                                            Nothing ->
+                                                Nothing
+
+                                            Just name ->
+                                                Just { uiNode = uiNode, name = name }
+                                    )
 
                         squadronsUI =
                             shipUINode
@@ -1074,7 +1082,7 @@ parseShipUIFromUITreeRoot uiTreeRoot =
                                 , indication = indication
                                 , moduleButtons = moduleButtons
                                 , moduleButtonsRows = groupShipUIModulesIntoRows capacitor moduleButtons
-                                , offensiveBuffButtonNames = offensiveBuffButtonNames
+                                , offensiveBuffButtons = offensiveBuffButtons
                                 , squadronsUI = squadronsUI
                                 , stopButton = descendantNodesFromPythonObjectTypeNameEqual "StopButton" |> List.head
                                 , maxSpeedButton = descendantNodesFromPythonObjectTypeNameEqual "MaxSpeedButton" |> List.head
