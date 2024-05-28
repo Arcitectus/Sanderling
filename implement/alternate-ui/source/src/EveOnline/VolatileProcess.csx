@@ -5,8 +5,8 @@
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
 
-// https://github.com/Arcitectus/Sanderling/releases/download/v2024-01-03/read-memory-64-bit-separate-assemblies-801f28d6ad5afbecca7ad83024a634cbb15a2b3e-win-x64.zip
-#r "sha256:474c4c43d1ed2ffdddedf07eabc43c70a76be97057f68c577f49032b4f275aa3"
+// https://github.com/Arcitectus/Sanderling/releases/download/v2024-05-26/read-memory-64-bit-separate-assemblies-42a7d9d909650ab2f820a4797e144fe73bcc092b-win-x64.zip
+#r "sha256:8ccb3e48a9465b9370c99fe6141cd8ca3072dc8e3c935b14ab824f09a5e1efc5"
 
 #r "mscorlib"
 #r "netstandard"
