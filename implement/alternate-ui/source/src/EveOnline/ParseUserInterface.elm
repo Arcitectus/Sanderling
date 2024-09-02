@@ -46,6 +46,7 @@ type alias ParsedUserInterface =
     , repairShopWindow : Maybe RepairShopWindow
     , characterSheetWindow : Maybe CharacterSheetWindow
     , fleetWindow : Maybe FleetWindow
+    , locationsWindow : Maybe LocationsWindow
     , watchListPanel : Maybe WatchListPanel
     , standaloneBookmarkWindow : Maybe StandaloneBookmarkWindow
     , moduleButtonTooltip : Maybe ModuleButtonTooltip
@@ -572,6 +573,18 @@ type alias CompressionWindow =
     }
 
 
+type alias LocationsWindow =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , placeEntries : List LocationsWindowPlaceEntry
+    }
+
+
+type alias LocationsWindowPlaceEntry =
+    { uiNode : UITreeNodeWithDisplayRegion
+    , mainText : String
+    }
+
+
 type alias WindowControls =
     { uiNode : UITreeNodeWithDisplayRegion
     , minimizeButton : Maybe UITreeNodeWithDisplayRegion
@@ -618,6 +631,7 @@ parseUserInterfaceFromUITree uiTree =
     , repairShopWindow = parseRepairShopWindowFromUITreeRoot uiTree
     , characterSheetWindow = parseCharacterSheetWindowFromUITreeRoot uiTree
     , fleetWindow = parseFleetWindowFromUITreeRoot uiTree
+    , locationsWindow = parseLocationsWindowFromUITreeRoot uiTree
     , watchListPanel = parseWatchListPanelFromUITreeRoot uiTree
     , standaloneBookmarkWindow = parseStandaloneBookmarkWindowFromUITreeRoot uiTree
     , neocom = parseNeocomFromUITreeRoot uiTree
@@ -2989,6 +3003,57 @@ parseCompressionWindow windowUiNode =
     , windowControls = parseWindowControlsFromWindow windowUiNode
     , compressButton = compressButton
     }
+
+
+parseLocationsWindowFromUITreeRoot : UITreeNodeWithDisplayRegion -> Maybe LocationsWindow
+parseLocationsWindowFromUITreeRoot uiTreeRoot =
+    {-
+       2024-09-02 'Locations' window as shared by Paul with 'session-recording-2024-08-26T22-54-47.zip'
+       For discussion of the 'Locations' window, see <https://forum.botlab.org/t/the-mining-robot-cant-find-its-way-home/4922/5>
+    -}
+    uiTreeRoot
+        |> listDescendantsWithDisplayRegion
+        |> List.filter (.uiNode >> .pythonObjectTypeName >> (==) "LocationsWindow")
+        |> List.head
+        |> Maybe.map parseLocationsWindow
+
+
+parseLocationsWindow : UITreeNodeWithDisplayRegion -> LocationsWindow
+parseLocationsWindow windowNode =
+    let
+        placeEntries : List LocationsWindowPlaceEntry
+        placeEntries =
+            windowNode
+                |> listDescendantsWithDisplayRegion
+                |> List.filter (.uiNode >> .pythonObjectTypeName >> String.contains "PlaceEntry")
+                |> List.filterMap parseLocationsWindowPlaceEntry
+    in
+    { uiNode = windowNode
+    , placeEntries = placeEntries
+    }
+
+
+parseLocationsWindowPlaceEntry : UITreeNodeWithDisplayRegion -> Maybe LocationsWindowPlaceEntry
+parseLocationsWindowPlaceEntry entryNode =
+    {-
+       Screenshots show a grid layout of cells with text in each cell aligned in columns.
+       But at least in 'session-recording-2024-08-26T22-54-47.zip', the text appeared in a single node of type "EveLabelMedium"
+       As already seen in other windows, that text appears split into the cells texts by '<t>' tags.
+       Following is a middle part of an observed text in a 'EveLabelMedium' node in a 'PlaceEntry' node:
+       ...<t>Refinery<t>0<t>Y5C-YD<t>...
+    -}
+    case
+        entryNode
+            |> getAllContainedDisplayTextsWithRegion
+            |> List.sortBy (Tuple.second >> .totalDisplayRegion >> areaFromDisplayRegion >> Maybe.withDefault 0)
+            |> List.map Tuple.first
+            |> List.head
+    of
+        Nothing ->
+            Nothing
+
+        Just mainText ->
+            Just { uiNode = entryNode, mainText = mainText }
 
 
 parseWindowControlsFromWindow : UITreeNodeWithDisplayRegion -> Maybe WindowControls

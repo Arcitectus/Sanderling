@@ -227,6 +227,12 @@ renderTreeNodeFromParsedUserInterface maybeInputRoute uiNodesWithDisplayRegion p
                         , fieldValueSummary = always "..."
                         , fieldValueChildren = treeNodeChildrenFromFleetWindow viewConfig
                         }
+                , parsedUserInterface.locationsWindow
+                    |> fieldFromMaybeInstance
+                        { fieldName = "locationsWindow"
+                        , fieldValueSummary = always "..."
+                        , fieldValueChildren = treeNodeChildrenFromLocationsWindow viewConfig
+                        }
                 , parsedUserInterface.watchListPanel
                     |> fieldFromMaybeInstance
                         { fieldName = "watchListPanel"
@@ -1445,6 +1451,34 @@ treeNodeChildrenFromFleetWindow viewConfig fleetWindow =
                 { fieldName = "fleetMembers"
                 , fieldValueChildren = treeViewNodeFromUINode viewConfig >> List.singleton
                 }
+        ]
+
+
+treeNodeChildrenFromLocationsWindow :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.LocationsWindow
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromLocationsWindow viewConfig locationsWindow =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        locationsWindow.uiNode
+        [ locationsWindow.placeEntries
+            |> fieldFromListInstance
+                { fieldName = "placeEntries"
+                , fieldValueChildren = treeNodeChildrenFromLocationsWindowPlaceEntry viewConfig
+                }
+        ]
+
+
+treeNodeChildrenFromLocationsWindowPlaceEntry :
+    ViewConfig event
+    -> EveOnline.ParseUserInterface.LocationsWindowPlaceEntry
+    -> List (TreeViewNode event ParsedUITreeViewPathNode)
+treeNodeChildrenFromLocationsWindowPlaceEntry viewConfig node =
+    treeNodeChildrenFromRecordWithUINode
+        viewConfig
+        node.uiNode
+        [ node.mainText |> fieldFromString "mainText"
         ]
 
 
