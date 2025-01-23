@@ -724,10 +724,19 @@ getDisplayRegionFromDictEntries uiNode =
                     ]
                 )
 
+        fixedNumberFromPropertyName : String -> Maybe Int
         fixedNumberFromPropertyName propertyName =
-            uiNode.dictEntriesOfInterest
-                |> Dict.get propertyName
-                |> Maybe.andThen (fixedNumberFromJsonValue >> Result.toMaybe)
+            case Dict.get propertyName uiNode.dictEntriesOfInterest of
+                Just jsonValue ->
+                    case fixedNumberFromJsonValue jsonValue of
+                        Ok number ->
+                            Just number
+
+                        Err _ ->
+                            Nothing
+
+                Nothing ->
+                    Nothing
     in
     case
         ( ( fixedNumberFromPropertyName "_displayX", fixedNumberFromPropertyName "_displayY" )
