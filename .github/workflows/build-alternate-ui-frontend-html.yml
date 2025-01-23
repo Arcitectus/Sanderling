@@ -30,7 +30,7 @@ jobs:
       run: |
         pine  make  src/Frontend/Main.elm  --output=./eve-online-alternate-ui-${{github.sha}}.html
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: eve-online-alternate-ui-${{github.sha}}
         path: ./implement/alternate-ui/source/eve-online-alternate-ui-${{github.sha}}.html
