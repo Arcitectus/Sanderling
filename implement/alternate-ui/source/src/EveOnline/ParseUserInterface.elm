@@ -693,7 +693,7 @@ asUITreeNodeWithInheritedOffset :
     -> EveOnline.MemoryReading.UITreeNode
     -> ChildOfNodeWithDisplayRegion
 asUITreeNodeWithInheritedOffset inheritedOffset { occludedRegions } rawNode =
-    case rawNode |> getDisplayRegionFromDictEntries of
+    case getDisplayRegionFromDictEntries rawNode of
         Nothing ->
             ChildWithoutRegion rawNode
 
@@ -702,7 +702,11 @@ asUITreeNodeWithInheritedOffset inheritedOffset { occludedRegions } rawNode =
                 (asUITreeNodeWithDisplayRegion
                     { selfDisplayRegion = selfRegion
                     , totalDisplayRegion =
-                        { selfRegion | x = inheritedOffset.x + selfRegion.x, y = inheritedOffset.y + selfRegion.y }
+                        { x = inheritedOffset.x + selfRegion.x
+                        , y = inheritedOffset.y + selfRegion.y
+                        , width = selfRegion.width
+                        , height = selfRegion.height
+                        }
                     , occludedRegions = occludedRegions
                     }
                     rawNode
