@@ -37,7 +37,7 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 These instructions to run the alternate UI start with the program source code. Here we use a tool called `pine` to compile the program from source code and run it as a web server.
 
-Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.3.0/pine-separate-assemblies-bd6a65808505eef741e159fb33c7ecf5c351b53d-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.0/pine-separate-assemblies-888533a4202c45996ea9fc8563620eb628ca2768-win-x64.zip> and extract it.
 
 The extracted files contain the `pine` tool used to run Elm programs.
 
@@ -46,10 +46,36 @@ The extracted files contain the `pine` tool used to run Elm programs.
 To start the software:
 
 + Start PowerShell.
++ Run the `pine.exe` file from the zip archive you downloaded in the setup section. You can do this by navigating to the folder where you extracted the zip archive and then running the command `.\pine.exe`.
+
+You then might see an error message like this:
+
+```txt
+You must install or update .NET to run this application.
+
+App: C:\Users\Shadow\Downloads\pine-separate-assemblies-888533a4202c45996ea9fc8563620eb628ca2768-win-x64\pine.exe
+Architecture: x64
+Framework: 'Microsoft.NETCore.App', version '9.0.0' (x64)
+.NET location: C:\Program Files\dotnet\
+
+The following frameworks were found:
+  3.1.18 at [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  6.0.3 at [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  7.0.9 at [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+
+Learn about framework resolution:
+https://aka.ms/dotnet/app-launch-failed
+
+To install missing framework, download:
+https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=9.0.0&arch=x64&rid=win10-x64
+```
+
+To resolve this issue, you need to install the .NET runtime version 9.X.X You can find the download link at <https://dotnet.microsoft.com/download/dotnet/9.0>
+
 + In the next command, we use the `pine.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```txt
-."C:\replace-this-the-path-on-your-system\pine.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\pine.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/b13fc46fa37e4b1e8feee53e4921632ad7dfa574/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -58,9 +84,9 @@ To start the software:
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit dd6ca58e26a217e79261e0d6f2f597804f5b558a
-Loaded source composition 575233c29caee8611794fd8306a4d341a3e911315b5b844cb78b326e3676b349 from 'https://github.com/Arcitectus/Sanderling/tree/dd6ca58e26a217e79261e0d6f2f597804f5b558a/implement/alternate-ui/source'.
-Starting web server with admin interface (using engine JavaScript_V8 { })...
+This path points to commit b13fc46fa37e4b1e8feee53e4921632ad7dfa574
+Loaded source composition f6dec381281892b000dccfd505d637833dbfe04a4a0c8e164b07404ffb023d73 from 'https://github.com/Arcitectus/Sanderling/tree/b13fc46fa37e4b1e8feee53e4921632ad7dfa574/implement/alternate-ui/source'.
+Starting web server with admin interface (using engine Pine { Caching = True, DynamicPGOShare =  })...
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
       Begin to build the process live representation.
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
@@ -68,7 +94,7 @@ info: ElmTime.Platform.WebService.StartupAdminInterface[0]
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
       Found 1 composition log records to use for restore.
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
-      Restored the process state in 0 seconds.
+      Restored the process state in 1 seconds.
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
       Completed building the process live representation.
 info: ElmTime.Platform.WebService.PublicAppState[0]
