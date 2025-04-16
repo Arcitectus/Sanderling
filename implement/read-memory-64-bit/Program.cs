@@ -913,7 +913,7 @@ public class EveOnline64
         var dictEntries =
             memoryReadingTools.getDictionaryEntriesWithStringKeys(firstDictReference)
             ?.ToImmutableDictionary(
-                keySelector: dictEntry => dictEntry.Key,    
+                keySelector: dictEntry => dictEntry.Key,
                 elementSelector: dictEntry => memoryReadingTools.GetDictEntryValueRepresentation(dictEntry.Value));
 
         return new UITreeNode(
@@ -1219,6 +1219,33 @@ public class EveOnline64
 
             if (childrenEntry.value == 0)
                 return null;
+
+            if (getPythonTypeNameFromPythonObjectAddress(childrenEntry.value).Equals("PyChildrenList"))
+            {
+                pyChildrenListMemory = memoryReader.ReadBytes(childrenEntry.value, 0x18);
+
+                if (!(pyChildrenListMemory?.Length == 0x18))
+                    return null;
+
+                pyChildrenDictAddress = BitConverter.ToUInt64(pyChildrenListMemory.Value.Span[0x10..]);
+
+                pyChildrenDictEntries = ReadActiveDictionaryEntriesFromDictionaryAddress(pyChildrenDictAddress);
+
+                if (pyChildrenDictEntries == null)
+                    return null;
+
+                childrenEntry =
+                    pyChildrenDictEntries
+                    .FirstOrDefault(dictionaryEntry =>
+                    {
+                        if (getPythonTypeNameFromPythonObjectAddress(dictionaryEntry.key) != "str")
+                            return false;
+
+                        var keyString = readPythonStringValueMaxLength4000(dictionaryEntry.key);
+
+                        return keyString == "_childrenObjects";
+                    });
+            }
 
             var pythonListObjectMemory = memoryReader.ReadBytes(childrenEntry.value, 0x20);
 
