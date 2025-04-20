@@ -10,7 +10,7 @@ namespace read_memory_64_bit;
 
 class Program
 {
-    static string AppVersionId => "2024-05-26";
+    static string AppVersionId => "2025-04-20";
 
     static int Main(string[] args)
     {
@@ -57,8 +57,9 @@ class Program
 
                 Console.WriteLine("Completed collecting the sample.");
 
-                var processSampleId = Pine.CommonConversion.StringBase16(
-                    Pine.CommonConversion.HashSHA256(processSampleFile));
+                var processSampleId =
+                Convert.ToHexStringLower(
+                    System.Security.Cryptography.SHA256.HashData(processSampleFile));
 
                 var fileName = "process-sample-" + processSampleId[..10] + ".zip";
 
@@ -97,8 +98,9 @@ class Program
 
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddressesFromProcessSampleFile(byte[] processSampleFile)
                 {
-                    var processSampleId = Pine.CommonConversion.StringBase16(
-                        Pine.CommonConversion.HashSHA256(processSampleFile));
+                    var processSampleId =
+                    Convert.ToHexStringLower(
+                        System.Security.Cryptography.SHA256.HashData(processSampleFile));
 
                     Console.WriteLine($"Reading from process sample {processSampleId}.");
 
@@ -126,8 +128,9 @@ class Program
 
                 (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(byte[] processSampleFile, ulong rootAddress)
                 {
-                    var processSampleId = Pine.CommonConversion.StringBase16(
-                        Pine.CommonConversion.HashSHA256(processSampleFile));
+                    var processSampleId =
+                    Convert.ToHexStringLower(
+                        System.Security.Cryptography.SHA256.HashData(processSampleFile));
 
                     Console.WriteLine($"Reading from process sample {processSampleId}.");
 
@@ -233,7 +236,7 @@ class Program
 
                     var fileContent = System.Text.Encoding.UTF8.GetBytes(uiTreeAsJson);
 
-                    var sampleId = Pine.CommonConversion.StringBase16(Pine.CommonConversion.HashSHA256(fileContent));
+                    var sampleId = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(fileContent));
 
                     var outputFilePath = outputFileArgument;
 
