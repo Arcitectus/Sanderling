@@ -89,10 +89,3 @@ Following is a selection of popular bots using Sanderling:
 ### Issues and other Feedback
 
 Spotted a bug or have a feature request? Post on the [BotLab forum](https://forum.botlab.org) or file an issue [on GitHub](https://github.com/Arcitectus/Sanderling/issues).
-For communication here, supported languages are English, Italian, Spanish, and German.
-
-
-### Pull Requests
-
-The only supported language for pull request titles and commit messages is English.
-

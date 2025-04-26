@@ -4,3 +4,6 @@ end_of_line = lf
 
 [*.elm]
 indent_style = space
+
+[*.cs]
+indent_style = space
