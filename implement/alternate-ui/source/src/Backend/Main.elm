@@ -3,7 +3,6 @@ module Backend.Main exposing
     , webServiceMain
     )
 
-import Base64
 import Bytes
 import Bytes.Decode
 import Bytes.Encode
@@ -134,9 +133,11 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
               ]
             )
 
-        httpResponseOkWithBodyAsBase64 bodyAsBase64 contentConfig =
+        httpResponseOkWithBodyString bodyString contentConfig =
             { statusCode = 200
-            , bodyAsBase64 = bodyAsBase64
+            , body =
+                bodyString
+                    |> Maybe.map encodeStringToBytes
             , headersToAdd =
                 [ ( "Cache-Control"
                   , contentConfig.cacheMaxAgeMinutes
@@ -154,13 +155,13 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
             }
 
         respondWithFrontendHtmlDocument { enableInspector } =
-            httpResponseOkWithBodyAsBase64
+            httpResponseOkWithBodyString
                 (Just
                     (if enableInspector then
-                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.debug.base64
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.debug.utf8
 
                      else
-                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.base64
+                        CompilationInterface.ElmMake.elm_make____src_Frontend_Main_elm.utf8
                     )
                 )
                 (contentHttpHeaders { contentType = "text/html", contentEncoding = Nothing })
@@ -176,8 +177,8 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
         Just ApiRoute ->
             -- TODO: Consolidate the different branches to reduce duplication.
             case
-                httpRequestEvent.request.bodyAsBase64
-                    |> Maybe.map (Base64.toBytes >> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string") >> Maybe.withDefault "Failed to decode from base64")
+                httpRequestEvent.request.body
+                    |> Maybe.map (decodeBytesToString >> Maybe.withDefault "Failed to decode bytes to string")
                     |> Maybe.withDefault "Missing HTTP body"
                     |> Json.Decode.decodeString CompilationInterface.GenerateJsonConverters.jsonDecodeRequestFromFrontendClient
             of
@@ -187,10 +188,10 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                             { httpRequestId = httpRequestEvent.httpRequestId
                             , response =
                                 { statusCode = 400
-                                , bodyAsBase64 =
+                                , body =
                                     ("Failed to decode request: " ++ (decodeError |> Json.Decode.errorToString))
                                         |> encodeStringToBytes
-                                        |> Base64.fromBytes
+                                        |> Just
                                 , headersToAdd = []
                                 }
                             }
@@ -207,11 +208,11 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                     { httpRequestId = httpRequestEvent.httpRequestId
                                     , response =
                                         { statusCode = 200
-                                        , bodyAsBase64 =
+                                        , body =
                                             -- TODO: Also transmit time of log entry.
                                             (stateBefore.log |> List.map .message |> String.join "\n")
                                                 |> encodeStringToBytes
-                                                |> Base64.fromBytes
+                                                |> Just
                                         , headersToAdd = []
                                         }
                                     }
@@ -228,14 +229,14 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             { httpRequestId = httpRequestEvent.httpRequestId
                                             , response =
                                                 { statusCode = 500
-                                                , bodyAsBase64 =
+                                                , body =
                                                     (("Failed to create volatile process: " ++ createVolatileProcessErr)
                                                         |> InterfaceToFrontendClient.SetupNotCompleteResponse
                                                         |> CompilationInterface.GenerateJsonConverters.jsonEncodeRunInVolatileProcessResponseStructure
                                                         |> Json.Encode.encode 0
                                                     )
                                                         |> encodeStringToBytes
-                                                        |> Base64.fromBytes
+                                                        |> Just
                                                 , headersToAdd = []
                                                 }
                                             }
@@ -266,6 +267,14 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                                                 , []
                                                                 )
 
+                                                            Err (Platform.WebService.RequestToVolatileProcessOtherError err) ->
+                                                                ( { stateBeforeResult
+                                                                    | setup = initSetup
+                                                                  }
+                                                                    |> addLogEntry ("RequestToVolatileProcessOtherError: " ++ err)
+                                                                , []
+                                                                )
+
                                                             Ok requestToVolatileProcessOk ->
                                                                 processRequestToVolatileProcessComplete
                                                                     { httpRequestId = httpRequestEvent.httpRequestId }
@@ -287,14 +296,14 @@ updateForHttpRequestEventWithoutVolatileProcessMaintenance httpRequestEvent stat
                                             { httpRequestId = httpRequestEvent.httpRequestId
                                             , response =
                                                 { statusCode = 200
-                                                , bodyAsBase64 =
+                                                , body =
                                                     ("Volatile process not created yet."
                                                         |> InterfaceToFrontendClient.SetupNotCompleteResponse
                                                         |> CompilationInterface.GenerateJsonConverters.jsonEncodeRunInVolatileProcessResponseStructure
                                                         |> Json.Encode.encode 0
                                                     )
                                                         |> encodeStringToBytes
-                                                        |> Base64.fromBytes
+                                                        |> Just
                                                 , headersToAdd = []
                                                 }
                                             }
@@ -325,7 +334,10 @@ processRequestToVolatileProcessComplete { httpRequestId } runInVolatileProcessCo
             { httpRequestId = httpRequestId
             , response =
                 { statusCode = 200
-                , bodyAsBase64 = httpResponseBody |> encodeStringToBytes |> Base64.fromBytes
+                , body =
+                    httpResponseBody
+                        |> encodeStringToBytes
+                        |> Just
                 , headersToAdd = []
                 }
             }

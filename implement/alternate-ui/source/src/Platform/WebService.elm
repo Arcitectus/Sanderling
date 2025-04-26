@@ -1,11 +1,13 @@
 module Platform.WebService exposing (..)
 
-{-| This module contains the types describing the Pine web service platform.
+{-| This module contains the types describing the Pine / Elm web service platform.
 To build a web service app in Elm, copy this module file into your project and add a declaration with the name `webServiceMain` to an Elm module.
 
-For the latest version of the documentation, see <https://pinevm.org>
+For the latest version of the documentation, see <https://pine-vm.org>
 
 -}
+
+import Bytes
 
 
 {-| Use the type `WebServiceConfig` on a declaration named `webServiceMain` to declare a web service program in an Elm module.
@@ -34,7 +36,15 @@ type alias Commands state =
 type Command state
     = RespondToHttpRequest RespondToHttpRequestStruct
     | CreateVolatileProcess (CreateVolatileProcessStruct state)
+      {-
+         We use the `runtimeIdentifier` and `osPlatform` properties to select the right executable files when creating a (native) volatile process.
+         The properties returned by this command comes from the `RuntimeInformation` documented at <https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.runtimeinformation>
+      -}
+    | ReadRuntimeInformationCommand (ReadRuntimeInformationCommandStruct state)
+    | CreateVolatileProcessNativeCommand (CreateVolatileProcessNativeCommandStruct state)
     | RequestToVolatileProcess (RequestToVolatileProcessStruct state)
+    | WriteToVolatileProcessNativeStdInCommand (WriteToVolatileProcessNativeStdInStruct state)
+    | ReadAllFromVolatileProcessNativeCommand (ReadAllFromVolatileProcessNativeStruct state)
     | TerminateVolatileProcess TerminateVolatileProcessStruct
 
 
@@ -54,7 +64,7 @@ type alias HttpRequestContext =
 type alias HttpRequestProperties =
     { method : String
     , uri : String
-    , bodyAsBase64 : Maybe String
+    , body : Maybe Bytes.Bytes
     , headers : List HttpHeader
     }
 
@@ -67,7 +77,7 @@ type alias RespondToHttpRequestStruct =
 
 type alias HttpResponse =
     { statusCode : Int
-    , bodyAsBase64 : Maybe String
+    , body : Maybe Bytes.Bytes
     , headersToAdd : List HttpHeader
     }
 
@@ -81,6 +91,29 @@ type alias HttpHeader =
 type alias CreateVolatileProcessStruct state =
     { programCode : String
     , update : CreateVolatileProcessResult -> state -> ( state, Commands state )
+    }
+
+
+type alias ReadRuntimeInformationCommandStruct state =
+    Result String RuntimeInformationRecord -> state -> ( state, Commands state )
+
+
+type alias RuntimeInformationRecord =
+    { runtimeIdentifier : String
+    , osPlatform : Maybe String
+    }
+
+
+type alias CreateVolatileProcessNativeCommandStruct state =
+    { request : CreateVolatileProcessNativeRequestStruct
+    , update : CreateVolatileProcessResult -> state -> ( state, Commands state )
+    }
+
+
+type alias CreateVolatileProcessNativeRequestStruct =
+    { executableFile : LoadDependencyStruct
+    , arguments : String
+    , environmentVariables : List ProcessEnvironmentVariableStruct
     }
 
 
@@ -104,12 +137,39 @@ type alias RequestToVolatileProcessStruct state =
     }
 
 
+type alias WriteToVolatileProcessNativeStdInStruct state =
+    { processId : String
+    , stdInBytes : Bytes.Bytes
+    , update :
+        Result RequestToVolatileProcessError ()
+        -> state
+        -> ( state, Commands state )
+    }
+
+
+type alias ReadAllFromVolatileProcessNativeStruct state =
+    { processId : String
+    , update :
+        Result RequestToVolatileProcessError ReadAllFromVolatileProcessNativeSuccessStruct
+        -> state
+        -> ( state, Commands state )
+    }
+
+
 type alias RequestToVolatileProcessResult =
     Result RequestToVolatileProcessError RequestToVolatileProcessComplete
 
 
+type alias ReadAllFromVolatileProcessNativeSuccessStruct =
+    { stdOutBytes : Bytes.Bytes
+    , stdErrBytes : Bytes.Bytes
+    , exitCode : Maybe Int
+    }
+
+
 type RequestToVolatileProcessError
     = ProcessNotFound
+    | RequestToVolatileProcessOtherError String
 
 
 type alias RequestToVolatileProcessComplete =
@@ -121,3 +181,15 @@ type alias RequestToVolatileProcessComplete =
 
 type alias TerminateVolatileProcessStruct =
     { processId : String }
+
+
+type alias ProcessEnvironmentVariableStruct =
+    { key : String
+    , value : String
+    }
+
+
+type alias LoadDependencyStruct =
+    { hashSha256Base16 : String
+    , hintUrls : List String
+    }

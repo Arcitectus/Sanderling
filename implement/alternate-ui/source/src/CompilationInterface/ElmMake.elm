@@ -6,8 +6,8 @@ module CompilationInterface.ElmMake exposing (..)
 import Basics
 
 
-elm_make____src_Frontend_Main_elm : { debug : { base64 : String }, base64 : String }
+elm_make____src_Frontend_Main_elm : { debug : { utf8 : String }, utf8 : String }
 elm_make____src_Frontend_Main_elm =
-    { base64 = "The compiler replaces this declaration."
-    , debug = { base64 = "The compiler replaces this declaration." }
+    { utf8 = "The compiler replaces this declaration."
+    , debug = { utf8 = "The compiler replaces this declaration." }
     }
