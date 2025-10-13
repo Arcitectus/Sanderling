@@ -39,7 +39,7 @@ jobs:
     - name: dotnet publish - self contained single file executable
       env:
         PUBLISH_RUNTIME_ID: ${{ matrix.publish-runtime-id }}
-      run: dotnet publish -c Debug -r ${{ env.PUBLISH_RUNTIME_ID }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true  --output ./publish  ./implement/read-memory-64-bit
+      run: dotnet publish -c Debug -r ${{ env.PUBLISH_RUNTIME_ID }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true  --output ./publish  ./implement/read-memory-64-bit/read-memory-64-bit.csproj
 
     - name: Publish artifacts - self contained single file executable
       uses: actions/upload-artifact@v4
@@ -48,7 +48,7 @@ jobs:
         path: ./publish
 
     - name: dotnet publish - separate assemblies
-      run: dotnet publish -c Debug ./implement/read-memory-64-bit --output ./publish-separate-assemblies
+      run: dotnet publish -c Debug ./implement/read-memory-64-bit/read-memory-64-bit.csproj --output ./publish-separate-assemblies
 
     - name: Publish artifacts - separate assemblies
       uses: actions/upload-artifact@v4
