@@ -4,6 +4,9 @@ end_of_line = lf
 
 [*.elm]
 indent_style = space
+charset = utf-8
 
 [*.cs]
 indent_style = space
+charset = utf-8
+
