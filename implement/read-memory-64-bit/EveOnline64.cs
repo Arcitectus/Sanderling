@@ -946,16 +946,18 @@ public class EveOnline64
             return childrenNodesBuffer;
         }
 
-        var dictEntriesOfInterestLessNoneType =
-            dictEntriesOfInterest
-            .Where(entry =>
-            !(entry.value is UITreeNode.DictEntryValueGenericRepresentation entryValue && entryValue.pythonObjectTypeName is "NoneType"))
-            .ToArray();
+        var dictEntriesOfInterestDict = new Dictionary<string, object>();
 
-        var dictEntriesOfInterestDict =
-            dictEntriesOfInterestLessNoneType.Aggregate(
-                seed: ImmutableDictionary<string, object>.Empty,
-                func: (dict, entry) => dict.SetItem(entry.key, entry.value));
+        for (var i = 0; i < dictEntriesOfInterest.Count; ++i)
+        {
+            var entry = dictEntriesOfInterest[i];
+
+            if (entry.value is UITreeNode.DictEntryValueGenericRepresentation entryValue &&
+                entryValue.pythonObjectTypeName is "NoneType")
+                continue;
+
+            dictEntriesOfInterestDict[entry.key] = entry.value;
+        }
 
         return new UITreeNode
         (
