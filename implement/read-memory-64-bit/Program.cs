@@ -112,7 +112,7 @@ class Program
 
                     var memoryRegions =
                         processSampleUnpacked.memoryRegions
-                        .Select(memoryRegion => (memoryRegion.baseAddress, length: memoryRegion.content.Value.Length))
+                        .Select(memoryRegion => (memoryRegion.baseAddress, length: (ulong)memoryRegion.content.Value.Length))
                         .ToImmutableList();
 
                     var uiRootCandidatesAddresses =

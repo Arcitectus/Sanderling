@@ -26,14 +26,14 @@ public class EveOnline64
         return genericResult;
     }
 
-    static public (IImmutableList<(ulong baseAddress, int length)> memoryRegions, IImmutableList<string> logEntries)
+    static public (IImmutableList<(ulong baseAddress, ulong length)> memoryRegions, IImmutableList<string> logEntries)
         ReadCommittedMemoryRegionsWithoutContentFromProcessId(int processId)
     {
         var genericResult = ReadCommittedMemoryRegionsFromProcessId(processId, readContent: false);
 
         var memoryRegions =
             genericResult.memoryRegions
-            .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, length: (int)memoryRegion.length))
+            .Select(memoryRegion => (baseAddress: memoryRegion.baseAddress, length: memoryRegion.length))
             .ToImmutableList();
 
         return (memoryRegions, genericResult.logEntries);
@@ -140,7 +140,7 @@ public class EveOnline64
     }
 
     static public IImmutableList<ulong> EnumeratePossibleAddressesForUIRootObjects(
-        IEnumerable<(ulong baseAddress, int length)> memoryRegions,
+        IEnumerable<(ulong baseAddress, ulong length)> memoryRegions,
         IMemoryReader memoryReader)
     {
         var memoryRegionsOrderedByAddress =
@@ -170,9 +170,24 @@ public class EveOnline64
             return System.Text.Encoding.ASCII.GetString(asSpan[..length]);
         }
 
-        ReadOnlyMemory<ulong>? ReadMemoryRegionContentAsULongArray((ulong baseAddress, int length) memoryRegion)
+        ReadOnlyMemory<ulong>? ReadMemoryRegionContentAsULongArray((ulong baseAddress, ulong length) memoryRegion)
         {
-            var asByteArray = memoryReader.ReadBytes(memoryRegion.baseAddress, memoryRegion.length);
+            var lengthAsInt = (int)memoryRegion.length;
+
+            if (lengthAsInt < 0)
+                return null;
+
+            if (int.MaxValue < memoryRegion.length)
+            {
+                /*
+                 * TODO: Check if Windows API could possibly report such large memory regions.
+                 * If that is the case, implement reading in chunks.
+                 * */
+                return null;
+            }
+
+            var asByteArray =
+                memoryReader.ReadBytes(memoryRegion.baseAddress, lengthAsInt);
 
             if (asByteArray is null)
                 return null;
@@ -182,9 +197,10 @@ public class EveOnline64
 
         IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectType()
         {
-            IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion((ulong baseAddress, int length) memoryRegion)
+            IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion((ulong baseAddress, ulong length) memoryRegion)
             {
-                var memoryRegionContentAsULongArray = ReadMemoryRegionContentAsULongArray(memoryRegion);
+                var memoryRegionContentAsULongArray =
+                    ReadMemoryRegionContentAsULongArray(memoryRegion);
 
                 if (memoryRegionContentAsULongArray is null)
                     yield break;
