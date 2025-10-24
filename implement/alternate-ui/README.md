@@ -26,7 +26,7 @@ There are two ways to get a memory reading into this interface:
 
 Besides the program to read the UI tree from the game client, there is also a parsing library to help make sense of the raw UI tree.
 
-For a guide on the structures in the parsed memory reading, see https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client
+For a guide on the structures in the parsed memory reading, see <https://to.botlab.org/guide/parsed-user-interface-of-the-eve-online-game-client>
 
 Developers use the parsing library to make ratting, mining, and mission running bots and intel tools. Following are some links to bots and tools using the parsing library:
 
@@ -37,7 +37,7 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 Using the PineVM runtime, we can run the alternative UI directly from the source code, loading directly from GitHub or a copy on the local file system.
 
-Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.5/pine-separate-assemblies-72dc0369f7083e86440ce0067915e83720f67b99-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.18/pine-separate-assemblies-0544ef13fe7d023a4147c4e6cc4e00929ec62710-win-x64.zip> and extract it.
 
 The extracted files contain the `pine` tool for running Elm programs like the alternate UI.
 

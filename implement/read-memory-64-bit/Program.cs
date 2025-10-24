@@ -147,7 +147,12 @@ class Program
                 {
                     if (processId.HasValue)
                     {
-                        var possibleRootAddresses = 0 < rootAddressArgument?.Length ? ImmutableList.Create(ParseULong(rootAddressArgument)) : EveOnline64.EnumeratePossibleAddressesForUIRootObjectsFromProcessId(processId.Value);
+                        var possibleRootAddresses =
+                        0 < rootAddressArgument?.Length
+                        ?
+                        ImmutableList.Create(ParseULong(rootAddressArgument))
+                        :
+                        EveOnline64.EnumeratePossibleAddressesForUIRootObjectsFromProcessId(processId.Value);
 
                         return (new MemoryReaderFromLiveProcess(processId.Value), possibleRootAddresses);
                     }
@@ -170,10 +175,10 @@ class Program
                 IImmutableList<UITreeNode> ReadUITrees() =>
                     uiRootCandidatesAddresses
                     .Select(uiTreeRoot => EveOnline64.ReadUITreeFromAddress(uiTreeRoot, memoryReader, 99))
-                    .Where(uiTree => uiTree != null)
+                    .Where(uiTree => uiTree is not null)
                     .ToImmutableList();
 
-                if (warmupIterationsArgument != null)
+                if (warmupIterationsArgument is not null)
                 {
                     var iterations = int.Parse(warmupIterationsArgument);
 
@@ -215,7 +220,7 @@ class Program
                     .OrderByDescending(uiTreeWithStats => uiTreeWithStats.nodeCount)
                     .FirstOrDefault().uiTree;
 
-                if (largestUiTree != null)
+                if (largestUiTree is not null)
                 {
                     var uiTreePreparedForFile = largestUiTree;
 
@@ -365,7 +370,7 @@ class Program
             0,
             new System.Drawing.Size(width, height),
             System.Drawing.CopyPixelOperation.SourceCopy);
-        
+
         return asBitmap;
     }
 

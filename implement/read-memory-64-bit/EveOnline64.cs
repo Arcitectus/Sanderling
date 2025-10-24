@@ -68,9 +68,9 @@ public class EveOnline64
         {
             int result = WinApi.VirtualQueryEx(
                 processHandle,
-                (IntPtr)address,
+                lpAddress: (IntPtr)address,
                 out WinApi.MEMORY_BASIC_INFORMATION64 m,
-                (uint)Marshal.SizeOf(typeof(WinApi.MEMORY_BASIC_INFORMATION64)));
+                (uint)Marshal.SizeOf<WinApi.MEMORY_BASIC_INFORMATION64>());
 
             var regionProtection = (WinApi.MemoryInformationProtection)m.Protect;
 
@@ -811,7 +811,7 @@ public class EveOnline64
         {
             var _displayDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key == "_display");
 
-            if (_displayDictEntry != null && (_displayDictEntry.value is bool displayAsBool))
+            if (_displayDictEntry is not null && (_displayDictEntry.value is bool displayAsBool))
                 if (!displayAsBool)
                     return null;
         }
@@ -939,7 +939,7 @@ public class EveOnline64
             pythonObjectTypeName: pythonObjectTypeName,
             dictEntriesOfInterest: dictEntriesOfInterestDict,
             otherDictEntriesKeys: [.. otherDictEntriesKeys],
-            children: ReadChildren()?.Where(child => child != null)?.ToArray()
+            children: ReadChildren()?.Where(child => child is not null)?.ToArray()
         );
     }
 
