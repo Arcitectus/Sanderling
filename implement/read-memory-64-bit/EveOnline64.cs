@@ -626,12 +626,26 @@ public class EveOnline64
 
             var tp_name = BitConverter.ToUInt64(typeObjectMemory.Value.Span[0x18..]);
 
-            var nameBytes = memoryReader.ReadBytes(tp_name, 100)?.ToArray();
-
-            if (!(nameBytes?.Contains((byte)0) ?? false))
+            if (memoryReader.ReadBytes(tp_name, 100) is not { } nameBytes)
                 return null;
 
-            return System.Text.Encoding.ASCII.GetString(nameBytes.TakeWhile(character => character != 0).ToArray());
+            // Expect this string to use null-termination
+
+            int? nullTerminationIndex = null;
+
+            for (int i = 0; i < nameBytes.Length; ++i)
+            {
+                if (nameBytes.Span[i] is 0)
+                {
+                    nullTerminationIndex = i;
+                    break;
+                }
+            }
+
+            if (!nullTerminationIndex.HasValue)
+                return null;
+
+            return System.Text.Encoding.ASCII.GetString(nameBytes.Span[..nullTerminationIndex.Value]);
         }
 
         string getPythonTypeNameFromPythonObjectAddress(ulong objectAddress)
