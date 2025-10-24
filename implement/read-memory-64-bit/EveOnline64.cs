@@ -837,7 +837,8 @@ public class EveOnline64
 
             //  https://github.com/Arcitectus/Sanderling/blob/b07769fb4283e401836d050870121780f5f37910/guide/image/2015-01.eve-online-python-ui-tree-structure.png
 
-            var childrenDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key == "children");
+            var childrenDictEntry =
+                dictEntriesOfInterest.FirstOrDefault(entry => entry.key is "children");
 
             if (childrenDictEntry is null)
                 return null;
@@ -875,7 +876,7 @@ public class EveOnline64
 
             //  Console.WriteLine($"Found {(childrenEntry.value == 0 ? "no" : "a")} dictionary entry for children of 0x{nodeAddress:X}");
 
-            if (childrenEntry.value == 0)
+            if (childrenEntry.value is 0)
                 return null;
 
             if (getPythonTypeNameFromPythonObjectAddress(childrenEntry.value).Equals("PyChildrenList"))
@@ -901,7 +902,7 @@ public class EveOnline64
 
                         var keyString = readPythonStringValueMaxLength4000(dictionaryEntry.key);
 
-                        return keyString == "_childrenObjects";
+                        return keyString is "_childrenObjects";
                     });
             }
 
@@ -930,10 +931,19 @@ public class EveOnline64
 
             //  Console.WriteLine($"Found {listEntries.Length} children entries for 0x{nodeAddress:X}: " + String.Join(", ", listEntries.Select(childAddress => $"0x{childAddress:X}").ToArray()));
 
-            return
-                 [.. listEntries
-                 .ToArray()
-                 .Select(childAddress => ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache))];
+            var childrenNodesBuffer = new UITreeNode[listEntries.Length];
+
+            for (int i = 0; i < listEntries.Length; ++i)
+            {
+                var childAddress = listEntries.Span[i];
+
+                var childNode =
+                    ReadUITreeFromAddress(childAddress, memoryReader, maxDepth - 1, cache);
+
+                childrenNodesBuffer[i] = childNode;
+            }
+
+            return childrenNodesBuffer;
         }
 
         var dictEntriesOfInterestLessNoneType =
