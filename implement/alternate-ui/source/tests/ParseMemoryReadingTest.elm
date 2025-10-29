@@ -67,6 +67,9 @@ inventory_capacity_gauge_text =
 
     -- Add case with more than two groups in number
     , ( " 3.444.555,0 / 12.333.444,6 m³", Ok { used = 3444555, maximum = Just 12333444, selected = Nothing } )
+
+    -- 2025-10-29 scenario shared by Tim Bbil at https://forum.botlab.org/t/eve-mining-bot-is-stuck-on-i-do-not-see-the-mining-hold-capacity-gauge/5272
+    , ( "0/5'000.0 m³", Ok { used = 0, maximum = Just 5000, selected = Nothing } )
     ]
         |> List.map
             (\( text, expectedResult ) ->

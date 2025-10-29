@@ -3253,14 +3253,17 @@ getSubstringBetweenXmlTagsAfterMarker marker =
 parseNumberTruncatingAfterOptionalDecimalSeparator : String -> Result String Int
 parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
     let
+        expectedSeparators : List String
         expectedSeparators =
-            [ ",", ".", "’", " ", "\u{00A0}", "\u{202F}" ]
+            [ ",", ".", "’", "'", " ", "\u{00A0}", "\u{202F}" ]
 
+        groupsTexts : List String
         groupsTexts =
             expectedSeparators
                 |> List.foldl (\separator -> List.concatMap (String.split separator))
                     [ String.trim numberDisplayText ]
 
+        lastGroupIsFraction : Bool
         lastGroupIsFraction =
             case List.reverse groupsTexts of
                 lastGroupText :: _ :: _ ->
@@ -3269,6 +3272,7 @@ parseNumberTruncatingAfterOptionalDecimalSeparator numberDisplayText =
                 _ ->
                     False
 
+        integerText : String
         integerText =
             String.join ""
                 (if lastGroupIsFraction then
