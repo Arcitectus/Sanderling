@@ -17,7 +17,7 @@ jobs:
 
     - name: download build tool
       run: |
-        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/pine-vm/pine/releases/download/v0.4.18/pine-bin-v0.4.18-linux-x64.zip' -OutFile pine-bin-linux-x64.zip"
+        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/pine-vm/pine/releases/download/v0.4.21/pine-bin-v0.4.21-linux-x64.zip' -OutFile pine-bin-linux-x64.zip"
         pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('pine-bin-linux-x64.zip','./pine');}"
 
     - name: install build tool

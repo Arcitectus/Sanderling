@@ -37,7 +37,7 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 Using the PineVM runtime, we can run the alternative UI directly from the source code, loading directly from GitHub or a copy on the local file system.
 
-Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.18/pine-separate-assemblies-0544ef13fe7d023a4147c4e6cc4e00929ec62710-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.21/pine-separate-assemblies-691ef34772293a8a4ac50b8f2bdcef5351296465-win-x64.zip> and extract it.
 
 The extracted files contain the `pine` tool for running Elm programs like the alternate UI.
 
@@ -75,7 +75,7 @@ To resolve this issue, install the .NET runtime version 9.X.X You can find the d
 + In the next command, we use the `pine.exe` file we got from the zip archive in the setup section. Below is an example of the complete command; you only need to replace the file path to the executable file:
 
 ```txt
-."C:\replace-this-the-path-on-your-system\pine.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/9f88b038911020857da6a9b11569641150c089fa/implement/alternate-ui/source
+."C:\replace-this-the-path-on-your-system\pine.exe"  run-server  --public-urls="http://*:80"  --deploy=https://github.com/Arcitectus/Sanderling/tree/f417f147520a89b1c522fe8dcdd63c77a1d338a1/implement/alternate-ui/source
 ```
 
 + The command starts a web server and the shell window will display an output like this:
@@ -84,8 +84,8 @@ To resolve this issue, install the .NET runtime version 9.X.X You can find the d
 I got no path to a persistent store for the process. This process will not be persisted!
 Loading app config to deploy...
 This path looks like a URL into a remote git repository. Trying to load from there...
-This path points to commit 9f88b038911020857da6a9b11569641150c089fa
-Loaded source composition 06e97d85bcfbb00448fa0df2e12a811c528f8e5f47a9af5c4043cc00efd8d747 from 'https://github.com/Arcitectus/Sanderling/tree/9f88b038911020857da6a9b11569641150c089fa/implement/alternate-ui/source'.
+This path points to commit f417f147520a89b1c522fe8dcdd63c77a1d338a1
+Loaded source composition ac0ea3b254b5575ec79d843886e42f5050b65a4efeaccaa3e94b5e1ded7bc083 from 'https://github.com/Arcitectus/Sanderling/tree/f417f147520a89b1c522fe8dcdd63c77a1d338a1/implement/alternate-ui/source'.
 Starting web server with admin interface...
 info: ElmTime.Platform.WebService.StartupAdminInterface[0]
       Begin to build the process live representation.
