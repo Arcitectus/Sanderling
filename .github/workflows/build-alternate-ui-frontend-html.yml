@@ -17,13 +17,14 @@ jobs:
 
     - name: download build tool
       run: |
-        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/pine-vm/pine/releases/download/v0.4.21/pine-bin-v0.4.21-linux-x64.zip' -OutFile pine-bin-linux-x64.zip"
+        pwsh -nologo -noprofile -command "Invoke-WebRequest 'https://github.com/pine-vm/pine/releases/download/v0.5.9/pine-bin-v0.5.9-linux-x64.zip' -OutFile pine-bin-linux-x64.zip"
         pwsh -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('pine-bin-linux-x64.zip','./pine');}"
 
     - name: install build tool
       run: |
         chmod  +x  ./pine/pine
-        sudo  ./pine/pine  install
+        ./pine/pine  install
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
     - name: Build HTML
       working-directory: ./implement/alternate-ui/source

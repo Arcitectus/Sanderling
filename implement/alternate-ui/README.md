@@ -35,9 +35,9 @@ Developers use the parsing library to make ratting, mining, and mission running 
 
 ## Setup
 
-Using the PineVM runtime, we can run the alternative UI directly from the source code, loading directly from GitHub or a copy on the local file system.
+Using the Pine runtime, we can run the alternative UI directly from the source code, loading directly from GitHub or a copy on the local file system.
 
-Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.4.21/pine-separate-assemblies-691ef34772293a8a4ac50b8f2bdcef5351296465-win-x64.zip> and extract it.
+Download the zip archive from <https://github.com/pine-vm/pine/releases/download/v0.5.9/pine-separate-assemblies-c7f75a389ead22868d305c67016c8cf36bc3495e-win-x64.zip> and extract it.
 
 The extracted files contain the `pine` tool for running Elm programs like the alternate UI.
 
