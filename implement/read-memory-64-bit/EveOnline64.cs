@@ -317,7 +317,7 @@ public class EveOnline64
 
         var uiRootTypeObjectCandidatesAddresses =
             EnumerateCandidatesForPythonTypeObjects(EnumerateCandidatesForPythonTypeObjectType().ToImmutableList())
-            .Where(typeObject => typeObject.tp_name == "UIRoot")
+            .Where(typeObject => typeObject.tp_name is "UIRoot")
             .Select(typeObject => typeObject.address)
             .ToImmutableList();
 
@@ -335,7 +335,7 @@ public class EveOnline64
         public ulong value;
     }
 
-    static readonly IImmutableSet<string> DictEntriesOfInterestKeys =
+    static readonly ImmutableHashSet<string> DictEntriesOfInterestKeys =
         ImmutableHashSet.Create(
             "_top",
             "_left",
@@ -394,7 +394,7 @@ public class EveOnline64
         public Func<ulong, object> GetDictEntryValueRepresentation;
     }
 
-    static readonly IImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>> specializedReadingFromPythonType =
+    static readonly ImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>> specializedReadingFromPythonType =
         ImmutableDictionary<string, Func<ulong, LocalMemoryReadingTools, object>>.Empty
         .Add("str", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_str))
         .Add("unicode", new Func<ulong, LocalMemoryReadingTools, object>(ReadingFromPythonType_unicode))
@@ -566,15 +566,14 @@ public class EveOnline64
         var firstDictReference =
             linkMemoryAsLongMemory
             .ToArray()
-            .Where(
+            .FirstOrDefault(
                 reference =>
                 {
                     var referencedObjectTypeName =
                         memoryReadingTools.GetPythonTypeNameFromPythonObjectAddress(reference);
 
                     return referencedObjectTypeName is "dict";
-                })
-            .FirstOrDefault();
+                });
 
         if (firstDictReference is 0)
             return null;
@@ -857,7 +856,7 @@ public class EveOnline64
         }
 
         {
-            var _displayDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key == "_display");
+            var _displayDictEntry = dictEntriesOfInterest.FirstOrDefault(entry => entry.key is "_display");
 
             if (_displayDictEntry is not null && (_displayDictEntry.value is bool displayAsBool))
             {
@@ -908,7 +907,7 @@ public class EveOnline64
 
                         var keyString = readPythonStringValueMaxLength4000(dictionaryEntry.key);
 
-                        return keyString == "_childrenObjects";
+                        return keyString is "_childrenObjects";
                     });
 
             //  Console.WriteLine($"Found {(childrenEntry.value == 0 ? "no" : "a")} dictionary entry for children of 0x{nodeAddress:X}");
