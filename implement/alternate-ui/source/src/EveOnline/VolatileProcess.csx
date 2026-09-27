@@ -5,8 +5,8 @@
 #r "sha256:B9B4E633EA6C728BAD5F7CBBEF7F8B842F7E10181731DBE5EC3CD995A6F60287"
 #r "sha256:81110D44256397F0F3C572A20CA94BB4C669E5DE89F9348ABAD263FBD81C54B9"
 
-// https://github.com/Arcitectus/Sanderling/releases/download/v2025-10-24/read-memory-64-bit-separate-assemblies-594a2339a63d7e946872a77c0d5772acdf75bd98-win-x64.zip
-#r "sha256:b1cb3048db6b5be1016c3ef97f7054a99643a2e8376654b4964aada0669bc472"
+// https://github.com/Arcitectus/Sanderling/releases/download/v2026-09-27/read-memory-64-bit-separate-assemblies-58727aba81981b2c2c357bd302887079a4fec686-win-x64.zip
+#r "sha256:79A699B48C344828A7B1F3E1DABDA20A683FB7145EBA1DC7FECA5B9F1993BB95"
 
 #r "mscorlib"
 #r "netstandard"
@@ -22,8 +22,8 @@
 #r "System.Security.Cryptography.Primitives"
 
 //  "System.Drawing.Common"
-// https://www.nuget.org/api/v2/package/System.Drawing.Common/9.0.4
-#r "sha256:144bc126a785601c27754cde054c2423179ebca3f734dac2b0e98738f3b59bee"
+// https://www.nuget.org/api/v2/package/System.Drawing.Common/10.0.12
+#r "sha256:E09D9CBD11B375098DFEBE93FA10905CCE7C03D55369452DA12194D63AE0964D"
 
 //  "System.Drawing.Primitives"
 #r "sha256:CA24032E6D39C44A01D316498E18FE9A568D59C6009842029BC129AA6B989BCD"
