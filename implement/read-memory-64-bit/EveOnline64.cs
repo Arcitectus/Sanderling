@@ -364,6 +364,8 @@ public class EveOnline64
 
             //  Found in "ModuleButton"
             "ramp_active",
+            "end",
+            "endTime",
 
             //  Found in the Transforms contained in "ShipModuleButtonRamps"
             "_rotation",
@@ -377,11 +379,55 @@ public class EveOnline64
             //  Found in "_sr" Bunch
             "htmlstr",
 
+            // Module button info
+            "autoreload", // int
+            "activationTimer", // ???
+            "moduleButtonHint", // ???
+            "isDeactivating", // bool
+            "autorepeat", // long
+            "online", // bool
+            "quantity", // int
+            "moduleinfo",
+            "_pickRadius",
+
+            // in Icon, might be useful for ButtonModule
+            "itemID",
+            "typeID",
+
             // 2023-01-03 Sample with PhotonUI: process-sample-ebdfff96e7.zip
             "_texturePath",
             "_opacity",
             "_bgColor",
-            "isExpanded");
+            "isExpanded",
+
+            // Planetary Industry
+            "isSelected",
+
+            // Industry
+            "_isSelected",
+            "isDisabled",
+
+            // chat channels
+            "displayName",
+            "charid",
+
+            // overview entry things
+            "flagStateOwnerHint",
+            "flagStateHint",
+
+            // Overview Tabs
+            "_selected",
+
+            // Market Orders
+            "_direction",
+
+            // Autopilot
+            "lawless",
+            "solarSystemID",
+            "destinationID",
+            "markerType",
+            "numJumps"
+            );
 
     struct LocalMemoryReadingTools
     {
