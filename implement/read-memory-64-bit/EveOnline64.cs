@@ -231,7 +231,7 @@ public class EveOnline64
             return
                 memoryRegionsOrderedByAddress
                 .AsParallel()
-                .WithDegreeOfParallelism(2)
+                .WithDegreeOfParallelism(3)
                 .SelectMany(EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion)
                 .ToImmutableArray();
         }
