@@ -77,7 +77,9 @@ static public class ZipArchive
         Func<System.IO.Compression.ZipArchiveEntry, bool> includeEntry)
     {
         using var fclZipArchive =
-            new System.IO.Compression.ZipArchive(new MemoryStream(zipArchive), System.IO.Compression.ZipArchiveMode.Read);
+            new System.IO.Compression.ZipArchive(
+                new MemoryStream(zipArchive),
+                System.IO.Compression.ZipArchiveMode.Read);
 
         foreach (var entry in fclZipArchive.Entries)
         {
@@ -92,7 +94,12 @@ static public class ZipArchive
             var entryContent = memoryStream.ToArray();
 
             if (entryContent.Length != entry.Length)
-                throw new Exception("Error trying to read entry '" + entry.FullName + "': got " + entryContent.Length + " bytes from entry instead of " + entry.Length);
+            {
+                throw new Exception(
+                    "Error trying to read entry '" + entry.FullName + "': got " + entryContent.Length +
+                    " bytes from entry instead of " +
+                    entry.Length);
+            }
 
             yield return (entry.FullName, entryContent);
         }

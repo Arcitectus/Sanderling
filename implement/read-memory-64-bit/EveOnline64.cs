@@ -200,7 +200,8 @@ public class EveOnline64
 
         IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectType()
         {
-            IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion((ulong baseAddress, ulong length) memoryRegion)
+            IEnumerable<ulong> EnumerateCandidatesForPythonTypeObjectTypeInMemoryRegion(
+                (ulong baseAddress, ulong length) memoryRegion)
             {
                 var memoryRegionContentAsULongArray =
                     ReadMemoryRegionContentAsULongArray(memoryRegion);
@@ -664,7 +665,10 @@ public class EveOnline64
         public object GetDictEntryValueRepresentation(ulong address, Func<ulong, object> getFresh) =>
             GetFromCacheOrUpdate(DictEntryValueRepresentation, address, getFresh);
 
-        static TValue GetFromCacheOrUpdate<TKey, TValue>(IDictionary<TKey, TValue> cache, TKey key, Func<TKey, TValue> getFresh)
+        static TValue GetFromCacheOrUpdate<TKey, TValue>(
+            IDictionary<TKey, TValue> cache,
+            TKey key,
+            Func<TKey, TValue> getFresh)
         {
             if (cache.TryGetValue(key, out var fromCache))
                 return fromCache;
@@ -679,7 +683,11 @@ public class EveOnline64
     static public UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth) =>
         ReadUITreeFromAddress(nodeAddress, memoryReader, maxDepth, null);
 
-    static UITreeNode ReadUITreeFromAddress(ulong nodeAddress, IMemoryReader memoryReader, int maxDepth, MemoryReadingCache cache)
+    static UITreeNode ReadUITreeFromAddress(
+        ulong nodeAddress,
+        IMemoryReader memoryReader,
+        int maxDepth,
+        MemoryReadingCache cache)
     {
         cache ??= new MemoryReadingCache();
 

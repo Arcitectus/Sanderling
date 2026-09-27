@@ -10,10 +10,19 @@ static public class WinApi
     static public extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
     [DllImport("kernel32.dll")]
-    static public extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, uint dwLength);
+    static public extern int VirtualQueryEx(
+        IntPtr hProcess,
+        IntPtr lpAddress,
+        out MEMORY_BASIC_INFORMATION64 lpBuffer,
+        uint dwLength);
 
     [DllImport("kernel32.dll")]
-    static public extern bool ReadProcessMemory(IntPtr hProcess, ulong lpBaseAddress, byte[] lpBuffer, UIntPtr nSize, ref UIntPtr lpNumberOfBytesRead);
+    static public extern bool ReadProcessMemory(
+        IntPtr hProcess,
+        ulong lpBaseAddress,
+        byte[] lpBuffer,
+        UIntPtr nSize,
+        ref UIntPtr lpNumberOfBytesRead);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     static public extern bool CloseHandle(IntPtr hHandle);

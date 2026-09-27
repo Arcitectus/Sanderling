@@ -42,12 +42,14 @@ public class ProcessSample
         return Pine.ZipArchive.ZipArchiveFromEntries(zipArchiveEntries);
     }
 
-    static public (IImmutableList<SampleMemoryRegion> memoryRegions, IImmutableList<string> copyMemoryLog) ProcessSampleFromZipArchive(byte[] sampleFile)
+    static public (IImmutableList<SampleMemoryRegion> memoryRegions, IImmutableList<string> copyMemoryLog) ProcessSampleFromZipArchive(
+        byte[] sampleFile)
     {
         var files =
             Pine.ZipArchive.EntriesFromZipArchive(sampleFile);
 
-        IEnumerable<(IImmutableList<string> filePath, byte[] fileContent)> GetFilesInDirectory(IImmutableList<string> directory)
+        IEnumerable<(IImmutableList<string> filePath, byte[] fileContent)> GetFilesInDirectory(
+            IImmutableList<string> directory)
         {
             foreach (var fileFullPathAndContent in files)
             {
@@ -67,7 +69,8 @@ public class ProcessSample
                 fileSubpathAndContent =>
                 {
                     var baseAddressBase16 =
-                        System.Text.RegularExpressions.Regex.Match(fileSubpathAndContent.filePath.Single(), @"0x(.+)").Groups[1].Value;
+                        System.Text.RegularExpressions.Regex.Match(fileSubpathAndContent.filePath.Single(), @"0x(.+)").Groups[1]
+                        .Value;
 
                     var baseAddress = ulong.Parse(baseAddressBase16, System.Globalization.NumberStyles.HexNumber);
 

@@ -144,7 +144,8 @@ class Program
                             :
                             null;
 
-                        (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddressesFromProcessSampleFile(byte[] processSampleFile)
+                        (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndRootAddressesFromProcessSampleFile(
+                            byte[] processSampleFile)
                         {
                             var processSampleId =
                                 Convert.ToHexStringLower(
@@ -160,7 +161,9 @@ class Program
 
                             var memoryRegions =
                                 processSampleUnpacked.memoryRegions
-                                .Select(memoryRegion => (memoryRegion.baseAddress, length: (ulong)memoryRegion.content.Value.Length))
+                                .Select(
+                                    memoryRegion =>
+                                    (memoryRegion.baseAddress, length: (ulong)memoryRegion.content.Value.Length))
                                 .ToImmutableList();
 
                             var uiRootCandidatesAddresses =
@@ -176,7 +179,9 @@ class Program
                             return (memoryReader, uiRootCandidatesAddresses);
                         }
 
-                        (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(byte[] processSampleFile, ulong rootAddress)
+                        (IMemoryReader, IImmutableList<ulong>) GetMemoryReaderAndWithSpecifiedRootFromProcessSampleFile(
+                            byte[] processSampleFile,
+                            ulong rootAddress)
                         {
                             var processSampleId =
                                 Convert.ToHexStringLower(
@@ -264,7 +269,9 @@ class Program
 
                         var uiTreesReport =
                             uiTreesWithStats
-                            .Select(uiTreeWithStats => $"\n0x{uiTreeWithStats.uiTree.pythonObjectAddress:X}: {uiTreeWithStats.nodeCount} nodes.")
+                            .Select(
+                                uiTreeWithStats =>
+                                $"\n0x{uiTreeWithStats.uiTree.pythonObjectAddress:X}: {uiTreeWithStats.nodeCount} nodes.")
                             .ToImmutableList();
 
                         Console.WriteLine(
